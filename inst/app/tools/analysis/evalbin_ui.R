@@ -1,0 +1,182 @@
+# ebin_method <- list("xtile" = "xtile", "ntile" = "ntile")
+ebin_plots <- list("Lift" = "lift", "Gains" = "gains", "Profit" = "profit", "ROME" = "rome")
+ebin_train <- list("All" = "All", "Training" = "Training", "Validation" = "Validation", "Both" = "Both")
+
+# list of function arguments
+ebin_args <- as.list(formals(evalbin))
+
+ebin_inputs <- reactive({
+  # loop needed because reactive values don't allow single bracket indexing
+  ebin_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  ebin_args$dataset <- input$dataset
+  for (i in r_drop(names(ebin_args)))
+    ebin_args[[i]] <- input[[paste0("ebin_",i)]]
+  ebin_args
+})
+
+###############################################################
+# Evaluate model evalbin
+###############################################################
+output$ui_ebin_rvar <- renderUI({
+  vars <- two_level_vars()
+  # isolate(sel <- use_input("ebin_rvar", vars))
+  selectInput(inputId = "ebin_rvar", label = "Response variable:", choices = vars,
+    selected = state_single("ebin_rvar", vars), multiple = FALSE)
+})
+
+output$ui_ebin_lev <- renderUI({
+  if (is_empty(input$ebin_rvar)) return()
+  if (available(input$ebin_rvar))
+    levs <- .getdata()[[input$ebin_rvar]] %>% as.factor %>% levels
+  else
+    levs <- c()
+  selectInput(inputId = "ebin_lev", label = "Choose level:",
+              choices = levs,
+              selected = state_init("ebin_lev"))
+              # selected = isolate(use_input_nonvar("ebin_lev", levs)))
+})
+
+output$ui_ebin_pred <- renderUI({
+  isNum <- .getclass() %in% c("integer","numeric")
+  vars <- varnames()[isNum]
+  selectInput(inputId = "ebin_pred", label = "Predictor:", choices = vars,
+    selected = state_multiple("ebin_pred", vars),
+    multiple = TRUE, size = min(4, length(vars)), selectize = FALSE)
+})
+
+output$ui_ebin_train <- renderUI({
+  if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
+      is_empty(input$data_filter)) {
+    ebin_train <- ebin_train[1]
+    r_state$ebin_train <<- ebin_train
+  }
+
+  radioButtons("ebin_train", label = "Show results for:", ebin_train,
+    selected = state_init("ebin_train", "All"),
+    inline = TRUE)
+})
+
+output$ui_evalbin <- renderUI({
+  req(input$dataset)
+  tagList(
+    wellPanel(
+      actionButton("ebin_run", "Evaluate", width = "100%")
+    ),
+  	wellPanel(
+      # checkboxInput("ebin_pause", "Pause evaluation", state_init("ebin_pause", FALSE)),
+	    uiOutput("ui_ebin_rvar"),
+      uiOutput("ui_ebin_lev"),
+      uiOutput("ui_ebin_pred"),
+      numericInput("ebin_qnt", label = "# quantiles:",
+        value = state_init("ebin_qnt", 10), min = 2),
+      # radioButtons("ebin_method", label = "Method:", ebin_method,
+        #   selected = state_init("ebin_method", "xtile"),
+        #   inline = TRUE),
+      tags$table(
+        tags$td(numericInput("ebin_margin", label = "Margin:",
+          value = state_init("ebin_margin",1), width = "117px")),
+        tags$td(numericInput("ebin_cost", label = "Cost:",
+          value = state_init("ebin_cost",1)))
+      ),
+      uiOutput("ui_ebin_train"),
+      conditionalPanel("input.tabs_evalbin == 'Plot'",
+        checkboxGroupInput("ebin_plots", "Plots:", ebin_plots,
+          selected = state_init("ebin_plots", ""),
+          inline = TRUE)
+      )
+  	),
+  	help_and_report(modal_title = "Model evalbin",
+  	                fun_name = "evalbin",
+  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalbin.md")))
+	)
+})
+
+ebin_plot_width <- function() {
+  ifelse(length(input$ebin_pred) > 1 ||
+         (!is.null(input$ebin_train) && input$ebin_train == "Both"), 700, 500)
+}
+ebin_plot_height <- function() {
+  length(input$ebin_plots) * 500
+}
+
+# output is called from the main radiant ui.R
+output$evalbin <- renderUI({
+	register_print_output("summary_evalbin", ".summary_evalbin")
+	register_plot_output("plot_evalbin", ".plot_evalbin",
+                       	width_fun = "ebin_plot_width",
+                       	height_fun = "ebin_plot_height")
+
+	# one output with components stacked
+	# ebin_output_panels <- tagList(
+  ebin_output_panels <- tabsetPanel(
+    id = "tabs_evalbin",
+    tabPanel("Summary",
+      downloadLink("dl_ebin_tab", "", class = "fa fa-download alignright"), br(),
+      verbatimTextOutput("summary_evalbin")
+    ),
+    tabPanel("Plot",
+      plot_downloader("evalbin", height = ebin_plot_height()),
+      plotOutput("plot_evalbin", height = "100%")
+    )
+    # tabPanel("Table",
+       # downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
+       ## use explorer as starting point
+    # )
+  )
+
+	stat_tab_panel(menu = "Model > Performance",
+	              tool = "Evaluate classification",
+	              tool_ui = "ui_evalbin",
+	             	output_panels = ebin_output_panels)
+})
+
+.evalbin <- eventReactive(input$ebin_run, {
+  # req(input$ebin_pause == FALSE, cancelOutput = TRUE)
+	do.call(evalbin, ebin_inputs())
+})
+
+.summary_evalbin <- reactive({
+  if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
+      is_empty(input$ebin_lev))
+    return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
+  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  summary(.evalbin())
+})
+
+.plot_evalbin <- reactive({
+  if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
+      is_empty(input$ebin_lev)) {
+    return(" ")
+  }
+  req(input$ebin_train)
+  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  plot(.evalbin(), plots = input$ebin_plots, shiny = TRUE)
+})
+
+observeEvent(input$evalbin_report, {
+  if (length(input$ebin_plots) > 0) {
+    inp_out <- list(plots = input$ebin_plots) %>% list("",.)
+    outputs <- c("summary","plot")
+    figs <- TRUE
+  } else {
+    outputs <- c("summary")
+    inp_out <- list("","")
+    figs <- FALSE
+  }
+  update_report(inp_main = clean_args(ebin_inputs(), ebin_args),
+                fun_name = "evalbin",
+                inp_out = inp_out,
+                outputs = outputs,
+                figs = figs,
+                fig.width = round(7 * ebin_plot_width()/650,2),
+                fig.height = round(7 * ebin_plot_height()/650,2))
+})
+
+output$dl_ebin_tab <- downloadHandler(
+  filename = function() { "evalbin.csv" },
+  content = function(file) {
+    do.call(summary, c(list(object = .evalbin()), ebin_inputs(),
+            list(prn = FALSE))) %>%
+      write.csv(., file = file, row.names = FALSE)
+  }
+)

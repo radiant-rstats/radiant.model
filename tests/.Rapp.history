@@ -1,0 +1,434 @@
+result$sp_levels
+expect_equal(result$sp_levels,"D")
+result <- single_prop("diamonds","color")
+expect_equal(result$sp_levels,"D")
+res1 <- capture.output(summary(result))[8]
+# cat(paste0(res1, "\n"))
+res2 <- " 0.127        1667  < .001  1 0.116  0.14 382 3000"
+expect_equal(res1,res2)
+result <- single_prop("diamonds","clarity", sp_levels = "IF", sp_comp_value = 0.05)
+res1 <- capture.output(summary(result))[8]
+cat(paste0(res1, "\n"))
+res1 <- capture.output(summary(result))
+cat(paste0(res1, "\n"))
+expect_equal(result$sp_levels,"IF")
+res1 <- capture.output(summary(result))[8]
+res2 <- " 0.033       18.25  < .001  1 0.027  0.04 99 3000"
+expect_equal(res1,res2)
+result <- regression("diamonds", "price", c("carat", "clarity"))
+res1 <- capture.output(summary(result))[8]
+# cat(paste0(res1, "\n"))
+res2 <- "          carat        8438      51.1  165.12  < .001 ***"
+expect_equal(res1,res2)
+dat
+library(testthat)
+test_check("radiant")
+library(testthat)
+test_check("radiant")
+library(radiant)
+test_package("radiant")
+sub("<table border=1>","<table class='table table-condensed table-hover'>", .) %>%
+)
+xtable::xtable(mtcars)
+xtable::xtable(mtcars) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE)
+library(dplyr)
+xtable::xtable(mtcars) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE)
+res <- xtable::xtable(mtcars) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE)
+res
+length(res)
+sub("<table border=\"1\">","<table class='table table-condensed table-hover'>", .)
+sub("<table border=\"1\">","<table class='table table-condensed table-hover'>", res)
+sub("<table border=1>","<table class='table table-condensed table-hover'>", res)
+res <- xtable::xtable(mtcars) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE) %>%
+sub("<table border=1>","<table border=1><table = border\"1\">", .)
+sub("<table border=1>","<table class='table table-condensed table-hover'>", res)
+?sub
+sub("<table border=.*>","<table class='table table-condensed table-hover'>", res , perl = TRUE)
+res <- xtable::xtable(mtcars) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE) %>%
+sub("<table border=1>","<table border=1><table = border\"1\">", .)
+sub("<table border=.*>","<table class='table table-condensed table-hover'>", res , perl = TRUE)
+res <- xtable::xtable(mtcars) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE) %>%
+sub("<table border=1>","<table border=1><table = border\"1\">", .)
+res
+res <- xtable::xtable(mtcars[1:2,]) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE) %>%
+sub("<table border=1>","<table border=1><table = border\"1\">", .)
+res
+sub("<table border=.*>","<table class='table table-condensed table-hover'>", res , perl = TRUE)
+sub("<table border=.*\n<tr>","<table class='table table-condensed table-hover'>\n<tr>", res , perl = TRUE)
+res <- xtable::xtable(mtcars[1:2,]) %>% print(type='html',  print.results = FALSE, include.rownames = FALSE) %>%
+sub("<table border=1>","<table border=1><table = border\"1\">", .)
+res
+sub("<table border=.*\n<tr>","<table class='table table-condensed table-hover'>\n<tr>", res , perl = TRUE)
+library(radiant)
+result <- diamonds %>% tbl_df %>% compare_means("cut","price")
+summary(result)
+result <- compare_means("dat","cut","price")
+dat <<- diamonds %>% tbl_df
+result <- compare_means("dat","cut","price")
+summary(result)
+result <- diamonds %>% tbl_df %>% compare_means("cut","price")
+summary(result)
+result <- diamonds %>% tbl_df %>% compare_means(.,"cut","price")
+summary(result)
+result <- diamonds %>% compare_means(.,"cut","price")
+summary(result)
+mtcars
+symbol(mtcars)
+str(mtcars)
+attributes(mtcars)
+result <- diamonds %>% compare_means(.,"cut","price")
+library(radiant)
+result <- compare_means("dat","cut","price")
+result <- diamonds %>% compare_means(.,"cut","price")
+summary(result)
+result <- compare_means("dat","cut","price")
+dat <<- diamonds %>% tbl_df
+result <- compare_means("dat","cut","price")
+summary(result)
+result <- diamonds %>% compare_means(.,"cut","price")
+summary(result)
+library(radiant)
+dat <<- diamonds %>% tbl_df
+result <- compare_means("dat","cut","price")
+result <- diamonds %>% compare_means(.,"cut","price")
+summary(result)
+result <- compare_means("diamonds","cut","price")
+summary(result)
+result <- diamonds %>% tbl_df %>% compare_means("cut","price")
+summary(result)
+result
+result <- diamonds %>% tbl_df %>% group_by(cut) %>% compare_means("cut","price")
+summary(result)
+result <- diamonds %>% tbl_df %>% compare_means("x","y")
+summary(result)
+result <- diamonds %>% tbl_df %>% group_by(cut) %>% compare_means("x",c("x","y"))
+summary(result)
+d_mdy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::mdy %>% as.Date#
+d_dmy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::dmy %>% as.Date#
+d_ymd <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::ymd %>% as.Date
+library(magrittr)
+d_mdy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::mdy %>% as.Date#
+d_dmy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::dmy %>% as.Date#
+d_ymd <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::ymd %>% as.Date
+dat <- read.table(header = TRUE, text = "date   days#
+1/1/10  1#
+1/2/10  2#
+1/3/10  3#
+1/4/10  4#
+1/5/10  5#
+1/6/10  6#
+1/7/10  7#
+1/8/10  8#
+1/9/10  9#
+1/10/10 10")
+sapply(dat,class)
+library(lubridate)
+d_mdy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::mdy#
+d_dmy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::dmy#
+d_ymd <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::ymd
+dat <- read.table(header = TRUE, text = "date   days#
+1/1/10  1#
+1/2/10  2#
+1/3/10  3#
+1/4/10  4#
+1/5/10  5#
+1/6/10  6#
+1/7/10  7#
+1/8/10  8#
+1/9/10  9#
+1/10/10 10")#
+sapply(dat,class)
+dat$date %>% d_mdy %T>% print %>% class
+d_mdy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::mdy(.)
+dat$date %>% d_mdy %T>% print %>% class
+dat$date %>% as.character
+dat$date %>% d_mdy %T>% print %>% class
+dat$date %>% as.factor
+dat$date %>% d_dmy %T>% print %>% class
+d_mdy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::mdy(.)#
+d_dmy <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::dmy(.)#
+d_ymd <- . %>% { if (is.factor(.)) as.character(.) else . } %>%#
+           lubridate::ymd(.)
+dat$date %>% d_mdy %T>% print %>% class
+dat$date %>% as.character
+dat$date %>% d_mdy %T>% print %>% class
+dat$date %>% as.factor
+dat$date %>% d_dmy %T>% print %>% class
+dat$date %>% as.character
+dat$date %>% d_dmy %T>% print %>% class
+dat$date %>% d_dmy
+dat$date %>% d_dmy %>% as.Date
+library(radiant)
+mergedata("titanic","titanic_pred",c("pclass","sex","age")) %>% head
+r_data
+outer_join <- function(dataset, dataset2, by)
+merge(dataset, dataset2, by, all = TRUE)
+suppressPackageStartupMessages(library(radiant))
+knitr::kable(superheroes, align = 'l', format = 'html', caption = "Superheroes", table.attr = "width='100%'")
+knitr::kable(publishers, align = 'l', format = 'html', caption = "Publishers", table.attr = "width='50%'")
+right_join(superheroes, publishers, by = "publisher") %>%
+knitr::kable(., align = 'l', format = 'html', table.attr = "width='100%'")
+)
+library(radiant)
+viewdata <- function(dataset, vars = "") {#
+  getdata(dataset, vars) %>%#
+  DT::datatable(filter = "top", rownames = FALSE,#
+    options = list(#
+      search = list(regex = TRUE),#
+      columnDefs = list(list(className = 'dt-center', targets = "_all")),#
+      autoWidth = TRUE,#
+      processing = FALSE,#
+      pageLength = 10,#
+      lengthMenu = list(c(10, 25, 50, -1), c('10','25','50','All'))#
+    )#
+  )#
+})
+viewdata <- function(dataset, vars = "") {#
+  getdata(dataset, vars) %>%#
+  DT::datatable(filter = "top", rownames = FALSE,#
+    options = list(#
+      search = list(regex = TRUE),#
+      columnDefs = list(list(className = 'dt-center', targets = "_all")),#
+      autoWidth = TRUE,#
+      processing = FALSE,#
+      pageLength = 10,#
+      lengthMenu = list(c(10, 25, 50, -1), c('10','25','50','All'))#
+    )#
+  )#
+}
+viewdata(mtcars)
+mtcars %>% view
+mtcars %>% viewdata
+viewdata("mtcars")
+read.table(pipe("pbpaste"), header = header, sep = sep, as.is = TRUE, check.names = FALSE)
+read.table(pipe("pbpaste"), header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE)
+try(read.table(pipe("pbpaste"), header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE), silent = TRUE)
+suppressWarnings(try(read.table(pipe("pbpaste"), header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE), silent = TRUE))
+reorg_vars <- function(dataset, vars, #
+                       data_filter = "") {#
+#
+    getdata(dataset, vars, filt = data_filter)#
+}
+library(radiant)
+formals(reorg_vars)
+reorg_vars <- function(dataset, vars = "", #
+                       data_filter = "") {#
+#
+    getdata(dataset, vars, filt = data_filter)#
+}#
+#
+formals(reorg_vars)
+formals("reorg_vars")
+a <- "reorg_vars"
+formals(a)
+formals(get(a))
+reorg_vars <- function(dataset, vars = "", #
+                       data_filter = "") {#
+#
+    getdata(dataset, vars, filt = data_filter)#
+}#
+#
+# list of function arguments#
+tr_args_fun <- function(fun) as.list(formals(fun))#
+#
+# list of function inputs selected by user#
+tr_inputs <- reactive({#
+  if (input$tr_change_type != "reorg_vars") return("")#
+  # loop needed because reactive values don't allow single bracket indexing#
+  tr_args <- tr_args_fun(input$tr_change_type)#
+  for (i in names(tr_args))#
+    tr_args[[i]] <- input[[i]]#
+  if (!input$show_filter) tr_args$data_filter = ""#
+  tr_args#
+})
+library(shiny)
+reorg_vars <- function(dataset, vars = "", #
+                       data_filter = "") {#
+#
+    getdata(dataset, vars, filt = data_filter)#
+}#
+#
+# list of function arguments#
+tr_args_fun <- function(fun) as.list(formals(fun))#
+#
+# list of function inputs selected by user#
+tr_inputs <- reactive({#
+  if (input$tr_change_type != "reorg_vars") return("")#
+  # loop needed because reactive values don't allow single bracket indexing#
+  tr_args <- tr_args_fun(input$tr_change_type)#
+  for (i in names(tr_args))#
+    tr_args[[i]] <- input[[i]]#
+  if (!input$show_filter) tr_args$data_filter = ""#
+  tr_args#
+})
+tr_args_fun("reorg_vars")
+env
+env <- if (exists("r_env")) r_env #
+           else if (exists("r_data")) pryr::where("r_data")#
+           else ""
+env <- if (exists("r_env")) r_env
+env <- if (exists("r_env")) r_env #
+           else if (exists("r_data")) pryr::where("r_data")
+find_env <- function(dataset)#
+    if (exists("r_env")) { #
+      r_env #
+    } else if (exists("r_data")) { #
+         pryr::where("r_data") #
+    } else if (exists(dataset)) { #
+         pryr::where(dataset) #
+    }#
+}
+find_env <- function(dataset) {#
+    if (exists("r_env")) { #
+      r_env #
+    } else if (exists("r_data")) { #
+         pryr::where("r_data") #
+    } else if (exists(dataset)) { #
+         pryr::where(dataset) #
+    }#
+}
+find_env(mtcars)
+find_env("mtcars")
+find_env("mtcars")[["mtcars"]]
+message
+message("Dataset", dataset, "changed in", environmentName(d_env), "environment\n")
+env <- find_env("mtcars")
+dataset <- "mtcars"
+env <- find_env("mtcars")
+message("Dataset", dataset, "changed in", environmentName(env), "environment\n")
+cat("Dataset", dataset, "changed in", environmentName(env), "environment\n")
+?complete.cases
+getdata("mtcars")
+dat <- mtcars
+dat$miss <- mpg
+dat$miss <- dat$mpg
+with(dat, miss[miss < 5] <- NA)
+dat
+with(dat, miss[miss < 18] <- NA)
+dat
+dat <- mtcars
+dat$miss <- dat$mpg
+with(dat, miss[miss < 18] <- NA)
+dat
+dat$mpg[1:10] <- NA
+dat
+getdata("dat") %>% complete.cases
+tr_vars <- ""
+getdata("dat", tr_vars) %>% complete.cases
+getdata("dat", tr_vars filt = "", na.rm = FALE) %>% complete.cases
+getdata("dat", tr_vars, filt = "", na.rm = FALSE) %>% complete.cases
+getdata("dat", tr_vars, filt = "") %>% complete.cases
+library(radiant)
+getdata("dat", tr_vars, filt = "", na.rm = FALSE) %>% complete.cases
+library(radiant)
+dat <- mtcars
+dat$mpg[1:10] <- NA
+tr_vars <- ""
+getdata("dat", tr_vars, filt = "", na.rm = FALSE) %>% complete.cases
+sel_vars <- function(inp, rval = "")
+if (is_empty(input[[inp]])) rval else x
+a %<>% "dlkj"
+a <- NULL
+a %<>% "dlkj"
+a <- ""
+a %<>% "dlkj"
+a <- ""
+a %<>% cat("dlkj")
+a %<>% cat("\n\ndlkj")
+a <- NULL
+a %<>% cat("\n\ndlkj")
+a <- NULL
+a %<>% cat("\n\ndlkj")
+reorg_vars <- function(dataset,#
+                       tr_reorg_vars = "",#
+                       tr_dataset = dataset,#
+                       data_filter = "",#
+                       tr_save = TRUE) {#
+#
+    if (!tr_save || !is.character(tr_dataset))#
+        return(getdata(dataset, tr_reorg_vars, filt = data_filter, na.rm = FALSE))#
+#
+    tr_message <-  ""#
+  if (tr_reorg_vars != "")#
+    tr_message <- paste0("\nReorganized variables: ", paste0(tr_reorg_vars, collapse=", "), " (", lubridate::now(), ")")#
+#
+    getdata(dataset, tr_reorg_vars, filt = data_filter, na.rm = FALSE) %>%#
+      save2env(dataset, tr_dataset, tr_message)#
+}
+mtcars %>% reorg_vars
+mtcars %>% reorg_vars("mpg:cyl")
+mtcars %>% reorg_vars("cyl:mpg")
+mtcars %>% reorg_vars(c("cyl","mpg"))
+dat <- mtcars
+reorg_vars(dat,c("cyl","mpg"))
+reorg_vars("dat",c("cyl","mpg"))
+save2env <- function(dat, dataset,#
+                     tr_dataset = dataset,#
+                     tr_message = "") {#
+#
+    env <- find_env(dataset)#
+    env$r_data[[tr_dataset]] <- dat#
+  if(dataset != tr_dataset) {#
+    cat(paste0("Dataset r_data$", tr_dataset, " created in ", environmentName(env), " environment\n"))#
+    env$r_data[['datasetlist']] <- c(tr_dataset, env$r_data[['datasetlist']]) %>% unique#
+    } else {#
+    cat(paste0("Dataset r_data$", dataset, " change in ", environmentName(env), " environment\n"))#
+    }#
+#
+  if(tr_message != "")#
+    env$r_data[[paste0(tr_dataset,"_descr")]] %<>% paste0("\n",tr_message)#
+}
+find_env <- function(dataset) {#
+    if (exists("r_env")) {#
+      r_env#
+    } else if (exists("r_data")) {#
+         pryr::where("r_data")#
+    } else if (exists(dataset)) {#
+         pryr::where(dataset)#
+    }#
+}
+reorg_vars("dat",c("cyl","mpg"))
+a <- c("")
+a == ""
+a <- c("", 1)
+a == ""
+reorg_vars <- function(dataset,#
+                       tr_reorg_vars = "",#
+                       tr_dataset = dataset,#
+                       data_filter = "",#
+                       tr_save = TRUE) {#
+#
+    if (!tr_save || !is.character(tr_dataset))#
+        return(getdata(dataset, tr_reorg_vars, filt = data_filter, na.rm = FALSE))#
+#
+    tr_message <-  ""#
+  if (tr_reorg_vars[1] != "")#
+    tr_message <- paste0("\nReorganized variables: ", paste0(tr_reorg_vars, collapse=", "), " (", lubridate::now(), ")")#
+#
+    getdata(dataset, tr_reorg_vars, filt = data_filter, na.rm = FALSE) %>%#
+      save2env(dataset, tr_dataset, tr_message)#
+}
+mtcars %>% reorg_vars(c("cyl","mpg"))
+dat <- mtcars
+reorg_vars(dat,c("cyl","mpg"))
+reorg_vars("dat",c("cyl","mpg"))
+dat
+r_data %>% str
+reorg_vars("dat",c("cyl","mpg"), save = FALSE)
+reorg_vars("dat",c("cyl","mpg"), tr_save = FALSE)
+setwd("~/gh/radiant/tests")
+source('testthat.R')
+devtools::run_examples()
+warnings()
