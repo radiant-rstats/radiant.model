@@ -73,8 +73,8 @@ reg_pred_inputs <- reactive({
   reg_pred_args
 })
 
-reg_pred_plot_args <- as.list(if (exists("plot.reg_predict")) formals(plot.reg_predict)
-                         else formals(radiant.model:::plot.reg_predict))
+reg_pred_plot_args <- as.list(if (exists("plot.regress.predict")) formals(plot.regress.predict)
+                         else formals(radiant.model:::plot.regress.predict))
 
 ## list of function inputs selected by user
 reg_pred_plot_inputs <- reactive({

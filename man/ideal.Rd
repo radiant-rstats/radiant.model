@@ -4,7 +4,7 @@
 \name{ideal}
 \alias{ideal}
 \title{Ideal data for linear regression}
-\format{A data frame with ...}
+\format{A data frame with 1,000 rows and 4 variables}
 \usage{
 data(ideal)
 }

@@ -21,7 +21,7 @@
 #' @seealso \code{\link{summary.logistic}} to summarize the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
-#' @seealso \code{\link{plot.logit_predict}} to plot prediction output
+#' @seealso \code{\link{plot.logistic.predict}} to plot prediction output
 #'
 #' @importFrom sandwich vcovHC
 #'
@@ -168,7 +168,7 @@ logistic <- function(dataset, rvar, evar,
 #' @seealso \code{\link{logistic}} to generate the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
-#' @seealso \code{\link{plot.logit_predict}} to plot prediction output
+#' @seealso \code{\link{plot.logistic.predict}} to plot prediction output
 #'
 #' @importFrom car vif linearHypothesis
 #' @importFrom sandwich vcovHC
@@ -387,6 +387,7 @@ summary.logistic <- function(object,
 #' @param conf_lev Confidence level to use for coefficient and odds confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -396,7 +397,7 @@ summary.logistic <- function(object,
 #' @seealso \code{\link{logistic}} to generate results
 #' @seealso \code{\link{plot.logistic}} to plot results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
-#' @seealso \code{\link{plot.logit_predict}} to plot prediction output
+#' @seealso \code{\link{plot.logistic.predict}} to plot prediction output
 #'
 #' @export
 plot.logistic <- function(x,
@@ -404,6 +405,7 @@ plot.logistic <- function(x,
                          conf_lev = .95,
                          intercept = FALSE,
                          shiny = FALSE,
+                         custom = FALSE,
                          ...) {
 
   object <- x; rm(x)
@@ -416,8 +418,9 @@ plot.logistic <- function(x,
 
   model <- ggplot2::fortify(object$model)
   model$.fitted <- predict(object$model, type = 'response')
-  model$.actual <- as.numeric(object$rv)
-  model$.actual <- model$.actual - max(model$.actual) + 1   # adjustment in case max > 1
+  ## adjustment in case max > 1 (e.g., values are 1 and 2)
+  model$.actual <- as.numeric(object$rv) %>% {. - max(.) + 1}
+  model$.fittedbin <- radiant.data::xtile(model$.fitted, 20)
 
   rvar <- object$rvar
   evar <- object$evar
@@ -496,33 +499,27 @@ plot.logistic <- function(x,
   if (plots == "dashboard") {
 
     plot_list[[1]] <-
-      visualize(model, xvar = ".fitted", yvar = ".actual", type = "scatter", check = "jitter", custom = TRUE) +
-      stat_smooth(method="glm", method.args = list(family = "binomial"), se=TRUE) +
+      visualize(model, xvar = ".fitted", yvar = ".actual", type = "scatter", check = "jitter", alpha = 0.2, custom = TRUE) +
+      stat_smooth(method="glm", method.args = list(family = "binomial"), se = TRUE, size = 1) +
       labs(list(title = "Actual vs Fitted values", x = "Fitted", y = "Actual"))
 
-    # plot_list[[1]] <- ggplot(model, aes_string(x=".fitted", y=".actual")) + geom_point(alpha = .25) +
-    #        stat_smooth(method="glm", method.args = list(family = "binomial"), se=TRUE) +
-    #        geom_jitter(position = position_jitter(height = .05)) +
-    #        labs(list(title = "Actual vs Fitted values", x = "Fitted values", y = "Actual"))
-
-    # plot_list[[2]] <- ggplot(model, aes_string(x=".fitted", y=".resid")) + geom_point(alpha = .25) +
-    #        geom_hline(yintercept = 0) + geom_smooth(size = .75, linetype = "dotdash", se = TRUE) +
-    #        labs(list(title = "Residuals vs Fitted values", x = "Fitted", y = "Residuals"))
-
+    df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - ".fitted"))
     plot_list[[2]] <-
-      visualize(model, xvar = ".fitted", yvar = ".resid", type = "scatter", custom = TRUE) +
-      labs(list(title = "Residuals vs Fitted", x = "Fitted values", y = "Residuals")) +
-      geom_hline(yintercept = 0)
-      # + geom_smooth(size = .75, linetype = "dotdash", se = TRUE)
+      visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
+      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +
+      labs(list(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability"))
 
     plot_list[[3]] <-
       visualize(model, xvar = ".resid", custom = TRUE) +
       labs(list(title = "Histogram of residuals", x = "Residuals"))
 
     plot_list[[4]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
-      stat_function(fun = dnorm, args = list(mean = mean(model[,".resid"]), sd = sd(model[,".resid"])), color = "blue") +
+      stat_function(fun = dnorm, args = list(mean = mean(model[,".resid"]), sd = sd(model[,".resid"])), color = "blue", size = 1) +
       labs(list(title = "Residual vs Normal density", x = "Residuals", y = "")) + theme(axis.text.y = element_blank())
   }
+
+  if (custom)
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
   if (length(plot_list) > 0) {
     sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = nrCol))) ) %>%
@@ -553,7 +550,7 @@ plot.logistic <- function(x,
 #' @seealso \code{\link{logistic}} to generate the result
 #' @seealso \code{\link{summary.logistic}} to summarize results
 #' @seealso \code{\link{plot.logistic}} to plot results
-#' @seealso \code{\link{plot.logit_predict}} to plot prediction output
+#' @seealso \code{\link{plot.logistic.predict}} to plot prediction output
 #'
 #' @export
 predict.logistic <- function(object,
@@ -570,7 +567,7 @@ predict.logistic <- function(object,
   if ("standardize" %in% object$check) {
     return(cat("Standardized coefficients cannot be used for prediction.\nPlease uncheck the standardized coefficients box and try again"))
   } else if (pred_count == 3) {
-    return("Please specify a command to generate predictions. For example,\n pclass = levels(pclass) would produce predictions for the different\n levels of factor pclass. To add another variable use a ,\n(e.g., pclass = levels(pclass), age = seq(0,100,20))\n\nMake sure to press return after you finish entering the command. If no\nresults are shown the command was invalid. Alternatively specify a dataset\nto generate predictions. You could create this in a spreadsheet and use the\nclipboard feature in Data > Manage to bring it into Radiant" %>% set_class(c("logit_predict",class(.))))
+    return("Please specify a command to generate predictions. For example,\n pclass = levels(pclass) would produce predictions for the different\n levels of factor pclass. To add another variable use a ,\n(e.g., pclass = levels(pclass), age = seq(0,100,20))\n\nMake sure to press return after you finish entering the command. If no\nresults are shown the command was invalid. Alternatively specify a dataset\nto generate predictions. You could create this in a spreadsheet and use the\nclipboard feature in Data > Manage to bring it into Radiant" %>% set_class(c("logistic.predict",class(.))))
   }
 
   dec <- object$dec
@@ -581,7 +578,7 @@ predict.logistic <- function(object,
     pred_cmd %<>% gsub("\"","\'",.) %>% gsub(";\\s*$","",.) %>% gsub(";",",",.)
     pred <- try(eval(parse(text = paste0("with(object$model$model, expand.grid(", pred_cmd ,"))"))), silent = TRUE)
     if (is(pred, 'try-error')) {
-      return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% set_class(c("logit_predict",class(.))))
+      return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% set_class(c("logistic.predict",class(.))))
     }
 
     ## adding information to the prediction data.frame
@@ -621,11 +618,11 @@ predict.logistic <- function(object,
     # if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
     if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
       return("The model includes data-types that cannot be used for\nprediction at this point\n" %>%
-        set_class(c("logit_predict",class(.))))
+        set_class(c("logistic.predict",class(.))))
 
     } else {
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
-        return("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n" %>% set_class(c("logit_predict",class(.))))
+        return("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n" %>% set_class(c("logistic.predict",class(.))))
       } else {
         plug_data[names(pred)] <- list(NULL)
         pred <- data.frame(plug_data[-1],pred)
@@ -656,7 +653,7 @@ predict.logistic <- function(object,
 
       pred <- try(mutate_(pred, .dots = setNames(dots, vars)), silent = TRUE)
       if (is(pred, 'try-error')) {
-        return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% set_class(c("logit_predict",class(.))))
+        return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% set_class(c("logistic.predict",class(.))))
         return()
       }
       pred_type <- "datacmd"
@@ -720,9 +717,9 @@ predict.logistic <- function(object,
       }
     }
 
-    return(pred %>% set_class(c("logit_predict",class(.))))
+    return(pred %>% set_class(c("logistic.predict",class(.))))
   } else {
-    return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% set_class(c("logit_predict",class(.))))
+    return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% set_class(c("logistic.predict",class(.))))
   }
 
   return(invisible())
@@ -764,7 +761,7 @@ predict.logistic <- function(object,
 #' @seealso \code{\link{predict.logistic}} to generate predictions
 #'
 #' @export
-plot.logit_predict <- function(x,
+plot.logistic.predict <- function(x,
                              xvar = "",
                              facet_row = ".",
                              facet_col = ".",
@@ -814,7 +811,7 @@ plot.logit_predict <- function(x,
 
 #' Deprecated function to store logistic regression residuals and predictions
 #'
-#' @details Use \code{\link{store.logit_predict}} or \code{\link{store.logistic}} instead
+#' @details Use \code{\link{store.logistic.predict}} or \code{\link{store.logistic}} instead
 #'
 #' @details See \url{http://vnijs.github.io/radiant/quant/glm_reg.html} for an example in Radiant
 #'
@@ -830,12 +827,12 @@ store_glm <- function(object, data = object$dataset,
   if (type == "residuals")
     store.logistic(object, data = data, name = name)
   else
-    store.logit_predict(object, data = data, name = name)
+    store.logistic.predict(object, data = data, name = name)
 }
 
 #' Store predicted values generated in the logistic function
 #'
-#' @details Use \code{\link{store.logit_predict}} or \code{\link{store.logistic}} instead
+#' @details Use \code{\link{store.logistic.predict}} or \code{\link{store.logistic}} instead
 #'
 #' @details See \url{http://vnijs.github.io/radiant/quant/glm_reg.html} for an example in Radiant
 #'
@@ -844,9 +841,9 @@ store_glm <- function(object, data = object$dataset,
 #' @param name Variable name assigned to the residuals or predicted values
 #'
 #' @export
-store.logit_predict <- function(object, ..., name = "predict_logit") {
+store.logistic.predict <- function(object, ..., name = "predict_logit") {
   if (is_empty(name)) name <- "predict_logit"
-  store.reg_predict(object, ..., name = name)
+  store.regress.predict(object, ..., name = name)
 }
 
 #' Store residuals from a model generated in the logistic function

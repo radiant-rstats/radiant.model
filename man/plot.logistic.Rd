@@ -5,7 +5,7 @@
 \title{Plot method for the logistic function}
 \usage{
 \method{plot}{logistic}(x, plots = "", conf_lev = 0.95, intercept = FALSE,
-  shiny = FALSE, ...)
+  shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{logistic}}}
@@ -17,6 +17,8 @@
 \item{intercept}{Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default}
 
 \item{shiny}{Did the function call originate inside a shiny app}
+
+\item{custom}{Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.}
 
 \item{...}{further arguments passed to or from other methods}
 }
@@ -38,6 +40,6 @@ plot(result, plots = "coef")
 
 \code{\link{predict.logistic}} to generate predictions
 
-\code{\link{plot.logit_predict}} to plot prediction output
+\code{\link{plot.logistic.predict}} to plot prediction output
 }
 

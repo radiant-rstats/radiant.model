@@ -3,13 +3,13 @@
 \docType{data}
 \name{direct_marketing}
 \alias{direct_marketing}
-\title{Direct marketing}
-\format{A data frame with ...}
+\title{Direct marketing data}
+\format{A data frame with 1,000 rows and 12 variables}
 \usage{
 data(direct_marketing)
 }
 \description{
-Direct marketing
+Direct marketing data
 }
 \details{
 Description provided in attr(direct_marketing,"description")

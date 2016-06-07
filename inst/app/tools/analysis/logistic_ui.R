@@ -73,8 +73,8 @@ logit_pred_inputs <- reactive({
   logit_pred_args
 })
 
-logit_pred_plot_args <- as.list(if (exists("plot.logit_predict")) formals(plot.logit_predict)
-                                else formals(radiant.model:::plot.logit_predict))
+logit_pred_plot_args <- as.list(if (exists("plot.logistic.predict")) formals(plot.logistic.predict)
+                                else formals(radiant.model:::plot.logistic.predict))
 
 # list of function inputs selected by user
 logit_pred_plot_inputs <- reactive({

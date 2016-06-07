@@ -3,13 +3,13 @@
 \docType{data}
 \name{catalog}
 \alias{catalog}
-\title{Catalog}
-\format{A data frame with ...}
+\title{Catalog sales for men's and women's apparel}
+\format{A data frame with 200 rows and 5 variables}
 \usage{
 data(catalog)
 }
 \description{
-Catalog
+Catalog sales for men's and women's apparel
 }
 \details{
 Description provided in attr(catalog,"description")

@@ -1,5 +1,5 @@
 # to avoid 'no visible binding for global variable' NOTE
-globalVariables(c(".","n",".resid","null.deviance"))
+globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted"))
 
 #' radiant.model
 #'
@@ -8,49 +8,34 @@ globalVariables(c(".","n",".resid","null.deviance"))
 #' @import radiant.data shiny ggplot2
 #' @importFrom broom tidy glance
 #' @importFrom gridExtra arrangeGrob
-#' @importFrom dplyr arrange select select_ filter mutate mutate_ funs group_by group_by_ summarise_ summarise_each summarise_each_ slice as_data_frame bind_cols bind_rows desc first last min_rank
-#' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames
-#' @importFrom tidyr spread_
-#' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test
+#' @importFrom dplyr arrange select select_ filter mutate mutate_ funs group_by group_by_ summarise summarise_ summarise_each summarise_each_ slice as_data_frame bind_cols bind_rows desc first last min_rank data_frame
+#' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames extract2
+#' @importFrom tidyr spread_ gather_
+#' @importFrom lubridate now
+#' @importFrom pryr where
+#' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
+#' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif
 #' @importFrom utils head
 #' @importFrom methods is
 #' @importFrom import from
 NULL
 
-#' Campus market
-#' @details Description provided in attr(campus_market,"description")
-#' @docType data
-#' @keywords datasets
-#' @name campus_market
-#' @usage data(campus_market)
-#' @format A data frame with ...
-NULL
-
-#' Catalog
+#' Catalog sales for men's and women's apparel
 #' @details Description provided in attr(catalog,"description")
 #' @docType data
 #' @keywords datasets
 #' @name catalog
 #' @usage data(catalog)
-#' @format A data frame with ...
+#' @format A data frame with 200 rows and 5 variables
 NULL
 
-#' Direct marketing
+#' Direct marketing data
 #' @details Description provided in attr(direct_marketing,"description")
 #' @docType data
 #' @keywords datasets
 #' @name direct_marketing
 #' @usage data(direct_marketing)
-#' @format A data frame with ...
-NULL
-
-#' Heights
-#' @details Description provided in attr(heights,"description")
-#' @docType data
-#' @keywords datasets
-#' @name heights
-#' @usage data(heights)
-#' @format A data frame with ...
+#' @format A data frame with 1,000 rows and 12 variables
 NULL
 
 #' Houseprices
@@ -59,7 +44,7 @@ NULL
 #' @keywords datasets
 #' @name houseprices
 #' @usage data(houseprices)
-#' @format A data frame with ...
+#' @format A data frame with 128 home sales and 6 variables
 NULL
 
 #' Ideal data for linear regression
@@ -68,5 +53,14 @@ NULL
 #' @keywords datasets
 #' @name ideal
 #' @usage data(ideal)
-#' @format A data frame with ...
+#' @format A data frame with 1,000 rows and 4 variables
+NULL
+
+#' Data on DVD sales
+#' @details Binary purchase response to coupon value. Description provided in attr(dvd,"description")
+#' @docType data
+#' @keywords datasets
+#' @name dvd
+#' @usage data(dvd)
+#' @format A data frame with 20,000 rows and 4 variables
 NULL

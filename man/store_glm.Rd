@@ -20,7 +20,7 @@ store_glm(object, data = object$dataset, type = "residuals",
 Deprecated function to store logistic regression residuals and predictions
 }
 \details{
-Use \code{\link{store.logit_predict}} or \code{\link{store.logistic}} instead
+Use \code{\link{store.logistic.predict}} or \code{\link{store.logistic}} instead
 
 See \url{http://vnijs.github.io/radiant/quant/glm_reg.html} for an example in Radiant
 }

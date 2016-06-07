@@ -4,7 +4,7 @@
 \name{houseprices}
 \alias{houseprices}
 \title{Houseprices}
-\format{A data frame with ...}
+\format{A data frame with 128 home sales and 6 variables}
 \usage{
 data(houseprices)
 }

@@ -276,18 +276,16 @@ summary.regress <- function(object,
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
 #' result <- regress("diamonds", "price", c("carat","clarity"))
-#' plot(result, plots = "dashboard")
 #' plot(result, plots = "dashboard", lines = c("line","loess"))
-#' plot(result, plots = "coef", intercept = TRUE)
 #' plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
 #' plot(result, plots = "hist")
 #' plot(result, plots = "scatter", lines = c("line","loess"))
 #' plot(result, plots = "correlations")
-#' plot(result, plots = "leverage")
 #' plot(result, plots = "resid_pred", lines = "line")
 #'
 #' @seealso \code{\link{regress}} to generate the results
@@ -303,18 +301,15 @@ plot.regress <- function(x,
                             conf_lev = .95,
                             intercept = FALSE,
                             shiny = FALSE,
+                            custom = FALSE,
                             ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
-
-    # if (anyNA(object$model$coeff))
-    #   plots <- return("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nLeverage plot will not be shown")
-
   dec <- object$dec
-
   if (class(object$model)[1] != 'lm') return(object)
 
+  ## checking object size
   # object_size(object$model, model)
   model <- ggplot2::fortify(object$model)
 
@@ -428,6 +423,9 @@ plot.regress <- function(x,
            layout = c(ceiling(length(evar)/2),2)))
   }
 
+  if (custom)
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+
   if (exists("plot_list")) {
     sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 2))) ) %>%
         {if (shiny) . else print(.)}
@@ -462,15 +460,13 @@ plot.regress <- function(x,
 #'
 #' @export
 predict.regress <- function(object,
-                               pred_vars = "",
-                               pred_data = "",
-                               pred_cmd = "",
-                               conf_lev = 0.95,
-                               prn = 100,
-                               se = TRUE,
-                               ...) {
-
-                               # pred_filt = "",
+                            pred_vars = "",
+                            pred_data = "",
+                            pred_cmd = "",
+                            conf_lev = 0.95,
+                            prn = 100,
+                            se = TRUE,
+                            ...) {
 
   if (is.character(object)) return(object)
 
@@ -614,7 +610,7 @@ predict.regress <- function(object,
       }
     }
 
-    return(pred %>% set_class(c("reg_predict",class(.))))
+    return(pred %>% set_class(c("regress.predict",class(.))))
 
   } else {
     paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% cat
@@ -649,7 +645,7 @@ predict.regress <- function(object,
 #' @seealso \code{\link{predict.regress}} to generate predictions
 #'
 #' @export
-plot.reg_predict <- function(x,
+plot.regress.predict <- function(x,
                              xvar = "",
                              facet_row = ".",
                              facet_col = ".",
@@ -711,7 +707,7 @@ plot.reg_predict <- function(x,
 
 #' Deprecated function to store regression residuals and predictions
 #'
-#' @details Use \code{\link{store.reg_predict}} or \code{\link{store.regress}} instead
+#' @details Use \code{\link{store.regress.predict}} or \code{\link{store.regress}} instead
 #'
 #' @param object Return value from \code{\link{regress}} or \code{\link{predict.regress}}
 #' @param data Dataset name
@@ -725,7 +721,7 @@ store_reg <- function(object, data = object$dataset,
   if (type == "residuals")
     store.regress(object, data = data, name = name)
   else
-    store.reg_predict(object, data = data, name = name)
+    store.regress.predict(object, data = data, name = name)
 }
 
 #' Store predicted values generated in the regress function
@@ -737,7 +733,7 @@ store_reg <- function(object, data = object$dataset,
 #' @param name Variable name(s) assigned to predicted values
 #'
 #' @export
-store.reg_predict <- function(object, ..., name = "pred_reg") {
+store.regress.predict <- function(object, ..., name = "pred_reg") {
   if (is_empty(name)) name <- "pred_reg"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
