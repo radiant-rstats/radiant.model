@@ -21,7 +21,6 @@ dtree_parser <- function(yl) {
   # yl <- paste0(yl, collapse = "\n")
   ############################
 
-
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## substitute values
@@ -179,6 +178,7 @@ dtree <- function(yl, opt = "max") {
     if (!grepl("\\n", yl)) yl <- getdata(yl)
 
     yl <- dtree_parser(yl)
+    ## cleanup the input file
 
     ####### test #######
     # return(paste0(paste0("\n**\n", yl, collapse = "\n"), "\n**\n") %>% set_class(c("dtree", class(.))))
@@ -188,6 +188,9 @@ dtree <- function(yl, opt = "max") {
 
     ## if the name of input-list in r_data is provided
     yl <- try(yaml::yaml.load(yl), silent = TRUE)
+
+    # print(names(yl))
+    # return(paste0(paste0("\n**\n", yl, collapse = "\n"), "\n**\n") %>% set_class(c("dtree", class(.))))
 
     ## used when a string is provided
     if (is(yl, 'try-error')) {
@@ -285,7 +288,7 @@ summary.dtree <- function(object, ...) {
   }
 
   print_percent <- function(x) {
-    # if (is_string(x)) x <- eval(parse(text = x))
+    if (is_string(x)) x <- eval(parse(text = x))
     data.tree::FormatPercent(x)
   }
 

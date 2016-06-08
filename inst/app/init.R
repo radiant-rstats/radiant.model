@@ -25,6 +25,7 @@ options(radiant.url.list = r_url_list); rm(r_url_list)
 ## design menu
 model_ui <-
 	tagList(
+    includeCSS(file.path(getOption("radiant.path.model"),"app/www/style.css")),
     navbarMenu("Model",
       "Estimate",
       tabPanel("Linear regression (OLS)", uiOutput("regress")),

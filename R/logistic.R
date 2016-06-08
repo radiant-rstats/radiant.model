@@ -503,7 +503,7 @@ plot.logistic <- function(x,
       stat_smooth(method="glm", method.args = list(family = "binomial"), se = TRUE, size = 1) +
       labs(list(title = "Actual vs Fitted values", x = "Fitted", y = "Actual"))
 
-    df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - ".fitted"))
+    df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - .fitted))
     plot_list[[2]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
       geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +

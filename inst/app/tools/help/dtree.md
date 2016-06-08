@@ -3,6 +3,7 @@
 To create and evaluate a decision tree first (1) enter the structure of the tree in the input editor or (2) load a tree structure from a file. When you first navigate to the _Decide > Decision tree_ tab you will see an example tree structure. This example was created by Christop Glur, the developer of the [data.tree](https://github.com/gluc/data.tree) library ([example source](https://github.com/gluc/useR15/blob/master/00_data/jennylind.yaml)).
 
 To enter a new structure, start by providing a name for the tree. In the example below the name for the decision tree is entered as follow: `name: Jenny Lind`. The next step is to indicate the **type** of the first **node**. Options are `type: decision` or `type: chance`.
+To enter a new structure, start by providing a name for the tree. In the example below the name for the decision tree is entered as follow: `name: Jenny Lind`. The next step is to indicate the **type** of the first **node**. Options are `type: decision` or `type: chance`.
 
 In the provided example, the first node is a **decision node**. The decision maker has to decide to `Sign with Movie Company` or `Sign with TV Network`. Both options lead to a **chance** node with probabilities and payoffs.
 
@@ -29,15 +30,15 @@ If you run into an error you cannot figure out post a question to the class Piaz
 
 After specifying the tree structure in the editor, press the `Calculate` button to see the `Initial` and `Final` decision tree in text format on the right-side of the screen (see screen shot below). The initial tree simply shows the tree structure that was specified, together with the node types, probabilities, and payoffs. The final tree shows the optimal decision strategy determined by `folding-back` the tree. In this case, the optimal decision is to `Sign with Movie Company` because this decision has a higher **Expected Monetary Value (EMV)**.
 
-![dtree model](figures_decide/dtree_model.png)
+![dtree model](figures_model/dtree_model.png)
 
 For a visual representation of the decision tree open the _Plot_ tab. If you already clicked the `Calculate` button in the _Model_ tab you will see a graph of the `Initial` decision tree (see screen shot below). Decision nodes are shown in green and chance nodes in orange. If the tree does not look as you intended/expected, return to the _Model_ tab and edit the tree structure.
 
-![dtree plot initial](figures_decide/dtree_plot_initial.png)
+![dtree plot initial](figures_model/dtree_plot_initial.png)
 
 The `Final` decision graph shows the optimal decision determined by `folding-back` the tree. As also shown in the _Model_ tab, the optimal decision is to `Sign with Movie Company` because this decision has a higher **Expected Monetary Value**. Note that the optimal decision at each decision node is indicated by a thickness of the line connecting to the nodes.
 
-![dtree plot final](figures_decide/dtree_plot_final.png)
+![dtree plot final](figures_model/dtree_plot_final.png)
 
 The EMV for the chance node following a decision to `Sign with Movie Company` is:
 

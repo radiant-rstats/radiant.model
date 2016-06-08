@@ -52,7 +52,7 @@ output$dtree <- renderUI({
     tabPanel("Model",
     with(tags,
       table(
-            td(help_modal("Decision tree","dtree_help", help_file = inclRmd(file.path(getOption("radiant.path.decide"),"app/tools/help/dtree.Rmd")))),
+            td(help_modal("Decision tree","dtree_help", help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))),
             td(HTML("&nbsp;&nbsp;")),
             td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report'></i>")),
             td(HTML("&nbsp;&nbsp;")),
@@ -147,7 +147,8 @@ dtree_eval <- reactive({
 })
 
 output$dtree_print <- renderPrint({
-  dtree_eval() %>% {if (is.null(.)) invisible() else summary(.)}
+  # dtree_eval() %>% {if (is.null(.)) invisible() else summary(.)}
+  dtree_eval() %>% {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(.)}
 })
 
 dtree_plot_args <- as.list(if (exists("plot.dtree")) formals(plot.dtree)
@@ -192,19 +193,15 @@ output$dtree_save_yaml <- downloadHandler(
   }
 )
 
-observe({
+observeEvent(input$dtree_load_yaml, {
   ## loading yaml file from disk
   inFile <- input$dtree_load_yaml
-  if (!is.null(inFile) && !is.na(inFile)) {
-    isolate({
-      yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
-      dtree_name <- sub(paste0(".",tools::file_ext(inFile$name)),"",inFile$name)
-      r_data[[dtree_name]] <- yaml_file
-      r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
-      updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
-      shinyAce::updateAceEditor(session, "dtree_edit", value = yaml_file)
-    })
-  }
+  yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
+  dtree_name <- sub(paste0(".",tools::file_ext(inFile$name)),"",inFile$name)
+  r_data[[dtree_name]] <- yaml_file
+  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
+  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
+  shinyAce::updateAceEditor(session, "dtree_edit", value = yaml_file)
 })
 
 observeEvent(input$dtree_list, {

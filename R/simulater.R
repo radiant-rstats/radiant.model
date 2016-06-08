@@ -244,26 +244,16 @@ summary.simulater <- function(object, dec = 4, ...) {
   cat("Simulations:", nrow(object), "\n")
   cat("Random seed:", sc$seed, "\n")
   cat("Sim data   :", sc$name, "\n")
-  if (!is_empty(sc$binom))
-    cat("Binomial   :", clean(sc$binom))
-  if (!is_empty(sc$const))
-    cat("Constant   :", clean(sc$const))
-  if (!is_empty(sc$discrete))
-    cat("Discrete   :", clean(sc$discrete))
-  if (!is_empty(sc$lnorm))
-    cat("Log normal :", clean(sc$lnorm))
-  if (!is_empty(sc$norm))
-    cat("Normal     :", clean(sc$norm))
-  if (!is_empty(sc$unif))
-    cat("Uniform    :", clean(sc$unif))
-  if (!is_empty(sc$sequ))
-    cat("Sequence   :", clean(sc$sequ))
-  if (!is_empty(sc$grid))
-    cat("Grid search:", clean(sc$grid))
-  if (!is_empty(sc$data))
-    cat("Data       :", clean(sc$data))
-  if (!is_empty(sc$form))
-    cat(paste0("Formulas   :\n\t", sc$form %>% gsub(";","\n",.) %>% gsub("\n","\n\t",.), "\n"))
+  if (!is_empty(sc$binom))    cat("Binomial   :", clean(sc$binom))
+  if (!is_empty(sc$const))    cat("Constant   :", clean(sc$const))
+  if (!is_empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
+  if (!is_empty(sc$lnorm))    cat("Log normal :", clean(sc$lnorm))
+  if (!is_empty(sc$norm))     cat("Normal     :", clean(sc$norm))
+  if (!is_empty(sc$unif))     cat("Uniform    :", clean(sc$unif))
+  if (!is_empty(sc$sequ))     cat("Sequence   :", clean(sc$sequ))
+  if (!is_empty(sc$grid))     cat("Grid search:", clean(sc$grid))
+  if (!is_empty(sc$data))     cat("Data       :", clean(sc$data))
+  if (!is_empty(sc$form))     cat(paste0("Formulas   :\n\t", sc$form %>% gsub(";","\n",.) %>% gsub("\n","\n\t",.), "\n"))
   cat("\n")
 
   sim_summary(object, dec = ifelse(is.na(dec), 4, dec))
@@ -452,7 +442,7 @@ repeater <- function(nr = 12,
 #' Summarize repeated simulation
 #'
 #' @param object Return value from \code{\link{repeater}}
-#' @param sum_vars (Numerical) variables to summaries
+#' @param sum_vars (Numeric) variables to summaries
 #' @param byvar Variable(s) to group data by before summarizing
 #' @param fun Functions to use for summarizing
 #' @param form A string with the formula to evaluate (e.g., "profit = demand * (price - cost)")

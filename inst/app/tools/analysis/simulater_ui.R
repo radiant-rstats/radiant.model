@@ -416,7 +416,7 @@ output$ui_simulater <- renderUI({
         checkboxInput("sim_show_plots", "Show plots", state_init("sim_show_plots",FALSE))
       ),
       help_and_report(modal_title = "Simulate", fun_name = "simulater",
-        help_file = inclMD(file.path(getOption("radiant.path.decide"),"app/tools/help/simulater.md")))
+        help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/simulater.md")))
     ),
     conditionalPanel(condition = "input.tabs_simulate == 'Repeat'",
       wellPanel(
@@ -454,7 +454,7 @@ output$ui_simulater <- renderUI({
         checkboxInput("rep_show_plots", "Show plots", state_init("rep_show_plots",FALSE))
       ),
       help_and_report(modal_title = "Repeat simulation", fun_name = "repeater",
-                      help_file = inclMD(file.path(getOption("radiant.path.decide"),"app/tools/help/simulater.md")))
+                      help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/simulater.md")))
     )
   )
 })
@@ -501,11 +501,11 @@ output$simulater <- renderUI({
       # )
     )
 
-    stat_tab_panel(menu = "Decide",
-                  tool = "Simulate",
-                  data = NULL,
-                  tool_ui = "ui_simulater",
-                  output_panels = sim_output_panels)
+    stat_tab_panel(menu = "Model",
+                   tool = "Simulate",
+                   data = NULL,
+                   tool_ui = "ui_simulater",
+                   output_panels = sim_output_panels)
 })
 
 .simulater <- eventReactive(input$runSim, {

@@ -125,17 +125,17 @@ When all required inputs have been specified press the `Simulate` button to run 
 
 In the screen shot below `var_cost` and `fixed_cost` are specified as constants. `E` is normally distributed with a mean of 0 and a standard deviation of 100. `price` is a discrete random variable that is set to \$6 (30% probability) or $8 (70% probability). There are three formulas in the `Simulation formulas` text-input. The first establishes the dependence of `demand` on the simulated variable `price`. The second formula specifies the profit function. The final formula is used to determine the number (and proportion) of cases where profit is below 100. The result is assigned to a new variable `profit_small`.
 
-![sim output](figures_decide/simulater_sim.png)
+![sim output](figures_model/simulater_sim.png)
 
 In the output under `Simulation summary` we first see details on the specification of the simulation (e.g., the number of simulations). The section `Constants` lists the value of variables that do not vary across simulations. The sections `Random variables` and `Logicals` list the outcomes of the simulation. We see that average `demand` in the simulation is 627.940 with a standard deviation of 109.323. Other characteristics of the simulated data are also provided (e.g., the maximum profit is 1758.770). Finally, we see that the probability of `profits` below 100 is equal 0.315 (i.e., profits were below 100 in 315 out of the 1000 simulations).
 
 Histograms of of the random variables as well as the variables created using `Simulation formulas` are shown in the _Plot (simulate)_ tab under `Simulation plots`.
 
-![sim output](figures_decide/simulater_sim_plot.png)
+![sim output](figures_model/simulater_sim_plot.png)
 
 Because we specified a name in the `Simulated data` box the data are available as `simdat` within Radiant (see screen shots below). To use the data in Excel click the download icon on the top-right of the screen in the _Data > View_ tab or go to the _Data > Manage_ tab and save the data to a csv file (or use the clipboard feature). For more information see the help file for the _Data > Manage_ tab.
 
-![sim output](figures_decide/simulater_view.png)
+![sim output](figures_model/simulater_view.png)
 
 ## Repeating the simulation
 
@@ -151,11 +151,11 @@ When you are done with the input values click the `Repeat` button. Because we sp
 
 Descriptive statistics for the repeated simulation are shown in the main panel under `Repeated simulation summary`. We see that the annual expected profit (i.e., the mean of `sum of profit`) for the company is 172,311.836 with a standard deviation of 10,772.291. Although we found above that daily profits can be below 100, the chance that profits are below $365 \times 100$ for the entire year are slim to none (i.e., the proportion of repeated simulations with annual profits below \$36,500 is equal to 0).
 
-![sim output](figures_decide/simulater_repeat.png)
+![sim output](figures_model/simulater_repeat.png)
 
 A histogram of annual profits (`sum of profit`) is shown in the _Plot (repeat)_ under `Repeated simulation plots`. There is no plot for `profit_365` because it only has one value (i.e., FALSE).
 
-![sim output](figures_decide/simulater_repeat_plot.png)
+![sim output](figures_model/simulater_repeat_plot.png)
 
 The state-file for the example in the screenshots above is available for download <a href="https://vnijs.github.io/radiant/examples/sim_help_state.rda">here</a>
 
