@@ -2,9 +2,10 @@
 ## Create decision tree
 #######################################
 dtree_example <-
-"name: Jenny Lind
+"name: Sign contract
 type: decision
 Sign with Movie Company:
+    cost: 5000
     type: chance
     Small Box Office:
         p: 0.3
@@ -16,16 +17,7 @@ Sign with Movie Company:
         p: 0.1
         payoff: 3000000
 Sign with TV Network:
-    type: chance
-    Small Box Office:
-        p: 0.3
-        payoff: 900000
-    Medium Box Office:
-        p: 0.6
-        payoff: 900000
-    Large Box Office:
-        p: 0.1
-        payoff: 900000
+  payoff: 900000
 "
 
 dtree_max_min <- c("Max" = "max", "Min" = "min")
@@ -52,7 +44,7 @@ output$dtree <- renderUI({
     tabPanel("Model",
     with(tags,
       table(
-            td(help_modal("Decision tree","dtree_help", help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))),
+            td(help_modal("Decision analysis","dtree_help", help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))),
             td(HTML("&nbsp;&nbsp;")),
             td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report'></i>")),
             td(HTML("&nbsp;&nbsp;")),

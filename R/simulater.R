@@ -21,8 +21,8 @@
 #'
 #' @examples
 #' result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-#'                     discrete = "price 5 .3 8 .7",
-#'                     form = "profit = demand * (price - cost)")
+#'                    discrete = "price 5 8 .3 .7",
+#'                    form = "profit = demand * (price - cost)")
 #'
 #' @seealso \code{\link{summary.simulater}} to summarize results
 #' @seealso \code{\link{plot.simulater}} to plot results
@@ -52,6 +52,7 @@ simulater <- function(const = "",
     ## needed because number may be NA and missing if grid used in Simulate
     nr <- attr(dat,"sim_call")$nr
   }
+  grid
 
   grid %<>% sim_cleaner
   if (grid != "") {
@@ -211,6 +212,28 @@ simulater <- function(const = "",
   }
 
   dat %>% set_class(c("simulater", class(.)))
+}
+
+## Test settings for simulater function, will not be run when sourced
+# if (interactive() || getOption("radiant.test", default = FALSE)) {
+# if (interactive()) {
+if (getOption("radiant.testthat", default = FALSE)) {
+  main__ <- function() {
+    # options(radiant.testthat = TRUE)
+    library(radiant.model)
+    const <- "cost 3"
+    norm <- "demand 2000 1000"
+    discrete <- "price 5 8 .3 .7"
+    form <- "profit = demand * (price - cost)"
+    lnorm <- unif <- binom <- sequ <- grid <- data <- name <- ""
+    seed <- 100
+    nr <- 1000
+    dat <- NULL
+
+    result <- simulater(const = const, norm = norm, discrete = discrete, form = form, seed = seed)
+    stopifnot(sum(round(result[1000,],5) == c(3,-141.427660,5,-282.85532)) == 4)
+  }
+  main__()
 }
 
 #' Summary method for the simulater function
@@ -437,6 +460,26 @@ repeater <- function(nr = 12,
   }
 
   ret
+}
+
+## Test settings for repeater function, will not be run when sourced
+if (interactive()) {
+  library(radiant.model)
+
+  main__ <- function() {
+    const <- "cost 3"
+    norm <- "demand 2000 1000"
+    discrete <- "price 5 .3 8 .7"
+    form <- "profit = demand * (price - cost)"
+    lnorm <- unif <- binom <- sequ <- grid <- data <- name <- ""
+    seed <- 100
+    nr <- 1000
+    dat = NULL
+
+    result <- simulater(const = "cost 3", norm = "demand 2000 1000",
+                        discrete = "price 5 .3 8 .7",
+                        form = "profit = demand * (price - cost)")
+  }
 }
 
 #' Summarize repeated simulation

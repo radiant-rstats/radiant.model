@@ -1,0 +1,86 @@
+variables:
+    P(MS): .01
+    P(N): 1 - P(MS)
+    P(B): .05
+    P(NB): 1 - P(B)
+    wall cost: 40000
+    slide cost: -1000000
+name: San Carlos Mud Slides
+type: decision
+Build Wall: 
+    cost: wall_cost
+    type: chance
+    Mud Slide: 
+        p: P(MS)
+        type: chance
+        Wall Breaks:
+            p: P(B)
+            payoff: slide_cost
+        Wall Stands:
+            p: P(NB)
+            payoff: 0
+    Nothing:
+        p: P(N)
+        payoff: 0
+Do nothing:
+    type: chance
+    Mud Slide:
+        p: P(MS)
+        payoff: slide_cost
+    Nothing:
+        p: P(N)
+        payoff: 0
+Test:
+    type: chance
+    Positive:
+        p: 0.1575
+        type: decision
+        Build Wall:
+            cost: wall_cost
+            type: chance
+            Mud Slide:
+                p: 0.057
+                type: chance
+                Wall Breaks:
+                    p: P(B)
+                    payoff: slide_cost
+                Wall Stands:
+                    p: P(NB)
+                    payoff: 0
+            Nothing:
+                p: 0.943
+                payoff: 0
+        Do nothing:
+            type: chance
+            Mud Slide:
+                p: 0.057
+                payoff: slide_cost
+            Nothing:
+                p: 0.943
+                payoff: 0
+    Negative:
+        p: 0.8425
+        type: decision
+        Build Wall:
+            cost: wall_cost
+            type: chance
+            Mud Slide:
+                p: 0.0012
+                type: chance
+                Wall Breaks:
+                    p: P(B)
+                    payoff: slide_cost
+                Wall Stands:
+                    p: P(NB)
+                    payoff: 0
+            Nothing:
+                p: 0.9988
+                payoff: 0
+        Do nothing:
+            type: chance
+            Mud Slide:
+                p: 0.0012
+                payoff: slide_cost
+            Nothing:
+                p: 0.9988
+                payoff: 0

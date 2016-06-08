@@ -105,6 +105,22 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
   environment() %>% as.list %>% set_class(c("crs",class(.)))
 }
 
+## Test settings for simulater function, will not be run when sourced
+if (getOption("radiant.testthat", default = FALSE)) {
+  main__ <- function() {
+    # use dplyr or a sparce matrix?
+    # http://www.mzan.com/article/33777165-correlation-using-funs-in-dplyr.shtml
+    # http://stackoverflow.com/questions/29270704/correlation-matrix-of-grouped-variables-in-dplyr
+    # http://stats.stackexchange.com/questions/120513/cross-correlation-for-very-sparse-binary-data
+    # Can you do something like the above with cosine similarity
+    # options(radiant.testthat = TRUE)
+    library(radiant.model)
+    result <- crs()
+    stopifnot(1 == 1)
+  }
+  main__()
+}
+
 #' Summary method for Collaborative Filter
 #'
 #' @details See \url{http://vnijs.github.io/radiant/analytics/crs.html} for an example in Radiant

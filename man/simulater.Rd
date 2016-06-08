@@ -48,8 +48,8 @@ See \url{http://vnijs.github.io/radiant/quant/simulater.html} for an example in 
 }
 \examples{
 result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                    discrete = "price 5 .3 8 .7",
-                    form = "profit = demand * (price - cost)")
+                   discrete = "price 5 8 .3 .7",
+                   form = "profit = demand * (price - cost)")
 
 }
 \seealso{

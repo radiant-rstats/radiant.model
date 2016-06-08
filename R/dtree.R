@@ -12,15 +12,6 @@
 #'
 #' @export
 dtree_parser <- function(yl) {
-  ############################
-  ## test
-  # library(radiant)
-  # yl <- readLines("~/Dropbox/teaching/MGT403-2015/homework/radiant/chapter1/bio-imaging/bio-imaging-input.yaml")
-  # yl <- readLines("~/Dropbox/teaching/MGT403-2015/homework/radiant/chapter1/tee-times/tee-times-monday-input.yaml")
-  # yl <- readLines("~/Dropbox/teaching/MGT403-2015/homework/radiant/chapter2/san-carlos/san-carlos-with-variables.yaml")
-  # yl <- paste0(yl, collapse = "\n")
-  ############################
-
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## substitute values
@@ -150,6 +141,60 @@ dtree_parser <- function(yl) {
   }
 }
 
+
+## Test settings for simulater function, will not be run when sourced
+if (getOption("radiant.testthat", default = FALSE)) {
+  main__ <- function() {
+    # options(radiant.testthat = TRUE)
+    library(radiant.model)
+    variables <- list(`P(MS)` = ".01", `P(N)` = "1 - P(MS)", `P(B)` = ".05", `P(NB)` = "1 - P(B)", `wall cost` = 40000, `slide cost` = -1000000)
+    nvar <- names(variables)
+    for (i in nvar) {
+      print(i)
+      print(variables[[i]])
+      x <- gsub(i, variables[[i]], variables[setdiff(nvar,i)], fixed = TRUE)
+      print(x)
+    }
+    gsub("P(MS)", ".01", variables[setdiff(nvar,i)], fixed = TRUE)
+    sapply(variables, function(x) gsub(x, variables[[i]], variables))
+
+    mixedToFloat <- function(x){
+      is.integer  <- grepl("^\\d+$", x)
+      is.fraction <- grepl("^\\d+\\/\\d+$", x)
+      stopifnot(all(is.integer | is.fraction))
+
+      numbers <- strsplit(x, "[ /]")
+
+      ifelse(is.integer,  as.numeric(sapply(numbers, `[`, 1)),
+             ifelse(is.fraction, as.numeric(sapply(numbers, `[`, 1)) /
+                      as.numeric(sapply(numbers, `[`, 2)),
+                    as.numeric(sapply(numbers, `[`, 1)) +
+                      as.numeric(sapply(numbers, `[`, 2)) /
+                      as.numeric(sapply(numbers, `[`, 3))))
+    }
+
+    mixedToFloat(c('1/2', '3/4', '2/3', '1/4', '1'))
+    yl <- "p: 1/4"
+    asNum <- function(x) strsplit(x, "/") %>%  {as.numeric(sapply(., `[`, 1)) / as.numeric(sapply(., `[`, 2))}
+    gsub("(^\\s*p\\s*:)\\s*([0-9]+\\/[0-9]+$)",paste0("\\1 "), yl,  perl = TRUE)
+
+    ############################
+    ## test
+    # library(radiant)
+    # yl <- readLines("~/Dropbox/teaching/MGT403-2015/homework/radiant/chapter1/bio-imaging/bio-imaging-input.yaml")
+    # yl <- readLines("~/Dropbox/teaching/MGT403-2015/homework/radiant/chapter1/tee-times/tee-times-monday-input.yaml")
+    # yl <- readLines("~/Dropbox/teaching/MGT403-2015/homework/radiant/chapter2/san-carlos/san-carlos-with-variables.yaml")
+    # yl <- readLines("~/gh/radiant.model/test/dtree/dtree.yaml")
+    # yl <- paste0(yl, collapse = "\n")
+    ############################
+
+    stopifnot(1 == 1)
+  }
+  main__()
+}
+
+
+
 #' Create a decision tree
 #'
 #' @details See \url{http://vnijs.github.io/radiant/base/dtree.html} for an example in Radiant
@@ -264,6 +309,7 @@ dtree <- function(yl, opt = "max") {
 
   list(jl_init = jl_init, jl = jl, type_none = type_none) %>% set_class(c("dtree",class(.)))
 }
+
 
 #' Summary method for the dtree function
 #'

@@ -10,7 +10,7 @@
 \arguments{
 \item{object}{Return value from \code{\link{repeater}}}
 
-\item{sum_vars}{(Numerical) variables to summaries}
+\item{sum_vars}{(Numeric) variables to summaries}
 
 \item{byvar}{Variable(s) to group data by before summarizing}
 
