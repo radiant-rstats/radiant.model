@@ -16,6 +16,9 @@ branch_get_upstream(head(repo))
 checkout(repo, "summarize-early")
 branch_get_upstream(head(repo))
 
+## checking out works without 
+system("git checkout summarize-early")
+
 ## push new branch to github - works - equivalent in git2r?
 system("git push -u origin summarize-early")
 

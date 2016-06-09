@@ -6,7 +6,7 @@
 #' @param lnorm A string listing the log-normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the log-mean and the second is the log-standard deviation)
 #' @param norm A string listing the normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the mean and the second is the standard deviation)
 #' @param unif A string listing the uniformly distributed random variables to include in the analysis (e.g., "demand 0 1" where the first number is the minimum value and the second is the maximum value)
-#' @param discrete A string listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 .3 8 .7" where for each pair of numbers the first is the value and the second the probability
+#' @param discrete A string listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 8 .3 .7" where the first set of numbers are the values and the second set the probabilities
 #' @param binom A string listing the random variables with a binomail distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
 #' @param sequ A string listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations.
 #' @param grid A string listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
@@ -52,7 +52,6 @@ simulater <- function(const = "",
     ## needed because number may be NA and missing if grid used in Simulate
     nr <- attr(dat,"sim_call")$nr
   }
-  grid
 
   grid %<>% sim_cleaner
   if (grid != "") {
@@ -185,7 +184,9 @@ simulater <- function(const = "",
   ## convert list to a data.frame
   dat <- as.data.frame(dat) %>% na.omit
 
-  attr(dat, "sim_call") <- as.list(match.call())[-1] %>% {.[["nr"]] <- nr; .}
+  ## capturing the function call for use in repeat
+  # attr(dat, "sim_call") <- as.list(match.call())[-1] %>% {.[["nr"]] <- nr; .}
+  attr(dat, "sim_call") <- lapply(as.list(match.call())[-1], eval) %>% {.[["nr"]] <- nr; .}
 
   if (nrow(dat) == 0) {
     mess <- c("error",paste0("The simulated data set has 0 rows"))
@@ -215,14 +216,12 @@ simulater <- function(const = "",
 }
 
 ## Test settings for simulater function, will not be run when sourced
-# if (interactive() || getOption("radiant.test", default = FALSE)) {
-# if (interactive()) {
 if (getOption("radiant.testthat", default = FALSE)) {
   main__ <- function() {
-    # options(radiant.testthat = TRUE)
+    options(radiant.testthat = TRUE)
     library(radiant.model)
     const <- "cost 3"
-    norm <- "demand 2000 1000"
+    normstr <- "demand 2000 1000"
     discrete <- "price 5 8 .3 .7"
     form <- "profit = demand * (price - cost)"
     lnorm <- unif <- binom <- sequ <- grid <- data <- name <- ""
@@ -230,7 +229,8 @@ if (getOption("radiant.testthat", default = FALSE)) {
     nr <- 1000
     dat <- NULL
 
-    result <- simulater(const = const, norm = norm, discrete = discrete, form = form, seed = seed)
+    result <- simulater(const = const, norm = normstr, discrete = discrete, form = form, seed = seed)
+    # attr(result, "sim_call")
     stopifnot(sum(round(result[1000,],5) == c(3,-141.427660,5,-282.85532)) == 4)
   }
   main__()
@@ -255,9 +255,11 @@ if (getOption("radiant.testthat", default = FALSE)) {
 summary.simulater <- function(object, dec = 4, ...) {
 
   if (is.character(object)) {
-    if (object[1] == "error") return(cat(object[2]))
-    # else object <- getdata(gsub("_list","",object))
-    else object <- getdata(object)
+    if (length(object) == 2 && object[1] == "error") {
+      return(cat(object[2]))
+    } else {
+      object <- getdata(object)
+    }
   }
 
   sc <- attr(object, "sim_call")
@@ -292,7 +294,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 #'
 #' @examples
 #' result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-#'                     discrete = "price 5 .3 8 .7",
+#'                     discrete = "price 5 8 .3 .7",
 #'                     form = "profit = demand * (price - cost)")
 #' plot(result)
 #'
@@ -334,7 +336,7 @@ plot.simulater <- function(x, shiny = FALSE, ...) {
 #'
 #' @examples
 #' result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-#'                     discrete = "price 5 .3 8 .7",
+#'                     discrete = "price 5 8 .3 .7",
 #'                     form = "profit = demand * (price - cost)")
 #'
 #' repeater(sim = result)
@@ -361,6 +363,8 @@ repeater <- function(nr = 12,
     ## legacy line, pre 0.4.1
     sim <- gsub("_list$","",sim)
     dat <- getdata(sim)
+  } else {
+    dat <- sim; rm(sim)
   }
 
   seed %>% gsub("[^0-9]","",.) %>% { if (. != "") set.seed(seed) }
@@ -463,23 +467,22 @@ repeater <- function(nr = 12,
 }
 
 ## Test settings for repeater function, will not be run when sourced
-if (interactive()) {
-  library(radiant.model)
-
+if (getOption("radiant.testthat", default = FALSE)) {
   main__ <- function() {
-    const <- "cost 3"
-    norm <- "demand 2000 1000"
-    discrete <- "price 5 .3 8 .7"
-    form <- "profit = demand * (price - cost)"
-    lnorm <- unif <- binom <- sequ <- grid <- data <- name <- ""
-    seed <- 100
-    nr <- 1000
-    dat = NULL
-
-    result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                        discrete = "price 5 .3 8 .7",
-                        form = "profit = demand * (price - cost)")
+    # options(radiant.testthat = TRUE)
+    # library(radiant.model)
+    rm(dat, sim)
+    result <- simulater(const = "cost 3", norm = "demand 2000 1000", discrete = "price 5 8 .3 .7", form = "profit = demand * (price - cost)")
+    sim <- result
+    vars <- "profit"
+    nr = 12
+    grid = ""
+    seed = 100
+    name = ""
+    repeater(vars = "profit", sim = result)
+    # stopifnot(sum(round(result[1000,],5) == c(3,-141.427660,5,-282.85532)) == 4)
   }
+  main__()
 }
 
 #' Summarize repeated simulation
