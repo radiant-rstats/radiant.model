@@ -1,0 +1,25 @@
+## Scripts for git and github/gitlab
+
+
+```{r}
+library(git2r)
+repo <- repository("~/gh/radiant.model")
+
+## examples
+# https://gist.github.com/zkamvar/58be1b25798378a58aa9
+# http://popgen.nescent.org/CONTRIBUTING_WITH_GIT2R.html
+
+remotes(repo)
+checkout(repo, "master")
+branch_get_upstream(head(repo))
+checkout(repo, "summarize-early")
+branch_get_upstream(head(repo))
+
+## works - equivalent in git2r?
+system("git push -u origin summarize-early")
+
+## not working
+# remote_add(repo, "upstream", "git@github.com:radiant-rstats/radiant.model.git")
+# branch_set_upstream(head(repo), "remotes/orgin/master/")
+# push(repo, name = "origin", refspec = "refs/heads/summarize-early", credentials = cred)
+```
