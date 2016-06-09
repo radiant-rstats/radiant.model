@@ -19,13 +19,14 @@ branch_get_upstream(head(repo))
 ## push new branch to github - works - equivalent in git2r?
 system("git push -u origin summarize-early")
 
+add(repo, "*")
+commit(repo, "Adding git script")
+
 ## push current branch
 system("git push")
 
-add(repo, "*")
-commit(repo, "Adding git script")
-push(repo, credentials = cred_token())
 
+# push(repo, credentials = cred_token())
 # path <- '/Users/lcollado/Dropbox/Github/testgit2r'
 # dir.create(path)
 # library('git2r')
