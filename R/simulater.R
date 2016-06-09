@@ -176,7 +176,7 @@ simulater <- function(const = "",
     }
   }
 
-  ## removing data to dat list
+  ## removing data from dat list
   if (!data %in% c("", "none")) {
     dat[colnames(sdat)] <- NULL
   }
@@ -470,7 +470,7 @@ repeater <- function(nr = 12,
 if (getOption("radiant.testthat", default = FALSE)) {
   main__ <- function() {
     # options(radiant.testthat = TRUE)
-    # library(radiant.model)
+    library(radiant.model)
     rm(dat, sim)
     result <- simulater(const = "cost 3", norm = "demand 2000 1000", discrete = "price 5 8 .3 .7", form = "profit = demand * (price - cost)")
     sim <- result
@@ -479,8 +479,25 @@ if (getOption("radiant.testthat", default = FALSE)) {
     grid = ""
     seed = 100
     name = ""
-    repeater(vars = "profit", sim = result)
+    res <- repeater(vars = "profit", sim = result)
+    # res
     # stopifnot(sum(round(result[1000,],5) == c(3,-141.427660,5,-282.85532)) == 4)
+
+    # dat <- diamonds
+    # pryr::object_size(dat)
+    # l <- bind_rows(list(dat,dat,dat))
+    # pryr::object_size(l)
+    # l <- bind_rows(dat,dat,dat)
+    # sim
+    # dat
+    #
+    # dat <- diamonds
+    # pryr::object_size(l)
+    # l <- list(dat,dat,dat)
+    # pryr::object_size(l)
+    # l[[1]][,1] <- 1
+    # pryr::object_size(l)
+
   }
   main__()
 }
