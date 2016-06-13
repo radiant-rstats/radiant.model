@@ -21,7 +21,7 @@ See \url{http://vnijs.github.io/radiant/quant/simulater} for an example in Radia
 }
 \examples{
 result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                    discrete = "price 5 .3 8 .7",
+                    discrete = "price 5 8 .3 .7",
                     form = "profit = demand * (price - cost)")
 plot(result)
 

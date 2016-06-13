@@ -209,8 +209,17 @@ observeEvent(input$sim_lnorm_add, {
 
 
 observeEvent(input$sim_discrete_add, {
+  v <- input$sim_discrete_val
+  p <- input$sim_discrete_prob
+
+  v <- gsub(","," ", v) %>% strsplit("\\s+") %>% unlist
+  p <- gsub(","," ", p) %>% strsplit("\\s+") %>% unlist
+
+  lp <- length(p); lv <- length(v)
+  if (lv != lp && lv %% lp == 0) p <- rep(p, lv / lp)
+
   var_updater(input$sim_discrete_add, "sim_discrete",
-              c(input$sim_discrete_name, input$sim_discrete_val, input$sim_discrete_prob))
+              paste0(c(input$sim_discrete_name, v, p), collapse = " "))
 })
 
 observeEvent(input$sim_binom_add, {
@@ -234,7 +243,7 @@ observeEvent(input$sim_grid, {
   if (!is_empty(input$sim_grid)) {
     updateNumericInput(session = session, "sim_nr", value = NA)
   } else {
-    val <- ifelse(is_empty(r_state$sim_nr), 12, r_state$sim_nr)
+    val <- ifelse(is_empty(r_state$sim_nr), 1000, r_state$sim_nr)
     updateNumericInput(session = session, "sim_nr", value = val)
   }
 })

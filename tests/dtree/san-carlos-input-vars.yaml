@@ -1,21 +1,38 @@
 variables:
+    ## Given probabilities
     P(MS): .01
     P(N): 1 - P(MS)
     P(B): .05
     P(NB): 1 - P(B)
+    P(Pos|MS): .9
+    P(Neg|MS): 1 - P(Pos|MS)
+    P(Neg|N): .85
+    P(Pos|N): 1 - P(Neg|N)
+    ## Costs 
     wall cost: 40000
     slide cost: -1000000
+    ## Calculate probabilities
+    P(Pos and MS): P(Pos|MS) * P(MS) 
+    P(Pos and N): P(Pos|N) * P(N)
+    P(Neg and MS): P(Neg|MS) * P(MS) 
+    P(Neg and N): P(Neg|N) * P(N)
+    P(Neg): P(Neg and MS) + P(Neg and N)
+    P(Pos): P(Pos and MS) + P(Pos and N)
+    P(MS|Pos): P(Pos and MS) / P(Pos)
+    P(MS|Neg): P(Neg and MS) / P(Neg)
+    P(N|Pos): P(Pos and N) / P(Pos)
+    P(N|Neg): P(Neg and N) / P(Neg)
 name: San Carlos Mud Slides
 type: decision
-Build Wall: 
-    cost: wall_cost
+Build Wall:
+    cost: wall cost
     type: chance
-    Mud Slide: 
+    Mud Slide:
         p: P(MS)
         type: chance
         Wall Breaks:
             p: P(B)
-            payoff: slide_cost
+            payoff: slide cost
         Wall Stands:
             p: P(NB)
             payoff: 0
@@ -26,61 +43,61 @@ Do nothing:
     type: chance
     Mud Slide:
         p: P(MS)
-        payoff: slide_cost
+        payoff: slide cost
     Nothing:
         p: P(N)
         payoff: 0
 Test:
     type: chance
     Positive:
-        p: 0.1575
+        p: P(Pos)
         type: decision
         Build Wall:
-            cost: wall_cost
+            cost: wall cost
             type: chance
             Mud Slide:
-                p: 0.057
+                p: P(MS|Pos)
                 type: chance
                 Wall Breaks:
                     p: P(B)
-                    payoff: slide_cost
+                    payoff: slide cost
                 Wall Stands:
                     p: P(NB)
                     payoff: 0
             Nothing:
-                p: 0.943
+                p: P(N|Pos)
                 payoff: 0
         Do nothing:
             type: chance
             Mud Slide:
-                p: 0.057
-                payoff: slide_cost
+                p: P(MS|Pos)
+                payoff: slide cost
             Nothing:
-                p: 0.943
+                p: P(N|Pos)
                 payoff: 0
     Negative:
-        p: 0.8425
+        p: P(Neg)
         type: decision
         Build Wall:
-            cost: wall_cost
+            cost: wall cost
             type: chance
             Mud Slide:
-                p: 0.0012
+                p: P(MS|Neg)
                 type: chance
                 Wall Breaks:
                     p: P(B)
-                    payoff: slide_cost
+                    payoff: slide cost
                 Wall Stands:
                     p: P(NB)
                     payoff: 0
             Nothing:
-                p: 0.9988
+                p: P(N|Neg)
                 payoff: 0
         Do nothing:
             type: chance
             Mud Slide:
-                p: 0.0012
-                payoff: slide_cost
+                p: P(MS|Neg)
+                payoff: slide cost
             Nothing:
-                p: 0.9988
+                p: P(N|Neg)
                 payoff: 0

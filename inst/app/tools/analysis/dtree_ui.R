@@ -2,10 +2,12 @@
 ## Create decision tree
 #######################################
 dtree_example <-
-"name: Sign contract
+"variables:
+    legal fees: 5000
+name: Sign contract
 type: decision
 Sign with Movie Company:
-    cost: 5000
+    cost: legal fees
     type: chance
     Small Box Office:
         p: 0.3
@@ -28,7 +30,6 @@ output$ui_dtree_list <- renderUI({
   selectInput(inputId = "dtree_list", label = NULL,
     choices = dtree_list, selected = state_init("dtree_list", dtree_list[1]),
     multiple = FALSE, selectize = FALSE, width = "110px")
-    # multiple = FALSE, selectize = FALSE, width = "100%")
 })
 
 output$ui_dtree_name <- renderUI({
@@ -36,6 +37,11 @@ output$ui_dtree_name <- renderUI({
   if (length(dtree_name) == 0) dtree_name <- dtree_name()
   if (is_empty(dtree_name)) dtree_name <- "dtree"
   textInput("dtree_name", NULL, dtree_name, width = "100px")
+})
+
+output$ui_dtree_remove <- renderUI({
+  req(length(r_data[["dtree_list"]]) > 1)
+  actionButton("dtree_remove", "Remove")
 })
 
 output$dtree <- renderUI({
@@ -52,11 +58,11 @@ output$dtree <- renderUI({
             td(radioButtons(inputId = "dtree_opt", label = NULL,
                dtree_max_min, selected = state_init("dtree_opt", "max"), inline = TRUE)),
             td(actionButton("dtree_eval", "Calculate"), style="padding-top:5px;"),
-            td(uiOutput("ui_dtree_name")),
-            td(actionButton("dtree_store", "Store"), style= "padding-top:5px;"),
+            td(uiOutput("ui_dtree_name"), style="padding-top:-5px"),
             td(uiOutput("ui_dtree_list"), style="padding-top:0px;"),
             td(downloadButton("dtree_save_yaml", "Save input"), style="padding-top:5px;"),
             td(downloadButton("dtree_save", "Save output"), style="padding-top:5px;"),
+            td(uiOutput("ui_dtree_remove"), style="padding-top:5px;"),
             td(HTML("<div class='form-group shiny-input-container'><input id='dtree_load_yaml' name='dtree_load_yaml' type='file' accept='.yaml'/></div>"))
       )
     ),
@@ -104,11 +110,11 @@ observe({
   if (!is.null(input$dtree_eval)) isolate(vals_dtree$dtree_run %<>% add(1))
 })
 
-dtree_name <- reactive({
-
+dtree_name <- function() {
+  isolate({
     dtree_name <- input$dtree_name
     if (is_empty(dtree_name)) {
-      dtree_name <- stringr::str_match(input$dtree_edit, "^\\s*name:\\s*(.*)\\n\\s*type:")[2]
+      dtree_name <- stringr::str_match(input$dtree_edit, "\\s*name:\\s*(.*)\\n\\s*type:")[2]
       if (is.na(dtree_name)) {
         dtree_name <- "dtree"
       } else {
@@ -117,19 +123,16 @@ dtree_name <- reactive({
       }
     }
     dtree_name
-})
-
-observeEvent(input$dtree_store, {
-  dtree_name <- dtree_name()
-
-  r_data[[dtree_name]] <- input$dtree_edit
-  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
-  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
-})
+  })
+}
 
 dtree_eval <- reactive({
   if (vals_dtree$dtree_run == 1) return(invisible())
   isolate({
+
+    ## update settings and get data.tree name
+    dtree_name <- dtree_namer()
+
     if (input$dtree_edit != "") {
       withProgress(message = 'Creating decision tree', value = 0, {
         dtree(input$dtree_edit, opt = input$dtree_opt)
@@ -139,7 +142,6 @@ dtree_eval <- reactive({
 })
 
 output$dtree_print <- renderPrint({
-  # dtree_eval() %>% {if (is.null(.)) invisible() else summary(.)}
   dtree_eval() %>% {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(.)}
 })
 
@@ -151,7 +153,6 @@ dtree_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   for (i in names(dtree_plot_args))
     dtree_plot_args[[i]] <- input[[paste0("dtree_",i)]]
-  # cat(paste0(names(dtree_plot_args), " ", dtree_plot_args, collapse = ", "), file = stderr(), "\n")
   dtree_plot_args
 })
 
@@ -197,6 +198,12 @@ observeEvent(input$dtree_load_yaml, {
 })
 
 observeEvent(input$dtree_list, {
+  isolate({
+    dtree_name <- input$dtree_name
+    if (is_empty(dtree_name)) dtree_name <- dtree_name()
+    r_data[[dtree_name]] <- input$dtree_edit
+  })
+
   shinyAce::updateAceEditor(session, "dtree_edit", value = r_data[[input$dtree_list]])
 })
 
@@ -208,28 +215,45 @@ observeEvent(input$dtree_report2, {
   vals_dtree$dtree_report %<>% add(1)
 })
 
+observeEvent(input$dtree_edit, {
+  if (!is_empty(input$dtree_edit))
+    r_state$dtree_edit <<- input$dtree_edit
+})
+
+
+dtree_namer <- reactive({
+  dtree_name <- input$dtree_name
+  if (is_empty(dtree_name)) dtree_name <- input$dtree_list
+  if (is_empty(dtree_name)) dtree_name <- dtree_name()
+
+  r_data[[dtree_name]] <- input$dtree_edit
+  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
+  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
+  dtree_name
+})
+
+## remove yaml input
+observeEvent(input$dtree_remove, {
+  dtree_name <- input$dtree_list
+  r_data[["dtree_list"]] <- setdiff(r_data[["dtree_list"]], dtree_name)
+  r_data[[dtree_name]] <- NULL
+})
+
 .dtree_report <- observeEvent(vals_dtree$dtree_report, {
   req(vals_dtree$dtree_report > 0)
 
-  isolate({
-    dtree_name <- input$dtree_list
-    if (is_empty(dtree_name)) dtree_name <- input$dtree_name
-    if (is_empty(dtree_name)) dtree_name <- dtree_name()
+  ## update settings and get data.tree name
+  dtree_name <- dtree_namer()
+  id <- sample(seq_len(1000000),1)
+  xcmd <-
+    clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
+    deparse(control = c("keepNA"), width.cutoff = 500L) %>%
+    {if (. == "list()") paste0("plt", id, " <- plot(result)\nDiagrammeR::renderDiagrammeR(plt",id,")")
+     else paste0(sub("list(", paste0("plt",id," <- plot(result, "), ., fixed = TRUE),paste0("\nDiagrammeR::renderDiagrammeR(plt", id,")"))}
 
-    r_data[[dtree_name]] <- input$dtree_edit
-    r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
-
-    id <- sample(seq_len(1000000),1)
-    xcmd <-
-      clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
-      deparse(control = c("keepNA"), width.cutoff = 500L) %>%
-      {if (. == "list()") paste0("plt", id, " <- plot(result)\nDiagrammeR::renderDiagrammeR(plt",id,")")
-       else paste0(sub("list(", paste0("plt",id," <- plot(result, "), ., fixed = TRUE),paste0("\nDiagrammeR::renderDiagrammeR(plt", id,")"))}
-
-    update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
-                  fun_name = "dtree",
-                  inp_out = list("",""), outputs = "summary",
-                  figs = FALSE,
-                  xcmd = xcmd)
-  })
+  update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
+                fun_name = "dtree",
+                inp_out = list("",""), outputs = "summary",
+                figs = FALSE,
+                xcmd = xcmd)
 })

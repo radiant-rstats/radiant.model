@@ -142,13 +142,15 @@ simulater <- function(const = "",
     s <- discrete %>% sim_splitter
     for (i in 1:length(s)) {
 
-      dpar <- sshhr( try(as.numeric(s[[i]][-1]) %>% matrix(ncol = 2), silent = TRUE) )
+      dpar <- s[[i]][-1] %>% gsub(","," ", .) %>% strsplit("\\s+") %>% unlist %>% strsplit("/")
+      asNum <- function(x) ifelse(length(x) > 1, as.numeric(x[1])/as.numeric(x[2]), as.numeric(x[1]))
+      dpar <- sshhr(try(sapply(dpar, asNum) %>% matrix(ncol = 2), silent = TRUE))
 
       if (is(dpar, 'try-error') || any(is.na(dpar))) {
-        mess <- c("error",paste0("Input for a discrete variable contains an error. Please review the input carefully"))
+        mess <- c("error",paste0("Input for discrete variable # ", i, " contains an error. Please review the input carefully"))
         return(mess %>% set_class(c("simulater", class(.))))
       } else if (sum(dpar[,2]) != 1) {
-        mess <- c("error",paste0("Probabilities for a discrete variable do not sum to 1 (",round(sum(dpar[[2]]),3),")"))
+        mess <- c("error",paste0("Probabilities for discrete variable # ", i, " do not sum to 1 (",round(sum(dpar[[2]]),3),")"))
         return(mess %>% set_class(c("simulater", class(.))))
       }
 
@@ -340,7 +342,6 @@ plot.simulater <- function(x, shiny = FALSE, ...) {
 #'                     form = "profit = demand * (price - cost)")
 #'
 #' repeater(sim = result)
-#'
 #'
 #' @export
 repeater <- function(nr = 12,

@@ -1,25 +1,18 @@
-variables: p_small = .1; p_medium = (1 - p_small)/2; p_large = (1 - p_small)/2
-name: Jenny Lind
+variables:
+    legal fees: 5000
+name: Sign contract
 type: decision
 Sign with Movie Company:
-  type: chance
-  Small Box Office:
-    p: p_small
-    payoff: 200000
-  Medium Box Office:
-    p: p_medium
-    payoff: 1000000
-  Large Box Office:
-    p: p_large
-    payoff: 3000000
+    cost: legal fees
+    type: chance
+    Small Box Office:
+        p: 0.3
+        payoff: 200000
+    Medium Box Office:
+        p: 0.6
+        payoff: 1000000
+    Large Box Office:
+        p: 0.1
+        payoff: 3000000
 Sign with TV Network:
-  type: chance
-  Small Box Office:
-    p: p_small
-    payoff: 900000
-  Medium Box Office:
-    p: p_medium
-    payoff: 900000
-  Large Box Office:
-    p: p_large
-    payoff: 900000
+  payoff: 900000

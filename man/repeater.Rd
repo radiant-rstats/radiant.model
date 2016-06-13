@@ -25,11 +25,10 @@ Repeat simulation
 }
 \examples{
 result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                    discrete = "price 5 .3 8 .7",
+                    discrete = "price 5 8 .3 .7",
                     form = "profit = demand * (price - cost)")
 
 repeater(sim = result)
-
 
 }
 
