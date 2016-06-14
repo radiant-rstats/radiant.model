@@ -128,12 +128,15 @@ dtree_parser <- function(yl) {
 if (getOption("radiant.testthat", default = FALSE)) {
   main__ <- function() {
     # options(radiant.testthat = TRUE)
-    # library(radiant.model)
-    # yl <- readLines("~/gh/radiant.model/tests/dtree/san-carlos-input-vars.yaml") %>% paste0(collapse = "\n")
+    library(radiant.model)
     # yl <- readLines("~/gh/radiant.model/tests/dtree/jennylind-variables.yaml") %>% paste0(collapse = "\n")
-    # yl <- dtree_parser(yl)
-    # yl <- yaml::yaml.load(yl)
-    # vars <- yl$variables
+    yl <- readLines("~/gh/radiant.model/tests/dtree/san-carlos-input-vars.yaml") %>% paste0(collapse = "\n")
+    ## would be r_data[[input$dtree_name]]
+    yl <- dtree_parser(yl)
+    yl <- yaml::yaml.load(yl)
+    yl$variables[["P(MS)"]] <- .05
+    vars <- yl$variables
+    vars
     # vn <- names(vars)
     # stopifnot(1 == 1)
   }
@@ -228,7 +231,7 @@ dtree <- function(yl, opt = "max") {
     }
 
     ## convert payoff, probabilities, and costs to numeric
-    yl <- relist(tmp)
+    tmp <- relist(tmp)
     # toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(eval(parse(text = x)))
     toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(x)
 
@@ -241,11 +244,11 @@ dtree <- function(yl, opt = "max") {
         fun(x)
       }
     }
-    yl <- nlapply(yl, toNum)
+    tmp <- nlapply(tmp, toNum)
   }
 
   ## convert list to node object
-  jl <- data.tree::as.Node(yl)
+  jl <- data.tree::as.Node(tmp)
 
   ## if type not set and isLeaf set to terminal
   pt <- . %>% {if (is.null(.$type)) .$Set(type = "terminal")}
@@ -298,9 +301,9 @@ dtree <- function(yl, opt = "max") {
     return(err %>% set_class(c("dtree", class(.))))
   }
 
-  list(jl_init = jl_init, jl = jl, vars = vars, type_none = type_none) %>% set_class(c("dtree",class(.)))
+  list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt, type_none = type_none) %>%
+    set_class(c("dtree",class(.)))
 }
-
 
 #' Summary method for the dtree function
 #'
@@ -479,3 +482,116 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
     style, sep = "\n") %>%
   {if (shiny) . else DiagrammeR::DiagrammeR(.)}
 }
+
+#' Evaluate sensitivity of the decision tree
+#'
+#' @details See \url{http://vnijs.github.io/radiant/quant/dtree.html} for an example in Radiant
+#'
+#' @param object Return value from \code{\link{dtree}}
+#' @param vars Variales to include in the sensitivity analysis
+#' @param shiny Did the function call originate inside a shiny app
+#' @param ... Additional arguments
+#' @param name
+#'
+#' @export
+sensitivity.dtree <- function(object, vars = NULL, decs = NULL, shiny = FALSE, ...) {
+
+  # yl <- readLines("~/gh/radiant.model/tests/dtree/jennylind-variables.yaml") %>% paste0(collapse = "\n")
+  # yl <- readLines("~/gh/radiant.model/tests/dtree/san-carlos-input-vars.yaml") %>% paste0(collapse = "\n")
+  ## would be r_data[[input$dtree_name]]
+  # yl <- dtree_parser(yl)
+  # yl <- yaml::yaml.load(yl)
+  # object <- radiant.model::dtree(yl)
+
+  yl <- object$yl
+
+  if (is_not(vars)) return("** No variables were specified **")
+  if (is_not(decs)) return("** No decisions were specified **")
+  # vars <- "wall cost 10000 40000 10000;\nP(MS) 0 1 0.2;"
+  vars <- strsplit(vars, ";") %>% unlist %>% strsplit(" ")
+
+  # print(yl)
+  # print(vars)
+
+  # object$jl$Get(function(x) x$payoff)[[1]]
+
+  # vars <- strsplit(vars, ";") %>% unlist %>% strsplit("\\s+")
+  # vars <- strsplit(vars, ";") %>% unlist %>% strsplit(" ")
+  # for (i in 1:length(vars)) {
+  #   # i <- 1
+  #   tmp <- rep("", 4)
+  #   tmp[2:4] <- tail(vars[[i]],3)
+  #   tmp[1] <- paste(head(vars[[i]],-3), collapse = " ")
+  #   tmp_seq <- tail(tmp, 3) %>% as.numeric %>% {seq(.[1],.[2],.[3])}
+  #   for (j in tmp_seq) {
+  #     # j <- 10000
+  #     yl$variables[[tmp[[1]]]] <- j
+  #     ret <- dtree(yl, opt = object$opt)$jl
+  #     ret <- ret$Get(function(x) x$payoff)[[1]]
+  #   }
+  # }
+
+
+  # vars <- "wall cost 10000 40000 10000;\nP(MS) 0 1 0.2;"
+  # vars <- strsplit(vars, ";") %>% unlist %>% strsplit(" ")
+
+  # ret <- object$jl
+
+  # decs <-
+  #   ret$Get(function(x) if (length(x$parent$decision) > 0) x$payoff) %>%
+  #   na.omit %>%
+  #   names %>%
+  #   unique
+  # # decs <- decs[1]
+
+  calc_payoff <- function(x, nm) {
+    yl$variables[[nm]] <- x
+    ret <- dtree(yl, opt = object$opt)$jl
+    # ret$Get(function(x) x$payoff)[[1]]
+    ret$Get(function(x) x$payoff)[decs]
+  }
+
+  nms <- c()
+
+  sensitivity <- function(x) {
+
+    # x <- vars[[1]]
+    tmp <- rep("", 4)
+    tmp[2:4] <- tail(x,3)
+    tmp[1] <- paste(head(x,-3), collapse = " ")
+    nms <<- c(nms, tmp[1])
+    # df <- list(x =
+    # print(tmp)
+    df <-
+      data.frame(
+        values = tail(tmp, 3) %>% as.numeric %>% {seq(.[1],.[2],.[3])}
+      )
+    # df$payoffs <- sapply(df$values, calc_payoff, tmp[1])
+    # bind_cols(df, sapply(df$values, calc_payoff, tmp[1]) %>% t %>% as.data.frame)
+
+    if (length(decs) == 1) {
+      df[[decs]] <- sapply(df$values, calc_payoff, tmp[1])
+    } else {
+      df <- cbind(df, sapply(df$values, calc_payoff, tmp[1]) %>% t)
+    }
+    df
+  }
+  # sapply(vars, sensitivity)
+  ret <- lapply(vars, sensitivity)
+  names(ret) <- nms
+
+
+  plot_list <- list()
+  for (i in names(ret)) {
+    dat <- gather(ret[[i]],"decisions", "payoffs", -values)
+    plot_list[[i]] <-
+      ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
+        geom_line() + geom_point() +
+        ggtitle(paste0("Sensitivity of decisions to changes in ",i)) + xlab(i)
+  }
+
+  sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 1))) ) %>%
+    { if (shiny) . else print(.) }
+}
+
+

@@ -4,14 +4,14 @@ variables:
     P(N): 1 - P(MS)
     P(B): .05
     P(NB): 1 - P(B)
-    P(Pos|MS): .9
+    P(Pos|MS): .9 
     P(Neg|MS): 1 - P(Pos|MS)
     P(Neg|N): .85
     P(Pos|N): 1 - P(Neg|N)
     ## Costs 
     wall cost: 40000
     slide cost: -1000000
-    ## Calculate probabilities
+    ## Derived probabilities
     P(Pos and MS): P(Pos|MS) * P(MS) 
     P(Pos and N): P(Pos|N) * P(N)
     P(Neg and MS): P(Neg|MS) * P(MS) 

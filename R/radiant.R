@@ -10,3 +10,11 @@ radiant.model <- function() {
     if (!require(radiant.model)) stop("Calling radiant.model start function but radiant.model is not installed.")
   runApp(system.file("app", package = "radiant.model"), launch.browser = TRUE)
 }
+
+#' Method to evaluate sensitivity of an analysis
+#'
+#' @param object Object of relevant class for which to evaluate sensitivity
+#' @param ... Additional arguments
+#'
+#' @export
+sensitivity <- function(object, ...) UseMethod("sensitivity", object)
