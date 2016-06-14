@@ -168,8 +168,8 @@ observeEvent(input$evalbin_report, {
                 inp_out = inp_out,
                 outputs = outputs,
                 figs = figs,
-                fig.width = round(7 * ebin_plot_width()/650,2),
-                fig.height = round(7 * ebin_plot_height()/650,2))
+                fig.width = ebin_plot_width(),
+                fig.height = ebin_plot_height())
 })
 
 output$dl_ebin_tab <- downloadHandler(

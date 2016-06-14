@@ -517,8 +517,8 @@ observeEvent(input$logistic_report, {
                 inp_out = inp_out,
                 outputs = outputs,
                 figs = figs,
-                fig.width = round(7 * logit_plot_width()/650,2),
-                fig.height = round(7 * logit_plot_height()/650,2),
+                fig.width = logit_plot_width(),
+                fig.height = logit_plot_height(),
                 xcmd = xcmd)
 })
 
