@@ -9,13 +9,13 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted"))
 #' @importFrom broom tidy glance
 #' @importFrom gridExtra arrangeGrob
 #' @importFrom dplyr arrange select select_ filter mutate mutate_ funs group_by group_by_ summarise summarise_ summarise_each summarise_each_ slice as_data_frame bind_cols bind_rows desc first last min_rank data_frame
-#' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames extract2
+#' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames set_names extract2
 #' @importFrom tidyr spread_ gather_
 #' @importFrom lubridate now
 #' @importFrom pryr where
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
 #' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif
-#' @importFrom utils head
+#' @importFrom utils head tail relist as.relistable
 #' @importFrom methods is
 #' @importFrom import from
 NULL

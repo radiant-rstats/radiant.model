@@ -28,11 +28,9 @@ commit(repo, "Adding git script")
 ## push current branch
 system("git push")
 
-
 ## merge branch back into master
 system("git checkout master")
 system("git merge summarize-early")
-
 
 
 # push(repo, credentials = cred_token())
