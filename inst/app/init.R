@@ -16,7 +16,7 @@ r_url_list[["Regression"]] <-
   list("tabs_evalreg" = list("Summary" = "model/evalreg/", "Plot" = "model/evalreg/plot/"))
 r_url_list[["Classification"]] <-
   list("tabs_evalbin" = list("Summary" = "model/evalbin/", "Plot" = "model/evalbin/plot/"))
-r_url_list[["Decision tree"]] <-
+r_url_list[["Decision analysis"]] <-
   list("tabs_dtree" = list("Model" = "model/dtree/", "Plot"  = "model/dtree/plot/"))
 r_url_list[["Simulate"]] <-
   list("tabs_simulate" = list("Simulate" = "model/simulate/", "Repeat" = "model/simulate/repeat/"))
@@ -31,13 +31,13 @@ model_ui <-
       tabPanel("Linear regression (OLS)", uiOutput("regress")),
       tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
       tabPanel("Neural Network (ANN)", uiOutput("ann")),
-      "----", "Recommend",
-      tabPanel("Collaborative Filtering", uiOutput("crs")),
+      # "----", "Recommend",
+      # tabPanel("Collaborative Filtering", uiOutput("crs")),
       "----", "Evaluate",
       tabPanel("Regression", uiOutput("evalreg")),
       tabPanel("Classification", uiOutput("evalbin")),
       "----", "Decide",
-      tabPanel("Decision tree", uiOutput("dtree")),
+      tabPanel("Decision analysis", uiOutput("dtree")),
       tabPanel("Simulate", uiOutput("simulater"))
     )
   )
