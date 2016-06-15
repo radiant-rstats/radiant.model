@@ -45,9 +45,8 @@ output$ui_dtree_remove <- renderUI({
 })
 
 output$ui_dtree_sense_name <- renderUI({
-  # vars <- sim_vars()
   vars <- dtree_eval()$vars
-  if (is_empty(vars)) return(HTML("Press calculate to show the list of available variables</br>"))
+  if (is_empty(vars)) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
 
   vars[names(vars)] <- names(vars)
 
@@ -66,12 +65,25 @@ output$ui_dtree_sense_decision <- renderUI({
     names %>%
     unique
 
-  # if (is_empty(decs)) return(HTML("Press calculate to show the list of available variables</br>"))
-
   selectizeInput("dtree_sense_decision", label = "Decisions to evaluate:",
     choices = decs, multiple = TRUE,
     selected = state_multiple("dtree_sense_decision",decs, decs),
     options = list(plugins = list("remove_button")))
+})
+
+output$ui_dtree_sense <- renderUI({
+  req(input$dtree_sense_name)
+  req(input$dtree_sense_decision)
+  tagList(
+    HTML("<label>Add variable: <i id='dtree_sense_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
+          <i id='dtree_sense_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
+    with(tags, table(
+        td(numericInput("dtree_sense_min", "Min:", value = state_init("dtree_sense_min"))),
+        td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
+        td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
+    )),
+    textinput_maker(id = "sense", lab = "Add variable", rows = "2", pre = "dtree_")
+  )
 })
 
 observeEvent(input$dtree_sense_add, {
@@ -150,17 +162,18 @@ output$dtree <- renderUI({
           ## select a payoff or only the final payoff?
           uiOutput("ui_dtree_sense_decision"),
           uiOutput("ui_dtree_sense_name"),
+          uiOutput("ui_dtree_sense")
 
-          conditionalPanel(condition = "input.dtree_sense_name != null",
-            HTML("<label>Add variable: <i id='dtree_sense_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
-                  <i id='dtree_sense_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
-            with(tags, table(
-                td(numericInput("dtree_sense_min", "Min:", value = state_init("dtree_sense_min"))),
-                td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
-                td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
-            )),
-            textinput_maker(id = "sense", lab = "Add variable", rows = "2", pre = "dtree_")
-          )
+          # conditionalPanel(condition = "input.dtree_sense_name != null",
+          #   HTML("<label>Add variable: <i id='dtree_sense_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
+          #         <i id='dtree_sense_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
+          #   with(tags, table(
+          #       td(numericInput("dtree_sense_min", "Min:", value = state_init("dtree_sense_min"))),
+          #       td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
+          #       td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
+          #   )),
+          #   textinput_maker(id = "sense", lab = "Add variable", rows = "2", pre = "dtree_")
+          # )
         ),
         help_and_report(modal_title = "Decision analysis", fun_name = "dtree",
                         help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.md")))
@@ -216,7 +229,6 @@ dtree_eval <- reactive({
 output$dtree_print <- renderPrint({
   dtree_eval() %>% {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(.)}
 })
-
 
 dtree_plot_args <- as.list(if (exists("plot.dtree")) formals(plot.dtree)
                          else formals(radiant:::plot.dtree))

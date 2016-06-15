@@ -10,13 +10,13 @@
 \arguments{
 \item{object}{Return value from \code{\link{dtree}}}
 
-\item{vars}{Variales to include in the sensitivity analysis}
+\item{vars}{Variables to include in the sensitivity analysis}
+
+\item{decs}{Decisions to include in the sensitivity analysis}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 
 \item{...}{Additional arguments}
-
-\item{name}{}
 }
 \description{
 Evaluate sensitivity of the decision tree
