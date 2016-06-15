@@ -1,0 +1,66 @@
+## Scripts for git and github/gitlab
+
+
+```{r}
+library(git2r)
+repo <- repository("~/gh/radiant.model")
+
+## examples
+# https://gist.github.com/zkamvar/58be1b25798378a58aa9
+# http://popgen.nescent.org/CONTRIBUTING_WITH_GIT2R.html
+
+status(repo)
+remotes(repo)
+checkout(repo, "master")
+branch_get_upstream(head(repo))
+checkout(repo, "summarize-early")
+branch_get_upstream(head(repo))
+
+## checking out works without 
+system("git checkout summarize-early")
+
+## push new branch to github - works - equivalent in git2r?
+system("git push -u origin summarize-early")
+
+add(repo, "*")
+commit(repo, "Adding git script")
+
+## push current branch
+system("git push")
+
+
+## merge branch back into master
+system("git checkout master")
+system("git merge summarize-early")
+
+
+
+# push(repo, credentials = cred_token())
+# path <- '/Users/lcollado/Dropbox/Github/testgit2r'
+# dir.create(path)
+# library('git2r')
+# repo <- init(path)
+# remote_add(repo, 'origin', 'git@github.com:lcolladotor/testgit2r.git')
+
+## Add file and switch to gh-pages branch
+# writeLines("Hello world!!", file.path(path, "example.txt"))
+# add(repo, "example.txt")
+# ci <- commit(repo, "Commit message")
+# checkout(repo, branch = 'gh-pages', create = TRUE)
+
+
+## 3 different ways to try to push, taken from docs and other issues
+cred <- cred_ssh_key('~/.ssh/id_rsa.pub', '~/.ssh/id_rsa')
+push(repo, credentials = cred)
+push(repo, 'origin', 'refs/heads/summarize-early', credentials = cred)
+## Delete https://github.com/lcolladotor/testgit2r and re-make it so it's clean
+push(repo, 'origin', 'summarize-early', credentials = cred)
+## No need to reset https://github.com/lcolladotor/testgit2r at this point since the above
+## command fails
+push(repo, 'origin', "refs/heads/gh-pages:refs/heads/gh-pages", credentials = cred)
+
+## not working
+# remote_add(repo, "upstream", "git@github.com:radiant-rstats/radiant.model.git")
+# branch_set_upstream(head(repo), "remotes/orgin/master/")
+# push(repo, name = "origin", refspec = "refs/heads/summarize-early", credentials = cred)
+```
