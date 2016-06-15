@@ -478,8 +478,8 @@ observeEvent(input$regress_report, {
   update_report(inp_main = clean_args(reg_inputs(), reg_args),
                 fun_name = "regress", inp_out = inp_out,
                 outputs = outputs, figs = figs,
-                fig.width = round(7 * reg_plot_width()/650,2),
-                fig.height = round(7 * reg_plot_height()/650,2),
+                fig.width = reg_plot_width(),
+                fig.height = reg_plot_height(),
                 xcmd = xcmd)
 })
 
