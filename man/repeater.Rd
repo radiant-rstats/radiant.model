@@ -4,8 +4,8 @@
 \alias{repeater}
 \title{Repeat simulation}
 \usage{
-repeater(nr = 12, vars = "", grid = "", seed = "", name = "",
-  sim = "")
+repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "",
+  fun = "sum_rm", form = "", seed = "", name = "", sim = "")
 }
 \arguments{
 \item{nr}{Number times to repeat the simulation}
@@ -13,6 +13,14 @@ repeater(nr = 12, vars = "", grid = "", seed = "", name = "",
 \item{vars}{Variables to use in repeated simulation}
 
 \item{grid}{Expression to use in grid search for constants}
+
+\item{sum_vars}{(Numeric) variables to summaries}
+
+\item{byvar}{Variable(s) to group data by before summarizing}
+
+\item{fun}{Functions to use for summarizing}
+
+\item{form}{A string with the formula to apply to the summarized data}
 
 \item{seed}{To repeat a simulation with the same randomly generated values enter a number into Random seed input box.}
 
@@ -25,11 +33,10 @@ Repeat simulation
 }
 \examples{
 result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                    discrete = "price 5 .3 8 .7",
+                    discrete = "price 5 8 .3 .7",
                     form = "profit = demand * (price - cost)")
 
 repeater(sim = result)
-
 
 }
 
