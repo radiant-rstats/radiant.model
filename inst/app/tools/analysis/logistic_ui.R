@@ -98,7 +98,6 @@ output$ui_logit_lev <- renderUI({
   else
     levs <- c()
   selectInput(inputId = "logit_lev", label = "Choose level:",
-    # choices = levs, selected = use_input_nonvar("logit_lev", levs))
     choices = levs, selected = state_init("logit_lev"))
 })
 
@@ -155,7 +154,6 @@ output$ui_logit_show_interactions <- renderUI({
   choices <- logit_show_interactions[1:max(min(3,length(input$logit_evar)),1)]
   radioButtons(inputId = "logit_show_interactions", label = "Interactions:",
     choices = choices,
-    # selected = use_input_nonvar("logit_show_interactions", choices, init = ""),
     selected = state_init("logit_show_interactions"),
     inline = TRUE)
 })
@@ -174,7 +172,6 @@ output$ui_logit_int <- renderUI({
   }
 
 	selectInput("logit_int", label = NULL, choices = choices,
-    # selected = use_input_nonvar("logit_int", choices),
     selected = state_init("logit_int"),
   	multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
 })

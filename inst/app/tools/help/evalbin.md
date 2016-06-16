@@ -28,7 +28,7 @@ If a `filter` is active (e.g., set in the _Data > View_ tab) generate results fo
 
 #### Plots
 
-Generate Lift, Gains, Profit, and/or ROME charts. The profit chart displays the
+Generate Lift, Gains, Profit, and/or ROME charts. The profit chart displays a profit index useful to compare performance across predictors/models
 
 ## Example
 

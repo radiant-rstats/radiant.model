@@ -19,7 +19,6 @@ ebin_inputs <- reactive({
 ###############################################################
 output$ui_ebin_rvar <- renderUI({
   vars <- two_level_vars()
-  # isolate(sel <- use_input("ebin_rvar", vars))
   selectInput(inputId = "ebin_rvar", label = "Response variable:", choices = vars,
     selected = state_single("ebin_rvar", vars), multiple = FALSE)
 })
@@ -33,7 +32,6 @@ output$ui_ebin_lev <- renderUI({
   selectInput(inputId = "ebin_lev", label = "Choose level:",
               choices = levs,
               selected = state_init("ebin_lev"))
-              # selected = isolate(use_input_nonvar("ebin_lev", levs)))
 })
 
 output$ui_ebin_pred <- renderUI({
@@ -124,7 +122,7 @@ output$evalbin <- renderUI({
     # )
   )
 
-	stat_tab_panel(menu = "Model > Performance",
+	stat_tab_panel(menu = "Model > Evaluate",
 	              tool = "Evaluate classification",
 	              tool_ui = "ui_evalbin",
 	             	output_panels = ebin_output_panels)

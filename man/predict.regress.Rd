@@ -4,13 +4,11 @@
 \alias{predict.regress}
 \title{Predict method for the regress function}
 \usage{
-\method{predict}{regress}(object, pred_vars = "", pred_data = "",
-  pred_cmd = "", conf_lev = 0.95, prn = 100, se = TRUE, ...)
+\method{predict}{regress}(object, pred_data = "", pred_cmd = "",
+  conf_lev = 0.95, prn = 100, se = TRUE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}
-
-\item{pred_vars}{Variables to use for prediction}
 
 \item{pred_data}{Name of the dataset to use for prediction}
 

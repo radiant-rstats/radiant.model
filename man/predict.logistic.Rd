@@ -4,13 +4,11 @@
 \alias{predict.logistic}
 \title{Predict method for the logistic function}
 \usage{
-\method{predict}{logistic}(object, pred_vars = "", pred_data = "",
-  pred_cmd = "", prn = 100, se = FALSE, ...)
+\method{predict}{logistic}(object, pred_data = "", pred_cmd = "",
+  prn = 100, se = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{logistic}}}
-
-\item{pred_vars}{Variables selected to generate predictions}
 
 \item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation}
 

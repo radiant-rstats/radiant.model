@@ -89,28 +89,21 @@ output$ui_reg_rvar <- renderUI({
   vars <- varnames()[isNum]
   selectInput(inputId = "reg_rvar", label = "Response variable:", choices = vars,
     selected = state_single("reg_rvar",vars), multiple = FALSE)
-    # selected = use_input("reg_rvar",vars), multiple = FALSE)
 })
 
 output$ui_reg_evar <- renderUI({
   req(available(input$reg_rvar))
   notChar <- "character" != .getclass()
   vars <- varnames()[notChar]
+
+  ## don't use setdiff, removes names
   if (length(vars) > 0 && input$reg_rvar %in% vars)
     vars <- vars[-which(vars == input$reg_rvar)]
 
   selectInput(inputId = "reg_evar", label = "Explanatory variables:", choices = vars,
-    # selected = use_input("reg_evar", vars, fun = "state_multiple"),
     selected = state_multiple("reg_evar", vars),
     multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
-
-# output$ui_reg_pred_var <- renderUI({
-#   vars <- input$reg_evar
-#   selectInput("reg_pred_var", label = "Predict for variables:",
-#     choices = vars, selected = state_multiple("reg_pred_var", vars),
-#     multiple = TRUE, size = min(4, length(vars)), selectize = FALSE)
-# })
 
 # adding interaction terms as needed
 output$ui_reg_test_var <- renderUI({
@@ -119,9 +112,7 @@ output$ui_reg_test_var <- renderUI({
   if (!is.null(input$reg_int)) vars <- c(vars, input$reg_int)
 
   selectizeInput(inputId = "reg_test_var", label = "Variables to test:",
-    choices = vars,
-    # selected = use_input("reg_test_var", vars, fun = "state_multiple"),
-    selected = state_multiple("reg_test_var", vars),
+    choices = vars, selected = state_multiple("reg_test_var", vars),
     multiple = TRUE,
     options = list(placeholder = 'None', plugins = list('remove_button'))
   )
@@ -130,9 +121,7 @@ output$ui_reg_test_var <- renderUI({
 output$ui_reg_show_interactions <- renderUI({
   choices <- reg_show_interactions[1:max(min(3,length(input$reg_evar)),1)]
   radioButtons(inputId = "reg_show_interactions", label = "Interactions:",
-    choices = choices,
-    # selected = use_input_nonvar("reg_show_interactions", choices),
-    selected = state_init("reg_show_interactions"),
+    choices = choices, selected = state_init("reg_show_interactions"),
     inline = TRUE)
  })
 
@@ -150,7 +139,6 @@ output$ui_reg_int <- renderUI({
   }
 
   selectInput("reg_int", label = NULL, choices = choices,
-    # selected = use_input_nonvar("reg_int", choices),
     selected = state_init("reg_int"),
     multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
 })

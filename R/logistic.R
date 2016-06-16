@@ -27,12 +27,12 @@
 #'
 #' @export
 logistic <- function(dataset, rvar, evar,
-                    lev = "",
-                    int = "",
-                    wts = "None",
-                    check = "",
-                    dec = 3,
-                    data_filter = "") {
+                     lev = "",
+                     int = "",
+                     wts = "None",
+                     check = "",
+                     dec = 3,
+                     data_filter = "") {
 
   if (rvar %in% evar)
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -112,7 +112,7 @@ logistic <- function(dataset, rvar, evar,
     ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
     # model <- sshhr(glm(as.formula(paste(rvar, "~ 1")), weights = wts,
     model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
-             step(k = 2, scope = list(upper = form), direction = 'backward')
+             step(k = 2, scope = list(upper = form), direction = "backward")
   } else {
     model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat))
   }
@@ -175,17 +175,21 @@ logistic <- function(dataset, rvar, evar,
 #'
 #' @export
 summary.logistic <- function(object,
-                            sum_check = "",
-                            conf_lev = .95,
-                            test_var = "",
-                            ...) {
+                             sum_check = "",
+                             conf_lev = .95,
+                             test_var = "",
+                             ...) {
 
   if (is.character(object)) return(object)
   if (class(object$model)[1] != 'glm') return(object)
 
   dec <- object$dec
 
-  if ("stepwise" %in% object$check) cat("-----------------------------------------------\n")
+  if ("stepwise" %in% object$check) {
+    cat("-----------------------------------------------\n")
+    cat("Backward stepwise selection of variables\n")
+    cat("-----------------------------------------------\n")
+  }
   cat("Logistic regression (GLM)")
   cat("\nData                 :", object$dataset)
   if (object$data_filter %>% gsub("\\s","",.) != "")
@@ -401,12 +405,12 @@ summary.logistic <- function(object,
 #'
 #' @export
 plot.logistic <- function(x,
-                         plots = "",
-                         conf_lev = .95,
-                         intercept = FALSE,
-                         shiny = FALSE,
-                         custom = FALSE,
-                         ...) {
+                          plots = "",
+                          conf_lev = .95,
+                          intercept = FALSE,
+                          shiny = FALSE,
+                          custom = FALSE,
+                          ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
@@ -532,7 +536,6 @@ plot.logistic <- function(x,
 #' @details See \url{http://vnijs.github.io/radiant/quant/glm_reg.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{logistic}}
-#' @param pred_vars Variables selected to generate predictions
 #' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
 #' @param prn Number of lines of prediction results to print. Nothing is printed if prn is 0. Use -1 to print all lines (default).
@@ -554,19 +557,18 @@ plot.logistic <- function(x,
 #'
 #' @export
 predict.logistic <- function(object,
-                            pred_vars = "",
-                            pred_data = "",
-                            pred_cmd = "",
-                            prn = 100,
-                            se = FALSE,
-                            ...) {
+                             pred_data = "",
+                             pred_cmd = "",
+                             prn = 100,
+                             se = FALSE,
+                             ...) {
 
   if (is.character(object)) return(object)
-  pred_count <- sum(c(pred_vars == "", pred_cmd == "", is.character(pred_data) && pred_data == ""))
+  pred_count <- sum(c(pred_cmd == "", is.character(pred_data) && pred_data == ""))
   ## used http://www.r-tutor.com/elementary-statistics/simple-linear-regression/prediction-interval-linear-regression as starting point
   if ("standardize" %in% object$check) {
     return(cat("Standardized coefficients cannot be used for prediction.\nPlease uncheck the standardized coefficients box and try again"))
-  } else if (pred_count == 3) {
+  } else if (pred_count == 2) {
     return("Please specify a command to generate predictions. For example,\n pclass = levels(pclass) would produce predictions for the different\n levels of factor pclass. To add another variable use a ,\n(e.g., pclass = levels(pclass), age = seq(0,100,20))\n\nMake sure to press return after you finish entering the command. If no\nresults are shown the command was invalid. Alternatively specify a dataset\nto generate predictions. You could create this in a spreadsheet and use the\nclipboard feature in Data > Manage to bring it into Radiant" %>% set_class(c("logistic.predict",class(.))))
   }
 
@@ -588,18 +590,10 @@ predict.logistic <- function(object,
     wid <- which(names(dat_classes) %in% "(weights)")
     if (length(wid) > 0) dat_classes <- dat_classes[-wid]
 
-    # isFct <- dat_classes == "factor" | dat_classes == "logical"
     isFct <- dat_classes == "factor"
     isLog <- dat_classes == "logical"
     isNum <- dat_classes == "numeric"
     dat <- select_(as.data.frame(object$model$model), .dots = vars)
-
-    # print(dat_classes)
-    # print(vars)
-
-    # print(sum(isNum) + sum(isFct) + sum(isLog))
-    # print(sum(isNum) + sum(isFct))
-    # print(length(vars))
 
     ## based on http://stackoverflow.com/questions/19982938/how-to-find-the-most-frequent-values-across-several-columns-containing-factors
     max_freq <- function(x) names(which.max(table(x)))
@@ -615,7 +609,6 @@ predict.logistic <- function(object,
 
     rm(dat)
 
-    # if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
     if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
       return("The model includes data-types that cannot be used for\nprediction at this point\n" %>%
         set_class(c("logistic.predict",class(.))))
@@ -686,7 +679,15 @@ predict.logistic <- function(object,
       pred_val %<>% data.frame %>% select(1)
       colnames(pred_val) <- "Prediction"
     }
+
     pred <- data.frame(pred, pred_val, check.names = FALSE)
+    vars <- colnames(pred)
+
+    if ("stepwise" %in% object$check) {
+      ## show only the selected variables when printing predictions
+      object$evar <- attr(terms(object$model), "variables") %>% as.character %>% .[-c(1,2)]
+      vars <- c(object$evar, colnames(pred_val))
+    }
 
     if (prn == TRUE || prn != 0) {
       cat("Logistic regression (GLM)")
@@ -709,11 +710,11 @@ predict.logistic <- function(object,
 
       if (is.logical(prn) || prn == -1) {
         cat("\n")
-        dfprint(pred, dec) %>% print(row.names = FALSE)
+        dfprint(pred[,vars], dec) %>% print(row.names = FALSE)
       } else {
         if (nrow(pred) > prn)
           cat(paste0("Number of rows shown: ", prn, "\n\n"))
-        head(pred, prn) %>% dfprint(dec) %>% print(row.names = FALSE)
+        head(pred[,vars], prn) %>% dfprint(dec) %>% print(row.names = FALSE)
       }
     }
 
@@ -761,13 +762,12 @@ predict.logistic <- function(object,
 #' @seealso \code{\link{predict.logistic}} to generate predictions
 #'
 #' @export
-plot.logistic.predict <- function(x,
-                             xvar = "",
-                             facet_row = ".",
-                             facet_col = ".",
-                             color = "none",
-                             conf_lev = .95,
-                             ...) {
+plot.logistic.predict <- function(x, xvar = "",
+                                  facet_row = ".",
+                                  facet_col = ".",
+                                  color = "none",
+                                  conf_lev = .95,
+                                  ...) {
 
   if (is.null(xvar) || xvar == "") return(invisible())
 

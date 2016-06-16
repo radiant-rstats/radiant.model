@@ -1,5 +1,5 @@
 # to avoid 'no visible binding for global variable' NOTE
-globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted"))
+globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Predictor"))
 
 #' radiant.model
 #'
@@ -14,7 +14,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted"))
 #' @importFrom lubridate now
 #' @importFrom pryr where
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
-#' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif
+#' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif terms
 #' @importFrom utils head tail relist as.relistable
 #' @importFrom methods is
 #' @importFrom import from

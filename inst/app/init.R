@@ -25,7 +25,6 @@ options(radiant.url.list = r_url_list); rm(r_url_list)
 ## design menu
 model_ui <-
 	tagList(
-    includeCSS(file.path(getOption("radiant.path.model"),"app/www/style.css")),
     navbarMenu("Model",
       "Estimate",
       tabPanel("Linear regression (OLS)", uiOutput("regress")),
@@ -34,10 +33,11 @@ model_ui <-
       # "----", "Recommend",
       # tabPanel("Collaborative Filtering", uiOutput("crs")),
       "----", "Evaluate",
-      tabPanel("Regression", uiOutput("evalreg")),
-      tabPanel("Classification", uiOutput("evalbin")),
+      tabPanel("Evaluate regression", uiOutput("evalreg")),
+      tabPanel("Evaluate classification", uiOutput("evalbin")),
       "----", "Decide",
       tabPanel("Decision analysis", uiOutput("dtree")),
-      tabPanel("Simulate", uiOutput("simulater"))
+      tabPanel("Simulate", uiOutput("simulater")),
+      includeCSS(file.path(getOption("radiant.path.model"),"app/www/style.css"))
     )
   )

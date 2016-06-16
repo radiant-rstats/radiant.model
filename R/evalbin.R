@@ -3,7 +3,7 @@
 #' @details See \url{http://vnijs.github.io/radiant/analytics/evalbin.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
-#' @param pred Prediction or predictor
+#' @param pred Predictions or predictors
 #' @param rvar Response variable
 #' @param lev The level in the response variable defined as _success_
 #' @param qnt Number of bins to create
@@ -23,13 +23,13 @@
 #'
 #' @export
 evalbin <- function(dataset, pred, rvar,
-                        lev = "",
-                        qnt = 10,
-                        margin = 1,
-                        cost = 1,
-                        train = "",
-                        method = "xtile",
-                        data_filter = "") {
+                    lev = "",
+                    qnt = 10,
+                    margin = 1,
+                    cost = 1,
+                    train = "",
+                    method = "xtile",
+                    data_filter = "") {
 
 	## in case no inputs were provided
 	if (is.na(margin)) margin <- 0
@@ -155,7 +155,7 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
   if (is.character(object)) return(object)
 
 	if (prn) {
-		cat("Model evalbin\n")
+		cat("Evaluate predictions for binary response models\n")
 		cat("Data        :", object$dataset, "\n")
 		if (object$data_filter %>% gsub("\\s","",.) != "")
 			cat("Filter      :", gsub("\\n","", object$data_filter), "\n")

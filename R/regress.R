@@ -22,10 +22,10 @@
 #'
 #' @export
 regress <- function(dataset, rvar, evar,
-                       int = "",
-                       check = "",
-                       dec = 3,
-                       data_filter = "") {
+                    int = "",
+                    check = "",
+                    dec = 3,
+                    data_filter = "") {
 
   if (rvar %in% evar)
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -59,7 +59,7 @@ regress <- function(dataset, rvar, evar,
     # model <- lm(paste(rvar, "~ 1") %>% as.formula, data = dat) %>%
     ## using backward stepwise selection
     model <- lm(form, data = dat) %>%
-      step(k = 2, scope = list(upper = form), direction = 'backward')
+      step(k = 2, scope = list(upper = form), direction = "backward")
   } else {
     model <- lm(form, data = dat)
   }
@@ -117,7 +117,11 @@ summary.regress <- function(object,
 
   dec <- object$dec
 
-  if ("stepwise" %in% object$check) cat("-----------------------------------------------\n")
+  if ("stepwise" %in% object$check) {
+    cat("-----------------------------------------------\n")
+    cat("Backward stepwise selection of variables\n")
+    cat("-----------------------------------------------\n")
+  }
 
   cat("Linear regression (OLS)\n")
   cat("Data     :", object$dataset, "\n")
@@ -144,7 +148,6 @@ summary.regress <- function(object,
     return()
   } else {
     p.small <- coeff$p.value < .001
-    # coeff[,2:5] %<>% mutate_each(funs(sprintf(paste0("%.",dec,"f"),.)))
     coeff[,2:5] %<>% dfprint(dec)
     coeff$p.value[p.small] <- "< .001"
     print(coeff, row.names=FALSE)
@@ -189,13 +192,11 @@ summary.regress <- function(object,
     ss_tab$SS <- c(ss_reg,ss_err,ss_tot)
     cat("Sum of squares:\n")
     format(ss_tab, scientific = FALSE) %>% print
-    # dfprint(ss_tab, dec) %>% print(row.names = FALSE)
     cat("\n")
   }
 
   if ("vif" %in% sum_check) {
     if (anyNA(object$model$coeff)) {
-      # cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nMulticollinearity diagnostics were not calculated.\n")
       cat("Multicollinearity diagnostics were not calculated.")
     } else {
       if (length(object$evar) > 1) {
@@ -216,7 +217,6 @@ summary.regress <- function(object,
 
   if ("confint" %in% sum_check) {
     if (anyNA(object$model$coeff)) {
-      # cat("There is perfect multicollineary in the set of explanatory variables.\nOne or more variables were dropped from the estimation. Confidence\nintervals were not calculated.\n")
       cat("Confidence intervals were not calculated.\n")
     } else {
 
@@ -349,7 +349,7 @@ plot.regress <- function(x,
 
     plot_list[[6]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
       stat_function(fun = dnorm, args = list(mean = mean(model[,'.resid']), sd = sd(model[,'.resid'])), color = "blue") +
-      labs(list(title = "Residual vs Normal density", x = "Residuals", y = "")) + theme(axis.text.y = element_blank())
+      labs(list(title = "Residuals vs Normal density", x = "Residuals", y = "")) + theme(axis.text.y = element_blank())
 
     if ("loess" %in% lines)
       for (i in 1:3) plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "loess", size = .75, linetype = "dotdash") )
@@ -437,7 +437,6 @@ plot.regress <- function(x,
 #' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
-#' @param pred_vars Variables to use for prediction
 #' @param pred_data Name of the dataset to use for prediction
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
@@ -460,7 +459,6 @@ plot.regress <- function(x,
 #'
 #' @export
 predict.regress <- function(object,
-                            pred_vars = "",
                             pred_data = "",
                             pred_cmd = "",
                             conf_lev = 0.95,
@@ -471,11 +469,11 @@ predict.regress <- function(object,
   if (is.character(object)) return(object)
 
   # used http://www.r-tutor.com/elementary-statistics/simple-linear-regression/prediction-interval-linear-regression as starting point
-  pred_count <- sum(c(pred_vars == "", pred_cmd == "", is.character(pred_data) && pred_data == ""))
+  pred_count <- sum(c(pred_cmd == "", is.character(pred_data) && pred_data == ""))
   if ("standardize" %in% object$check) {
     return(cat("Standardized coefficients cannot be used for prediction.\nPlease uncheck the standardized coefficients box and try again"))
-  } else if (pred_count == 3) {
-    return(cat("Please select variables, data, or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant"))
+  } else if (pred_count == 2) {
+    return(cat("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant"))
   }
 
   dec <- object$dec
@@ -523,7 +521,6 @@ predict.regress <- function(object,
     }
   } else {
     ## generate predictions for all observations in the dataset
-    # pred <- getdata(pred_data, filt = pred_filt, na.rm = FALSE)
     pred <- getdata(pred_data, na.rm = FALSE)
     pred_names <- names(pred)
     pred <- try(select_(pred, .dots = vars), silent = TRUE)
@@ -560,7 +557,6 @@ predict.regress <- function(object,
     pred %<>% na.omit()
   }
 
-  # pred_val <- try(predict(object$model, pred, interval = 'prediction', se.fit = se, level = conf_lev), silent = TRUE)
   if (se)
     pred_val <- try(predict(object$model, pred, interval = 'prediction', level = conf_lev), silent = TRUE)
   else
@@ -579,14 +575,19 @@ predict.regress <- function(object,
     }
 
     pred <- data.frame(pred, pred_val, check.names = FALSE)
+    vars <- colnames(pred)
+
+    if ("stepwise" %in% object$check) {
+      ## show only the selected variables when printing predictions
+      object$evar <- attr(terms(object$model), "variables") %>% as.character %>% .[-c(1,2)]
+      vars <- c(object$evar, colnames(pred_val))
+    }
 
     if (prn == TRUE || prn != 0) {
       cat("Linear regression (OLS)\n")
       cat("Data       :", object$dataset, "\n")
       if (object$data_filter %>% gsub("\\s","",.) != "")
         cat("Filter     :", gsub("\\n","", object$data_filter), "\n")
-      # if (pred_filt %>% gsub("\\s","",.) != "")
-      #   cat("Pred filter:", gsub("\\n","", pred_filt), "\n")
       cat("Response variable    :", object$rvar, "\n")
       cat("Explanatory variables:", paste0(object$evar, collapse=", "), "\n\n")
 
@@ -602,11 +603,11 @@ predict.regress <- function(object,
 
       if (is.logical(prn) || prn == -1) {
         cat("\n")
-        dfprint(pred, dec) %>% print(row.names = FALSE)
+        dfprint(pred[,vars], dec) %>% print(row.names = FALSE)
       } else {
         if (nrow(pred) > prn)
           cat(paste0("Number of rows shown: ", prn, "\n\n"))
-        head(pred, prn) %>% dfprint(dec) %>% print(row.names = FALSE)
+        head(pred[,vars], prn) %>% dfprint(dec) %>% print(row.names = FALSE)
       }
     }
 
@@ -662,16 +663,6 @@ plot.regress.predict <- function(x,
   cn[which(cn == "Prediction") + 1] <- "ymin"
   cn[which(cn == "Prediction") + 2] <- "ymax"
   colnames(object) <- cn
-
-  # if (color == "none") {
-  #   p <- ggplot(object, aes_string(x=xvar, y="Prediction")) +
-  #          geom_line()
-  #          # geom_line(aes(group=1))
-  # } else {
-  #   p <- ggplot(object, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
-  #          geom_line()
-  #               # geom_line(aes_string(group=color))
-  # }
 
   byvar <- NULL
   if (color != "none") byvar <- color

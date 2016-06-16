@@ -27,7 +27,6 @@ output$ui_ann_lev <- renderUI({
   selectInput(inputId = "ann_lev", label = "Choose level:",
               choices = levs,
               selected = state_init("ann_lev"))
-              # selected = use_input_nonvar("ann_lev", levs))
 })
 
 output$ui_ann_evar <- renderUI({
@@ -38,13 +37,11 @@ output$ui_ann_evar <- renderUI({
     vars <- vars[-which(vars == input$ann_rvar)]
 
   selectInput(inputId = "ann_evar", label = "Explanatory variables:", choices = vars,
-    # selected = use_input("ann_evar", vars, fun = "state_multiple"),
     selected = state_multiple("ann_evar", vars, input$glm_evar),
   	multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
 
 output$ui_ann_wts <- renderUI({
-  # req(available(input$ann_rvar), available(input$ann_evar))
   isNum <- .getclass() %in% c("numeric","integer")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$ann_evar)) {
@@ -54,11 +51,9 @@ output$ui_ann_wts <- renderUI({
   vars <- c("None", vars)
 
   selectInput(inputId = "ann_wts", label = "Weights:", choices = vars,
-    # selected = use_input("ann_wts", vars),
     selected = state_single("ann_wts", vars),
     multiple = FALSE)
 })
-
 
 output$ui_ann <- renderUI({
   # req(input$dataset)
@@ -67,7 +62,6 @@ output$ui_ann <- renderUI({
       actionButton("ann_run", "Estimate", width = "100%")
     ),
     wellPanel(
-      # checkboxInput("ann_pause", "Pause estimation", state_init("ann_pause", FALSE)),
 	    uiOutput("ui_ann_rvar"),
       uiOutput("ui_ann_lev"),
 	    uiOutput("ui_ann_evar"),

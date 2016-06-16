@@ -10,7 +10,7 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, margin = 1, cost = 1,
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
 
-\item{pred}{Prediction or predictor}
+\item{pred}{Predictions or predictors}
 
 \item{rvar}{Response variable}
 
