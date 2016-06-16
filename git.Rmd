@@ -31,6 +31,10 @@ system("git push")
 ## merge branch back into master
 system("git checkout master")
 system("git merge summarize-early")
+system("git merge eval-regression")
+
+system("git branch -d summarize-early")
+system("git branch -d eval-regression")
 
 
 # push(repo, credentials = cred_token())
