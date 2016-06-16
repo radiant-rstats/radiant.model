@@ -2,9 +2,9 @@
 ## Create decision tree
 #######################################
 dtree_example <-
-"variables:
+"name: Sign contract
+variables:
     legal fees: 5000
-name: Sign contract
 type: decision
 Sign with Movie Company:
     cost: legal fees
@@ -19,8 +19,7 @@ Sign with Movie Company:
         p: 0.1
         payoff: 3000000
 Sign with TV Network:
-  payoff: 900000
-"
+    payoff: 900000"
 
 dtree_max_min <- c("Max" = "max", "Min" = "min")
 

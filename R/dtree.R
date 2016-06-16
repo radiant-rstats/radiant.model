@@ -32,6 +32,7 @@ dtree_parser <- function(yl) {
 
   ## make sure the labels are in lower case
   yl %<>% gsub("(^\\s*)name(\\s*:)","\\1name\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)variables(\\s*:)","\\1variables\\2", ., ignore.case = TRUE, perl = TRUE)
   yl %<>% gsub("(^\\s*)type(\\s*:)","\\1type\\2", ., ignore.case = TRUE, perl = TRUE)
   yl %<>% gsub("(^\\s*)p(\\s*:)","\\1p\\2", ., ignore.case = TRUE, perl = TRUE)
   yl %<>% gsub("(^\\s*)payoff(\\s*:)","\\1payoff\\2", ., ignore.case = TRUE, perl = TRUE)
