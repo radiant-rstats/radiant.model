@@ -5,7 +5,7 @@
 \title{Predict method for the regress function}
 \usage{
 \method{predict}{regress}(object, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, prn = 100, se = TRUE, ...)
+  conf_lev = 0.95, se = TRUE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}
@@ -15,8 +15,6 @@
 \item{pred_cmd}{Command used to generate data for prediction}
 
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
-
-\item{prn}{Number of lines of prediction results to print. Nothing is printed if prn is 0. Use -1 to print all lines (default).}
 
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 

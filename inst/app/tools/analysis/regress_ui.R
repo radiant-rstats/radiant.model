@@ -58,7 +58,7 @@ reg_pred_inputs <- reactive({
   for (i in names(reg_pred_args))
     reg_pred_args[[i]] <- input[[paste0("reg_",i)]]
 
-  reg_pred_args$pred_cmd <- reg_pred_args$pred_data <- reg_pred_args$pred_vars <- ""
+  reg_pred_args$pred_cmd <- reg_pred_args$pred_data <- ""
   if (input$reg_predict == "cmd") {
     reg_pred_args$pred_cmd <- gsub("\\s", "", input$reg_pred_cmd) %>% gsub("\"","\'",.)
   } else if (input$reg_predict == "data") {
@@ -66,10 +66,7 @@ reg_pred_inputs <- reactive({
   } else if (input$reg_predict == "datacmd") {
     reg_pred_args$pred_cmd <- gsub("\\s", "", input$reg_pred_cmd) %>% gsub("\"","\'",.)
     reg_pred_args$pred_data <- input$reg_pred_data
-  } else if (input$reg_predict == "vars") {
-    reg_pred_args$pred_vars <- input$reg_pred_vars
   }
-
   reg_pred_args
 })
 
@@ -143,59 +140,9 @@ output$ui_reg_int <- renderUI({
     multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
 })
 
-# X - variable
-output$ui_reg_xvar <- renderUI({
-  vars <- input$reg_evar
-  selectizeInput(inputId = "reg_xvar", label = "X-variable:", choices = vars,
-    selected = state_multiple("reg_xvar",vars),
-    multiple = FALSE)
+output$ui_reg_predict_plot <- renderUI({
+  predict_plot_controls("reg")
 })
-
-output$ui_reg_facet_row <- renderUI({
-  vars <- input$reg_evar
-  vars <- c("None" = ".", vars)
-  selectizeInput("reg_facet_row", "Facet row", vars,
-                 selected = state_single("reg_facet_row", vars, "."),
-                 multiple = FALSE)
-})
-
-output$ui_reg_facet_col <- renderUI({
-  vars <- input$reg_evar
-  vars <- c("None" = ".", vars)
-  selectizeInput("reg_facet_col", "Facet column", vars,
-                 selected = state_single("reg_facet_col", vars, "."),
-                 multiple = FALSE)
-})
-
-output$ui_reg_color <- renderUI({
-  vars <- c("None" = "none", input$reg_evar)
-  sel <- state_single("reg_color", vars, "none")
-  selectizeInput("reg_color", "Color", vars, selected = sel,
-                 multiple = FALSE)
-})
-
-## show error message from filter dialog
-# output$ui_reg_pred_filt_err <- renderUI({
-#   if (is_empty(r_data$reg_pred_filt_err)) return()
-#   helpText(r_data$reg_pred_filt_err)
-# })
-
-# observeEvent(input$reg_pred_filt, {
-#   selcom <- input$reg_pred_filt %>% gsub("\\n","", .) %>% gsub("\"","\'",.)
-#   if (is_empty(selcom) || input$show_filter == FALSE) {
-#     isolate(r_data$reg_pred_filt_err <- "")
-#   } else if (grepl("([^=!<>])=([^=])",selcom)) {
-#     isolate(r_data$reg_pred_filt_err <- "Invalid filter: never use = in a filter but == (e.g., year == 2014). Update or remove the expression")
-#   } else {
-#     seldat <- try(filter_(r_data[[input$dataset]], selcom), silent = TRUE)
-#     if (is(seldat, 'try-error')) {
-#       isolate(r_data$reg_pred_filt_err <- paste0("Invalid filter: \"", attr(seldat,"condition")$message,"\". Update or remove the expression"))
-#     } else {
-#       isolate(r_data$reg_pred_filt_err <- "")
-#       # return(seldat)
-#     }
-#   }
-# })
 
 ## data ui and tabs
 output$ui_regress <- renderUI({
@@ -208,15 +155,10 @@ output$ui_regress <- renderUI({
       wellPanel(
         selectInput("reg_predict", label = "Prediction input:", reg_predict,
           selected = state_single("reg_predict", reg_predict, "none")),
-        conditionalPanel(condition = "input.reg_predict == 'vars'",
-          uiOutput("ui_reg_pred_var")
-        ),
         conditionalPanel("input.reg_predict == 'data' | input.reg_predict == 'datacmd'",
           selectizeInput(inputId = "reg_pred_data", label = "Predict for profiles:",
                       choices = c("None" = "",r_data$datasetlist),
                       selected = state_single("reg_pred_data", c("None" = "",r_data$datasetlist)), multiple = FALSE)
-          # returnTextAreaInput("reg_pred_filt", label = "Prediction filter:", value = state_init("reg_pred_filt")),
-          # uiOutput("ui_reg_pred_filt_err")
         ),
         conditionalPanel("input.reg_predict == 'cmd' | input.reg_predict == 'datacmd'",
           returnTextAreaInput("reg_pred_cmd", "Prediction command:",
@@ -225,10 +167,7 @@ output$ui_regress <- renderUI({
         conditionalPanel(condition = "input.reg_predict != 'none'",
           checkboxInput("reg_pred_plot", "Plot predictions", state_init("reg_pred_plot", FALSE)),
           conditionalPanel("input.reg_pred_plot == true",
-            uiOutput("ui_reg_xvar"),
-            uiOutput("ui_reg_facet_row"),
-            uiOutput("ui_reg_facet_col"),
-            uiOutput("ui_reg_color")
+            uiOutput("ui_reg_predict_plot")
           )
         ),
         ## only show if full data is used for prediction
@@ -257,7 +196,6 @@ output$ui_regress <- renderUI({
     ),
 
     wellPanel(
-      # checkboxInput("reg_pause", "Pause estimation", state_init("reg_pause", FALSE)),
       uiOutput("ui_reg_rvar"),
       uiOutput("ui_reg_evar"),
 
@@ -331,7 +269,7 @@ reg_pred_plot_height <- function()
 output$regress <- renderUI({
 
     register_print_output("summary_regress", ".summary_regress")
-    register_print_output("predict_regress", ".predict_regress")
+    register_print_output("predict_regress", ".predict_print_regress")
     register_plot_output("predict_plot_regress", ".predict_plot_regress",
                           height_fun = "reg_pred_plot_height")
     register_plot_output("plot_regress", ".plot_regress",
@@ -410,6 +348,10 @@ reg_available <- reactive({
   })
 })
 
+.predict_print_regress <- reactive({
+  .predict_regress() %>% {if (is.character(.)) cat(.,"\n") else print(.)}
+})
+
 .predict_plot_regress <- reactive({
   if (reg_available() != "available") return(reg_available())
   # req(input$reg_pred_plot, input$reg_xvar, !is_empty(input$reg_predict, "none"), pressed(input$reg_run))
@@ -449,12 +391,12 @@ observeEvent(input$regress_report, {
   if (!is_empty(input$reg_predict, "none") &&
       (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
-    pred_args[["prn"]] <- 10
+    # pred_args[["prn"]] <- 10
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
     dataset <- if (input$reg_predict %in% c("data","datacmd")) input$reg_pred_data else input$dataset
     xcmd <-
-      paste0("store(pred, data = '", dataset, "', name = '", input$reg_store_pred_name,"')\n") %>%
+      paste0("print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$reg_store_pred_name,"')\n") %>%
       paste0("# write.csv(pred, file = '~/reg_predictions.csv', row.names = FALSE)")
     if (input$reg_pred_plot && !is_empty(input$reg_xvar)) {
       inp_out[[3 + figs]] <- clean_args(reg_pred_plot_inputs(), reg_pred_plot_args[-1])

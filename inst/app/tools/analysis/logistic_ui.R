@@ -58,7 +58,7 @@ logit_pred_inputs <- reactive({
   for (i in names(logit_pred_args))
     logit_pred_args[[i]] <- input[[paste0("logit_",i)]]
 
-  logit_pred_args$pred_cmd <- logit_pred_args$pred_data <- logit_pred_args$pred_vars <- ""
+  logit_pred_args$pred_cmd <- logit_pred_args$pred_data <- ""
   if (input$logit_predict == "cmd") {
     logit_pred_args$pred_cmd <- gsub("\\s", "", input$logit_pred_cmd) %>% gsub("\"","\'",.)
   } else if (input$logit_predict == "data") {
@@ -66,10 +66,7 @@ logit_pred_inputs <- reactive({
   } else if (input$logit_predict == "datacmd") {
     logit_pred_args$pred_cmd <- gsub("\\s", "", input$logit_pred_cmd) %>% gsub("\"","\'",.)
     logit_pred_args$pred_data <- input$logit_pred_data
-  } else if (input$logit_predict == "vars") {
-    logit_pred_args$pred_vars <- input$logit_pred_vars
   }
-
   logit_pred_args
 })
 
@@ -128,14 +125,6 @@ output$ui_logit_wts <- renderUI({
     multiple = FALSE)
 })
 
-
-output$ui_logit_pred_var <- renderUI({
-  vars <- input$logit_evar
-  selectInput("logit_pred_var", label = "Predict for variables:",
-    choices = vars, selected = state_multiple("logit_pred_var", vars),
-    multiple = TRUE, size = min(4, length(vars)), selectize = FALSE)
-})
-
 output$ui_logit_test_var <- renderUI({
   req(available(input$logit_evar))
  	vars <- input$logit_evar
@@ -176,56 +165,21 @@ output$ui_logit_int <- renderUI({
   	multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
 })
 
-## X - variable
-output$ui_logit_xvar <- renderUI({
-  vars <- input$logit_evar
-  selectizeInput(inputId = "logit_xvar", label = "X-variable:", choices = vars,
-    selected = state_multiple("logit_xvar",vars),
-    multiple = FALSE)
-})
-
-output$ui_logit_facet_row <- renderUI({
-  vars <- input$logit_evar
-  vars <- c("None" = ".", vars)
-  selectizeInput("logit_facet_row", "Facet row", vars,
-                 selected = state_single("logit_facet_row", vars, "."),
-                 multiple = FALSE)
-})
-
-output$ui_logit_facet_col <- renderUI({
-  vars <- input$logit_evar
-  vars <- c("None" = ".", vars)
-  selectizeInput("logit_facet_col", "Facet column", vars,
-                 selected = state_single("logit_facet_col", vars, "."),
-                 multiple = FALSE)
-})
-
-output$ui_logit_color <- renderUI({
-  vars <- c("None" = "none", input$logit_evar)
-  sel <- state_single("logit_color", vars, "none")
-  selectizeInput("logit_color", "Color", vars, selected = sel,
-                 multiple = FALSE)
+output$ui_logit_predict_plot <- renderUI({
+  predict_plot_controls("logit")
 })
 
 output$ui_logistic <- renderUI({
   req(input$dataset)
   tagList(
-    # conditionalPanel(condition = "input.tabs_logistic == 'Summary'",
-      wellPanel(
-        actionButton("logit_run", "Estimate", width = "100%")
-      ),
-    # ),
+    wellPanel(
+      actionButton("logit_run", "Estimate", width = "100%")
+    ),
     conditionalPanel(condition = "input.tabs_logistic == 'Predict'",
       wellPanel(
 
         selectInput("logit_predict", label = "Prediction input:", logit_predict,
           selected = state_single("logit_predict", logit_predict, "none")),
-        conditionalPanel(condition = "input.logit_predict == 'vars'",
-          uiOutput("ui_logit_pred_var")
-        ),
-
-        # radioButtons(inputId = "logit_predict", label = "Prediction:", logit_predict,
-        #   selected = state_init("logit_predict", ""), inline = TRUE),
         conditionalPanel("input.logit_predict == 'data' | input.logit_predict == 'datacmd'",
           selectizeInput(inputId = "logit_pred_data", label = "Predict for profiles:",
                       choices = c("None" = "",r_data$datasetlist),
@@ -238,10 +192,7 @@ output$ui_logistic <- renderUI({
         conditionalPanel(condition = "input.logit_predict != 'none'",
           checkboxInput("logit_pred_plot", "Plot predictions", state_init("logit_pred_plot", FALSE)),
           conditionalPanel("input.logit_pred_plot == true",
-            uiOutput("ui_logit_xvar"),
-            uiOutput("ui_logit_facet_row"),
-            uiOutput("ui_logit_facet_col"),
-            uiOutput("ui_logit_color")
+            uiOutput("ui_logit_predict_plot")
           )
         ),
         ## only show if full data is used for prediction
@@ -341,7 +292,7 @@ logit_pred_plot_height <- function()
 output$logistic <- renderUI({
 
 		register_print_output("summary_logistic", ".summary_logistic")
-    register_print_output("predict_logistic", ".predict_logistic")
+    register_print_output("predict_logistic", ".predict_print_logistic")
     register_plot_output("predict_plot_logistic", ".predict_plot_logistic",
                           height_fun = "logit_pred_plot_height")
 		register_plot_output("plot_logistic", ".plot_logistic",
@@ -382,34 +333,11 @@ logit_available <- reactive({
   "available"
 })
 
-# .logistic <- reactive({
-#   # if (is.null(input$logit_pause) || input$logit_pause == TRUE) {
-#   if (pressed(input$logit_store_pred) || pressed(input$logit_store_res)) {
-#     isolate(.logistic2())
-#     # cancelOutput()
-#   } else {
-#     .logistic2()
-#   }
-# })
-
 .logistic <- eventReactive(input$logit_run, {
 
-  # isolate({
-  #   if (pressed(input$logit_store_pred) || pressed(input$logit_store_res))
-  #     cancelOutput()
-  #   if (!is.null(input$a_button) && input$a_button > 0) cancelOutput()
-  # })
-
-  # req(input$logit_pause == FALSE, cancelOutput = TRUE)
-
   req(available(input$logit_rvar), available(input$logit_evar))
-  # req(input$logit_lev, input$logit_wts)
   req(input$logit_lev)
   req(input$logit_wts == "None" || available(input$logit_wts))
-
-  ## need dependency on logit_int so I can have names(input) in isolate
-  # input$logit_int
-  # isolate(req("logit_int" %in% names(input)))
 
   withProgress(message = 'Estimating model', value = 0,
     do.call(logistic, logit_inputs())
@@ -437,12 +365,6 @@ logit_available <- reactive({
   if (logit_available() != "available") return(logit_available())
   if (not_pressed(input$logit_run)) return("** Press the Estimate button to estimate the model **")
   if (is_empty(input$logit_predict, "none")) return("** Select prediction input **")
-  # req(!is_empty(input$logit_predict, "none"),
-  # req(!is_empty(input$logit_pred_data) || !is_empty(input$logit_pred_cmd))
-
-  # if(is_empty(input$logit_pred_data) && is_empty(input$logit_pred_cmd))
-    # return("** Select prediction data or commands **")
-
   if((input$logit_predict == "data" || input$logit_predict == "datacmd") && is_empty(input$logit_pred_data))
     return("** Select data for prediction **")
   if(input$logit_predict == "cmd" && is_empty(input$logit_pred_cmd))
@@ -453,15 +375,9 @@ logit_available <- reactive({
   })
 })
 
-# observeEvent(input$store_logit_cmd, {
-#   view_store(input$dataset, input$view_vars, input$view_dat, data_filter, input$dataviewer_rows_all)
-# })
-
-# store_logit_cmd <- function(dataset)
-#   r_data[[dataset]] <- .getdata_transform()
-#   r_data[[paste0(dataset,"_descr")]] <- "New data"
-#   r_data[['datasetlist']] %<>% c(dataset,.) %>% unique
-# }
+.predict_print_logistic <- reactive({
+  .predict_logistic() %>% {if (is.character(.)) cat(.,"\n") else print(.)}
+})
 
 .predict_plot_logistic <- reactive({
   if (logit_available() != "available") return(logit_available())
@@ -490,13 +406,12 @@ observeEvent(input$logistic_report, {
       (!is_empty(input$logit_pred_data) || !is_empty(input$logit_pred_cmd))) {
 
     pred_args <- clean_args(logit_pred_inputs(), logit_pred_args[-1])
-    pred_args[["prn"]] <- 10
     inp_out[[2 + figs]] <- pred_args
 
     outputs <- c(outputs,"pred <- predict")
     dataset <- if (input$logit_predict %in% c("data","datacmd")) input$logit_pred_data else input$dataset
     xcmd <-
-      paste0("store(pred, data = '", dataset, "', name = '", input$logit_store_pred_name,"')\n") %>%
+      paste0("print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$logit_store_pred_name,"')\n") %>%
       paste0("# write.csv(pred, file = '~/logit_predictions.csv', row.names = FALSE)")
 
     if (input$logit_predict == "cmd") xcmd <- ""

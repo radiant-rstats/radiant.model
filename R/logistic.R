@@ -538,7 +538,6 @@ plot.logistic <- function(x,
 #' @param object Return value from \code{\link{logistic}}
 #' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
-#' @param prn Number of lines of prediction results to print. Nothing is printed if prn is 0. Use -1 to print all lines (default).
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param ... further arguments passed to or from other methods
 #'
@@ -559,7 +558,6 @@ plot.logistic <- function(x,
 predict.logistic <- function(object,
                              pred_data = "",
                              pred_cmd = "",
-                             prn = 100,
                              se = FALSE,
                              ...) {
 
@@ -689,34 +687,14 @@ predict.logistic <- function(object,
       vars <- c(object$evar, colnames(pred_val))
     }
 
-    if (prn == TRUE || prn != 0) {
-      cat("Logistic regression (GLM)")
-      cat("\nData                 :", object$dataset)
-      if (object$data_filter %>% gsub("\\s","",.) != "")
-        cat("\nFilter               :", gsub("\\n","", object$data_filter))
-      cat("\nResponse variable    :", object$rvar)
-      cat("\nLevel                :", object$lev, "in", object$rvar)
-      cat("\nExplanatory variables:", paste0(object$evar, collapse=", "),"\n\n")
-
-      if (!is.character(pred_data)) pred_data <- "-----"
-      if (pred_type == "cmd") {
-        cat("Predicted values for:\n")
-      } else if (pred_type == "datacmd") {
-        cat(paste0("Predicted values for profiles from dataset: ", pred_data,"\n"))
-        cat(paste0("Customized using command: ", pred_cmd, "\n"))
-      } else {
-        cat(paste0("Predicted values for profiles from dataset: ", pred_data,"\n"))
-      }
-
-      if (is.logical(prn) || prn == -1) {
-        cat("\n")
-        dfprint(pred[,vars], dec) %>% print(row.names = FALSE)
-      } else {
-        if (nrow(pred) > prn)
-          cat(paste0("Number of rows shown: ", prn, "\n\n"))
-        head(pred[,vars], prn) %>% dfprint(dec) %>% print(row.names = FALSE)
-      }
-    }
+    attr(pred, "dataset") <- object$dataset
+    attr(pred, "data_filter") <- object$data_filter
+    attr(pred, "rvar") <- object$rvar
+    attr(pred, "lev") <- object$lev
+    attr(pred, "evar") <- object$evar
+    attr(pred, "vars") <- vars
+    attr(pred, "dec") <- dec
+    attr(pred, "pred") <- c(pred_type, pred_data, pred_cmd)
 
     return(pred %>% set_class(c("logistic.predict",class(.))))
   } else {
@@ -724,6 +702,19 @@ predict.logistic <- function(object,
   }
 
   return(invisible())
+}
+
+#' Print method for logistic.predict
+#'
+#' @param x Return value from prediction method
+#' @param ... further arguments passed to or from other methods
+#' @param n Number of lines of prediction results to print. Use -1 to print all lines
+#'
+#' @export
+print.logistic.predict <- function(x, ..., n = 10) {
+  print.model.predict(x, ..., n = n,
+                      header = "Logistic regression (GLM)",
+                      lev = attr(x, "lev"))
 }
 
 #' Plot method for the predict.logistic function

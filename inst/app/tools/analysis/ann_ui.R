@@ -12,17 +12,23 @@ ann_inputs <- reactive({
 })
 
 output$ui_ann_rvar <- renderUI({
- 	vars <- two_level_vars()
+  req(input$ann_type)
+  if (input$ann_type == "classification") {
+    vars <- two_level_vars()
+  } else {
+    isNum <- .getclass() %in% c("numeric","integer")
+    vars <- varnames()[isNum]
+  }
   selectInput(inputId = "ann_rvar", label = "Response variable:", choices = vars,
   	selected = state_single("ann_rvar",vars), multiple = FALSE)
 })
 
 output$ui_ann_lev <- renderUI({
-  if (is_empty(input$ann_rvar)) return()
+  req(input$ann_type == "classification")
+  req(input$ann_rvar)
+  levs <- c()
   if (available(input$ann_rvar))
     levs <- .getdata()[[input$ann_rvar]] %>% as.factor %>% levels
-  else
-    levs <- c()
 
   selectInput(inputId = "ann_lev", label = "Choose level:",
               choices = levs,
@@ -55,13 +61,47 @@ output$ui_ann_wts <- renderUI({
     multiple = FALSE)
 })
 
+output$ui_ann_predict_plot <- renderUI({
+  predict_plot_controls("ann")
+})
+
 output$ui_ann <- renderUI({
-  # req(input$dataset)
   tagList(
     wellPanel(
       actionButton("ann_run", "Estimate", width = "100%")
     ),
+    conditionalPanel(condition = "input.tabs_ann == 'Predict'",
+      wellPanel(
+        selectInput("ann_predict", label = "Prediction input:", reg_predict,
+          selected = state_single("ann_predict", reg_predict, "none")),
+        conditionalPanel("input.ann_predict == 'data' | input.ann_predict == 'datacmd'",
+          selectizeInput(inputId = "ann_pred_data", label = "Predict for profiles:",
+                      choices = c("None" = "",r_data$datasetlist),
+                      selected = state_single("ann_pred_data", c("None" = "",r_data$datasetlist)), multiple = FALSE)
+        ),
+        conditionalPanel("input.ann_predict == 'cmd' | input.ann_predict == 'datacmd'",
+          returnTextAreaInput("ann_pred_cmd", "Prediction command:",
+            value = state_init("ann_pred_cmd", ""))
+        ),
+        conditionalPanel(condition = "input.ann_predict != 'none'",
+          checkboxInput("ann_pred_plot", "Plot predictions", state_init("ann_pred_plot", FALSE)),
+          conditionalPanel("input.ann_pred_plot == true",
+            uiOutput("ui_ann_predict_plot")
+          )
+        ),
+        ## only show if full data is used for prediction
+        conditionalPanel("input.ann_predict == 'data' | input.ann_predict == 'datacmd'",
+          tags$table(
+            tags$td(textInput("ann_store_pred_name", "Store predictions:", state_init("ann_store_pred_name","predict_ann"))),
+            tags$td(actionButton("ann_store_pred", "Store"), style="padding-top:30px;")
+          )
+        )
+      )
+    ),
     wellPanel(
+      radioButtons("ann_type", label = NULL, c("classification","regression"),
+        selected = state_init("ann_type", "classification"),
+        inline = TRUE),
 	    uiOutput("ui_ann_rvar"),
       uiOutput("ui_ann_lev"),
 	    uiOutput("ui_ann_evar"),
@@ -73,16 +113,6 @@ output$ui_ann <- renderUI({
           step = .1, value = state_init("ann_decay",.5), width = "77px")),
         tags$td(numericInput("ann_seed", label = "Seed:",
           value = state_init("ann_seed", 1234), width = "77px"))
-      )
-    ),
-    wellPanel(
-      selectizeInput(inputId = "ann_pred_data", label = "Predict for data:",
-         choices = c("None",r_data$datasetlist),
-         selected = input$dataset, multiple = FALSE),
-         # selected = state_init("ann_pred_data", input$dataset), multiple = FALSE),
-      tags$table(
-        tags$td(textInput("ann_pred_name", "Store predictions:", "predict_ann")),
-        tags$td(actionButton("ann_pred", "Store"), style="padding-top:30px;")
       )
     ),
   	help_and_report(modal_title = "Neural Network (ANN)",
@@ -105,6 +135,10 @@ ann_plot_width <- function()
 ann_plot_height <- function()
   ann_plot() %>% { if (is.list(.)) .$plot_height else 500 }
 
+ann_pred_plot_height <- function()
+  if (input$ann_pred_plot) 500 else 0
+
+
 ## output is called from the main radiant ui.R
 output$ann <- renderUI({
 
@@ -112,7 +146,9 @@ output$ann <- renderUI({
     register_plot_output("plot_ann_net", ".plot_ann_net",
                           height_fun = "ann_plot_height",
                           width_fun = "ann_plot_width")
-
+    register_print_output("predict_ann", ".predict_ann")
+    register_plot_output("predict_plot_ann", ".predict_plot_ann",
+                          height_fun = "ann_pred_plot_height")
 		register_plot_output("plot_ann", ".plot_ann",
                           height_fun = "ann_plot_height",
                           width_fun = "ann_plot_width")
@@ -121,10 +157,17 @@ output$ann <- renderUI({
 		ann_output_panels <- tabsetPanel(
 	    id = "tabs_ann",
 	    tabPanel("Summary",
-               downloadLink("dl_ann_pred", "", class = "fa fa-download alignright"), br(),
-               verbatimTextOutput("summary_ann"),
-               plot_downloader("ann_net", height = ann_plot_height()),
-               plotOutput("plot_ann_net", width = "100%", height = "100%")),
+        verbatimTextOutput("summary_ann"),
+        plot_downloader("ann_net", height = ann_plot_height()),
+        plotOutput("plot_ann_net", width = "100%", height = "100%")),
+      tabPanel("Predict",
+        conditionalPanel("input.ann_pred_plot == true",
+          plot_downloader("ann", height = ann_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),
+          plotOutput("predict_plot_ann", width = "100%", height = "100%")
+        ),
+        downloadLink("dl_ann_pred", "", class = "fa fa-download alignright"), br(),
+        verbatimTextOutput("predict_ann")
+      ),
 	    tabPanel("Plot", plot_downloader("ann", height = ann_plot_height()),
                plotOutput("plot_ann", width = "100%", height = "100%"))
 	  )
@@ -160,6 +203,35 @@ ann_available <- reactive({
   summary(.ann())
 })
 
+
+.predict_ann <- reactive({
+  if (ann_available() != "available") return(ann_available())
+  if (not_pressed(input$ann_run)) return("** Press the Estimate button to estimate the model **")
+  if (is_empty(input$ann_predict, "none")) return("** Select prediction input **")
+
+  if((input$ann_predict == "data" || input$ann_predict == "datacmd") && is_empty(input$ann_pred_data))
+    return("** Select data for prediction **")
+  if(input$ann_predict == "cmd" && is_empty(input$ann_pred_cmd))
+    return("** Enter prediction commands **")
+
+  # withProgress(message = "Generating predictions", value = 0, {
+    # do.call(predict, c(list(object = .ann()), ann_pred_inputs()))
+  # })
+})
+
+.predict_plot_ann <- reactive({
+  if (ann_available() != "available") return(ann_available())
+  req(input$ann_pred_plot, available(input$ann_xvar))
+  if (not_pressed(input$ann_run)) return(invisible())
+  if (is_empty(input$ann_predict, "none")) return(invisible())
+  if((input$ann_predict == "data" || input$ann_predict == "datacmd") && is_empty(input$ann_pred_data))
+    return(invisible())
+  if(input$ann_predict == "cmd" && is_empty(input$ann_pred_cmd))
+    return(invisible())
+
+  # do.call(plot, c(list(x = .predict_ann()), ann_pred_plot_inputs()))
+})
+
 .plot_ann <- reactive({
   if (ann_available() != "available") return(ann_available())
   if (not_pressed(input$ann_run)) return("** Press the Estimate button to estimate the model **")
@@ -190,12 +262,12 @@ observeEvent(input$ann_report, {
                 xcmd = xcmd)
 })
 
-observeEvent(input$ann_pred, {
+observeEvent(input$ann_store_pred, {
   if (ann_available() != "available") return(ann_available())
   if (is_empty(input$ann_pred_data,"None")) return("No data selected for prediction")
   withProgress(message = 'Storing predictions', value = 0,
     predict(.ann(), input$ann_pred_data) %>%
-    store(data = input$ann_pred_data, name = input$ann_pred_name)
+    store(data = input$ann_pred_data, name = input$ann_store_pred_name)
   )
 })
 

@@ -4,8 +4,9 @@
 \alias{ann}
 \title{Artificial Neural Networks}
 \usage{
-ann(dataset, rvar, evar, lev = "", size = 1, decay = 0.5, wts = "None",
-  seed = NA, check = "", dec = 3, data_filter = "")
+ann(dataset, rvar, evar, type = "classification", lev = "", size = 1,
+  decay = 0.5, wts = "None", seed = NA, check = "", dec = 3,
+  data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
@@ -13,6 +14,8 @@ ann(dataset, rvar, evar, lev = "", size = 1, decay = 0.5, wts = "None",
 \item{rvar}{The response variable in the logit (probit) model}
 
 \item{evar}{Explanatory variables in the model}
+
+\item{type}{Model type (i.e., "classification" or "regression")}
 
 \item{lev}{The level in the response variable defined as _success_}
 
@@ -42,6 +45,7 @@ See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Ra
 \examples{
 result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
 result <- ann("titanic", "survived", c("pclass","sex"))
+result <- ann("diamonds", "price", c("carat","clarity"), type = "regression")
 
 }
 \seealso{

@@ -440,7 +440,6 @@ plot.regress <- function(x,
 #' @param pred_data Name of the dataset to use for prediction
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
-#' @param prn Number of lines of prediction results to print. Nothing is printed if prn is 0. Use -1 to print all lines (default).
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param ... further arguments passed to or from other methods
 #'
@@ -462,7 +461,6 @@ predict.regress <- function(object,
                             pred_data = "",
                             pred_cmd = "",
                             conf_lev = 0.95,
-                            prn = 100,
                             se = TRUE,
                             ...) {
 
@@ -583,33 +581,13 @@ predict.regress <- function(object,
       vars <- c(object$evar, colnames(pred_val))
     }
 
-    if (prn == TRUE || prn != 0) {
-      cat("Linear regression (OLS)\n")
-      cat("Data       :", object$dataset, "\n")
-      if (object$data_filter %>% gsub("\\s","",.) != "")
-        cat("Filter     :", gsub("\\n","", object$data_filter), "\n")
-      cat("Response variable    :", object$rvar, "\n")
-      cat("Explanatory variables:", paste0(object$evar, collapse=", "), "\n\n")
-
-      if (!is.character(pred_data)) pred_data <- "-----"
-      if (pred_type == "cmd") {
-        cat("Predicted values for:\n")
-      } else if (pred_type == "datacmd") {
-        cat(paste0("Predicted values for profiles from dataset: ", pred_data,"\n"))
-        cat(paste0("Customized using command: ", pred_cmd, "\n"))
-      } else {
-        cat(paste0("Predicted values for profiles from dataset: ", pred_data,"\n"))
-      }
-
-      if (is.logical(prn) || prn == -1) {
-        cat("\n")
-        dfprint(pred[,vars], dec) %>% print(row.names = FALSE)
-      } else {
-        if (nrow(pred) > prn)
-          cat(paste0("Number of rows shown: ", prn, "\n\n"))
-        head(pred[,vars], prn) %>% dfprint(dec) %>% print(row.names = FALSE)
-      }
-    }
+    attr(pred, "dataset") <- object$dataset
+    attr(pred, "data_filter") <- object$data_filter
+    attr(pred, "rvar") <- object$rvar
+    attr(pred, "evar") <- object$evar
+    attr(pred, "vars") <- vars
+    attr(pred, "dec") <- dec
+    attr(pred, "pred") <- c(pred_type, pred_data, pred_cmd)
 
     return(pred %>% set_class(c("regress.predict",class(.))))
 
@@ -617,6 +595,61 @@ predict.regress <- function(object,
     paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% cat
   }
 }
+
+#' Print method for the model prediction
+#'
+#' @param x Return value from prediction method
+#' @param ... further arguments passed to or from other methods
+#' @param n Number of lines of prediction results to print. Use -1 to print all lines
+#' @param header Header line
+#'
+#' @export
+print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
+
+  data_filter <- attr(x, "data_filter")
+  vars <- attr(x, "vars")
+  pred_info <- attr(x, "pred")
+  pred_type <- pred_info[1]; pred_data <- pred_info[2]; pred_cmd <- pred_info[3]
+
+  cat(header)
+  cat("\nData                 :", attr(x, "dataset"), "\n")
+  if (data_filter %>% gsub("\\s","",.) != "")
+    cat("Filter               :", gsub("\\n","", data_filter), "\n")
+  cat("Response variable    :", attr(x, "rvar"), "\n")
+  if (!is_empty(lev))
+    cat("Level                :", lev, "in", attr(x, "rvar"), "\n")
+  cat("Explanatory variables:", paste0(attr(x, "evar"), collapse=", "), "\n")
+
+  if (!is.character(pred_data)) pred_data <- "-----"
+  if (pred_type == "cmd") {
+    cat("Predicted values from command:", pred_cmd, "\n")
+  } else if (pred_type == "datacmd") {
+    cat("Predicted values for profiles from dataset:", pred_data,"\n")
+    cat("Customized using command:", pred_cmd, "\n")
+  } else {
+    cat("Predicted values for profiles from dataset:", pred_data,"\n")
+  }
+
+  if (n == -1) {
+    cat("\n")
+    dfprint(x[,vars], attr(x, "dec")) %>% print(row.names = FALSE)
+  } else {
+    if (nrow(x) > n)
+      cat("Number of rows shown :", n, "\n")
+    cat("\n")
+    head(x[,vars], n) %>% dfprint(attr(x, "dec")) %>% print(row.names = FALSE)
+  }
+}
+
+#' Print method for regress.predict
+#'
+#' @param x Return value from prediction method
+#' @param ... further arguments passed to or from other methods
+#' @param n Number of lines of prediction results to print. Use -1 to print all lines
+#'
+#' @export
+print.regress.predict <- function(x, ..., n = 10)
+  print.model.predict(x, ..., n = n, header = "Linear regression (OLS)")
 
 #' Plot method for the predict.regress function
 #'
@@ -647,12 +680,12 @@ predict.regress <- function(object,
 #'
 #' @export
 plot.regress.predict <- function(x,
-                             xvar = "",
-                             facet_row = ".",
-                             facet_col = ".",
-                             color = "none",
-                             conf_lev = .95,
-                             ...) {
+                                 xvar = "",
+                                 facet_row = ".",
+                                 facet_col = ".",
+                                 color = "none",
+                                 conf_lev = .95,
+                                 ...) {
 
   if (is.null(xvar) || xvar == "") return(invisible())
 

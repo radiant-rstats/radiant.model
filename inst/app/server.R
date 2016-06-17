@@ -4,6 +4,7 @@ shinyServer(function(input, output, session) {
   source(file.path(getOption("radiant.path.data"),"app/init.R"), encoding = getOption("radiant.encoding"), local = TRUE)
   source(file.path(getOption("radiant.path.data"),"app/radiant.R"), encoding = getOption("radiant.encoding"), local = TRUE)
   source("help.R", encoding = getOption("radiant.encoding"), local = TRUE)
+  source("radiant.R", encoding = getOption("radiant.encoding"), local = TRUE)
 
   ## help ui
   output$help_model_ui <- renderUI({

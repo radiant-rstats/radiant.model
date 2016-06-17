@@ -4,7 +4,7 @@
 \alias{predict.ann}
 \title{Predict method for the ann function}
 \usage{
-\method{predict}{ann}(object, dataset, ...)
+\method{predict}{ann}(object, dataset = "", ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{ann}}}
