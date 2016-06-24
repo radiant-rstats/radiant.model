@@ -1,14 +1,13 @@
 # logit_link <- c("Logit" = "logit", "Probit" = "probit")
 logit_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
-# logit_predict <- c("None" = "none", "Variable" = "vars", "Data" = "data","Command" = "cmd")
 logit_predict <- c("None" = "none", "Data" = "data","Command" = "cmd", "Data & Command" = "datacmd")
 logit_check <- c("Standardize" = "standardize", "Center" = "center",
                "Stepwise" = "stepwise")
 logit_sum_check <- c("VIF" = "vif", "Confidence intervals" = "confint",
                    "Odds" = "odds")
 logit_plots <- c("None" = "", "Histograms" = "hist",
-               "Scatter" = "scatter", "Dashboard" = "dashboard",
-               "Coefficient plot" = "coef")
+                 "Correlations" = "correlations", "Scatter" = "scatter",
+                 "Model fit" = "fit", "Coefficient plot" = "coef")
 
 ## list of function arguments
 logit_args <- as.list(formals(logistic))
@@ -70,8 +69,12 @@ logit_pred_inputs <- reactive({
   logit_pred_args
 })
 
-logit_pred_plot_args <- as.list(if (exists("plot.logistic.predict")) formals(plot.logistic.predict)
-                                else formals(radiant.model:::plot.logistic.predict))
+# logit_pred_plot_args <- as.list(if (exists("plot.logistic.predict")) formals(plot.logistic.predict)
+#                                 else formals(radiant.model:::plot.logistic.predict))
+
+logit_pred_plot_args <- as.list(if (exists("plot.model.predict")) formals(plot.model.predict)
+                                else formals(radiant.model:::plot.model.predict))
+
 
 # list of function inputs selected by user
 logit_pred_plot_inputs <- reactive({
@@ -212,7 +215,7 @@ output$ui_logistic <- renderUI({
     ),
     conditionalPanel(condition = "input.tabs_logistic == 'Plot'",
       wellPanel(
-        selectInput("logit_plots", "GLM plots:", choices = logit_plots,
+        selectInput("logit_plots", "Plots:", choices = logit_plots,
           selected = state_single("logit_plots", logit_plots)),
         conditionalPanel(condition = "input.logit_plots == 'coef'",
           checkboxInput("logit_intercept", "Include intercept", state_init("logit_intercept", FALSE)))
@@ -248,7 +251,6 @@ output$ui_logistic <- renderUI({
    					             max = 0.99, value = state_init("logit_conf_lev",.95),
    					             step = 0.01)
   		  ),
-        ## Only save residuals when filter is off
         conditionalPanel(condition = "input.tabs_logistic == 'Summary'",
           tags$table(
             tags$td(textInput("logit_store_res_name", "Store residuals:", state_init("logit_store_res_name","residuals_logit"))),
@@ -272,7 +274,8 @@ logit_plot <- reactive({
   nrVars <- length(input$logit_evar) + 1
 
   if (input$logit_plots == 'hist') plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
-  if (input$logit_plots == 'dashboard') plot_height <- 1.5 * plot_height
+  if (input$logit_plots == 'fit') plot_width <- 1.5 * plot_width
+  if (input$logit_plots == "correlations") { plot_height <- 150 * nrVars; plot_width <- 150 * nrVars }
   if (input$logit_plots == 'scatter') plot_height <- 300 * nrVars
   if (input$logit_plots == 'coef') plot_height <- 300 + 20 * length(.logistic()$model$coefficients)
 
@@ -358,7 +361,13 @@ logit_available <- reactive({
 
   pinp <- logit_plot_inputs()
   pinp$shiny <- TRUE
-  do.call(plot, c(list(x = .logistic()), pinp))
+  # do.call(plot, c(list(x = .logistic()), pinp))
+
+  if (input$logit_plots == "correlations")
+    # capture_plot( do.call(plot, c(list(x = .regress()), reg_plot_inputs())) )
+    capture_plot(do.call(plot, c(list(x = .logistic()), pinp)))
+  else
+    do.call(plot, c(list(x = .logistic()), pinp))
 })
 
 .predict_logistic <- reactive({
@@ -447,8 +456,6 @@ observeEvent(input$logit_store_pred, {
   req(!is_empty(input$logit_pred_data), pressed(input$logit_run))
   pred <- .predict_logistic()
   if (is.null(pred)) return()
-  # if (nrow(pred) != nrow(getdata(input$logit_pred_data, filt = "", na.rm = FALSE)))
-  #   return(message("The number of predicted values is not equal to the number of rows in the data. If the data has missing values these will need to be removed."))
   withProgress(message = 'Storing predictions', value = 0,
     store(pred, data = input$logit_pred_data, name = input$logit_store_pred_name)
   )

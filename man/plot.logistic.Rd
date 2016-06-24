@@ -26,7 +26,7 @@
 Plot method for the logistic function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/glm_reg.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 }
 \examples{
 result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
@@ -40,6 +40,6 @@ plot(result, plots = "coef")
 
 \code{\link{predict.logistic}} to generate predictions
 
-\code{\link{plot.logistic.predict}} to plot prediction output
+\code{\link{plot.model.predict}} to plot prediction output
 }
 

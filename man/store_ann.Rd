@@ -4,18 +4,19 @@
 \alias{store_ann}
 \title{Deprecated function to store predictions from an ANN}
 \usage{
-store_ann(object, ..., data = "", name = "predict_ann")
+store_ann(object, data = object$dataset, name = paste0("predict_ann"))
 }
 \arguments{
-\item{object}{Return value from predict.nnet}
-
-\item{...}{Additional arguments}
+\item{object}{Return value from \code{\link{predict.ann}}}
 
 \item{data}{Dataset name}
 
-\item{name}{Variable name assigned to the predicted values}
+\item{name}{Variable name assigned to the residuals or predicted values}
 }
 \description{
 Deprecated function to store predictions from an ANN
+}
+\details{
+Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
 }
 

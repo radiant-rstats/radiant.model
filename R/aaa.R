@@ -1,5 +1,6 @@
 # to avoid 'no visible binding for global variable' NOTE
-globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Predictor"))
+globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Predictor",
+                  "total","TN","FN","FP","TP","total"))
 
 #' radiant.model
 #'
@@ -8,7 +9,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @import radiant.data shiny ggplot2
 #' @importFrom broom tidy glance
 #' @importFrom gridExtra arrangeGrob
-#' @importFrom dplyr arrange select select_ filter mutate mutate_ funs group_by group_by_ summarise summarise_ summarise_each summarise_each_ slice as_data_frame bind_cols bind_rows desc first last min_rank data_frame
+#' @importFrom dplyr arrange select select_ filter mutate mutate_ mutate_each_ funs group_by group_by_ summarise summarise_ summarise_each summarise_each_ slice as_data_frame bind_cols bind_rows desc first last min_rank data_frame
 #' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames set_names extract2
 #' @importFrom tidyr spread_ gather_
 #' @importFrom lubridate now

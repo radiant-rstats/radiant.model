@@ -4,12 +4,19 @@
 \alias{predict.ann}
 \title{Predict method for the ann function}
 \usage{
-\method{predict}{ann}(object, dataset = "", ...)
+\method{predict}{ann}(object, pred_data = "", pred_cmd = "",
+  conf_lev = 0.95, se = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{ann}}}
 
-\item{dataset}{Dataset to use for prediction}
+\item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation}
+
+\item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)}
+
+\item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
+
+\item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 
 \item{...}{further arguments passed to or from other methods}
 }
@@ -17,13 +24,20 @@
 Predict method for the ann function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+}
+\examples{
+result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
+ predict(result, pred_cmd = "pclass = levels(pclass)")
+logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") \%>\%
+  predict(pred_cmd = "sex = c('male','female')")
+logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") \%>\%
+ predict(pred_data = "titanic")
+
 }
 \seealso{
-\code{\link{ann}} to generate results
+\code{\link{ann}} to generate the result
 
 \code{\link{summary.ann}} to summarize results
-
-\code{\link{plot.ann}} to plot results
 }
 

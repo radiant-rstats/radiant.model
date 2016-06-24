@@ -15,7 +15,7 @@
 Summary method for the dtree function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/dtree.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
 \seealso{
 \code{\link{dtree}} to generate the results

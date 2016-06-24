@@ -15,7 +15,7 @@
 Summary method for the ann function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 }
 \examples{
 result <- ann("titanic", "survived", "pclass", lev = "Yes")

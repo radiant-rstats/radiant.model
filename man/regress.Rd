@@ -29,7 +29,7 @@ A list of all variables variables used in the regress function as an object of c
 Linear regression using OLS
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
 result <- regress("diamonds", "price", c("carat","clarity"))

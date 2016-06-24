@@ -5,7 +5,7 @@
 \title{Predict method for the logistic function}
 \usage{
 \method{predict}{logistic}(object, pred_data = "", pred_cmd = "",
-  prn = 100, se = FALSE, ...)
+  conf_lev = 0.95, se = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{logistic}}}
@@ -14,7 +14,7 @@
 
 \item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)}
 
-\item{prn}{Number of lines of prediction results to print. Nothing is printed if prn is 0. Use -1 to print all lines (default).}
+\item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 
@@ -24,7 +24,7 @@
 Predict method for the logistic function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/glm_reg.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 }
 \examples{
 result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
@@ -42,6 +42,6 @@ logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") \%>\%
 
 \code{\link{plot.logistic}} to plot results
 
-\code{\link{plot.logistic.predict}} to plot prediction output
+\code{\link{plot.model.predict}} to plot prediction output
 }
 

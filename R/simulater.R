@@ -1,6 +1,6 @@
 #' Simulate data for decision analysis
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/simulater.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 #'
 #' @param const A string listing the constants to include in the analysis (e.g., "cost = 3; size = 4")
 #' @param lnorm A string listing the log-normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the log-mean and the second is the log-standard deviation)
@@ -242,7 +242,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 
 #' Summary method for the simulater function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/simulater.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{simulater}}
 #' @param dec Number of decimals to show
@@ -290,7 +290,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 
 #' Plot method for the simulater function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/simulater} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/simulater} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{simulater}}
 #' @param shiny Did the function call originate inside a shiny app
@@ -688,7 +688,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
         { if (fun == "" || fun == "none") . else {.[[1]] <- paste0(fun, " of ", .[[1]])}; . } %>%
         { .[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE) %>%
-        dfprint(., dec = dec, mark = ",") %>%
+        formatdf(., dec = dec, mark = ",") %>%
         # { .[,-1] %<>% round(.,dec); colnames(.)[1] <- ""; . } %>%
         # { .[,-(1:2)] %<>% mutate_each(funs(formatC(., big.mark = ",", digits = dec, format = "f"))); . } %>%
         print(row.names = FALSE)

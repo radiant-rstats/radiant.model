@@ -15,7 +15,7 @@
 Summary method for the evalreg function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/analytics/evalreg.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 }
 \seealso{
 \code{\link{evalreg}} to summarize results

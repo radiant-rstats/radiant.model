@@ -18,7 +18,7 @@ A list with the initial tree and the calculated tree
 Create a decision tree
 }
 \details{
-See \url{http://vnijs.github.io/radiant/base/dtree.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
 \seealso{
 \code{\link{summary.dtree}} to summarize results

@@ -24,7 +24,7 @@
 Predict method for the regress function
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
 result <- regress("diamonds", "price", c("carat","clarity"))

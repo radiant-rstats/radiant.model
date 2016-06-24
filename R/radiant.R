@@ -1,6 +1,6 @@
 #' Launch Radiant in the default browser
 #'
-#' @details See \url{http://vnijs.github.io/radiant} for documentation and tutorials
+#' @details See \url{http://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
 #' @importFrom shiny runApp
 #'
@@ -18,3 +18,13 @@ radiant.model <- function() {
 #'
 #' @export
 sensitivity <- function(object, ...) UseMethod("sensitivity", object)
+
+#' Method to render DiagrammeR plots
+#'
+#' @param object DiagrammeR plot
+#' @param ... Additional arguments
+#'
+#' @importFrom DiagrammeR renderDiagrammeR
+#'
+#' @export
+render.DiagrammeR <- function(object, ...) DiagrammeR::renderDiagrammeR(object)

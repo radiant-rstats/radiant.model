@@ -11,6 +11,38 @@ ann_inputs <- reactive({
   ann_args
 })
 
+ann_pred_args <- as.list(if (exists("predict.ann")) formals(predict.ann)
+                         else formals(radiant.model:::predict.ann))
+
+# list of function inputs selected by user
+ann_pred_inputs <- reactive({
+  # loop needed because reactive values don't allow single bracket indexing
+  for (i in names(ann_pred_args))
+    ann_pred_args[[i]] <- input[[paste0("ann_",i)]]
+
+  ann_pred_args$pred_cmd <- ann_pred_args$pred_data <- ""
+  if (input$ann_predict == "cmd") {
+    ann_pred_args$pred_cmd <- gsub("\\s", "", input$ann_pred_cmd) %>% gsub("\"","\'",.)
+  } else if (input$ann_predict == "data") {
+    ann_pred_args$pred_data <- input$ann_pred_data
+  } else if (input$ann_predict == "datacmd") {
+    ann_pred_args$pred_cmd <- gsub("\\s", "", input$ann_pred_cmd) %>% gsub("\"","\'",.)
+    ann_pred_args$pred_data <- input$ann_pred_data
+  }
+  ann_pred_args
+})
+
+ann_pred_plot_args <- as.list(if (exists("plot.model.predict")) formals(plot.model.predict)
+                                else formals(radiant.model:::plot.model.predict))
+
+# list of function inputs selected by user
+ann_pred_plot_inputs <- reactive({
+  # loop needed because reactive values don't allow single bracket indexing
+  for (i in names(ann_pred_plot_args))
+    ann_pred_plot_args[[i]] <- input[[paste0("ann_",i)]]
+  ann_pred_plot_args
+})
+
 output$ui_ann_rvar <- renderUI({
   req(input$ann_type)
   if (input$ann_type == "classification") {
@@ -42,8 +74,10 @@ output$ui_ann_evar <- renderUI({
   if (length(vars) > 0)
     vars <- vars[-which(vars == input$ann_rvar)]
 
+  init <- if (input$ann_type == "classification") input$logit_evar else input$reg_evar
+
   selectInput(inputId = "ann_evar", label = "Explanatory variables:", choices = vars,
-    selected = state_multiple("ann_evar", vars, input$glm_evar),
+    selected = state_multiple("ann_evar", vars, init),
   	multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
 
@@ -113,6 +147,12 @@ output$ui_ann <- renderUI({
           step = .1, value = state_init("ann_decay",.5), width = "77px")),
         tags$td(numericInput("ann_seed", label = "Seed:",
           value = state_init("ann_seed", 1234), width = "77px"))
+      ),
+      conditionalPanel(condition = "input.tabs_ann == 'Summary'",
+        tags$table(
+          tags$td(textInput("ann_store_res_name", "Store residuals:", state_init("ann_store_res_name","residuals_ann"))),
+          tags$td(actionButton("ann_store_res", "Store"), style="padding-top:30px;")
+        )
       )
     ),
   	help_and_report(modal_title = "Neural Network (ANN)",
@@ -124,7 +164,7 @@ output$ui_ann <- renderUI({
 ann_plot <- reactive({
 
   if (ann_available() != "available") return()
-  plot_height <- max(500, length(.ann()$model$coefnames) * 15)
+  plot_height <- max(500, length(.ann()$model$coefnames) * 50)
   plot_width <- 650
   list(plot_width = plot_width, plot_height = plot_height)
 })
@@ -146,7 +186,7 @@ output$ann <- renderUI({
     register_plot_output("plot_ann_net", ".plot_ann_net",
                           height_fun = "ann_plot_height",
                           width_fun = "ann_plot_width")
-    register_print_output("predict_ann", ".predict_ann")
+    register_print_output("predict_ann", ".predict_print_ann")
     register_plot_output("predict_plot_ann", ".predict_plot_ann",
                           height_fun = "ann_pred_plot_height")
 		register_plot_output("plot_ann", ".plot_ann",
@@ -214,9 +254,13 @@ ann_available <- reactive({
   if(input$ann_predict == "cmd" && is_empty(input$ann_pred_cmd))
     return("** Enter prediction commands **")
 
-  # withProgress(message = "Generating predictions", value = 0, {
-    # do.call(predict, c(list(object = .ann()), ann_pred_inputs()))
-  # })
+  withProgress(message = "Generating predictions", value = 0, {
+    do.call(predict, c(list(object = .ann()), ann_pred_inputs()))
+  })
+})
+
+.predict_print_ann <- reactive({
+  .predict_ann() %>% {if (is.character(.)) cat(.,"\n") else print(.)}
 })
 
 .predict_plot_ann <- reactive({
@@ -229,7 +273,7 @@ ann_available <- reactive({
   if(input$ann_predict == "cmd" && is_empty(input$ann_pred_cmd))
     return(invisible())
 
-  # do.call(plot, c(list(x = .predict_ann()), ann_pred_plot_inputs()))
+  do.call(plot, c(list(x = .predict_ann()), ann_pred_plot_inputs()))
 })
 
 .plot_ann <- reactive({
@@ -245,29 +289,21 @@ ann_available <- reactive({
       else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
 })
 
-observeEvent(input$ann_report, {
-  outputs <- c("summary","plot")
-  inp_out <- list("","")
-  xcmd <- "NeuralNetTools::plotnet(result$model)\n"
-  xcmd <- paste0(xcmd, "pred <- predict(result,'", input$ann_pred_data,"')\n")
-  xcmd <-  paste0(xcmd, "store(pred, data = '", input$ann_pred_data, "', name = '", input$ann_pred_name,"')\n")
-  xcmd <-  paste0(xcmd, "# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
-  update_report(inp_main = clean_args(ann_inputs(), ann_args),
-                fun_name = "ann",
-                inp_out = inp_out,
-                outputs = outputs,
-                figs = TRUE,
-                fig.width = ann_plot_width(),
-                fig.height = ann_plot_height(),
-                xcmd = xcmd)
+observeEvent(input$ann_store_pred, {
+  req(!is_empty(input$ann_pred_data), pressed(input$ann_run))
+  pred <- .predict_ann()
+  if (is.null(pred)) return()
+  withProgress(message = 'Storing predictions', value = 0,
+    store(pred, data = input$ann_pred_data, name = input$ann_store_pred_name)
+  )
 })
 
-observeEvent(input$ann_store_pred, {
-  if (ann_available() != "available") return(ann_available())
-  if (is_empty(input$ann_pred_data,"None")) return("No data selected for prediction")
-  withProgress(message = 'Storing predictions', value = 0,
-    predict(.ann(), input$ann_pred_data) %>%
-    store(data = input$ann_pred_data, name = input$ann_store_pred_name)
+observeEvent(input$ann_store_res, {
+  req(pressed(input$ann_run))
+  robj <- .ann()
+  if (!is.list(robj)) return()
+  withProgress(message = 'Storing residuals', value = 0,
+    store(robj, name = input$ann_store_res_name)
   )
 })
 
@@ -282,3 +318,64 @@ output$dl_ann_pred <- downloadHandler(
     }
   }
 )
+
+observeEvent(input$ann_report, {
+  outputs <- c("summary")
+  inp_out <- list("","")
+  xcmd <- "NeuralNetTools::plotnet(result$model)\n"
+  figs <- FALSE
+  # if (!is_empty(input$ann_plots)) {
+    outputs <- c(outputs, "plot")
+    figs <- TRUE
+  # }
+  if (!is_empty(input$ann_predict, "none") &&
+      (!is_empty(input$ann_pred_data) || !is_empty(input$ann_pred_cmd))) {
+
+    pred_args <- clean_args(ann_pred_inputs(), ann_pred_args[-1])
+    inp_out[[2 + figs]] <- pred_args
+
+    outputs <- c(outputs,"pred <- predict")
+    dataset <- if (input$ann_predict %in% c("data","datacmd")) input$ann_pred_data else input$dataset
+    xcmd <-
+      paste0(xcmd, "print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$ann_store_pred_name,"')\n") %>%
+      paste0("# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
+
+    if (input$ann_predict == "cmd") xcmd <- "NeuralNetTools::plotnet(result$model)\n"
+
+    if (input$ann_pred_plot && !is_empty(input$ann_xvar)) {
+      inp_out[[3 + figs]] <- clean_args(ann_pred_plot_inputs(), ann_pred_plot_args[-1])
+      inp_out[[3 + figs]]$result <- "pred"
+      outputs <- c(outputs, "plot")
+      figs <- TRUE
+    }
+  }
+
+  update_report(inp_main = clean_args(ann_inputs(), ann_args),
+                fun_name = "ann",
+                inp_out = inp_out,
+                outputs = outputs,
+                figs = figs,
+                fig.width = ann_plot_width(),
+                fig.height = ann_plot_height(),
+                xcmd = xcmd)
+})
+
+# observeEvent(input$ann_report, {
+#   outputs <- c("summary","plot")
+#   inp_out <- list("","")
+#   # xcmd <-
+#   #   paste0("print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$ann_store_pred_name,"')\n") %>%
+#   #   paste0("# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
+#   xcmd <- "NeuralNetTools::plotnet(result$model)\n"
+#   xcmd <- paste0(xcmd, "pred <- predict(result,'", input$ann_pred_data,"')\n")
+#   xcmd <-  paste0(xcmd, "store(pred, data = '", input$ann_pred_data, "', name = '", input$ann_pred_name,"')\n")
+#   xcmd <-  paste0(xcmd, "# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
+#   update_report(inp_main = clean_args(ann_inputs(), ann_args),
+#                 fun_name = "ann",
+#                 inp_out = inp_out,
+#                 outputs = outputs,
+#                 figs = TRUE,
+#                 fig.width = ann_plot_width(),
+#                 fig.height = ann_plot_height(),
+#                 xcmd = xcmd)
+# })

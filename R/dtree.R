@@ -1,6 +1,6 @@
 #' Parse yaml input for dtree to provide (more) useful error messages
 #'
-#' @details See \url{http://vnijs.github.io/radiant/base/dtree.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param yl A yaml string
 #'
@@ -119,7 +119,7 @@ dtree_parser <- function(yl) {
 
   ## determine return value
   if (length(err) > 0) {
-    paste0("\n**\n", paste0(err, collapse = "\n"), "\n**\n") %>% set_class(c("dtree", class(.)))
+    paste0("\n**\n", paste0(err, collapse = "\n"), "\n**\n") %>% add_class("dtree")
   } else {
     paste0(yl, collapse = "\n")
   }
@@ -142,7 +142,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 
 #' Create a decision tree
 #'
-#' @details See \url{http://vnijs.github.io/radiant/base/dtree.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param yl A yaml string or a list (e.g., from yaml::yaml.load_file())
 #' @param opt Find the maximum ("max") or minimum ("min") value for each decision node
@@ -169,7 +169,7 @@ dtree <- function(yl, opt = "max") {
     yl <- dtree_parser(yl)
     ## cleanup the input file
 
-    # return(paste0(paste0("\n**\n", yl, collapse = "\n"), "\n**\n") %>% set_class(c("dtree", class(.))))
+    # return(paste0(paste0("\n**\n", yl, collapse = "\n"), "\n**\n") %>% add_class("dtree")
 
     if ("dtree" %in% class(yl)) return(yl)
 
@@ -183,19 +183,45 @@ dtree <- function(yl, opt = "max") {
         err <- paste0("**\nError reading input:\n", attr(yl,"condition")$message, "\n\nPlease try again. Examples are shown in the help file\n**")
       else
         err <- paste0("**\nIndentation error in line ", err_line, ".\nUse tabs to separate the branches in the decision tree.\nFix the indentation error and try again. Examples are shown in the help file\n**")
-      return(set_class(err, c("dtree",class(err))))
+      return(add_class(err, "dtree"))
     }
   }
 
   if (length(yl) == 0) {
     err <- "**\nThe provided list is empty or not in the correct format.\nPlease check the input file.\n**"
-    return(set_class(err, c("dtree",class(err))))
+    return(add_class(err, "dtree"))
   }
 
   vars <- ""
   if (!is.null(yl$variables)) {
+    # yl <- readLines("~/Desktop/quant-states/test.yaml") %>% paste0(collapse = "\n")
+    # yl <- dtree_parser(yl)
+    # yl <- yaml::yaml.load(yl)
+    # vars <- yl$variables
+
     vars <- yl$variables
     vn <- names(vars)
+
+    if (length(vn) > 1) {
+      ret <- sapply(vn, function(x) grepl(x, vn)) %>% set_rownames(vn)
+      prob <- colSums(ret) > 1
+      if (any(prob)) {
+        cat("Some of the variable labels overlap. Each label should be unique\nand not be part of another label. An easy fix may be to use\nsomewhat longer labels (e.g., success instead of S). To use\nsearch-and-replace in the editor press CTRL-F (CMD-F on mac) twice.\n\n")
+        ret <- ret[,prob, drop = FALSE]
+        for (i in 1:ncol(ret)) {
+          tmp <- names(ret[ret[,i],i])
+          cat(tmp[1], "is part of", paste0(tail(tmp,-1), collapse = ", "), "\n")
+        }
+        return("\nUpdate the input file and try again." %>% add_class("dtree"))
+      }
+    }
+
+    for (i in 2:max(2,length(vn))) {
+      vars <- gsub(vn[i-1], paste0("(",vars[[i-1]],")"), vars, fixed = TRUE)
+      vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+",x), x, eval(parse(text = x))))
+    }
+    names(vars) <- vn
+
     for (i in 2:max(2,length(vn))) {
       vars <- gsub(vn[i-1], paste0("(",vars[[i-1]],")"), vars, fixed = TRUE)
       vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+",x), x, eval(parse(text = x))))
@@ -207,7 +233,7 @@ dtree <- function(yl, opt = "max") {
     if (length(isNot) > 0)  {
       cat("Not all variables resolved to numeric.\n")
       print(as.data.frame(isNot) %>% set_names(""))
-      return("\nUpdate the input file and try again." %>% set_class(., c("dtree",class(.))))
+      return("\nUpdate the input file and try again." %>% add_class("dtree"))
     }
 
     ## based on http://stackoverflow.com/a/14656351/1974918
@@ -222,7 +248,7 @@ dtree <- function(yl, opt = "max") {
       names(isNot) <- gsub(".",":",names(isNot), fixed = TRUE)
       cat("Not all variables can be resolved to numeric. Note that\nformula's are only allowed in the 'variables' section\n")
       print(as.data.frame(isNot) %>% set_names(""))
-      return("\nUpdate the input file and try again." %>% set_class(., c("dtree",class(.))))
+      return("\nUpdate the input file and try again." %>% add_class("dtree"))
     }
 
     ## convert payoff, probabilities, and costs to numeric
@@ -284,7 +310,7 @@ dtree <- function(yl, opt = "max") {
 
   if (is(err, 'try-error')) {
     err <- paste0("**\nError calculating payoffs associated with a chance or decision node.\nPlease check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
-    return(err %>% set_class(c("dtree", class(.))))
+    return(err %>% add_class("dtree"))
   }
 
   decision <- function(x) {
@@ -296,16 +322,16 @@ dtree <- function(yl, opt = "max") {
 
   if (is(err, 'try-error')) {
     err <- paste0("**\nError calculating payoffs associated with a decision node. Please check\nthat each terminal node has a payoff\n**")
-    return(err %>% set_class(c("dtree", class(.))))
+    return(err %>% add_class("dtree"))
   }
 
   list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt, type_none = type_none) %>%
-    set_class(c("dtree",class(.)))
+    add_class("dtree")
 }
 
 #' Summary method for the dtree function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/dtree.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{simulater}}
 #' @param ... further arguments passed to or from other methods
@@ -371,7 +397,7 @@ summary.dtree <- function(object, ...) {
 
 #' Plot method for the dtree function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/dtree.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{dtree}}
 #' @param symbol Monetary symbol to use ($ is the default)
@@ -412,9 +438,9 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
     } else if (node$parent$type == "decision") {
       lbl <- node$name
     } else if (node$parent$type == "chance") {
-      lbl <- paste0(node$name,": ", nrprint(as.numeric(node$p), dec = dec+2))
+      lbl <- paste0(node$name,": ", formatnr(as.numeric(node$p), dec = dec+2))
     } else if (node$type == "terminal") {
-      lbl <- paste0(node$name,": ", nrprint(as.numeric(node$p), dec = dec+2))
+      lbl <- paste0(node$name,": ", formatnr(as.numeric(node$p), dec = dec+2))
     }
 
     if (length(node$parent$decision) > 0 && length(node$name) > 0 && node$name == node$parent$decision)
@@ -425,7 +451,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
 
   FormatPayoff <- function(payoff) {
     if (!isNum(payoff)) payoff <- 0
-    nrprint(payoff, paste0("\"",symbol,"\""), dec = dec)
+    formatnr(payoff, paste0("\"",symbol,"\""), dec = dec)
   }
 
   ToLabel <- function(node) {
@@ -449,10 +475,10 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
 
   ToolTip <- function(node) {
     if (final == TRUE && !is.null(node$cost)) {
-      paste0(nrprint(node$payoff + node$cost, symbol, dec = dec), " - ", nrprint(node$cost, symbol, dec = dec)) %>%
+      paste0(formatnr(node$payoff + node$cost, symbol, dec = dec), " - ", formatnr(node$cost, symbol, dec = dec)) %>%
         paste0("click ", node$id, " callback \"", ., "\"")
     } else if (!is.null(node$cost)) {
-      paste0("Cost: ", nrprint(node$cost, symbol, dec = dec)) %>%
+      paste0("Cost: ", formatnr(node$cost, symbol, dec = dec)) %>%
         paste0("click ", node$id, " callback \"", ., "\"")
     } else {
       NA
@@ -478,12 +504,14 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
   paste("graph LR", paste( paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(unique(na.omit(df$tooltip)), collapse = "\n"),
     style, sep = "\n") %>%
-  {if (shiny) . else DiagrammeR::DiagrammeR(.)}
+    DiagrammeR::DiagrammeR(.)
+    # {if (shiny) . else HTML(DiagrammeR::renderDiagrammeR(.))}
+  # {if (shiny) . else DiagrammeR::DiagrammeR(.)}
 }
 
 #' Evaluate sensitivity of the decision tree
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/dtree.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{dtree}}
 #' @param vars Variables to include in the sensitivity analysis

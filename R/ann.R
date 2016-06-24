@@ -1,6 +1,6 @@
 #' Artificial Neural Networks
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the logit (probit) model
@@ -42,15 +42,13 @@ ann <- function(dataset, rvar, evar,
 
   if (rvar %in% evar)
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-           set_class(c("ann",class(.))))
+           add_class("ann"))
 
   if (is_empty(size) || size < 1)
-    return("Size should be larger than or equal to 1." %>%
-           set_class(c("ann",class(.))))
+    return("Size should be larger than or equal to 1." %>% add_class("ann"))
 
   if (is_empty(decay) || decay < 0)
-    return("Decay should be larger than or equal to 0." %>%
-           set_class(c("ann",class(.))))
+    return("Decay should be larger than or equal to 0." %>% add_class("ann"))
 
 
   if (!is.null(wts) && wts == "None") {
@@ -71,8 +69,7 @@ ann <- function(dataset, rvar, evar,
   }
 
   if (any(summarise_each(dat, funs(does_vary)) == FALSE))
-    return("One or more selected variables show no variation. Please select other variables." %>%
-           set_class(c("ann",class(.))))
+    return("One or more selected variables show no variation. Please select other variables." %>% add_class("ann"))
 
   rv <- dat[[rvar]]
 
@@ -94,15 +91,10 @@ ann <- function(dataset, rvar, evar,
 
   ## stability issues ...
   # http://stats.stackexchange.com/questions/23235/how-do-i-improve-my-neural-network-stability
-  # scale_df <- function(x) if (is.numeric(x)) scale(x) else x
-  # dat <- mutate_each_(dat, funs(scale_df), vars = colnames(dat)[-1])
-  isNum <- sapply(dat, is.numeric)
-  if (type == "regression") isNum <- 0 ## not standardizing data for (linear) regression
-  if (sum(isNum) > 0) {
-    ms <- select(dat, which(isNum)) %>% summarise_each(funs(mean(., na.rm = TRUE)))
-    sds <- select(dat, which(isNum)) %>% summarise_each(funs(sd(., na.rm = TRUE)))
-    dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs((. - ms$.) / sds$.))
-  }
+  # isNum <- sapply(dat, is.numeric)
+  # if (type == "regression") isNum <- 0 ## not standardizing data for (linear) regression
+  # if (sum(isNum) > 0)
+    # dat[,isNum] <- select(dat, which(isNum)) %>% dfscale(., wts = wts)
 
   vars <- evar
   if (length(vars) < (ncol(dat)-1)) vars <- colnames(dat)[-1]
@@ -119,14 +111,44 @@ ann <- function(dataset, rvar, evar,
   if (!is.null(seed) && !is.na(seed)) set.seed(seed)
   model <- do.call(nnet::nnet, nninput)
 
+  ## ann return residuals as a matrix
+  model$residuals <- model$residuals[,1]
+
+  ## ann model object does not include the data by default
+  model$model <- dat
+
   rm(dat) ## dat not needed elsewhere
 
-  environment() %>% as.list %>% set_class(c("ann",class(.)))
+  environment() %>% as.list %>% add_class(c("ann","model"))
+}
+
+dfscale <- function(dat, center = TRUE, scale = TRUE, wts = NULL, calc = TRUE) {
+  if (calc) {
+    if (length(wts) > 0) {
+      ms <- summarise_each(dat, funs(weighted.mean(., wts, na.rm = TRUE)))
+      sds <- summarise_each(dat, funs(weighted.sd(., wts, na.rm = TRUE)))
+    } else {
+      ms <- summarise_each(dat, funs(mean(., na.rm = TRUE)))
+      sds <- summarise_each(dat, funs(sd(., na.rm = TRUE)))
+    }
+  } else {
+    ms <- attr(dat,"ms")
+    sds <- attr(dat,"sds")
+  }
+  if (center) {
+    dat <- mutate_each(dat, funs(. - ms$.))
+    attr(dat,"ms") <- ms
+  }
+  if (scale) {
+    dat <- mutate_each(dat, funs(2*sds$.))
+    attr(dat,"sds") <- sds
+  }
+  dat
 }
 
 #' Summary method for the ann function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{ann}}
 #' @param ... further arguments passed to or from other methods
@@ -146,12 +168,12 @@ summary.ann <- function(object, ...) {
 
   cat("Artificial Neural Network (ANN)\n")
   if (object$type == "classification")
-    cat("Activation function: Logistic (classification")
+    cat("Activation function  : Logistic (classification)")
   else
-    cat("Activation function: Linear (regression)")
-  cat("\nData         :", object$dataset)
+    cat("Activation function  : Linear (regression)")
+  cat("\nData                 :", object$dataset)
   if (object$data_filter %>% gsub("\\s","",.) != "")
-    cat("\nFilter       :", gsub("\\n","", object$data_filter))
+    cat("\nFilter               :", gsub("\\n","", object$data_filter))
   cat("\nResponse variable    :", object$rvar)
   if (object$type == "classification")
     cat("\nLevel                :", object$lev, "in", object$rvar)
@@ -160,9 +182,9 @@ summary.ann <- function(object, ...) {
     cat("Weights used         :", object$wtsname, "\n")
 
   if (!is_empty(object$wts, "None") && class(object$wts) == "integer")
-    cat("Nr obs               :", nrprint(sum(object$wts), dec = 0), "\n\n")
+    cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n\n")
   else
-    cat("Nr obs               :", nrprint(length(object$rv), dec = 0), "\n\n")
+    cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n\n")
 
   print(object$model)
   # print(caret::varImp(object$model))
@@ -173,7 +195,7 @@ summary.ann <- function(object, ...) {
 
 #' Plot method for the ann function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{ann}}
 #' @param shiny Did the function call originate inside a shiny app
@@ -207,63 +229,65 @@ plot.ann <- function(x, shiny = FALSE, ...) {
 
 #' Predict method for the ann function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{ann}}
-#' @param dataset Dataset to use for prediction
+#' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
+#' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
+#' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
+#' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param ... further arguments passed to or from other methods
 #'
-#' @seealso \code{\link{ann}} to generate results
+#' @examples
+#' result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#'  predict(result, pred_cmd = "pclass = levels(pclass)")
+#' logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") %>%
+#'   predict(pred_cmd = "sex = c('male','female')")
+#' logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") %>%
+#'  predict(pred_data = "titanic")
+#'
+#' @seealso \code{\link{ann}} to generate the result
 #' @seealso \code{\link{summary.ann}} to summarize results
-#' @seealso \code{\link{plot.ann}} to plot results
 #'
 #' @export
-predict.ann <- function(object, dataset = "", ...) {
+predict.ann <- function(object,
+                        pred_data = "",
+                        pred_cmd = "",
+                        conf_lev = 0.95,
+                        se = FALSE,
+                        ...) {
 
-  if (is_empty(dataset)) {
-    pred <- predict(object$model)[,1]
-  } else {
+  pfun <- function(model, pred, se, conf_lev) {
+    pred_val <- try(sshhr(predict(object$model, pred)), silent = TRUE)
 
-    dat <- getdata(dataset, filt = "", na.rm = FALSE)
-    ## data not standardized for linear regression (see ann)
-    isNum <- object$isNum
-    if (sum(isNum) > 0) {
-      ## use scaling information from training sample
-      ms <- object$ms
-      sds <- object$sds
-      dat[,names(ms)] <- select_(dat, .dots = names(ms)) %>% mutate_each(funs((. - ms$.) / sds$.))
-    }
+    if (!is(pred_val, 'try-error'))
+      pred_val %<>% as.data.frame %>% select(1) %>% set_colnames("Prediction")
 
-    ## using nnet's predict method
-    pred <- dat %>% {predict(object$model, .)[,1]}
+    pred_val
   }
 
-  set_class(pred, c("ann",class(pred)))
+  predict.model(object, pfun, "ann.predict", pred_data, pred_cmd, conf_lev, se)
 }
 
-#' Store predicted values generated in the ann function
+#' Print method for predict.ann
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
-#'
-#' @param object Return value from predict.nnet
-#' @param ... Additional arguments
-#' @param data Dataset name
-#' @param name Variable name assigned to the predicted values
+#' @param x Return value from prediction method
+#' @param ... further arguments passed to or from other methods
+#' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-store.ann <- function(object, ..., data = "", name = "predict_ann") {
-
-  ## fix empty name input
-  if (gsub("\\s","",name) == "") name <- "pred_ann"
-  ## need to remove the ann class which is first in line
-  if (class(object)[1] == "ann") object %<>% set_class(class(.)[-1])
-  changedata(data, vars = object, var_names = name)
-}
+print.ann.predict <- function(x, ..., n = 10)
+  print.model.predict(x, ..., n = n, header = "Artificial Neural Network (ANN)")
 
 #' Deprecated function to store predictions from an ANN
-#' @param object Return value from predict.nnet
-#' @param ... Additional arguments
+#'
+#' @details Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
+#'
+#' @param object Return value from \code{\link{predict.ann}}
 #' @param data Dataset name
-#' @param name Variable name assigned to the predicted values
+#' @param name Variable name assigned to the residuals or predicted values
+#'
 #' @export
-store_ann <- store.ann
+store_ann <- function(object, data = object$dataset, name = paste0("predict_ann"))
+  store.model.predict(object, data = data, name = name)
+

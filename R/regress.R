@@ -1,6 +1,6 @@
 #' Linear regression using OLS
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the regression
@@ -29,7 +29,7 @@ regress <- function(dataset, rvar, evar,
 
   if (rvar %in% evar)
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-           set_class(c("regress",class(.))))
+           add_class("regress"))
 
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
@@ -37,20 +37,32 @@ regress <- function(dataset, rvar, evar,
 
   if (any(summarise_each(dat, funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>%
-           set_class(c("regress",class(.))))
+           add_class("regress"))
 
   vars <- ""
   var_check(evar, colnames(dat)[-1], int) %>%
     { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
 
-  if ("standardize" %in% check) {
-    isNum <- sapply(dat, is.numeric)
-    # if (sum(isNum) > 0) dat[,isNum] %<>% data.frame %>% mutate_each(funs(scale))
-    if (sum(isNum) > 0)
-      dat[,isNum] %<>% data.frame %>% mutate_each(funs(center(.) / (2*sd(., na.rm = TRUE))))
-  } else if ("center" %in% check) {
-    dat %<>% mutate_each(funs(center(.)))
+
+  isNum <- sapply(dat, is.numeric)
+  if (sum(isNum) > 0) {
+    if ("standardize" %in% check) {
+        # dat[,isNum] %<>% data.frame %>% mutate_each(funs(center(.) / (2*sd(., na.rm = TRUE))))
+      dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(center(.) / (2*sd(., na.rm = TRUE))))
+    } else if ("center" %in% check) {
+      dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(center(.)))
+    }
   }
+
+  # if (sum(isNum) > 0) {
+  #   if ("center" %in% check) {
+  #     ms <- select(dat, which(isNum)) %>% summarise_each(funs(mean(., na.rm = TRUE)))
+  #     dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(. - ms$.))
+  #   } else if ("standardize" %in% check) {
+  #     sds <- select(dat, which(isNum)) %>% summarise_each(funs(sd(., na.rm = TRUE)))
+  #     dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs((. - ms$.) / 2* sds$.))
+  #   }
+  # }
 
   form <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
 
@@ -78,12 +90,12 @@ regress <- function(dataset, rvar, evar,
 
   rm(dat) ## dat is not needed elsewhere and is already in "model" anyway
 
-  environment() %>% as.list %>% set_class(c("regress",class(.)))
+  environment() %>% as.list %>% add_class(c("regress","model"))
 }
 
 #' Summary method for the regress function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
 #' @param sum_check Optional output. "rsme" to show the root mean squared error and the standard deviation of the residuals. "sumsquares" to show the sum of squares table. "vif" to show multicollinearity diagnostics. "confint" to show coefficient confidence interval estimates.
@@ -148,7 +160,7 @@ summary.regress <- function(object,
     return()
   } else {
     p.small <- coeff$p.value < .001
-    coeff[,2:5] %<>% dfprint(dec)
+    coeff[,2:5] %<>% formatdf(dec)
     coeff$p.value[p.small] <- "< .001"
     print(coeff, row.names=FALSE)
   }
@@ -164,7 +176,7 @@ summary.regress <- function(object,
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
   cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df - df_int, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
-  cat("\nNr obs:", nrprint(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
+  cat("\nNr obs:", formatnr(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
 
   if (anyNA(object$model$coeff))
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")
@@ -268,7 +280,7 @@ summary.regress <- function(object,
 
 #' Plot method for the regress function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{regress}}
 #' @param plots Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "hist" to show histograms of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals. "leverage" to show leverage plots for each explanatory variable
@@ -295,14 +307,13 @@ summary.regress <- function(object,
 #' @importFrom car leveragePlots
 #'
 #' @export
-plot.regress <- function(x,
-                            plots = "",
-                            lines = "",
-                            conf_lev = .95,
-                            intercept = FALSE,
-                            shiny = FALSE,
-                            custom = FALSE,
-                            ...) {
+plot.regress <- function(x, plots = "",
+                         lines = "",
+                         conf_lev = .95,
+                         intercept = FALSE,
+                         shiny = FALSE,
+                         custom = FALSE,
+                         ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
@@ -413,7 +424,7 @@ plot.regress <- function(x,
   }
 
   if ("correlations" %in% plots)
-    return(radiant.basic:::plot.correlation_(object$model$model))
+    return(radiant.basics:::plot.correlation_(object$model$model))
 
   if ("leverage" %in% plots) {
     ## no plots if aliased coefficients present
@@ -434,7 +445,7 @@ plot.regress <- function(x,
 
 #' Predict method for the regress function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
 #' @param pred_data Name of the dataset to use for prediction
@@ -464,30 +475,80 @@ predict.regress <- function(object,
                             se = TRUE,
                             ...) {
 
+  pfun <- function(model, pred, se, conf_lev) {
+
+    pred_val <-
+      try(sshhr(
+        predict(model, pred, interval = ifelse (se, "prediction", "none"), level = conf_lev)),
+        silent = TRUE
+      )
+
+    if (!is(pred_val, 'try-error')) {
+      if (se) {
+        pred_val %<>% data.frame %>% mutate(diff = .[,3] - .[,1])
+        ci_perc <- ci_label(cl = conf_lev)
+        colnames(pred_val) <- c("Prediction",ci_perc[1],ci_perc[2],"+/-")
+      } else {
+        pred_val %<>% data.frame %>% select(1)
+        colnames(pred_val) <- "Prediction"
+      }
+    }
+
+    pred_val
+  }
+
+  predict.model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se)
+}
+
+#' Predict method for model functions
+#'
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#'
+#' @param object Return value from \code{\link{regress}}
+#' @param pfun Function to use for prediction
+#' @param mclass Model class to attach
+#' @param pred_data Name of the dataset to use for prediction
+#' @param pred_cmd Command used to generate data for prediction
+#' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
+#' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param ... further arguments passed to or from other methods
+#'
+#' @export
+predict.model <- function(object, pfun, mclass,
+                          pred_data = "",
+                          pred_cmd = "",
+                          conf_lev = 0.95,
+                          se = FALSE,
+                          ...) {
+
   if (is.character(object)) return(object)
 
-  # used http://www.r-tutor.com/elementary-statistics/simple-linear-regression/prediction-interval-linear-regression as starting point
-  pred_count <- sum(c(pred_cmd == "", is.character(pred_data) && pred_data == ""))
-  if ("standardize" %in% object$check) {
-    return(cat("Standardized coefficients cannot be used for prediction.\nPlease uncheck the standardized coefficients box and try again"))
-  } else if (pred_count == 2) {
-    return(cat("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant"))
-  }
+  if (is_empty(pred_data) && is_empty(pred_cmd))
+    return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
+
+  if ("standardize" %in% object$check)
+    return("Standardized coefficients will not be used for prediction.\nPlease uncheck the 'standardize' box and try again")
+
+  if ("center" %in% object$check)
+    return("Centered coefficients will not be used for prediction.\nPlease uncheck the 'center' box and try again")
 
   dec <- object$dec
 
   pred_type <- "cmd"
   vars <- object$evar
-  if ((is.character(pred_data) && pred_data == "") && pred_cmd != "") {
+  if (is_empty(pred_data) && !is_empty(pred_cmd)) {
     pred_cmd %<>% gsub("\"","\'",.) %>% gsub(";\\s*$","",.) %>% gsub(";",",",.)
     pred <- try(eval(parse(text = paste0("with(object$model$model, expand.grid(", pred_cmd ,"))"))), silent = TRUE)
-    if (is(pred, 'try-error')) {
-      paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% cat
-      return()
-    }
+    if (is(pred, 'try-error'))
+      return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
 
     # adding information to the prediction data.frame
     dat_classes <- attr(object$model$term, "dataClasses")[-1]
+
+    ## weights mess-up data manipulation below so remove from
+    wid <- which(names(dat_classes) %in% "(weights)")
+    if (length(wid) > 0) dat_classes <- dat_classes[-wid]
+
     isFct <- dat_classes == "factor"
     isLog <- dat_classes == "logical"
     isNum <- dat_classes == "numeric"
@@ -508,10 +569,10 @@ predict.regress <- function(object,
      rm(dat)
 
     if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
-      return(cat("The model includes data-types that cannot be used for\nprediction at this point\n"))
+      return("The model includes data-types that cannot be used for\nprediction at this point\n")
     } else {
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
-        return(cat("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n"))
+        return("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n")
       } else {
         plug_data[names(pred)] <- list(NULL)
         pred <- data.frame(plug_data[,-1],pred)
@@ -519,19 +580,14 @@ predict.regress <- function(object,
     }
   } else {
     ## generate predictions for all observations in the dataset
-    pred <- getdata(pred_data, na.rm = FALSE)
+    pred <- getdata(pred_data, filt = "", na.rm = FALSE)
     pred_names <- names(pred)
     pred <- try(select_(pred, .dots = vars), silent = TRUE)
 
-    if (is(pred, 'try-error')) {
-      cat("Model variables: ")
-      cat(vars,"\n")
-      cat("Profile variables to be added: ")
-      cat(vars[!vars %in% pred_names])
-      return()
-    }
+    if (is(pred, 'try-error'))
+      return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
 
-    if (pred_cmd != "") {
+    if (!is_empty(pred_cmd)) {
       pred_cmd <- pred_cmd %>% gsub("\"","\'",.) %>% gsub(" ","",.)
       vars <-
         strsplit(pred_cmd, ";")[[1]] %>% strsplit(., "=") %>%
@@ -542,35 +598,38 @@ predict.regress <- function(object,
 
       pred <- try(mutate_(pred, .dots = setNames(dots, vars)), silent = TRUE)
       if (is(pred, 'try-error')) {
-        paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% cat
-        return()
+        return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
       pred_type <- "datacmd"
     } else {
       pred_type <- "data"
     }
 
-    if ("center" %in% object$check) pred %<>% mutate_each(funs(center(.)))
+    #   ## express evars in deviation from mean
+    #   ms <- object$ms
+    #   sds <- object$sds
+    #   isNum <- sapply(pred, is.numeric)
+    #   if (sum(isNum) > 0) {
+    #     if (length(object$wts) > 0) {
+    #       ## use weighted.mean if weights are used in estimation
+    #       pred[,isNum] %<>% data.frame %>% mutate_each(funs(. - weighted.mean(., object$wts, na.rm = TRUE)))
+    #     } else {
+    #       pred[,isNum] <- select(pred, which(isNum)) %>% mutate_each(funs((. - ms$.)))
+    #     }
+    #   }
+    #   dfscale(dat, center = TRUE, scale = TRUE, wts = NULL, calc = TRUE) {
+    # }
 
     pred %<>% na.omit()
   }
 
-  if (se)
-    pred_val <- try(predict(object$model, pred, interval = 'prediction', level = conf_lev), silent = TRUE)
-  else
-    pred_val <- try(predict(object$model, pred, se.fit = FALSE), silent = TRUE)
-
+  ## generate predictions using the supplied function (pfun)
+  pred_val <- pfun(object$model, pred, se, conf_lev)
 
   if (!is(pred_val, 'try-error')) {
 
-    if (se) {
-      pred_val %<>% data.frame %>% mutate(diff = .[,3] - .[,1])
-      ci_perc <- ci_label(cl = conf_lev)
-      colnames(pred_val) <- c("Prediction",ci_perc[1],ci_perc[2],"+/-")
-    } else {
-      pred_val %<>% data.frame %>% select(1)
-      colnames(pred_val) <- "Prediction"
-    }
+    # if ("center" %in% object$check)
+    #   pred_val[["Prediction"]] <- pred_val[["Prediction"]] + ms[[object$rvar]]
 
     pred <- data.frame(pred, pred_val, check.names = FALSE)
     vars <- colnames(pred)
@@ -581,18 +640,29 @@ predict.regress <- function(object,
       vars <- c(object$evar, colnames(pred_val))
     }
 
+    # pred %<>% set_attr("dataset", object$dataset) %>%
+    #   set_attr("data_filter", object$data_filter) %>%
+    #   set_attr("rvar", object$rvar) %>%
+    #   set_attr("evar", object$evar) %>%
+    #   set_attr("vars", vars) %>%
+    #   set_attr("dec", dec) %>%
+    #   set_attr("pred_info", c(pred_type, pred_data, pred_cmd))
+
     attr(pred, "dataset") <- object$dataset
     attr(pred, "data_filter") <- object$data_filter
     attr(pred, "rvar") <- object$rvar
     attr(pred, "evar") <- object$evar
     attr(pred, "vars") <- vars
     attr(pred, "dec") <- dec
-    attr(pred, "pred") <- c(pred_type, pred_data, pred_cmd)
+    attr(pred, "pred_type") <- pred_type
+    attr(pred, "pred_data") <- pred_data
+    attr(pred, "pred_cmd") <- pred_cmd
 
-    return(pred %>% set_class(c("regress.predict",class(.))))
+    return(add_class(pred, c(mclass,"model.predict")))
+    # return(pred %>% add_class(c(mclass,"model.predict")))
 
   } else {
-    paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file.") %>% cat
+    return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
   }
 }
 
@@ -602,14 +672,17 @@ predict.regress <- function(object,
 #' @param ... further arguments passed to or from other methods
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #' @param header Header line
+#' @param lev The level in the response variable defined as _success_ for classification models
 #'
 #' @export
 print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
 
   data_filter <- attr(x, "data_filter")
   vars <- attr(x, "vars")
-  pred_info <- attr(x, "pred")
-  pred_type <- pred_info[1]; pred_data <- pred_info[2]; pred_cmd <- pred_info[3]
+  pred_type <- attr(x, "pred_type")
+  pred_data <- attr(x, "pred_data")
+  pred_cmd <- gsub("([=+-/*])", " \\1 ", attr(x, "pred_cmd")) %>% gsub("([;])", "\\1 ", .)
+  # pred_cmd <- gsub("([=+-/*])", " \\1 ", pred_info[3]) %>% gsub("([;])", "\\1 ", .)
 
   cat(header)
   cat("\nData                 :", attr(x, "dataset"), "\n")
@@ -622,26 +695,26 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
 
   if (!is.character(pred_data)) pred_data <- "-----"
   if (pred_type == "cmd") {
-    cat("Predicted values from command:", pred_cmd, "\n")
+    cat("Prediction command   :", pred_cmd, "\n")
   } else if (pred_type == "datacmd") {
-    cat("Predicted values for profiles from dataset:", pred_data,"\n")
-    cat("Customized using command:", pred_cmd, "\n")
+    cat("Prediction dataset   :", pred_data,"\n")
+    cat("Customize command    :", pred_cmd, "\n")
   } else {
-    cat("Predicted values for profiles from dataset:", pred_data,"\n")
+    cat("Prediction dataset   :", pred_data,"\n")
   }
 
   if (n == -1) {
     cat("\n")
-    dfprint(x[,vars], attr(x, "dec")) %>% print(row.names = FALSE)
+    formatdf(x[,vars], attr(x, "dec")) %>% print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
-      cat("Number of rows shown :", n, "\n")
+      cat("Rows shown           :", n, "\n")
     cat("\n")
-    head(x[,vars], n) %>% dfprint(attr(x, "dec")) %>% print(row.names = FALSE)
+    head(x[,vars], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
   }
 }
 
-#' Print method for regress.predict
+#' Print method for predict.regress
 #'
 #' @param x Return value from prediction method
 #' @param ... further arguments passed to or from other methods
@@ -651,51 +724,50 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
 print.regress.predict <- function(x, ..., n = 10)
   print.model.predict(x, ..., n = n, header = "Linear regression (OLS)")
 
-#' Plot method for the predict.regress function
+#' Plot method for model.predict functions
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
-#'
-#' @param x Return value from \code{\link{predict.regress}}.
+#' @param x Return value from predict functions (e.g., predict.regress)
 #' @param xvar Variable to display along the X-axis of the plot
 #' @param facet_row Create vertically arranged subplots for each level of the selected factor variable
 #' @param facet_col Create horizontally arranged subplots for each level of the selected factor variable
 #' @param color Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different colour
-#' @param conf_lev Confidence level to use for prediction intervals (.95 is the default). Note that the error bars for predicitions are approximations at this point.
+#' @param conf_lev Confidence level to use for prediction intervals (.95 is the default)
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress("diamonds", "price", c("carat","clarity"))
-#' pred <- predict(result, pred_cmd = "carat = 1:10")
-#' plot(pred, xvar = "carat")
-#' result <- regress("diamonds", "price", c("carat","clarity"), int = "carat:clarity")
-#' dpred <<- getdata("diamonds") %>% slice(1:100)
-#' pred <- predict(result, pred_data = "dpred")
-#' plot(pred, xvar = "carat", color = "clarity")
-#' rm(dpred, envir = .GlobalEnv)
+#' regress("diamonds", "price", c("carat","clarity")) %>%
+#'   predict(pred_cmd = "carat = 1:10") %>%
+#'   plot(xvar = "carat")
+#' logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") %>%
+#'   predict(pred_cmd="pclass=levels(pclass), sex=levels(sex), age=seq(0,100,20)") %>%
+#'   plot(xvar = "age", color = "sex", facet_col = "pclass")
 #'
-#' @seealso \code{\link{regress}} to generate the result
-#' @seealso \code{\link{summary.regress}} to summarize results
-#' @seealso \code{\link{plot.regress}} to plot results
 #' @seealso \code{\link{predict.regress}} to generate predictions
+#' @seealso \code{\link{predict.logistic}} to generate predictions
 #'
 #' @export
-plot.regress.predict <- function(x,
-                                 xvar = "",
-                                 facet_row = ".",
-                                 facet_col = ".",
-                                 color = "none",
-                                 conf_lev = .95,
-                                 ...) {
+plot.model.predict <- function(x, xvar = "",
+                               facet_row = ".",
+                               facet_col = ".",
+                               color = "none",
+                               conf_lev = .95,
+                               ...) {
 
-  if (is.null(xvar) || xvar == "") return(invisible())
+  ## should work with req in regress_ui but doesn't
+  if (is_empty(xvar)) return(invisible())
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
 
   cn <- colnames(object)
-  cn[which(cn == "Prediction") + 1] <- "ymin"
-  cn[which(cn == "Prediction") + 2] <- "ymax"
-  colnames(object) <- cn
+  pvars <- "Prediction"
+  cnpred <- which(cn == pvars)
+  if (length(cn) > cnpred) {
+    pvars <- c(pvars,"ymin","ymax")
+    cn[cnpred + 1] <- pvars[2]
+    cn[cnpred + 2] <- pvars[3]
+    colnames(object) <- cn
+  }
 
   byvar <- NULL
   if (color != "none") byvar <- color
@@ -706,32 +778,32 @@ plot.regress.predict <- function(x,
     byvar <- if (is.null(byvar)) facet_col else unique(c(byvar, facet_col))
 
   tbv <- if (is.null(byvar)) xvar else c(xvar, byvar)
-  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c("Prediction","ymin","ymax")) %>% summarise_each(funs(mean))
+  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = pvars) %>% summarise_each(funs(mean))
   if (color == 'none') {
     p <- ggplot(tmp, aes_string(x=xvar, y="Prediction")) + geom_line(aes(group = 1))
   } else {
-    # p <- sshhr( ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + geom_line() )
     p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + geom_line()
   }
 
   if (facet_row != "." || facet_col != ".") {
-    facets <- if (facet_row == ".")  paste("~", facet_col)
-              else paste(facet_row, '~', facet_col)
-    facet_fun <- if (facet_row == ".") facet_wrap else facet_grid
+    facets <- ifelse (facet_row == ".", paste("~", facet_col), paste(facet_row, '~', facet_col))
+    facet_fun <- ifelse (facet_row == ".", facet_wrap, facet_grid)
     p <- p + facet_fun(as.formula(facets))
   }
 
-  if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 10)
-    p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size=.3)
-  else
-    p <- p + geom_smooth(aes_string(ymin = "ymin", ymax = "ymax"), stat="identity")
+  if (length(pvars) == 3) {
+    if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11)
+      p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size=.3)
+    else
+      p <- p + geom_smooth(aes_string(ymin = "ymin", ymax = "ymax"), stat="identity")
+  }
 
-  sshhr( p )
+  sshhr(p)
 }
 
 #' Deprecated function to store regression residuals and predictions
 #'
-#' @details Use \code{\link{store.regress.predict}} or \code{\link{store.regress}} instead
+#' @details Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
 #'
 #' @param object Return value from \code{\link{regress}} or \code{\link{predict.regress}}
 #' @param data Dataset name
@@ -743,22 +815,28 @@ store_reg <- function(object, data = object$dataset,
                       type = "residuals", name = paste0(type, "_reg")) {
 
   if (type == "residuals")
-    store.regress(object, data = data, name = name)
+    store.model(object, data = data, name = name)
   else
-    store.regress.predict(object, data = data, name = name)
+    store.model.predict(object, data = data, name = name)
 }
 
-#' Store predicted values generated in the regress function
+#' Store predicted values generated in model functions
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
-#' @param object Return value from \code{\link{predict.regress}}
-#' @param ... Additional arguments. Must include data or dataset name (e.g., data = mtcars or data = "mtcars")
+#' @param object Return value from model function
+#' @param ... Additional arguments
+#' @param data Data or dataset name (e.g., data = mtcars or data = "mtcars")
 #' @param name Variable name(s) assigned to predicted values
 #'
+#' @examples
+#' regress(diamonds, rvar = "price", evar = c("carat","cut")) %>%
+#'   predict(diamonds) %>%
+#'   store %>% head
+#'
 #' @export
-store.regress.predict <- function(object, ..., name = "pred_reg") {
-  if (is_empty(name)) name <- "pred_reg"
+store.model.predict <- function(object, ..., data = attr(object,"pred_data"), name = "prediction") {
+  if (is_empty(name)) name <- "prediction"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
   name <- unlist(strsplit(name, ",")) %>% gsub("\\s","",.)
@@ -771,35 +849,39 @@ store.regress.predict <- function(object, ..., name = "pred_reg") {
     store <- object$Prediction
   }
 
-  dots <- list(...)
   vars <- colnames(object)[1:(ind-1)]
-  indr <- indexr(dots$data, vars, "")
+  indr <- indexr(data, vars, "")
   pred <- data.frame(matrix(NA, nrow = indr$nr, ncol = ifelse(class(store) == "data.frame", ncol(store), 1)))
   pred[indr$ind, ] <- store
 
-  changedata(dots$data, vars = pred, var_names = name)
+  changedata(data, vars = pred, var_names = name)
 }
 
-#' Store residuals from a model generated in the regress function
+#' Store residuals from a model
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
-#' @param object Return value from \code{\link{regress}}
+#' @param object Return value from a model function
 #' @param ... Additional arguments
 #' @param name Variable name(s) assigned to predicted values
 #'
+#' @examples
+#' regress(diamonds, rvar = "price", evar = c("carat","cut")) %>%
+#'   store %>% head
+#'
 #' @export
-store.regress <- function(object, ..., name = "residuals_reg") {
-  if (is_empty(name)) name <- "residuals_reg"
-  indr <- indexr(object$dataset, c(object$rvar, object$evars), object$data_filter)
+store.model <- function(object, ..., name = "residuals") {
+  if (is_empty(name)) name <- "residuals"
+  dat <- {if (object$dataset == "-----") object$model$model else object$dataset}
+  indr <- indexr(dat, c(object$rvar, object$evar), object$data_filter)
   res <- rep(NA, indr$nr)
   res[indr$ind] <- object$model$residuals
-  changedata(object$dataset, vars = res, var_names = name)
+  changedata(dat, vars = res, var_names = name)
 }
 
 #' Check if main effects for all interaction effects are included in the model
 #' If ':' is used to select a range _evar_ is updated
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param ev List of explanatory variables provided to _regress_ or _logistic_
 #' @param cn Column names for all explanatory variables in _dat_
@@ -832,7 +914,7 @@ var_check <- function(ev, cn, intv = "") {
 
 #' Add interaction terms to list of test variables if needed
 #'
-#' @details See \url{http://vnijs.github.io/radiant/quant/regression.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param test_var List of variables to use for testing for regress or logistic
 #' @param int Interaction terms specified

@@ -44,7 +44,7 @@ A data.frame with the created variables
 Simulate data for decision analysis
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/simulater.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 }
 \examples{
 result <- simulater(const = "cost 3", norm = "demand 2000 1000",

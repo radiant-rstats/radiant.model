@@ -1,6 +1,6 @@
 #' Model evalreg
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/evalreg.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param pred Predictions or predictors
@@ -33,7 +33,6 @@ evalreg <- function(dataset, pred, rvar,
 
 	if (!is_string(dataset)) dataset <- "-----"
 
-
 	pdat <- list()
 	for (i in names(dat_list)) {
 		dat <- dat_list[[i]]
@@ -59,7 +58,7 @@ evalreg <- function(dataset, pred, rvar,
 
 #' Summary method for the evalreg function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/evalreg.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{evalreg}}
 #' @param ... further arguments passed to or from other methods
@@ -78,12 +77,12 @@ summary.evalreg <- function(object, ...) {
 	cat("Results for :", object$train, "\n")
 	cat("Perdictors  :", paste0(object$pred, collapse=", "), "\n")
 	cat("Response    :", object$rvar, "\n\n")
-	print(dfprint(object$dat), row.names = FALSE)
+	print(formatdf(object$dat), row.names = FALSE)
 }
 
 #' Plot method for the evalreg function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/evalreg.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{evalreg}}
 #' @param shiny Did the function call originate inside a shiny app

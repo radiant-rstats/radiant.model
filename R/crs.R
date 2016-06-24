@@ -1,6 +1,6 @@
 #' Collaborative Filtering
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/crs.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param id String with name of the variable containing user ids
@@ -16,7 +16,7 @@
 crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") {
 
   if (data_filter == "")
-    return("A data filter must be set" %>% set_class(c("crs",class(.))))
+    return("A data filter must be set" %>% add_class("crs"))
 
   # library(radiant)
   # loadr("~/ca/week7/crs/cf_demo.rda")
@@ -43,7 +43,7 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
 
   ## stop if insufficient overlap in ratings
   if (length(pred) >= (ncol(dat) - 1))
-    return("Cannot predict for all products. Ratings must overlap on at least two products." %>% set_class(c("crs",class(.))))
+    return("Cannot predict for all products. Ratings must overlap on at least two products." %>% add_class("crs"))
 
   ## indices
   cn <- colnames(dat)
@@ -73,7 +73,7 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
   # print(head(dat))
   # print(print(environment() %>% as.list))
   # print(sys.call())
-  # return(environment() %>% as.list %>% set_class(c("crs",class(.))))
+  # return(environment() %>% as.list %>% add_class("crs"))
 
   ## to forego standardization
   # ms <- ms * 0
@@ -102,7 +102,7 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
 
   rm(dat, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
 
-  environment() %>% as.list %>% set_class(c("crs",class(.)))
+  environment() %>% as.list %>% add_class("crs")
 }
 
 ## Test settings for simulater function, will not be run when sourced
@@ -123,7 +123,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 
 #' Summary method for Collaborative Filter
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/crs.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{crs}}
 #' @param ... further arguments passed to or from other methods
@@ -140,29 +140,29 @@ summary.crs <- function(object, ...) {
   # return("here")
 
   cat("Avergage Ratings:\n\n")
-  print(dfprint(object$avg, dec = 2), row.names = FALSE)
+  print(formatdf(object$avg, dec = 2), row.names = FALSE)
 
   cat("\nAvergage Rankings:\n\n")
-  print(dfprint(object$ravg, dec = 2), row.names = FALSE)
+  print(formatdf(object$ravg, dec = 2), row.names = FALSE)
 
   cat("\nRatings from Collaborative Filter:\n\n")
-  print(dfprint(object$cf, dec = 2), row.names = FALSE)
+  print(formatdf(object$cf, dec = 2), row.names = FALSE)
 
   cat("\nRankings from Collaborative Filter:\n\n")
-  print(dfprint(object$rcf, dec = 2), row.names = FALSE)
+  print(formatdf(object$rcf, dec = 2), row.names = FALSE)
 
   if (!any(is.na(object$act))) {
     cat("\nActual ratings:\n\n")
-    print(dfprint(object$act, dec = 2), row.names = FALSE)
+    print(formatdf(object$act, dec = 2), row.names = FALSE)
 
     cat("\nActual rankings:\n\n")
-    print(dfprint(object$ract, dec = 2), row.names = FALSE)
+    print(formatdf(object$ract, dec = 2), row.names = FALSE)
   }
 }
 
 #' Plot method for the crs function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/crs.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{crs}}
 #' @param shiny Did the function call originate inside a shiny app
@@ -213,7 +213,7 @@ plot.crs <- function(x, shiny = FALSE, ...) {
 
 #' Store predicted values generated in the crs function
 #'
-#' @details See \url{http://vnijs.github.io/radiant/analytics/crs.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param pred Return value from predict.nnet
 #' @param data Dataset name

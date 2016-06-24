@@ -20,7 +20,7 @@ AUC statistic
 Area Under the Curve (AUC)
 }
 \details{
-See \url{http://vnijs.github.io/radiant/analytics/evalbin.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
 auc(mtcars$mpg, mtcars$vs, 1)

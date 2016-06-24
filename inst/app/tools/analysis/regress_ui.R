@@ -70,8 +70,12 @@ reg_pred_inputs <- reactive({
   reg_pred_args
 })
 
-reg_pred_plot_args <- as.list(if (exists("plot.regress.predict")) formals(plot.regress.predict)
-                         else formals(radiant.model:::plot.regress.predict))
+# reg_pred_plot_args <- as.list(if (exists("plot.regress.predict")) formals(plot.regress.predict)
+                         # else formals(radiant.model:::plot.regress.predict))
+
+reg_pred_plot_args <- as.list(if (exists("plot.model.predict")) formals(plot.model.predict)
+                         else formals(radiant.model:::plot.model.predict))
+
 
 ## list of function inputs selected by user
 reg_pred_plot_inputs <- reactive({
@@ -325,7 +329,7 @@ reg_available <- reactive({
 
 .summary_regress <- reactive({
   if (reg_available() != "available") return(reg_available())
-  if (input$reg_rvar %in% input$reg_evar) return()
+  # if (input$reg_rvar %in% input$reg_evar) return()
   if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
   do.call(summary, c(list(object = .regress()), reg_sum_inputs()))
 })

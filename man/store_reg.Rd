@@ -20,6 +20,6 @@ store_reg(object, data = object$dataset, type = "residuals",
 Deprecated function to store regression residuals and predictions
 }
 \details{
-Use \code{\link{store.regress.predict}} or \code{\link{store.regress}} instead
+Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
 }
 

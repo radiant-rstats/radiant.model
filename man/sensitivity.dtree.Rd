@@ -22,6 +22,6 @@
 Evaluate sensitivity of the decision tree
 }
 \details{
-See \url{http://vnijs.github.io/radiant/quant/dtree.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
 

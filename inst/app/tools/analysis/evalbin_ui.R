@@ -65,14 +65,16 @@ output$ui_evalbin <- renderUI({
 	    uiOutput("ui_ebin_rvar"),
       uiOutput("ui_ebin_lev"),
       uiOutput("ui_ebin_pred"),
-      numericInput("ebin_qnt", label = "# quantiles:",
-        value = state_init("ebin_qnt", 10), min = 2),
+      conditionalPanel("input.tabs_evalbin != 'Confusion'",
+        numericInput("ebin_qnt", label = "# quantiles:",
+          value = state_init("ebin_qnt", 10), min = 2)
       # radioButtons("ebin_method", label = "Method:", ebin_method,
         #   selected = state_init("ebin_method", "xtile"),
         #   inline = TRUE),
+      ),
       tags$table(
         tags$td(numericInput("ebin_margin", label = "Margin:",
-          value = state_init("ebin_margin",1), width = "117px")),
+          value = state_init("ebin_margin",2), width = "117px")),
         tags$td(numericInput("ebin_cost", label = "Cost:",
           value = state_init("ebin_cost",1)))
       ),
@@ -81,11 +83,21 @@ output$ui_evalbin <- renderUI({
         checkboxGroupInput("ebin_plots", "Plots:", ebin_plots,
           selected = state_init("ebin_plots", ""),
           inline = TRUE)
+      ),
+      conditionalPanel("input.tabs_evalbin == 'Confusion'",
+        checkboxInput("ebin_scale_y", "Scale free Y-axis", state_init("ebin_scale_y", FALSE))
       )
   	),
-  	help_and_report(modal_title = "Model evalbin",
-  	                fun_name = "evalbin",
-  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalbin.md")))
+    conditionalPanel("input.tabs_evalbin != 'Confusion'",
+      help_and_report(modal_title = "Model evaluate classification",
+                      fun_name = "evalbin",
+                      help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalbin.md")))
+    ),
+    conditionalPanel("input.tabs_evalbin == 'Confusion'",
+      help_and_report(modal_title = "Model evaluate confusion matrix",
+                      fun_name = "confusion",
+                      help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/confusion.md")))
+    )
 	)
 })
 
@@ -94,15 +106,22 @@ ebin_plot_width <- function() {
          (!is.null(input$ebin_train) && input$ebin_train == "Both"), 700, 500)
 }
 ebin_plot_height <- function() {
-  length(input$ebin_plots) * 500
+  if (is_empty(input$ebin_plots)) 200 else length(input$ebin_plots) * 500
 }
+
+confusion_plot_width <- function() 650
+confusion_plot_height <- function() 800
 
 # output is called from the main radiant ui.R
 output$evalbin <- renderUI({
 	register_print_output("summary_evalbin", ".summary_evalbin")
+  register_print_output("summary_confusion", ".summary_confusion")
 	register_plot_output("plot_evalbin", ".plot_evalbin",
                        	width_fun = "ebin_plot_width",
                        	height_fun = "ebin_plot_height")
+  register_plot_output("plot_confusion", ".plot_confusion",
+                        width_fun = "confusion_plot_width",
+                        height_fun = "confusion_plot_height")
 
 	# one output with components stacked
 	# ebin_output_panels <- tagList(
@@ -115,11 +134,13 @@ output$evalbin <- renderUI({
     tabPanel("Plot",
       plot_downloader("evalbin", height = ebin_plot_height()),
       plotOutput("plot_evalbin", height = "100%")
+    ),
+    tabPanel("Confusion",
+       downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
+       verbatimTextOutput("summary_confusion"),
+       plot_downloader("confusion", height = ebin_plot_height()),
+       plotOutput("plot_confusion", height = "100%")
     )
-    # tabPanel("Table",
-       # downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
-       ## use explorer as starting point
-    # )
   )
 
 	stat_tab_panel(menu = "Model > Evaluate",
@@ -129,7 +150,6 @@ output$evalbin <- renderUI({
 })
 
 .evalbin <- eventReactive(input$ebin_run, {
-  # req(input$ebin_pause == FALSE, cancelOutput = TRUE)
 	do.call(evalbin, ebin_inputs())
 })
 
@@ -146,9 +166,32 @@ output$evalbin <- renderUI({
       is_empty(input$ebin_lev)) {
     return(" ")
   }
-  req(input$ebin_train)
   if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  if (all(is_empty(input$ebin_plots))) return("** Select a plot to display **")
   plot(.evalbin(), plots = input$ebin_plots, shiny = TRUE)
+})
+
+.confusion <- reactive({
+  if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
+      is_empty(input$ebin_lev))
+    return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
+  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  do.call(confusion, ebin_inputs())
+})
+
+.summary_confusion <- reactive({
+  if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
+      is_empty(input$ebin_lev))
+    return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
+  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  summary(.confusion())
+})
+
+.plot_confusion <- reactive({
+  if (not_pressed(input$ebin_run)) return(invisible())
+  if (not_available(input$ebin_rvar) || not_available(input$ebin_pred)) return(" ")
+  req(input$ebin_train, !is_not(input$ebin_scale_y))
+  plot(.confusion(), scale_y = input$ebin_scale_y, shiny = TRUE)
 })
 
 observeEvent(input$evalbin_report, {
@@ -170,10 +213,32 @@ observeEvent(input$evalbin_report, {
                 fig.height = ebin_plot_height())
 })
 
+observeEvent(input$confusion_report, {
+  inp_out <- list(scale_y = input$ebin_scale_y) %>% list("",.)
+  outputs <- c("summary","plot")
+  update_report(inp_main = clean_args(ebin_inputs(), ebin_args),
+                fun_name = "confusion",
+                inp_out = inp_out,
+                outputs = outputs,
+                figs = TRUE,
+                fig.width = confusion_plot_width(),
+                fig.height = confusion_plot_height())
+})
+
+
 output$dl_ebin_tab <- downloadHandler(
   filename = function() { "evalbin.csv" },
   content = function(file) {
     do.call(summary, c(list(object = .evalbin()), ebin_inputs(),
+            list(prn = FALSE))) %>%
+      write.csv(., file = file, row.names = FALSE)
+  }
+)
+
+output$dl_confusion_tab <- downloadHandler(
+  filename = function() { "confusion.csv" },
+  content = function(file) {
+    do.call(summary, c(list(object = .confusion()), ebin_inputs(),
             list(prn = FALSE))) %>%
       write.csv(., file = file, row.names = FALSE)
   }

@@ -58,11 +58,11 @@ output$ui_dtree_sense_decision <- renderUI({
   jl <- dtree_eval()$jl
   if (is.null(jl)) return(invisible())
 
+  ## all decisions in the tree
   decs <-
     jl$Get(function(x) if (length(x$parent$decision) > 0) x$payoff) %>%
     na.omit %>%
-    names %>%
-    unique
+    names
 
   selectizeInput("dtree_sense_decision", label = "Decisions to evaluate:",
     choices = decs, multiple = TRUE,
@@ -175,7 +175,7 @@ output$dtree <- renderUI({
           # )
         ),
         help_and_report(modal_title = "Decision analysis", fun_name = "dtree",
-                        help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.md")))
+                        help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))
       ),
       mainPanel(
         plot_downloader("dtree_sensitivity", height = dtree_sense_height()),
@@ -210,8 +210,10 @@ dtree_name <- function() {
   })
 }
 
-dtree_eval <- reactive({
-  if (vals_dtree$dtree_run == 1) return(invisible())
+# dtree_eval <- reactive({
+dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
+  # if (vals_dtree$dtree_run == 1) return(invisible())
+  req(vals_dtree$dtree_run != 1)
   isolate({
 
     ## update settings and get data.tree name
@@ -247,8 +249,11 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
     return(invisible())
   } else {
     pinp <- dtree_plot_inputs()
+    # pinp$shiny <- TRUE
+    # DiagrammeR::DiagrammeR(do.call(plot, c(list(x = dt), pinp)))
+
     pinp$shiny <- TRUE
-    DiagrammeR::DiagrammeR(do.call(plot, c(list(x = dt), pinp)))
+    do.call(plot, c(list(x = dt), pinp))
   }
 })
 
@@ -383,8 +388,12 @@ observeEvent(input$dtree_remove, {
   xcmd <-
     clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
     deparse(control = c("keepNA"), width.cutoff = 500L) %>%
-    {if (. == "list()") paste0("plt", id, " <- plot(result)\nDiagrammeR::renderDiagrammeR(plt",id,")")
-     else paste0(sub("list(", paste0("plt",id," <- plot(result, "), ., fixed = TRUE),paste0("\nDiagrammeR::renderDiagrammeR(plt", id,")"))}
+    {if (. == "list()") "render(plot(result))"
+     else paste0(sub("list(", "render(plot(result, ", ., fixed = TRUE),")")} %>%
+     gsub("[\"\']TRUE[\'\"]", "TRUE", .)
+
+    # {if (. == "list()") paste0("plt", id, " <- plot(result)\nDiagrammeR::renderDiagrammeR(plt",id,")")
+     # else paste0(sub("list(", paste0("plt",id," <- plot(result, "), ., fixed = TRUE),paste0("\nDiagrammeR::renderDiagrammeR(plt", id,")"))}
 
   # update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
   update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),

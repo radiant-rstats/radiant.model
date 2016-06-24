@@ -16,7 +16,7 @@ An updated yaml string or a vector messages to return to the users
 Parse yaml input for dtree to provide (more) useful error messages
 }
 \details{
-See \url{http://vnijs.github.io/radiant/base/dtree.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
 \seealso{
 \code{\link{dtree}} to calculate tree

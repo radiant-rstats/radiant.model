@@ -9,7 +9,7 @@ Depends:
     R (>= 3.2.0),
     radiant.data (>= 0.5)
 Imports:
-    radiant.basic (>= 0.1),
+    radiant.basics (>= 0.1),
     shiny (>= 0.13.2.9003),
     nnet (>= 7.3.11),
     NeuralNetTools (>= 1.4.0),
@@ -33,7 +33,7 @@ Suggests:
     devtools (>= 1.8.0),
     testthat (>= 0.10.0),
     covr (>= 1.2.0)
-URL: https://github.com/radiant-rstats/radiant.model, http://vnijs.github.io/radiant/
+URL: https://github.com/radiant-rstats/radiant.model
 BugReports: https://github.com/radiant-rstats/radiant.model/issues
 License: AGPL-3 | file LICENSE
 LazyData: true

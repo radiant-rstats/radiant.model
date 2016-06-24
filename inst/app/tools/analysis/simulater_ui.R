@@ -501,7 +501,7 @@ output$simulater <- renderUI({
       )
     )
 
-    stat_tab_panel(menu = "Model",
+    stat_tab_panel(menu = "Model > Decide",
                    tool = "Simulate",
                    data = NULL,
                    tool_ui = "ui_simulater",

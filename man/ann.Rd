@@ -40,7 +40,7 @@ A list with all variables defined in ann as an object of class ann
 Artificial Neural Networks
 }
 \details{
-See \url{http://vnijs.github.io/radiant/analytics/ann.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 }
 \examples{
 result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")

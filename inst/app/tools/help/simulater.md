@@ -208,7 +208,7 @@ A histogram of annual profits (`sum of profit`) is shown in the _Plot (repeat)_ 
 
 ![sim output](figures_model/simulater_repeat_plot.png)
 
-The state-file for the example in the screenshots above is available for download <a href="https://vnijs.github.io/radiant/examples/sim_help_state.rda">here</a>
+The state-file for the example in the screenshots above is available for download <a href="https://vnijs.github.io/radiant/examples/sim-help-state.rda">here</a>
 
 For a simple example of how the simulate tool could be used to find the price that maximizes profits see the state-file available for download <a href="https://vnijs.github.io/radiant/examples/iceskimo_optimal_price_state.rda">here</a>
 
