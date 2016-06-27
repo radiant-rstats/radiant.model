@@ -1,4 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-git.Rmd
-inst/rstudio/
+^git\.Rmd$
+^inst/rstudio$
+^build$
