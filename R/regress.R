@@ -304,8 +304,6 @@ summary.regress <- function(object,
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{predict.regress}} to generate predictions
 #'
-#' @importFrom car leveragePlots
-#'
 #' @export
 plot.regress <- function(x, plots = "",
                          lines = "",
@@ -426,13 +424,13 @@ plot.regress <- function(x, plots = "",
   if ("correlations" %in% plots)
     return(radiant.basics:::plot.correlation_(object$model$model))
 
-  if ("leverage" %in% plots) {
-    ## no plots if aliased coefficients present
-    if (anyNA(object$model$coeff))
-      return("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nLeverage plot will not be shown")
-    return(leveragePlots(object$model, main = "", ask=FALSE, id.n = 1,
-           layout = c(ceiling(length(evar)/2),2)))
-  }
+  # if ("leverage" %in% plots) {
+  #   ## no plots if aliased coefficients present
+  #   if (anyNA(object$model$coeff))
+  #     return("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nLeverage plot will not be shown")
+  #   return(car::leveragePlots(object$model, main = "", ask=FALSE, id.n = 1,
+  #          layout = c(ceiling(length(evar)/2),2)))
+  # }
 
   if (custom)
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
@@ -475,7 +473,7 @@ predict.regress <- function(object,
                             se = TRUE,
                             ...) {
 
-  pfun <- function(model, pred, se, conf_lev) {
+ pfun <- function(model, pred, se, conf_lev) {
 
     pred_val <-
       try(sshhr(
@@ -520,6 +518,12 @@ predict.model <- function(object, pfun, mclass,
                           conf_lev = 0.95,
                           se = FALSE,
                           ...) {
+
+  # object <- regress("diamonds", "price", c("carat","clarity"))
+  # pred_cmd <- "carat = 1:10"
+  # pred_data = ""
+  # conf_lev = 0.95
+  # se = TRUE
 
   if (is.character(object)) return(object)
 
@@ -566,7 +570,7 @@ predict.model <- function(object, pfun, mclass,
     if (sum(isLog) > 0)
       plug_data %<>% bind_cols(., summarise_each_(dat, funs(max_lfreq), vars[isLog]))
 
-     rm(dat)
+    rm(dat)
 
     if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
       return("The model includes data-types that cannot be used for\nprediction at this point\n")
@@ -574,8 +578,10 @@ predict.model <- function(object, pfun, mclass,
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
         return("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n")
       } else {
+
         plug_data[names(pred)] <- list(NULL)
-        pred <- data.frame(plug_data[,-1],pred)
+        # pred <- data.frame(plug_data[,-1],pred)
+        pred <- cbind(select(plug_data,-1), pred)
       }
     }
   } else {

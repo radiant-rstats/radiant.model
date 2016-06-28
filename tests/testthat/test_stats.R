@@ -13,7 +13,6 @@ compare_output <- function(res1, res2) {
 }
 
 ######### tests ########
-
 context("Regress")
 
 test_that("regress", {
@@ -27,6 +26,61 @@ test_that("regress", {
   # cat(paste0(res1,"\n"), file = "~/gh/radiant/tests/testthat/output/regression1.txt")
   ## full output - cannot open file when testing the tests
   res2 <- paste0(readLines("output/regress1.txt")) %>% trim
+  expect_equal(res1,res2)
+})
+
+test_that("regress - predict", {
+  result <- regress("diamonds", "price", c("carat","clarity"))
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[16] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "SI1     9  72769.811 70229.110 75310.513 2540.701"
+  expect_equal(res1,res2)
+})
+
+test_that("logistic", {
+  result <- logistic("titanic", "survived", c("pclass","sex"))
+  res1 <- capture.output(summary(result))[13] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "sex|male    0.080      -2.522     0.163 -15.447  < .001 ***"
+  expect_equal(res1,res2)
+})
+
+test_that("logistic - predict", {
+  result <- logistic("titanic", "survived", c("pclass","sex"))
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'"))[9] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "2nd female      0.779"
+  expect_equal(res1,res2)
+
+  res1 <- capture.output(predict(result, pred_data = "titanic"))[9] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "1st female      0.896"
+  expect_equal(res1,res2)
+})
+
+test_that("ann - predict for classification", {
+  result <- ann("titanic", "survived", c("pclass","sex"), seed = 1234)
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'"))[9] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "2nd female      0.845"
+  expect_equal(res1,res2)
+
+  res1 <- capture.output(predict(result, pred_data = "titanic"))[9] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "1st female      0.912"
+  expect_equal(res1,res2)
+})
+
+test_that("ann - predict for regression", {
+  result <- ann("diamonds", "price", c("carat","clarity"), type = "regression", seed = 1234)
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[16] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "SI1     9  16869.413"
+  expect_equal(res1,res2)
+
+  res1 <- capture.output(predict(result, pred_data = "diamonds"))[16] %>% trim
+  # cat(paste0(res1, "\n"))
+  res2 <- "0.930     SI1   3810.016"
   expect_equal(res1,res2)
 })
 
