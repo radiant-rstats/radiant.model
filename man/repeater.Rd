@@ -4,7 +4,7 @@
 \alias{repeater}
 \title{Repeat simulation}
 \usage{
-repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "",
+repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
   fun = "sum_rm", form = "", seed = "", name = "", sim = "")
 }
 \arguments{
@@ -32,11 +32,15 @@ repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "",
 Repeat simulation
 }
 \examples{
-result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                    discrete = "price 5 8 .3 .7",
-                    form = "profit = demand * (price - cost)")
-
-repeater(sim = result)
+result <- simulater(const = "var_cost 5;fixed_cost 1000;", norm = "E 0 100;",
+                    discrete = "price 6 8 .3 .7;",
+                    form = "demand = 1000 - 50*price + E;
+                            profit = demand*(price-var_cost) - fixed_cost;
+                            profit_small = profit < 100",
+                    seed = "1234")
+repeater(nr = 12, vars = c("E","price"), sum_vars = "profit",
+         byvar = "sim", form = "profit_365 = profit < 36500",
+         seed = "1234", sim = result) \%>\% head
 
 }
 

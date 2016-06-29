@@ -457,7 +457,7 @@ output$ui_simulater <- renderUI({
         ),
         with(tags, table(
           td(textInput("rep_name", "Repeat data:", state_init("rep_name", "repdat"))),
-          td(numericInput("rep_dec", label = "Decimals:", value = state_init("rep_dec", 4), min = 0, width = "80px"))
+          td(numericInput("rep_dec", label = "Decimals:", value = state_init("rep_dec", 4), min = 0, max = 10, width = "80px"))
         )),
         checkboxInput("rep_show_plots", "Show plots", state_init("rep_show_plots",FALSE))
       ),
@@ -515,8 +515,7 @@ output$simulater <- renderUI({
 })
 
 .summary_simulate <- eventReactive(input$runSim, {
-  object <- .simulater()
-  summary(object, dec = input$sim_dec)
+  summary(.simulater(), dec = input$sim_dec)
 })
 
 sim_plot_width <- function() 650
@@ -549,8 +548,7 @@ sim_plot_height <- function() {
 })
 
 .summary_repeat <- eventReactive(input$runRepeat, {
-  object <- .repeater()
-  do.call(summary, c(list(object = object), rep_sum_inputs()))
+  summary(.repeater(), dec = input$rep_dec)
 })
 
 rep_plot_width <- function() 650
@@ -581,26 +579,14 @@ rep_plot_height <- function() {
 
 report_cleaner <- function(x) x %>% gsub("\n",";",.) %>% gsub("[;]{2,}",";",.)
 
-# observeEvent(input$simulater_report, {
-#   sim_dec <- input$sim_dec %>% {ifelse(is.na(.), 3, .)}
-#   update_report(inp_main = clean_args(sim_inputs(), sim_args) %>% lapply(report_cleaner),
-#                 fun_name = "simulater", inp_out = list(list(dec = sim_dec),""),
-#                 outputs = c("summary","plot"), figs = TRUE,
-#                 fig.width = sim_plot_width(),
-#                 fig.height = sim_plot_height())
-# })
-
 observeEvent(input$simulater_report, {
-  sim_dec <- input$sim_dec %>% {ifelse(is.na(.), 3, .)}
+  sim_dec <- input$sim_dec %>% {ifelse(is_not(.), 3, .)}
   outputs <- "summary"
-  # inp_out <- list(clean_args(sim_sum_inputs(), sim_sum_args[-1]) %>% lapply(report_cleaner), "")
-  # inp_out <- list("", "")
   inp_out <- list(list(dec = sim_dec), "")
   figs <- FALSE
 
   if (isTRUE(input$sim_show_plots)) {
     outputs <- c("summary", "plot")
-    # inp_out[[2]] <- clean_args(sim_plot_inputs(), sim_plot_args[-1]) %>% lapply(report_cleaner)
     figs <- TRUE
   }
 
@@ -612,13 +598,13 @@ observeEvent(input$simulater_report, {
 })
 
 observeEvent(input$repeater_report, {
+  rep_dec <- input$rep_dec %>% {ifelse(is_not(.), 3, .)}
   outputs <- "summary"
-  inp_out <- list(clean_args(rep_sum_inputs(), rep_sum_args[-1]) %>% lapply(report_cleaner), "")
+  inp_out <- list(list(dec = rep_dec), "")
   figs <- FALSE
 
   if (isTRUE(input$rep_show_plots)) {
     outputs <- c("summary", "plot")
-    inp_out[[2]] <- clean_args(rep_plot_inputs(), rep_plot_args[-1]) %>% lapply(report_cleaner)
     figs <- TRUE
   }
 

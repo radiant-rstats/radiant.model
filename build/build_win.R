@@ -1,3 +1,3 @@
 ## build for windows
-devtools::install("~/gh/radiant.model")
-devtools::build("~/gh/radiant.model", binary = TRUE)
+devtools::install("../radiant.model")
+devtools::build("../radiant.model", binary = TRUE)

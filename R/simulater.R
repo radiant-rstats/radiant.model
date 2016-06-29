@@ -345,23 +345,43 @@ plot.simulater <- function(x, shiny = FALSE, ...) {
 #' @param sim Return value from the simulater function
 #'
 #' @examples
-#' result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-#'                     discrete = "price 5 8 .3 .7",
-#'                     form = "profit = demand * (price - cost)")
-#'
-#' repeater(sim = result)
+#' result <- simulater(const = "var_cost 5;fixed_cost 1000;", norm = "E 0 100;",
+#'                     discrete = "price 6 8 .3 .7;",
+#'                     form = "demand = 1000 - 50*price + E;
+#'                             profit = demand*(price-var_cost) - fixed_cost;
+#'                             profit_small = profit < 100",
+#'                     seed = "1234")
+#' repeater(nr = 12, vars = c("E","price"), sum_vars = "profit",
+#'          byvar = "sim", form = "profit_365 = profit < 36500",
+#'          seed = "1234", sim = result) %>% head
 #'
 #' @export
 repeater <- function(nr = 12,
                      vars = "",
                      grid = "",
                      sum_vars = "",
-                     byvar = "",
+                     byvar = "sim",
                      fun = "sum_rm",
                      form = "",
                      seed = "",
                      name = "",
                      sim = "") {
+
+  # nr = 12
+  # vars = c("E","price")
+  # grid = ""
+  # sum_vars = c("profit","E")
+  # byvar = "sim"
+  # fun = "sum_rm"
+  # form = "profit_365 = profit < 36500"
+  # seed = "1234"
+  # name = ""
+  # sim = simulater(const = "var_cost 5;fixed_cost 1000;", norm = "E 0 100;",
+  #                 discrete = "price 6 8 .3 .7;",
+  #                 form = "demand = 1000 - 50*price + E;
+  #                         profit = demand*(price-var_cost) - fixed_cost;
+  #                         profit_small = profit < 100",
+  #                 seed = "1234")
 
   if (is_empty(nr)) {
     if (is_empty(grid)) {
@@ -416,9 +436,10 @@ repeater <- function(nr = 12,
   summarize_sim <- function(object) {
     if (fun != "none") {
       object %<>% group_by_(byvar) %>%
-        summarise_each_(make_funs(fun), vars = sum_vars)
+        summarise_each_(make_funs(fun), vars = sum_vars) %>%
+        set_colnames(c(byvar, sum_vars))
 
-      if (length(sum_vars) == 1 && length(fun) > 1) colnames(object) <- paste0(sum_vars, "_", colnames(object))
+      # if (length(sum_vars) == 1 && length(fun) > 1) colnames(object) <- paste0(sum_vars, "_", colnames(object))
     } else {
       object %<>% select_(.dots = c("rep","sim",sum_vars))
     }
@@ -480,7 +501,8 @@ repeater <- function(nr = 12,
       obj <- s[[i]][1]
       fobj <- s[[i]][-1]
       if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
-      out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
+      # out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
+      out <- do.call(with, list(ret, parse(text = fobj)))
       if (!is(out, 'try-error')) {
         ret[[obj]] <- out
       } else {
@@ -500,9 +522,6 @@ repeater <- function(nr = 12,
   rc[names(rmc)] <- rmc
 
   rc$sc <- sc[setdiff(names(sc),"dat")]
-  ## to ensure default values are still included in
-  # if (is.null(rc$fun)) rc$fun <- "sum_rc"
-  # if (is.null(rc$nr)) rc$nr <- 12
   attr(ret, "rep_call") <- rc
 
   name %<>% gsub(" ","",.)
@@ -561,11 +580,6 @@ if (getOption("radiant.testthat", default = FALSE)) {
 #'
 #' @export
 summary.repeater <- function(object,
-                             # sum_vars = "",
-                             # byvar = "",
-                             # fun = "sum_rm",
-                             # form = "",
-                             # name = "",
                              dec = 4,
                              ...) {
 
