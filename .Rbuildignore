@@ -3,3 +3,4 @@
 ^git\.Rmd$
 ^inst/rstudio$
 ^build$
+^\.travis\.yml$
