@@ -59,28 +59,28 @@ test_that("logistic - predict", {
 })
 
 test_that("ann - predict for classification", {
-  result <- ann("titanic", "survived", c("pclass","sex"), seed = 1234)
+  result <- ann("titanic", "survived", c("pclass","sex"), dec = 1, seed = 1234)
   res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'"))[9] %>% trim
   # cat(paste0(res1, "\n"))
-  res2 <- "2nd female      0.845"
+  res2 <- "2nd female        0.8"
   expect_equal(res1,res2)
 
   res1 <- capture.output(predict(result, pred_data = "titanic"))[9] %>% trim
   # cat(paste0(res1, "\n"))
-  res2 <- "1st female      0.912"
+  res2 <- "1st female        0.9"
   expect_equal(res1,res2)
 })
 
 test_that("ann - predict for regression", {
-  result <- ann("diamonds", "price", c("carat","clarity"), type = "regression", seed = 1234)
+  result <- ann("diamonds", "price", c("carat","clarity"), type = "regression", dec = 1,  seed = 1234)
   res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[16] %>% trim
   # cat(paste0(res1, "\n"))
-  res2 <- "SI1     9  16869.413"
+  res2 <- "SI1     9    16869.4"
   expect_equal(res1,res2)
 
   res1 <- capture.output(predict(result, pred_data = "diamonds"))[16] %>% trim
   # cat(paste0(res1, "\n"))
-  res2 <- "0.930     SI1   3810.016"
+  res2 <- "0.9     SI1     3810.0"
   expect_equal(res1,res2)
 })
 
