@@ -194,10 +194,11 @@ dtree <- function(yl, opt = "max") {
 
   vars <- ""
   if (!is.null(yl$variables)) {
-    # yl <- readLines("~/Desktop/quant-states/test.yaml") %>% paste0(collapse = "\n")
+    # library(radiant.model)
+    # yl <- readLines("https://raw.githubusercontent.com/radiant-rstats/docs/gh-pages/examples/VMR-case-E.yaml") %>%
+    #   paste0(collapse = "\n")
     # yl <- dtree_parser(yl)
     # yl <- yaml::yaml.load(yl)
-    # vars <- yl$variables
 
     vars <- yl$variables
     vn <- names(vars)
