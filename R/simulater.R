@@ -66,7 +66,7 @@ simulater <- function(const = "",
 
   if (is_empty(nr)) {
     mess <- c("error",paste0("Please specify the number of simulations in '# sims'"))
-    return(mess %>% set_class(c("simulater", class(.))))
+    return(add_class(mess, "simulater"))
   }
 
   ## parsing constant
@@ -93,7 +93,7 @@ simulater <- function(const = "",
       sdev <- as.numeric(s[[i]][3])
       if (!sdev > 0) {
         mess <- c("error",paste0("All log-normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
-        return(mess %>% set_class(c("simulater", class(.))))
+        return(add_class(mess, "simulater"))
       }
       s[[i]] %>% { dat[[.[1]]] <<- rlnorm(nr, as.numeric(.[2]), sdev)}
     }
@@ -107,7 +107,7 @@ simulater <- function(const = "",
       sdev <- as.numeric(s[[i]][3])
       if (!sdev > 0) {
         mess <- c("error",paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
-        return(mess %>% set_class(c("simulater", class(.))))
+        return(add_class(mess, "simulater"))
       }
       s[[i]] %>% { dat[[.[1]]] <<- rnorm(nr, as.numeric(.[2]) , sdev)}
     }
@@ -148,10 +148,10 @@ simulater <- function(const = "",
 
       if (is(dpar, 'try-error') || any(is.na(dpar))) {
         mess <- c("error",paste0("Input for discrete variable # ", i, " contains an error. Please review the input carefully"))
-        return(mess %>% set_class(c("simulater", class(.))))
+        return(add_class(mess, "simulater"))
       } else if (sum(dpar[,2]) != 1) {
         mess <- c("error",paste0("Probabilities for discrete variable # ", i, " do not sum to 1 (",round(sum(dpar[[2]]),3),")"))
-        return(mess %>% set_class(c("simulater", class(.))))
+        return(add_class(mess, "simulater"))
       }
 
       dat[[s[[i]][1]]] <- sample(dpar[,1], nr, replace = TRUE, prob = dpar[,2])
@@ -172,7 +172,7 @@ simulater <- function(const = "",
       } else {
         dat[[obj]] <- NA
         mess <- c("error",paste0("Formula was not successfully evaluated:\n\n", strsplit(form,";") %>% unlist %>% paste0(collapse="\n"),"\n\nMessage: ", attr(out,"condition")$message))
-        return(mess %>% set_class(c("simulater", class(.))))
+        return(add_class(mess, "simulater"))
       }
     }
   }
@@ -194,7 +194,7 @@ simulater <- function(const = "",
 
   if (nrow(dat) == 0) {
     mess <- c("error",paste0("The simulated data set has 0 rows"))
-    return(mess %>% set_class(c("simulater", class(.))))
+    return(add_class(mess, "simulater"))
   }
 
   name %<>% gsub(" ","",.)
@@ -204,7 +204,7 @@ simulater <- function(const = "",
     } else if (exists("r_data")) {
       env <- pryr::where("r_data")
     } else {
-      return(dat %>% set_class(c("simulater", class(.))))
+      return(add_class(dat, "simulater"))
     }
 
     mess <- paste0("\n### Simulated data\n\nFormula:\n\n",
@@ -213,10 +213,10 @@ simulater <- function(const = "",
     env$r_data[[name]] <- dat
     env$r_data[['datasetlist']] <- c(name, env$r_data[['datasetlist']]) %>% unique
     env$r_data[[paste0(name,"_descr")]] <- mess
-    return(name %>% set_class(c("simulater", class(.))))
+    return(add_class(name, "simulater"))
   }
 
-  dat %>% set_class(c("simulater", class(.)))
+  add_class(dat, "simulater")
 }
 
 ## Test settings for simulater function, will not be run when sourced
@@ -386,7 +386,7 @@ repeater <- function(nr = 12,
   if (is_empty(nr)) {
     if (is_empty(grid)) {
       mess <- c("error",paste0("Please specify the number of repetitions in '# reps'"))
-      return(mess %>% set_class(c("repeater", class(.))))
+      return(add_class(mess, "repeater"))
     } else {
       nr = 1
     }
@@ -399,7 +399,7 @@ repeater <- function(nr = 12,
 
   if (identical(vars, "") && identical(grid, "")) {
     mess <- c("error",paste0("Select variables to re-simulate and/or a specify a constant\nto change using 'Grid search'"))
-    return(mess %>% set_class(c("repeater", class(.))))
+    return(add_class(mess, "repeater"))
   }
 
   if (identical(vars, "")) vars <- character(0)
@@ -474,23 +474,29 @@ repeater <- function(nr = 12,
   }
 
   if (length(grid_list) == 0) {
-    if (byvar == "sim")
+    if (byvar == "sim") {
       ret <-
          bind_rows(lapply(1:nr, rep_sim)) %>%
          summarize_sim %>%
-         set_class(c("repeater", class(.)))
-    else
-      ret <- bind_rows(lapply(1:nr, function(x) rep_sim(x, summarize_sim))) %>% set_class(c("repeater", class(.)))
+         add_class("repeater")
+    } else {
+      ret <-
+        bind_rows(lapply(1:nr, function(x) rep_sim(x, summarize_sim))) %>%
+        add_class("repeater")
+    }
 
   } else {
     grid <- expand.grid(grid_list)
-    if (byvar == "sim")
+    if (byvar == "sim") {
       ret <-
         bind_rows(apply(grid, 1, rep_grid_sim)) %>%
         summarize_sim %>%
-        set_class(c("repeater", class(.)))
-    else
-      ret <- bind_rows(apply(grid, 1, function(x) rep_grid_sim(x, summarize_sim))) %>% set_class(c("repeater", class(.)))
+        add_class("repeater")
+    } else {
+      ret <-
+        bind_rows(apply(grid, 1, function(x) rep_grid_sim(x, summarize_sim))) %>%
+        add_class("repeater")
+    }
   }
 
   form %<>% sim_cleaner
@@ -544,7 +550,7 @@ repeater <- function(nr = 12,
     env$r_data[[name]] <- ret
     env$r_data[['datasetlist']] <- c(name, env$r_data[['datasetlist']]) %>% unique
     env$r_data[[paste0(name,"_descr")]] <- mess
-    return(name %>% set_class(c("repeater", class(.))))
+    return(add_class(name, "repeater"))
   }
 
   ret
@@ -695,16 +701,12 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
       select(dat, which(isNum & !isConst)) %>%
         tidyr::gather_("variable", "values", cn) %>%
         group_by_("variable") %>%
-        # summarise_each(funs(n = length, mean = mean_rm, sd = sd_rm, min = min_rm, `5%` = p05, `25%` = p25,
-                       # median = median_rm, `75%` = p75, `95%` = p95, max = max_rm)) %>%
         summarise_each(funs(n = length, mean = mean_rm, sd = sd_rm, min = min_rm, `25%` = p25,
                        median = median_rm, `75%` = p75, max = max_rm)) %>%
         { if (fun == "" || fun == "none") . else {.[[1]] <- paste0(fun, " of ", .[[1]])}; . } %>%
         { .[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE) %>%
         formatdf(., dec = dec, mark = ",") %>%
-        # { .[,-1] %<>% round(.,dec); colnames(.)[1] <- ""; . } %>%
-        # { .[,-(1:2)] %<>% mutate_each(funs(formatC(., big.mark = ",", digits = dec, format = "f"))); . } %>%
         print(row.names = FALSE)
       cat("\n")
     }
