@@ -12,7 +12,6 @@
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
 #' @param check Optional output or estimation parameters. "vif" to show the multicollinearity diagnostics. "confint" to show coefficient confidence interval estimates. "odds" to show odds ratios and confidence interval estimates. "standardize" to output standardized coefficient estimates. "stepwise" to apply step-wise selection of variables
-#' @param dec Number of decimals to show
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in ann as an object of class ann
@@ -37,7 +36,6 @@ ann <- function(dataset, rvar, evar,
                 wts = "None",
                 seed = NA,
                 check = "",
-                dec = 3,
                 data_filter = "") {
 
   if (rvar %in% evar)
@@ -236,6 +234,7 @@ plot.ann <- function(x, shiny = FALSE, ...) {
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -255,6 +254,7 @@ predict.ann <- function(object,
                         pred_cmd = "",
                         conf_lev = 0.95,
                         se = FALSE,
+                        dec = 3,
                         ...) {
 
   pfun <- function(model, pred, se, conf_lev) {
@@ -266,7 +266,7 @@ predict.ann <- function(object,
     pred_val
   }
 
-  predict.model(object, pfun, "ann.predict", pred_data, pred_cmd, conf_lev, se)
+  predict.model(object, pfun, "ann.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Print method for predict.ann

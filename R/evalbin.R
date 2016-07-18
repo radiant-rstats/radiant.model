@@ -78,7 +78,7 @@ evalbin <- function(dataset, pred, rvar,
 	  if (lev == "") {
 	  	lev <- levs[1]
 	  } else {
-	  	if (!lev %in% levs) return(set_class("", c("evalbin",class("character"))))
+	  	if (!lev %in% levs) return(add_class("", "evalbin"))
 	  }
 
 	  ## transformation to TRUE/FALSE depending on the selected level (lev)
@@ -131,7 +131,7 @@ evalbin <- function(dataset, pred, rvar,
 	names(prof_list) <- names(auc_list)
 	rm(lg_list, pdat)
 
-	environment() %>% as.list %>% set_class(c("evalbin",class(.)))
+	as.list(environment()) %>% add_class("evalbin")
 }
 
 #' Summary method for the evalbin function
@@ -171,7 +171,7 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 		cat("AUC         :", paste0(names(auc), " (", round(auc,3), ")", collapse=", "), "\n\n")
 		print(formatdf(as.data.frame(object$dat), 3), row.names = FALSE)
 	} else {
-    return(object$dat %>% set_class(c("evalbin",class(.))))
+    return(add_class(object$dat, "evalbin"))
 	}
 }
 
@@ -209,9 +209,6 @@ confusion <- function(dataset, pred, rvar,
                       ...) {
 
 	## in case no inputs were provided
-	# if (is.na(margin)) margin <- 1
-	# if (is.na(cost)) cost <- 1
-
 	if (is_not(margin) || is_not(cost)) {
 		break_even <- 0.5
 	} else if (margin == 0) {
@@ -251,18 +248,6 @@ confusion <- function(dataset, pred, rvar,
 
 	  ## transformation to TRUE/FALSE depending on the selected level (lev)
 	  dat[[rvar]] <- dat[[rvar]] == lev
-
-	  # i <- "All"
-	  # rvar <- "rvar"
-	  # pred <- c("pred1","pred2")
-	  # pred <- "pred1"
-	  # break_even <- 1
-	  # dat <- data.frame(rvar = rep(NA, 100))
-	  # dat$rvar <- runif(100) > break_even
-  	# head(dat)
-
-	  # dat$pred1 <- runif(100)
-	  # dat$pred2 <- runif(100)
   	dat[, pred] <- select_(dat, .dots = pred) > break_even
 
   	if (length(pred) > 1) {
@@ -270,14 +255,6 @@ confusion <- function(dataset, pred, rvar,
  		} else {
   	  dat[,pred] %<>% apply(2, function(x) factor(x, levels = c("FALSE","TRUE")))
  		}
-
-  	# print(head(dat))
-	 	# table(dat[[rvar]], dat[[2]])
-
-	  	# table(dat[[rvar]], dat[[2]]) %>%
-	  	#   as.data.frame %>%
-	  	#   .$Freq %>%
-	  	#   set_names(c("TN","FN","FP","TP"))
 
 	  make_tab <- function(x) {
 	  	table(dat[[rvar]], x) %>%
@@ -352,7 +329,6 @@ plot.confusion <- function(x, scale_y = FALSE, shiny = FALSE, ...) {
 				  ylab("") + xlab("Predictor")
 			}
 	  }
-		          # facet_row = "Metric", fill = "Type", custom = TRUE) +
 }
 
 #' Plot method for the evalbin function

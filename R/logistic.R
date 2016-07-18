@@ -9,7 +9,6 @@
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
 #' @param check Optional estimation parameters. "standardize" to output standardized coefficient estimates. "stepwise" to apply step-wise selection of variables
-#' @param dec Number of decimals to show
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
@@ -31,12 +30,11 @@ logistic <- function(dataset, rvar, evar,
                      int = "",
                      wts = "None",
                      check = "",
-                     dec = 3,
                      data_filter = "") {
 
   if (rvar %in% evar)
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-           set_class(c("logistic",class(.))))
+           add_class("logistic"))
 
   vars <- c(rvar, evar)
 
@@ -63,7 +61,7 @@ logistic <- function(dataset, rvar, evar,
 
   if (any(summarise_each(dat, funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>%
-           set_class(c("logistic",class(.))))
+           add_class("logistic"))
 
   rv <- dat[[rvar]]
   if (lev == "") {
@@ -145,7 +143,7 @@ logistic <- function(dataset, rvar, evar,
 
   rm(dat) ## dat not needed elsewhere
 
-  environment() %>% as.list %>% set_class(c("logistic","model",class(.)))
+  as.list(environment()) %>% add_class("logistic")
 }
 
 #' Summary method for the logistic function
@@ -156,6 +154,7 @@ logistic <- function(dataset, rvar, evar,
 #' @param sum_check Optional output. "vif" to show multicollinearity diagnostics. "confint" to show coefficient confidence interval estimates. "odds" to show odds ratios and confidence interval estimates.
 #' @param conf_lev Confidence level to use for coefficient and odds confidence intervals (.95 is the default)
 #' @param test_var Variables to evaluate in model comparison (i.e., a competing models Chi-squared test)
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -178,12 +177,11 @@ summary.logistic <- function(object,
                              sum_check = "",
                              conf_lev = .95,
                              test_var = "",
+                             dec = 3,
                              ...) {
 
   if (is.character(object)) return(object)
   if (class(object$model)[1] != 'glm') return(object)
-
-  dec <- object$dec
 
   if ("stepwise" %in% object$check) {
     cat("-----------------------------------------------\n")
@@ -535,6 +533,7 @@ plot.logistic <- function(x,
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -556,8 +555,8 @@ predict.logistic <- function(object,
                              pred_cmd = "",
                              conf_lev = 0.95,
                              se = FALSE,
+                             dec = 3,
                              ...) {
-
 
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <-
@@ -582,7 +581,7 @@ predict.logistic <- function(object,
     pred_val
   }
 
-  predict.model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se)
+  predict.model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Print method for logistic.predict

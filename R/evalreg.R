@@ -53,7 +53,7 @@ evalreg <- function(dataset, pred, rvar,
 	dat <- bind_rows(pdat) %>% as.data.frame
 	rm(pdat, dat_list)
 
-	environment() %>% as.list %>% set_class(c("evalreg",class(.)))
+	as.list(environment()) %>% add_class("evalreg")
 }
 
 #' Summary method for the evalreg function

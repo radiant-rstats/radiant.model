@@ -61,7 +61,7 @@
 #   if (lev == "") {
 #   	lev <- levs[1]
 #   } else {
-#   	if (!lev %in% levs) return(set_class("", c("evalbin",class("character"))))
+#   	if (!lev %in% levs) return(add_class("", "evalbin"))
 #   }
 
 #   ## transformation to TRUE/FALSE depending on the selected level (lev)
@@ -125,7 +125,7 @@
 # 	dat <- bind_rows(dat_list)
 # 	rm(dat_list)
 
-# 	environment() %>% as.list %>% set_class(c("evalbin",class(.)))
+# 	as.list(environment()) %>% add_class("evalbin")
 # }
 
 # # #' Summary method for the evalbin function
@@ -162,7 +162,7 @@
 
 # # 		print(formatdf(as.data.frame(object$dat), 3), row.names = FALSE)
 # # 	} else {
-# #     return(object$dat %>% set_class(c("evalbin",class(.))))
+# #     return(add_class(object$dat, "evalbin"))
 # # 	}
 # # }
 

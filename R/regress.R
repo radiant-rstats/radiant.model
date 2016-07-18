@@ -7,7 +7,6 @@
 #' @param evar Explanatory variables in the regression
 #' @param int Interaction terms to include in the model
 #' @param check "standardize" to see standardized coefficient estimates. "stepwise" to apply step-wise selection of variables in estimation
-#' @param dec Number of decimals to show
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list of all variables variables used in the regress function as an object of class regress
@@ -24,7 +23,6 @@
 regress <- function(dataset, rvar, evar,
                     int = "",
                     check = "",
-                    dec = 3,
                     data_filter = "") {
 
   if (rvar %in% evar)
@@ -101,6 +99,7 @@ regress <- function(dataset, rvar, evar,
 #' @param sum_check Optional output. "rsme" to show the root mean squared error and the standard deviation of the residuals. "sumsquares" to show the sum of squares table. "vif" to show multicollinearity diagnostics. "confint" to show coefficient confidence interval estimates.
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param test_var Variables to evaluate in model comparison (i.e., a competing models F-test)
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -121,13 +120,11 @@ summary.regress <- function(object,
                             sum_check = "",
                             conf_lev = .95,
                             test_var = "",
+                            dec = 3,
                             ...) {
-
 
   if (is.character(object)) return(object)
   if (class(object$model)[1] != 'lm') return(object)
-
-  dec <- object$dec
 
   if ("stepwise" %in% object$check) {
     cat("-----------------------------------------------\n")
@@ -315,7 +312,6 @@ plot.regress <- function(x, plots = "",
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
-  dec <- object$dec
   if (class(object$model)[1] != 'lm') return(object)
 
   ## checking object size
@@ -450,6 +446,7 @@ plot.regress <- function(x, plots = "",
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -471,6 +468,7 @@ predict.regress <- function(object,
                             pred_cmd = "",
                             conf_lev = 0.95,
                             se = TRUE,
+                            dec = 3,
                             ...) {
 
  pfun <- function(model, pred, se, conf_lev) {
@@ -495,7 +493,7 @@ predict.regress <- function(object,
     pred_val
   }
 
-  predict.model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se)
+  predict.model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Predict method for model functions
@@ -509,7 +507,10 @@ predict.regress <- function(object,
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
+#'
+#' @importFrom radiant.data set_attr
 #'
 #' @export
 predict.model <- function(object, pfun, mclass,
@@ -517,6 +518,7 @@ predict.model <- function(object, pfun, mclass,
                           pred_cmd = "",
                           conf_lev = 0.95,
                           se = FALSE,
+                          dec = 3,
                           ...) {
 
   # object <- regress("diamonds", "price", c("carat","clarity"))
@@ -535,8 +537,6 @@ predict.model <- function(object, pfun, mclass,
 
   if ("center" %in% object$check)
     return("Centered coefficients will not be used for prediction.\nPlease uncheck the 'center' box and try again")
-
-  dec <- object$dec
 
   pred_type <- "cmd"
   vars <- object$evar
@@ -646,27 +646,18 @@ predict.model <- function(object, pfun, mclass,
       vars <- c(object$evar, colnames(pred_val))
     }
 
-    # pred %<>% set_attr("dataset", object$dataset) %>%
-    #   set_attr("data_filter", object$data_filter) %>%
-    #   set_attr("rvar", object$rvar) %>%
-    #   set_attr("evar", object$evar) %>%
-    #   set_attr("vars", vars) %>%
-    #   set_attr("dec", dec) %>%
-    #   set_attr("pred_info", c(pred_type, pred_data, pred_cmd))
+    ## adding attributes used by other methods
+    pred <- set_attr(pred, "dataset", object$dataset) %>%
+      set_attr("data_filter", object$data_filter) %>%
+      set_attr("rvar", object$rvar) %>%
+      set_attr("evar", object$evar) %>%
+      set_attr("vars", vars) %>%
+      set_attr("dec", dec) %>%
+      set_attr("pred_type", pred_type) %>%
+      set_attr("pred_data", pred_data) %>%
+      set_attr("pred_cmd", pred_cmd)
 
-    attr(pred, "dataset") <- object$dataset
-    attr(pred, "data_filter") <- object$data_filter
-    attr(pred, "rvar") <- object$rvar
-    attr(pred, "evar") <- object$evar
-    attr(pred, "vars") <- vars
-    attr(pred, "dec") <- dec
-    attr(pred, "pred_type") <- pred_type
-    attr(pred, "pred_data") <- pred_data
-    attr(pred, "pred_cmd") <- pred_cmd
-
-    return(add_class(pred, c(mclass,"model.predict")))
-    # return(pred %>% add_class(c(mclass,"model.predict")))
-
+    return(add_class(pred, c(mclass, "model.predict")))
   } else {
     return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
   }
@@ -784,7 +775,7 @@ plot.model.predict <- function(x, xvar = "",
     byvar <- if (is.null(byvar)) facet_col else unique(c(byvar, facet_col))
 
   tbv <- if (is.null(byvar)) xvar else c(xvar, byvar)
-  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = pvars) %>% summarise_each(funs(mean))
+  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>% summarise_each(funs(mean))
   if (color == 'none') {
     p <- ggplot(tmp, aes_string(x=xvar, y="Prediction")) + geom_line(aes(group = 1))
   } else {
