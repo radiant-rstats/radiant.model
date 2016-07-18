@@ -24,7 +24,7 @@ r_url_list[["Simulate"]] <-
 options(radiant.url.list = r_url_list); rm(r_url_list)
 
 ## model menu
-model_ui <-
+options(radiant.model_ui =
 	tagList(
     navbarMenu("Model",
       "Estimate",
@@ -42,3 +42,4 @@ model_ui <-
       includeCSS(file.path(getOption("radiant.path.model"),"app/www/style.css"))
     )
   )
+)
