@@ -5,7 +5,7 @@
 \title{Predict method for the regress function}
 \usage{
 \method{predict}{regress}(object, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = TRUE, ...)
+  conf_lev = 0.95, se = TRUE, dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}
@@ -17,6 +17,8 @@
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
+
+\item{dec}{Number of decimals to show}
 
 \item{...}{further arguments passed to or from other methods}
 }

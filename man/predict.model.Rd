@@ -5,7 +5,7 @@
 \title{Predict method for model functions}
 \usage{
 \method{predict}{model}(object, pfun, mclass, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, ...)
+  conf_lev = 0.95, se = FALSE, dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}
@@ -21,6 +21,8 @@
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
+
+\item{dec}{Number of decimals to show}
 
 \item{...}{further arguments passed to or from other methods}
 }

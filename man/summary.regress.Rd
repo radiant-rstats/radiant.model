@@ -5,7 +5,7 @@
 \title{Summary method for the regress function}
 \usage{
 \method{summary}{regress}(object, sum_check = "", conf_lev = 0.95,
-  test_var = "", ...)
+  test_var = "", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}
@@ -15,6 +15,8 @@
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 
 \item{test_var}{Variables to evaluate in model comparison (i.e., a competing models F-test)}
+
+\item{dec}{Number of decimals to show}
 
 \item{...}{further arguments passed to or from other methods}
 }
