@@ -45,7 +45,6 @@ regress <- function(dataset, rvar, evar,
   isNum <- sapply(dat, is.numeric)
   if (sum(isNum) > 0) {
     if ("standardize" %in% check) {
-        # dat[,isNum] %<>% data.frame %>% mutate_each(funs(center(.) / (2*sd(., na.rm = TRUE))))
       dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(center(.) / (2*sd(., na.rm = TRUE))))
     } else if ("center" %in% check) {
       dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(center(.)))
