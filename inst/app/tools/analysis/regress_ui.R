@@ -447,7 +447,7 @@ output$dl_reg_coef <- downloadHandler(
   content = function(file) {
     if (pressed(input$reg_run)) {
       ret <- .regress()[["coeff"]][-1,]
-      if ("standardize" %in% input$glm_check) {
+      if ("standardize" %in% input$reg_check) {
         cat("Standardized coefficients selected\n\n", file = file)
         sshhr(write.table(ret, sep = ",", append = TRUE, file = file, row.names = FALSE))
       } else {
