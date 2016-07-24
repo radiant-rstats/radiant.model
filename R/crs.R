@@ -73,7 +73,7 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
   # print(head(dat))
   # print(print(environment() %>% as.list))
   # print(sys.call())
-  # return(environment() %>% as.list %>% add_class("crs"))
+  # as.list(return(environment()) %>% add_class("crs"))
 
   ## to forego standardization
   # ms <- ms * 0
@@ -102,7 +102,7 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
 
   rm(dat, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
 
-  environment() %>% as.list %>% add_class("crs")
+  as.list(environment()) %>% add_class("crs")
 }
 
 ## Test settings for simulater function, will not be run when sourced

@@ -217,7 +217,6 @@ confusion <- function(dataset, pred, rvar,
 	  break_even <- cost / margin
 	}
 
-
 	dat_list <- list()
 	vars <- c(pred, rvar)
 	if (train == "Both") {
@@ -271,7 +270,7 @@ confusion <- function(dataset, pred, rvar,
 	  mutate(total = TN+FN+FP+TP, TPR = TP/(TP+FN), TNR = TN/(TN+FP))
 	rm(pdat, dat_list)
 
-	environment() %>% as.list %>% add_class("confusion")
+	as.list(environment()) %>% add_class("confusion")
 }
 
 summary.confusion <- function(object, prn = TRUE, ...) {
@@ -292,7 +291,7 @@ summary.confusion <- function(object, prn = TRUE, ...) {
 		cat("\n")
 		print(formatdf(as.data.frame(object$dat), 3), row.names = FALSE)
 	} else {
-    return(object$dat %>% add_class("confusion"))
+    return(add_class(object$dat, "confusion"))
 	}
 }
 
@@ -321,11 +320,11 @@ plot.confusion <- function(x, scale_y = FALSE, shiny = FALSE, ...) {
 		mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
 		{if (scale_y) {
 	    visualize(., xvar = "Predictor", yvar = "Value", type = "bar",
-		          facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE) +
+		    facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE) +
 			  ylab("") + xlab("Predictor")
 			} else {
 		    visualize(., xvar = "Predictor", yvar = "Value", type = "bar",
-			           facet_row = "Metric", fill = "Type", custom = TRUE) +
+			    facet_row = "Metric", fill = "Type", custom = TRUE) +
 				  ylab("") + xlab("Predictor")
 			}
 	  }
@@ -350,11 +349,7 @@ plot.confusion <- function(x, scale_y = FALSE, shiny = FALSE, ...) {
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
-plot.evalbin <- function(x,
-                             plots = c("lift","gains"),
-                             shiny = FALSE,
-                             ...) {
-
+plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 
 	## to avoid 'global not defined' warnings
 	pred <- cum_prop <- cum_gains <- obs <- profit <- NULL
