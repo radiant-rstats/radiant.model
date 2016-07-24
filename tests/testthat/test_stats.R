@@ -1,15 +1,5 @@
 trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 
-compare_output <- function(res1, res2) {
-  for (i in 1:length(res2)) {
-    if (res1[i] != res2[i]) {
-      print(i)
-      print(res1[i])
-      print(res2[i])
-    }
-  }
-}
-
 ######### tests ########
 context("Regress")
 
@@ -58,12 +48,12 @@ test_that("logistic - predict", {
 
 test_that("ann - predict for classification", {
   result <- ann("titanic", "survived", c("pclass","sex"), seed = 1234)
-  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'", dec = 1))[9] %>% trim
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'", dec = 1))[10] %>% trim
   # cat(paste0(res1, "\n"))
   res2 <- "2nd female        0.8"
   expect_equal(res1,res2)
 
-  res1 <- capture.output(predict(result, pred_data = "titanic", dec = 1))[9] %>% trim
+  res1 <- capture.output(predict(result, pred_data = "titanic", dec = 1))[10] %>% trim
   # cat(paste0(res1, "\n"))
   res2 <- "1st female        0.9"
   expect_equal(res1,res2)
@@ -71,14 +61,14 @@ test_that("ann - predict for classification", {
 
 test_that("ann - predict for regression", {
   result <- ann("diamonds", "price", c("carat","clarity"), type = "regression",  seed = 1234)
-  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10", dec = 1))[16] %>% trim
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10", dec = 1))[17] %>% trim
   # cat(paste0(res1, "\n"))
-  res2 <- "SI1     9    16869.4"
+  res2 <- "SI1   8.7    18466.7"
   expect_equal(res1,res2)
 
-  res1 <- capture.output(predict(result, pred_data = "diamonds", dec = 1))[16] %>% trim
+  res1 <- capture.output(predict(result, pred_data = "diamonds", dec = 1))[17] %>% trim
   # cat(paste0(res1, "\n"))
-  res2 <- "0.9     SI1     3810.0"
+  res2 <- "0.1     SI1     3997.9"
   expect_equal(res1,res2)
 })
 

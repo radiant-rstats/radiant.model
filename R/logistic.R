@@ -78,30 +78,11 @@ logistic <- function(dataset, rvar, evar,
   var_check(evar, colnames(dat)[-1], int) %>%
     { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
 
+  ## scale data
   if ("standardize" %in% check) {
-    ## express evars in std. deviations
-    isNum <- sapply(dat, is.numeric)
-    if (sum(isNum) > 0) {
-      if (length(wts) > 0) {
-        ## use weighted.sd if weights are used in estimation
-        dat[,isNum] %<>% data.frame %>% mutate_each(funs(. / (2*weighted.sd(., wts, na.rm = TRUE))))
-      } else {
-        dat[,isNum] %<>% data.frame %>% mutate_each(funs(. / (2*sd(., na.rm = TRUE))))
-      }
-    }
-  }
-
-  if ("center" %in% check) {
-    ## express evars in deviation from mean
-    isNum <- sapply(dat, is.numeric)
-    if (sum(isNum) > 0) {
-      if (length(wts) > 0) {
-        ## use weighted.mean if weights are used in estimation
-        dat[,isNum] %<>% data.frame %>% mutate_each(funs(. - weighted.mean(., wts, na.rm = TRUE)))
-      } else {
-        dat[,isNum] %<>% data.frame %>% mutate_each(funs(center(.)))
-      }
-    }
+    dat <- scaledf(dat, wts = wts)
+  } else if ("center" %in% check) {
+    dat <- scaledf(dat, scale = FALSE, wts = wts)
   }
 
   form <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
@@ -114,6 +95,10 @@ logistic <- function(dataset, rvar, evar,
   } else {
     model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat))
   }
+
+  ## needed for prediction if standardization or centering is used
+  attr(model$model, "ms") <- attr(dat, "ms")
+  attr(model$model, "sds") <- attr(dat, "sds")
 
   coeff <- tidy(model)
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
@@ -557,6 +542,8 @@ predict.logistic <- function(object,
                              se = FALSE,
                              dec = 3,
                              ...) {
+
+ if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <-

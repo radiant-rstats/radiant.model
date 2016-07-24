@@ -11,7 +11,7 @@
 #' @param decay Paramater decay
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
-#' @param check Optional output or estimation parameters. "vif" to show the multicollinearity diagnostics. "confint" to show coefficient confidence interval estimates. "odds" to show odds ratios and confidence interval estimates. "standardize" to output standardized coefficient estimates. "stepwise" to apply step-wise selection of variables
+#' @param check Optional estimation parameters ("standardize" is the default)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in ann as an object of class ann
@@ -35,7 +35,7 @@ ann <- function(dataset, rvar, evar,
                 decay = .5,
                 wts = "None",
                 seed = NA,
-                check = "",
+                check = "standardize",
                 data_filter = "") {
 
   if (rvar %in% evar)
@@ -57,7 +57,6 @@ ann <- function(dataset, rvar, evar,
     vars <- c(rvar, evar, wtsname)
   }
 
-  # dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   dat <- getdata(dataset, vars, filt = data_filter)
   if (!is_string(dataset)) dataset <- "-----"
 
@@ -73,7 +72,7 @@ ann <- function(dataset, rvar, evar,
 
   if (type == "classification") {
 
-    linout <- FALSE; entropy = TRUE
+    linout <- FALSE; entropy = TRUE; skip = FALSE
     if (lev == "") {
       if (is.factor(rv))
         lev <- levels(rv)[1]
@@ -84,64 +83,85 @@ ann <- function(dataset, rvar, evar,
     ## transformation to TRUE/FALSE depending on the selected level (lev)
     dat[[rvar]] <- dat[[rvar]] == lev
   } else {
-    linout = TRUE; entropy = FALSE
+    linout = TRUE; entropy = FALSE; skip = FALSE
   }
 
-  ## stability issues ...
+  ## standardize data to limit stability issues ...
   # http://stats.stackexchange.com/questions/23235/how-do-i-improve-my-neural-network-stability
-  # isNum <- sapply(dat, is.numeric)
-  # if (type == "regression") isNum <- 0 ## not standardizing data for (linear) regression
-  # if (sum(isNum) > 0)
-    # dat[,isNum] <- select(dat, which(isNum)) %>% dfscale(., wts = wts)
+  if ("standardize" %in% check) dat <- scaledf(dat, wts = wts)
 
   vars <- evar
   if (length(vars) < (ncol(dat)-1)) vars <- colnames(dat)[-1]
 
   ## use decay
   # http://stats.stackexchange.com/a/70146/61693
-
   form <- paste(rvar, "~ . ")
   nninput <- list(formula = as.formula(form),
               rang = .1, size = size, decay = decay, weights = wts, maxit = 10000,
-              linout = linout, entropy = entropy, trace = FALSE, data = dat)
+              linout = linout, entropy = entropy, skip = skip, trace = FALSE, data = dat)
 
-  ## need do.call so Garson plot will work
-  if (!is.null(seed) && !is.na(seed)) set.seed(seed)
+  ## need do.call so Garson/Olden plot will work
+  if (!is_not(seed)) set.seed(seed)
   model <- do.call(nnet::nnet, nninput)
 
-  ## ann return residuals as a matrix
+  ## ann returns residuals as a matrix
   model$residuals <- model$residuals[,1]
 
   ## ann model object does not include the data by default
   model$model <- dat
-
   rm(dat) ## dat not needed elsewhere
 
-  environment() %>% as.list %>% add_class(c("ann","model"))
+  as.list(environment()) %>% add_class(c("ann","model"))
 }
 
-dfscale <- function(dat, center = TRUE, scale = TRUE, wts = NULL, calc = TRUE) {
+#' Center or standardize variables in a data frame
+#'
+#' @param dat Data frame
+#' @param center Center data (TRUE or FALSE)
+#' @param scale Scale data (TRUE or FALSE)
+#' @param sf Scaling factor (default is 2)
+#' @param wts Weights to use (default is NULL for no weights)
+#' @param calc Calculate mean and sd or use available attributes
+#'
+#' @return Scaled data frame
+#'
+#' @export
+scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc = TRUE) {
+  isNum <- sapply(dat, is.numeric)
+  if (sum(isNum) == 0) {
+    return(dat)
+  } else {
+    cn <- names(isNum)[isNum]
+  }
+
   if (calc) {
-    if (length(wts) > 0) {
-      ms <- summarise_each(dat, funs(weighted.mean(., wts, na.rm = TRUE)))
-      sds <- summarise_each(dat, funs(weighted.sd(., wts, na.rm = TRUE)))
+    if (length(wts) == 0) {
+      ms <- summarise_each_(dat, funs(mean(., na.rm = TRUE)), vars = cn)
+      if (scale)
+        sds <- summarise_each_(dat, funs(sd(., na.rm = TRUE)), vars = cn)
     } else {
-      ms <- summarise_each(dat, funs(mean(., na.rm = TRUE)))
-      sds <- summarise_each(dat, funs(sd(., na.rm = TRUE)))
+      ms <- summarise_each_(dat, funs(weighted.mean(., wts, na.rm = TRUE)), vars = cn)
+      if (scale)
+        sds <- summarise_each_(dat, funs(weighted.sd(., wts, na.rm = TRUE)), vars = cn)
     }
   } else {
     ms <- attr(dat,"ms")
     sds <- attr(dat,"sds")
+    if (is.null(ms) && is.null(sds)) return(dat)
   }
-  if (center) {
-    dat <- mutate_each(dat, funs(. - ms$.))
-    attr(dat,"ms") <- ms
+  if (center && scale) {
+    mutate_each_(dat, funs((. - ms$.) / (sf * sds$.)), vars = cn) %>%
+      set_attr("ms", ms) %>%
+      set_attr("sds", sds)
+  } else if (center) {
+    mutate_each_(dat, funs(. - ms$.), vars = cn) %>%
+      set_attr("ms", ms)
+  } else if (scale) {
+    mutate_each_(dat, funs(. / (sf * sds$.)), vars = cn) %>%
+      set_attr("sds", sds)
+  } else {
+    dat
   }
-  if (scale) {
-    dat <- mutate_each(dat, funs(2*sds$.))
-    attr(dat,"sds") <- sds
-  }
-  dat
 }
 
 #' Summary method for the ann function
@@ -185,7 +205,6 @@ summary.ann <- function(object, ...) {
     cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n\n")
 
   print(object$model)
-  # print(caret::varImp(object$model))
 
   if (object$model$convergence != 0)
     cat("\n\nThe model did not converge.")

@@ -41,25 +41,15 @@ regress <- function(dataset, rvar, evar,
   var_check(evar, colnames(dat)[-1], int) %>%
     { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
 
-
+  ## scale data
   isNum <- sapply(dat, is.numeric)
   if (sum(isNum) > 0) {
     if ("standardize" %in% check) {
-      dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(center(.) / (2*sd(., na.rm = TRUE))))
+      dat <- scaledf(dat)
     } else if ("center" %in% check) {
-      dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(center(.)))
+      dat <- scaledf(dat, scale = FALSE)
     }
   }
-
-  # if (sum(isNum) > 0) {
-  #   if ("center" %in% check) {
-  #     ms <- select(dat, which(isNum)) %>% summarise_each(funs(mean(., na.rm = TRUE)))
-  #     dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs(. - ms$.))
-  #   } else if ("standardize" %in% check) {
-  #     sds <- select(dat, which(isNum)) %>% summarise_each(funs(sd(., na.rm = TRUE)))
-  #     dat[,isNum] <- select(dat, which(isNum)) %>% mutate_each(funs((. - ms$.) / 2* sds$.))
-  #   }
-  # }
 
   form <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
 
@@ -72,6 +62,10 @@ regress <- function(dataset, rvar, evar,
   } else {
     model <- lm(form, data = dat)
   }
+
+  ## needed for prediction if standardization or centering is used
+  attr(model$model, "ms") <- attr(dat, "ms")
+  attr(model$model, "sds") <- attr(dat, "sds")
 
   coeff <- tidy(model)
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
@@ -87,7 +81,7 @@ regress <- function(dataset, rvar, evar,
 
   rm(dat) ## dat is not needed elsewhere and is already in "model" anyway
 
-  environment() %>% as.list %>% add_class(c("regress","model"))
+  as.list(environment()) %>% add_class(c("regress","model"))
 }
 
 #' Summary method for the regress function
@@ -470,6 +464,8 @@ predict.regress <- function(object,
                             dec = 3,
                             ...) {
 
+ if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
+
  pfun <- function(model, pred, se, conf_lev) {
 
     pred_val <-
@@ -520,22 +516,16 @@ predict.model <- function(object, pfun, mclass,
                           dec = 3,
                           ...) {
 
-  # object <- regress("diamonds", "price", c("carat","clarity"))
-  # pred_cmd <- "carat = 1:10"
-  # pred_data = ""
-  # conf_lev = 0.95
-  # se = TRUE
-
   if (is.character(object)) return(object)
 
   if (is_empty(pred_data) && is_empty(pred_cmd))
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
 
-  if ("standardize" %in% object$check)
-    return("Standardized coefficients will not be used for prediction.\nPlease uncheck the 'standardize' box and try again")
+  # if ("standardize" %in% object$check)
+  #   return("Standardized coefficients will not be used for prediction.\nPlease uncheck the 'standardize' box and try again")
 
-  if ("center" %in% object$check)
-    return("Centered coefficients will not be used for prediction.\nPlease uncheck the 'center' box and try again")
+  # if ("center" %in% object$check)
+  #   return("Centered coefficients will not be used for prediction.\nPlease uncheck the 'center' box and try again")
 
   pred_type <- "cmd"
   vars <- object$evar
@@ -610,22 +600,19 @@ predict.model <- function(object, pfun, mclass,
       pred_type <- "data"
     }
 
-    #   ## express evars in deviation from mean
-    #   ms <- object$ms
-    #   sds <- object$sds
-    #   isNum <- sapply(pred, is.numeric)
-    #   if (sum(isNum) > 0) {
-    #     if (length(object$wts) > 0) {
-    #       ## use weighted.mean if weights are used in estimation
-    #       pred[,isNum] %<>% data.frame %>% mutate_each(funs(. - weighted.mean(., object$wts, na.rm = TRUE)))
-    #     } else {
-    #       pred[,isNum] <- select(pred, which(isNum)) %>% mutate_each(funs((. - ms$.)))
-    #     }
-    #   }
-    #   dfscale(dat, center = TRUE, scale = TRUE, wts = NULL, calc = TRUE) {
-    # }
-
     pred %<>% na.omit()
+  }
+
+  ## scale predictors if needed
+  if ("center" %in% object$check || "standardize" %in% object$check) {
+    attr(pred, "ms") <- attr(object$model$model, "ms")
+    if ("standardize" %in% object$check) {
+      scale <- TRUE
+      attr(pred, "sds") <- attr(object$model$model, "sds")
+    } else {
+      scale <- FALSE
+    }
+    pred <- scaledf(pred, center = TRUE, scale = scale, calc = FALSE)
   }
 
   ## generate predictions using the supplied function (pfun)
@@ -633,8 +620,17 @@ predict.model <- function(object, pfun, mclass,
 
   if (!is(pred_val, 'try-error')) {
 
-    # if ("center" %in% object$check)
-    #   pred_val[["Prediction"]] <- pred_val[["Prediction"]] + ms[[object$rvar]]
+    ## scale rvar
+    if ("center" %in% object$check) {
+      ms <- attr(object$model$model, "ms")[[object$rvar]]
+      if (!is.null(ms))
+        pred_val[["Prediction"]] <- pred_val[["Prediction"]]  + ms
+    } else if ("standardize" %in% object$check) {
+      ms <- attr(object$model$model, "ms")[[object$rvar]]
+      sds <- attr(object$model$model,"sds")[[object$rvar]]
+      if (!is.null(ms) && !is.null(sds))
+        pred_val[["Prediction"]] <- pred_val[["Prediction"]] * 2 * sds + ms
+    }
 
     pred <- data.frame(pred, pred_val, check.names = FALSE)
     vars <- colnames(pred)
@@ -654,7 +650,8 @@ predict.model <- function(object, pfun, mclass,
       set_attr("dec", dec) %>%
       set_attr("pred_type", pred_type) %>%
       set_attr("pred_data", pred_data) %>%
-      set_attr("pred_cmd", pred_cmd)
+      set_attr("pred_cmd", pred_cmd) %>%
+      set_attr("check", object$check)
 
     return(add_class(pred, c(mclass, "model.predict")))
   } else {
@@ -678,7 +675,7 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
   pred_cmd <- gsub("([=+-/*])", " \\1 ", attr(x, "pred_cmd")) %>% gsub("([;])", "\\1 ", .)
-  # pred_cmd <- gsub("([=+-/*])", " \\1 ", pred_info[3]) %>% gsub("([;])", "\\1 ", .)
+  check <- attr(x, "check")
 
   cat(header)
   cat("\nData                 :", attr(x, "dataset"), "\n")
@@ -699,13 +696,21 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
     cat("Prediction dataset   :", pred_data,"\n")
   }
 
+  if ("standardize" %in% check) {
+    mess <- "**Prediction inputs standaridized**\n"
+  } else if ("center" %in% check) {
+    mess <- "**Prediction inputs centered**\n"
+  } else {
+    mess <- ""
+  }
+
   if (n == -1) {
-    cat("\n")
+    cat(mess, "\n")
     formatdf(x[,vars], attr(x, "dec")) %>% print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
       cat("Rows shown           :", n, "\n")
-    cat("\n")
+    cat(mess, "\n")
     head(x[,vars], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
   }
 }
