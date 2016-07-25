@@ -194,7 +194,7 @@ output$ui_regress <- renderUI({
                                       input.reg_plots == 'dashboard' |
                                       input.reg_plots == 'resid_pred'",
           checkboxGroupInput("reg_lines", NULL, reg_lines,
-            selected = state_init("reg_lines"), inline = TRUE)
+            selected = state_group("reg_lines"), inline = TRUE)
         )
       )
     ),
@@ -212,9 +212,9 @@ output$ui_regress <- renderUI({
         conditionalPanel(condition = "input.tabs_regress == 'Summary'",
           uiOutput("ui_reg_test_var"),
           checkboxGroupInput("reg_check", NULL, reg_check,
-            selected = state_init("reg_check"), inline = TRUE),
+            selected = state_group("reg_check"), inline = TRUE),
           checkboxGroupInput("reg_sum_check", NULL, reg_sum_check,
-            selected = state_init("reg_sum_check"), inline = TRUE)
+            selected = state_group("reg_sum_check"), inline = TRUE)
         ),
         conditionalPanel(condition = "input.reg_predict == 'cmd' |
                          input.reg_predict == 'data' |

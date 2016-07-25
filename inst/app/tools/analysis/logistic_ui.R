@@ -238,9 +238,9 @@ output$ui_logistic <- renderUI({
         conditionalPanel(condition = "input.tabs_logistic == 'Summary'",
   		    uiOutput("ui_logit_test_var"),
           checkboxGroupInput("logit_check", NULL, logit_check,
-            selected = state_init("logit_check"), inline = TRUE),
+            selected = state_group("logit_check"), inline = TRUE),
           checkboxGroupInput("logit_sum_check", NULL, logit_sum_check,
-            selected = state_init("logit_sum_check", ""), inline = TRUE)
+            selected = state_group("logit_sum_check", ""), inline = TRUE)
   			),
         ## Using && to check that input.logit_sum_check is not null (must be &&)
   	    conditionalPanel(condition = "(input.logit_sum_check && (input.logit_sum_check.indexOf('odds') >= 0 |

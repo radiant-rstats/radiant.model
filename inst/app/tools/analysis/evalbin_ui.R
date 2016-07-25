@@ -81,7 +81,7 @@ output$ui_evalbin <- renderUI({
       uiOutput("ui_ebin_train"),
       conditionalPanel("input.tabs_evalbin == 'Plot'",
         checkboxGroupInput("ebin_plots", "Plots:", ebin_plots,
-          selected = state_init("ebin_plots", ""),
+          selected = state_group("ebin_plots", ""),
           inline = TRUE)
       ),
       conditionalPanel("input.tabs_evalbin == 'Confusion'",
