@@ -29,7 +29,6 @@ regress <- function(dataset, rvar, evar,
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
            add_class("regress"))
 
-
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   if (!is_string(dataset)) dataset <- "-----"
 
@@ -64,8 +63,10 @@ regress <- function(dataset, rvar, evar,
   }
 
   ## needed for prediction if standardization or centering is used
-  attr(model$model, "ms") <- attr(dat, "ms")
-  attr(model$model, "sds") <- attr(dat, "sds")
+  if ("standardize" %in% check || "center" %in% check) {
+    attr(model$model, "ms") <- attr(dat, "ms")
+    attr(model$model, "sds") <- attr(dat, "sds")
+  }
 
   coeff <- tidy(model)
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
@@ -569,7 +570,6 @@ predict.model <- function(object, pfun, mclass,
       } else {
 
         plug_data[names(pred)] <- list(NULL)
-        # pred <- data.frame(plug_data[,-1],pred)
         pred <- cbind(select(plug_data,-1), pred)
       }
     }
@@ -612,14 +612,14 @@ predict.model <- function(object, pfun, mclass,
     } else {
       scale <- FALSE
     }
-    pred <- scaledf(pred, center = TRUE, scale = scale, calc = FALSE)
+    pred_val <- scaledf(pred, center = TRUE, scale = scale, calc = FALSE) %>%
+      pfun(object$model, ., se, conf_lev)
+  } else {
+    ## generate predictions using the supplied function (pfun)
+    pred_val <- pfun(object$model, pred, se, conf_lev)
   }
 
-  ## generate predictions using the supplied function (pfun)
-  pred_val <- pfun(object$model, pred, se, conf_lev)
-
   if (!is(pred_val, 'try-error')) {
-
     ## scale rvar
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
@@ -650,8 +650,7 @@ predict.model <- function(object, pfun, mclass,
       set_attr("dec", dec) %>%
       set_attr("pred_type", pred_type) %>%
       set_attr("pred_data", pred_data) %>%
-      set_attr("pred_cmd", pred_cmd) %>%
-      set_attr("check", object$check)
+      set_attr("pred_cmd", pred_cmd)
 
     return(add_class(pred, c(mclass, "model.predict")))
   } else {
@@ -675,7 +674,6 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
   pred_cmd <- gsub("([=+-/*])", " \\1 ", attr(x, "pred_cmd")) %>% gsub("([;])", "\\1 ", .)
-  check <- attr(x, "check")
 
   cat(header)
   cat("\nData                 :", attr(x, "dataset"), "\n")
@@ -696,21 +694,13 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
     cat("Prediction dataset   :", pred_data,"\n")
   }
 
-  if ("standardize" %in% check) {
-    mess <- "**Prediction inputs standaridized**\n"
-  } else if ("center" %in% check) {
-    mess <- "**Prediction inputs centered**\n"
-  } else {
-    mess <- ""
-  }
-
   if (n == -1) {
-    cat(mess, "\n")
+    cat("\n")
     formatdf(x[,vars], attr(x, "dec")) %>% print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
       cat("Rows shown           :", n, "\n")
-    cat(mess, "\n")
+    cat("\n")
     head(x[,vars], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
   }
 }

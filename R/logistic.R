@@ -97,8 +97,10 @@ logistic <- function(dataset, rvar, evar,
   }
 
   ## needed for prediction if standardization or centering is used
-  attr(model$model, "ms") <- attr(dat, "ms")
-  attr(model$model, "sds") <- attr(dat, "sds")
+  if ("standardize" %in% check || "center" %in% check) {
+    attr(model$model, "ms") <- attr(dat, "ms")
+    attr(model$model, "sds") <- attr(dat, "sds")
+  }
 
   coeff <- tidy(model)
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
