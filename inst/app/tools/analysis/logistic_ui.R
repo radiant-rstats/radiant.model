@@ -354,20 +354,21 @@ logit_available <- reactive({
 })
 
 .plot_logistic <- reactive({
-  if (logit_available() != "available") return(logit_available())
+  if (logit_available() != "available")
+    return(logit_available())
   if (is_empty(input$logit_plots))
-    return("Please select a regression plot from the drop-down menu")
-  if (not_pressed(input$logit_run)) return("** Press the Estimate button to estimate the model **")
+    return("Please select a logistic regression plot from the drop-down menu")
+  if (not_pressed(input$logit_run))
+    return("** Press the Estimate button to estimate the model **")
 
   pinp <- logit_plot_inputs()
   pinp$shiny <- TRUE
-  # do.call(plot, c(list(x = .logistic()), pinp))
 
-  if (input$logit_plots == "correlations")
-    # capture_plot( do.call(plot, c(list(x = .regress()), reg_plot_inputs())) )
+  if (input$logit_plots == "correlations") {
     capture_plot(do.call(plot, c(list(x = .logistic()), pinp)))
-  else
+  } else {
     do.call(plot, c(list(x = .logistic()), pinp))
+  }
 })
 
 .predict_logistic <- reactive({
@@ -447,7 +448,7 @@ observeEvent(input$logit_store_res, {
   req(pressed(input$logit_run))
   robj <- .logistic()
   if (!is.list(robj)) return()
-  withProgress(message = 'Storing residuals', value = 0,
+  withProgress(message = "Storing residuals", value = 0,
     store(robj, name = input$logit_store_res_name)
   )
 })
@@ -456,7 +457,7 @@ observeEvent(input$logit_store_pred, {
   req(!is_empty(input$logit_pred_data), pressed(input$logit_run))
   pred <- .predict_logistic()
   if (is.null(pred)) return()
-  withProgress(message = 'Storing predictions', value = 0,
+  withProgress(message = "Storing predictions", value = 0,
     store(pred, data = input$logit_pred_data, name = input$logit_store_pred_name)
   )
 })

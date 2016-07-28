@@ -830,19 +830,21 @@ store.model.predict <- function(object, ..., data = attr(object,"pred_data"), na
   if (is_empty(name)) name <- "prediction"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
-  name <- unlist(strsplit(name, ",")) %>% gsub("\\s","",.)
   ind <- which(colnames(object) == "Prediction")
+
+  ## if se were calculated
+  name <- unlist(strsplit(name, ",")) %>% gsub("\\s","",.)
   if (length(name) > 1) {
     name <- name[1:min(3, length(name))]
-    ind <- ind %>% {.:(. + length(name[-1]))}
-    store <- object[,ind]
+    ind <- ind:(ind + length(name[-1]))
+    store <- object[,ind, drop = FALSE]
   } else {
-    store <- object$Prediction
+    store <- object[,"Prediction", drop = FALSE]
   }
 
   vars <- colnames(object)[1:(ind-1)]
   indr <- indexr(data, vars, "")
-  pred <- data.frame(matrix(NA, nrow = indr$nr, ncol = ifelse(class(store) == "data.frame", ncol(store), 1)))
+  pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(store)))
   pred[indr$ind, ] <- store
 
   changedata(data, vars = pred, var_names = name)

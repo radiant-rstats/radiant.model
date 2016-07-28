@@ -128,11 +128,8 @@ ann <- function(dataset, rvar, evar,
 #' @export
 scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc = TRUE) {
   isNum <- sapply(dat, is.numeric)
-  if (sum(isNum) == 0) {
-    return(dat)
-  } else {
-    cn <- names(isNum)[isNum]
-  }
+  if (sum(isNum) == 0) return(dat)
+  cn <- names(isNum)[isNum]
 
   if (calc) {
     if (length(wts) == 0) {
