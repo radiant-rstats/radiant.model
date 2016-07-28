@@ -403,13 +403,12 @@ plot.logistic <- function(x,
   if (class(object$model)[1] != 'glm') return(object)
 
   if (plots[1] == "")
-    return(cat("Please select a glm regression plot from the drop-down menu"))
+    return("Please select a logistic regression plot from the drop-down menu")
 
   model <- ggplot2::fortify(object$model)
   model$.fitted <- predict(object$model, type = 'response')
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
   model$.actual <- as.numeric(object$rv) %>% {. - max(.) + 1}
-  model$.fittedbin <- radiant.data::xtile(model$.fitted, 20)
 
   rvar <- object$rvar
   evar <- object$evar
@@ -487,10 +486,10 @@ plot.logistic <- function(x,
 
   if (plots == "fit") {
 
-    # plot_list[[1]] <-
-    #   visualize(model, xvar = ".fitted", yvar = ".actual", type = "scatter", check = "jitter", alpha = 0.2, custom = TRUE) +
-    #   stat_smooth(method="glm", method.args = list(family = "binomial"), se = TRUE, size = 1) +
-    #   labs(list(title = "Actual vs Fitted values", x = "Fitted", y = "Actual"))
+    if (nrow(model) < 20)
+      return("Insufficient observations to generate Model fit plot")
+
+    model$.fittedbin <- radiant.data::xtile(model$.fitted, 20)
 
     df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - .fitted))
     plot_list[["fit"]] <-
