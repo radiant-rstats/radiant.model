@@ -410,7 +410,7 @@ output$ui_simulater <- renderUI({
       ),
       wellPanel(
         with(tags, table(
-          td(textInput("sim_seed", "Set random seed:",
+          td(numericInput("sim_seed", "Set random seed:",
                        value = state_init("sim_seed", 1234))),
           td(numericInput("sim_nr", "# sims:", min = 1, max = 10^6,
                           value = state_init("sim_nr", 1000)))
@@ -449,7 +449,7 @@ output$ui_simulater <- renderUI({
       ),
       wellPanel(
         with(tags, table(
-          td(textInput("rep_seed", "Set random seed:",
+          td(numericInput("rep_seed", "Set random seed:",
                        value = state_init("rep_seed", 1234))),
           td(numericInput("rep_nr", "# reps:", min = 1, max = 10^6,
                           value = state_init("rep_nr", 12)))

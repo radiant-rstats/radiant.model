@@ -520,9 +520,9 @@ repeater <- function(nr = 12,
   }
 
   ## tbl_df seems to remove attributes
-  ret <- ret %>% as.data.frame
+  ret <- as.data.frame(ret)
 
-  ## capturing the function call for use summary and plot
+  ## capturing the function call for use in summary and plot
   rc <- formals()
   rmc <- lapply(match.call()[-1], eval)
   rc[names(rmc)] <- rmc
@@ -597,7 +597,7 @@ summary.repeater <- function(object,
   ## getting the repeater call
   rc <- attr(object, "rep_call")
 
-  ## legacy for version that are radiant split
+  ## legacy
   if (is.null(rc)) {
     rc <- list()
     rc[c("nr","byvar","fun","seed","sim", "name", "form")] <- ""
