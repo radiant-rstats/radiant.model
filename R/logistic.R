@@ -345,9 +345,9 @@ summary.logistic <- function(object,
 
       if (!is_empty(object$wts, "None") && class(object$wts) != "integer") {
         ## http://stats.stackexchange.com/a/132521/61693
-        logit_sub_lh <- linearHypothesis(object$model,
-                                       matchCf(object$model$coef, test_var),
-                                       vcov = object$vcov)
+        logit_sub_lh <- car::linearHypothesis(object$model,
+                             matchCf(object$model$coef, test_var),
+                             vcov = object$vcov)
         pval <- logit_sub_lh[2,"Pr(>Chisq)"]
         df <- logit_sub_lh[2,"Df"]
         chi2 <- logit_sub_lh[2,"Chisq"]
