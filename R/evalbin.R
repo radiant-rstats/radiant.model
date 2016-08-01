@@ -283,7 +283,7 @@ summary.confusion <- function(object, prn = TRUE, ...) {
 		if (object$data_filter %>% gsub("\\s","",.) != "")
 			cat("Filter      :", gsub("\\n","", object$data_filter), "\n")
 		cat("Results for :", object$train, "\n")
-		cat("Perdictors  :", paste0(object$pred, collapse=", "), "\n")
+		cat("Predictors  :", paste0(object$pred, collapse=", "), "\n")
 		cat("Response    :", object$rvar, "\n")
 	  cat("Level       :", object$lev, "in", object$rvar, "\n")
 		cat("Margin:Cost :", object$margin, ":", object$cost, "\n")
