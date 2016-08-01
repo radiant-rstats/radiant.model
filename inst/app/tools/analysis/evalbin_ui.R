@@ -102,8 +102,8 @@ output$ui_evalbin <- renderUI({
 })
 
 ebin_plot_width <- function() {
-  ifelse(length(input$ebin_pred) > 1 ||
-         (!is.null(input$ebin_train) && input$ebin_train == "Both"), 700, 500)
+  # if (length(input$ebin_pred) > 1 || (!is.null(input$ebin_train) && input$ebin_train == "Both")) 700 else 500
+  700
 }
 ebin_plot_height <- function() {
   if (is_empty(input$ebin_plots)) 200 else length(input$ebin_plots) * 500
@@ -222,7 +222,7 @@ observeEvent(input$confusion_report, {
                 outputs = outputs,
                 figs = TRUE,
                 fig.width = confusion_plot_width(),
-                fig.height = confusion_plot_height())
+                fig.height = 1.5 * confusion_plot_height())
 })
 
 
