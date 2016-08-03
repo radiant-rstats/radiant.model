@@ -228,16 +228,15 @@ summary.logistic <- function(object,
 
   if ("vif" %in% sum_check) {
     if (anyNA(object$model$coeff)) {
-      # cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nmulticollinearity diagnostics were not calculated.\n")
       cat("Multicollinearity diagnostics were not calculated.")
     } else {
       if (length(object$evar) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          { if (!dim(.) %>% is.null) .[,"GVIF"] else . } %>% ## needed when factors are included
-          data.frame("VIF" = ., "Rsq" = 1 - 1/.) %>%
+          {if (is.null(dim(.))) . else .[,"GVIF"]} %>% ## needed when factors are included
+          data.frame(VIF = ., Rsq = 1 - 1/.) %>%
+          .[order(.$VIF, decreasing = TRUE),] %>% ## not using arrange to keep rownames
           round(dec) %>%
-          .[order(.$VIF, decreasing=T),] %>%
           { if (nrow(.) < 8) t(.) else . } %>%
           print
       } else {
@@ -254,21 +253,16 @@ summary.logistic <- function(object,
     } else {
       ci_perc <- ci_label(cl = conf_lev)
 
-      # cnfint <- ifelse (is_empty(object$wts, "None"), confint.default, radiant.model::confint_robust)
-      # if (is_empty(object$wts, "None"))
       if (!is_empty(object$wts, "None") && class(object$wts) != "integer")
         cnfint <- radiant.model::confint_robust
       else
         cnfint <- confint.default
 
       ci_tab <-
-        # confint.default(object$model, level = conf_lev) %>%
         cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
         as.data.frame %>%
         set_colnames(c("Low","High")) %>%
         cbind(select(object$coeff,3),.)
-        # cbind(object$coeff[["coefficient"]],.)
-        # cbind(object$coeff$coefficient,.)
 
       if ("confint" %in% sum_check) {
         ci_tab %T>%
