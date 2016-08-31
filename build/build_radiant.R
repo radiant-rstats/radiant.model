@@ -1,6 +1,7 @@
 ## building radiant packages for mac and windows
 setwd("~/gh/")
 
+
 rv <- R.Version()
 rv <- paste0(rv$major,".", strsplit(rv$minor,".", fixed = TRUE)[[1]][1])
 dirsrc <- file.path("minicran/src/contrib")
