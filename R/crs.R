@@ -51,20 +51,24 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
   ind <- (1:length(cn))[-nind]
 
   ## average scores and rankings
-  avg <- slice(dat, uid) %>% select(nind) %>% summarise_each(funs(mean_rm))
+  # avg <- slice(dat, uid) %>% select(nind) %>% summarise_each(funs(mean_rm))
+  avg <- dat[uid,] %>% select(nind) %>% summarise_each(funs(mean_rm))
   ravg <- min_rank(desc(avg)) %>% t %>% as.data.frame
   names(ravg) <- names(avg)
 
   ## actual scores and rankings (if available, else will be NA)
-  act <- slice(dat, -uid) %>% select(nind)
+  # act <- slice(dat, -uid) %>% select(nind)
+  act <- dat[-uid,] %>% select(nind)
 
   ## ract line below doesn't work with ratings0 when only one movie has been selected
   # print(act)
   # return()
 
   ract <- as.data.frame(t(apply(act,1, function(x) min_rank(desc(x))))) %>%
-    bind_cols(slice(idv,-uid),.) %>% as_data_frame
-  act <- bind_cols(slice(idv,-uid),act) %>% as.data.frame
+    bind_cols(idv[-uid,],.) %>% as_data_frame
+    # bind_cols(slice(idv,-uid),.) %>% as_data_frame
+  act <- bind_cols(idv[-uid,],act) %>% as.data.frame
+  # act <- bind_cols(slice(idv,-uid),act) %>% as.data.frame
 
   ## CF calculations
   ms <- apply(select(dat,-nind), 1, function(x) mean(x, na.rm = TRUE))
@@ -91,14 +95,16 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
   cf <-
     (crossprod(wts, as.matrix(srate)) * sds[-uid] + ms[-uid]) %>%
     as.data.frame %>%
-    bind_cols(slice(idv,-uid),.) %>%
+    bind_cols(idv[-uid,],.) %>%
+    # bind_cols(slice(idv,-uid),.) %>%
     as.data.frame
 
   if (ncol(cf) == 2) colnames(cf) <- c(id, pred)
 
   ## Ranking based on CF
   rcf <- as.data.frame(t(apply(select(cf,-1),1, function(x) min_rank(desc(x))))) %>%
-    bind_cols(slice(idv,-uid),.) %>% as.data.frame
+    bind_cols(idv[-uid,],.) %>% as.data.frame
+    # bind_cols(slice(idv,-uid),.) %>% as.data.frame
 
   rm(dat, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
 
