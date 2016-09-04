@@ -354,7 +354,9 @@ summary.dtree <- function(object, ...) {
       format(digits = 10, nsmall = 2, decimal.mark = ".", big.mark = ",", scientific = FALSE)
   }
 
-  print_percent <- function(x) data.tree::FormatPercent(x)
+  print_percent <- function(x) {
+    x %>% {if (isNum(.)) . else NA} %>% data.tree::FormatPercent(.)
+  }
 
   rm_terminal <- function(x)
     x %>% {if (is.na(.)) "" else .} %>% {if (. == "terminal") "" else .}
@@ -417,8 +419,10 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
-  if (is.character(x)) return(paste0("graph LR\n A[Errors in the input file]\n"))
-  if (x$type_none != "") return(paste0("graph LR\n A[Node does not have a type. Fix the input file]\n"))
+  if ("character" %in% class(x))
+    return(paste0("graph LR\n A[Errors in the input file]") %>% DiagrammeR::DiagrammeR(.))
+  if (x$type_none != "")
+    return(paste0("graph LR\n A[Node does not have a type. Fix the input file]") %>% DiagrammeR::DiagrammeR(.))
 
   ## based on https://gist.github.com/gluc/79ef7a0e747f217ca45e
   jl <- if (final) x$jl else x$jl_init
