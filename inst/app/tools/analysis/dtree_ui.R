@@ -44,9 +44,11 @@ output$ui_dtree_remove <- renderUI({
 })
 
 output$ui_dtree_sense_name <- renderUI({
-  vars <- dtree_eval()$vars
-  if (is_empty(vars)) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
 
+  dte <- dtree_eval()
+  if (length(dte) < 2) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
+  vars <- dte$vars
+  if (is_empty(vars)) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
   vars[names(vars)] <- names(vars)
 
   selectInput("dtree_sense_name", label = "Sensitivity to changes in:",
@@ -55,7 +57,10 @@ output$ui_dtree_sense_name <- renderUI({
 })
 
 output$ui_dtree_sense_decision <- renderUI({
-  jl <- dtree_eval()$jl
+
+  dte <- dtree_eval()
+  if (length(dte) < 2) return(invisible())
+  jl <- dte$jl
   if (is.null(jl)) return(invisible())
 
   ## all decisions in the tree
@@ -117,12 +122,10 @@ output$dtree <- renderUI({
       )
     ),
     shinyAce::aceEditor("dtree_edit", mode = "yaml",
-              # vimKeyBinding = ifelse (is.null(r_data$vim_keys), FALSE, r_data$vim_keys),
-              vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
-              wordWrap = TRUE,
-              height = "auto",
-              value = state_init("dtree_edit", dtree_example),
-              hotkeys = list(dtree_run = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))),
+      vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
+      wordWrap = TRUE, height = "auto",
+      value = state_init("dtree_edit", dtree_example),
+      hotkeys = list(dtree_run = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))),
     verbatimTextOutput("dtree_print")
   ),
   tabPanel("Plot",
@@ -162,17 +165,6 @@ output$dtree <- renderUI({
           uiOutput("ui_dtree_sense_decision"),
           uiOutput("ui_dtree_sense_name"),
           uiOutput("ui_dtree_sense")
-
-          # conditionalPanel(condition = "input.dtree_sense_name != null",
-          #   HTML("<label>Add variable: <i id='dtree_sense_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
-          #         <i id='dtree_sense_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
-          #   with(tags, table(
-          #       td(numericInput("dtree_sense_min", "Min:", value = state_init("dtree_sense_min"))),
-          #       td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
-          #       td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
-          #   )),
-          #   textinput_maker(id = "sense", lab = "Add variable", rows = "2", pre = "dtree_")
-          # )
         ),
         help_and_report(modal_title = "Decision analysis", fun_name = "dtree",
                         help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))
@@ -210,21 +202,16 @@ dtree_name <- function() {
   })
 }
 
-# dtree_eval <- reactive({
 dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
-  # if (vals_dtree$dtree_run == 1) return(invisible())
   req(vals_dtree$dtree_run != 1)
-  isolate({
+  ## update settings and get data.tree name
+  dtree_name <- dtree_namer()
 
-    ## update settings and get data.tree name
-    dtree_name <- dtree_namer()
-
-    if (input$dtree_edit != "") {
-      withProgress(message = 'Creating decision tree', value = 0, {
-        dtree(input$dtree_edit, opt = input$dtree_opt)
-      })
-    }
-  })
+  if (input$dtree_edit != "") {
+    withProgress(message = 'Creating decision tree', value = 0, {
+      dtree(input$dtree_edit, opt = input$dtree_opt)
+    })
+  }
 })
 
 output$dtree_print <- renderPrint({
@@ -371,8 +358,6 @@ observeEvent(input$dtree_remove, {
 
 .dtree_report <- observeEvent(vals_dtree$dtree_report, {
   req(vals_dtree$dtree_report > 0)
-
-
   outputs <- c("summary")
   inp_out <- list("", "")
   figs <- FALSE
@@ -391,9 +376,6 @@ observeEvent(input$dtree_remove, {
     {if (. == "list()") "render(plot(result))"
      else paste0(sub("list(", "render(plot(result, ", ., fixed = TRUE),")")} %>%
      gsub("[\"\']TRUE[\'\"]", "TRUE", .)
-
-    # {if (. == "list()") paste0("plt", id, " <- plot(result)\nDiagrammeR::renderDiagrammeR(plt",id,")")
-     # else paste0(sub("list(", paste0("plt",id," <- plot(result, "), ., fixed = TRUE),paste0("\nDiagrammeR::renderDiagrammeR(plt", id,")"))}
 
   # update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
   update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
