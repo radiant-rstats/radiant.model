@@ -823,7 +823,7 @@ store_reg <- function(object, data = object$dataset,
 #' @examples
 #' regress(diamonds, rvar = "price", evar = c("carat","cut")) %>%
 #'   predict(diamonds) %>%
-#'   store %>% head
+#'   store(name = "pred, pred_low, pred_high") %>% head
 #'
 #' @export
 store.model.predict <- function(object, ..., data = attr(object,"pred_data"), name = "prediction") {
@@ -832,20 +832,20 @@ store.model.predict <- function(object, ..., data = attr(object,"pred_data"), na
   ## gsub needed because trailing/leading spaces may be added to the variable name
   ind <- which(colnames(object) == "Prediction")
 
-  ## if se were calculated
+  ## if se was calculated
   name <- unlist(strsplit(name, ",")) %>% gsub("\\s","",.)
   if (length(name) > 1) {
     name <- name[1:min(3, length(name))]
-    ind <- ind:(ind + length(name[-1]))
-    store <- object[,ind, drop = FALSE]
+    ind_mult <- ind:(ind + length(name[-1]))
+    df <- object[,ind_mult, drop = FALSE]
   } else {
-    store <- object[,"Prediction", drop = FALSE]
+    df <- object[,"Prediction", drop = FALSE]
   }
 
   vars <- colnames(object)[1:(ind-1)]
   indr <- indexr(data, vars, "")
-  pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(store)))
-  pred[indr$ind, ] <- store
+  pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
+  pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
   changedata(data, vars = pred, var_names = name)
 }

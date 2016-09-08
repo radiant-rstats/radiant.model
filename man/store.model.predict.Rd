@@ -25,7 +25,7 @@ See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example
 \examples{
 regress(diamonds, rvar = "price", evar = c("carat","cut")) \%>\%
   predict(diamonds) \%>\%
-  store \%>\% head
+  store(name = "pred, pred_low, pred_high") \%>\% head
 
 }
 
