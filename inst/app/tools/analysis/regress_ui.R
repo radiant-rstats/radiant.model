@@ -347,7 +347,7 @@ reg_available <- reactive({
   if(input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd))
     return("** Enter prediction commands **")
 
-  withProgress(message = "Generating predictions", value = 0, {
+  withProgress(message = "Generating predictions", value = 1, {
     do.call(predict, c(list(object = .regress()), reg_pred_inputs()))
   })
 })
@@ -425,7 +425,7 @@ observeEvent(input$reg_store_res, {
   #   return(message("The number of residuals is not equal to the number of rows in the data. If the data has missing values these will need to be removed."))
   # }
   # store_reg(robj, data = input$dataset, type = "residuals", name = input$reg_store_res_name)
-  withProgress(message = 'Storing residuals', value = 0,
+  withProgress(message = 'Storing residuals', value = 1,
     store(robj, name = input$reg_store_res_name)
   )
 })
@@ -437,7 +437,7 @@ observeEvent(input$reg_store_pred, {
   # if (nrow(pred) != nrow(getdata(input$reg_pred_data, filt = "", na.rm = FALSE)))
   #   return(message("The number of predicted values is not equal to the number of rows in the data. If the data has missing values these will need to be removed."))
   # store_reg(pred, data = input$reg_pred_data, type = "prediction", name = input$reg_store_pred_name)
-  withProgress(message = 'Storing predictions', value = 0,
+  withProgress(message = 'Storing predictions', value = 1,
     store(pred, data = input$reg_pred_data, name = input$reg_store_pred_name)
   )
 })

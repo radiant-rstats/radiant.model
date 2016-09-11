@@ -208,7 +208,7 @@ dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
   dtree_name <- dtree_namer()
 
   if (input$dtree_edit != "") {
-    withProgress(message = 'Creating decision tree', value = 0, {
+    withProgress(message = 'Creating decision tree', value = 1, {
       dtree(input$dtree_edit, opt = input$dtree_opt)
     })
   }
@@ -252,7 +252,7 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
   if (is_empty(input$dtree_sense))
     return("No variables were specified for evaluation.\nClick the + icon to add variables for sensitivity evaluation")
 
-  withProgress(message = 'Conducting sensitivity analysis', value = 0,
+  withProgress(message = 'Conducting sensitivity analysis', value = 1,
     sensitivity(dtree_eval(), gsub("\n+", "", input$dtree_sense), input$dtree_sense_decision, shiny = TRUE)
   )
 })
@@ -273,7 +273,7 @@ output$plot_dtree_sensitivity <- renderPlot({
         plot(x = 1, type = 'n', main = paste0("\n\n\n\n\n\n\n\n",.) ,
              axes = FALSE, xlab = "", ylab = "")
       } else {
-        withProgress(message = 'Making plot', value = 0, print(.))
+        withProgress(message = 'Making plot', value = 1, print(.))
       }
     }
   })

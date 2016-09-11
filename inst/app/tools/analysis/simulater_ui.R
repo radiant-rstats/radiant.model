@@ -509,7 +509,7 @@ output$simulater <- renderUI({
 })
 
 .simulater <- eventReactive(input$runSim, {
-  withProgress(message = 'Simulating', value = 0, {
+  withProgress(message = 'Simulating', value = 1, {
     do.call(simulater, sim_inputs())
   })
 })
@@ -536,13 +536,13 @@ sim_plot_height <- function() {
 
 .plot_simulate <- reactive({
   req(input$sim_show_plots)
-  withProgress(message = 'Generating simulation plots', value = 0, {
+  withProgress(message = 'Generating simulation plots', value = 1, {
     .simulater() %>% { if (is_empty(.)) invisible() else plot(., shiny = TRUE) }
   })
 })
 
 .repeater <- eventReactive(input$runRepeat, {
-  withProgress(message = 'Replicating simulation', value = 0, {
+  withProgress(message = 'Replicating simulation', value = 1, {
     do.call(repeater, rep_inputs())
   })
 })
@@ -571,7 +571,7 @@ rep_plot_height <- function() {
   req(input$rep_show_plots)
   object <- .repeater()
   if (is.null(object)) return(invisible())
-  withProgress(message = 'Generating repeated simulation plots', value = 0, {
+  withProgress(message = 'Generating repeated simulation plots', value = 1, {
     rep_plot_inputs() %>% { .$shiny <- TRUE; . } %>%
       { do.call(plot, c(list(x = object), .)) }
   })

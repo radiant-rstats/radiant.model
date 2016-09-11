@@ -231,7 +231,7 @@ ann_available <- reactive({
 
 # .ann <- eventReactive(input$ann_run | input$ann_pause == TRUE, {
 .ann <- eventReactive(input$ann_run, {
-  withProgress(message = 'Estimating model', value = 0,
+  withProgress(message = 'Estimating model', value = 1,
 	  do.call(ann, ann_inputs())
   )
 })
@@ -254,7 +254,7 @@ ann_available <- reactive({
   if(input$ann_predict == "cmd" && is_empty(input$ann_pred_cmd))
     return("** Enter prediction commands **")
 
-  withProgress(message = "Generating predictions", value = 0, {
+  withProgress(message = "Generating predictions", value = 1, {
     do.call(predict, c(list(object = .ann()), ann_pred_inputs()))
   })
 })
@@ -293,7 +293,7 @@ observeEvent(input$ann_store_pred, {
   req(!is_empty(input$ann_pred_data), pressed(input$ann_run))
   pred <- .predict_ann()
   if (is.null(pred)) return()
-  withProgress(message = 'Storing predictions', value = 0,
+  withProgress(message = 'Storing predictions', value = 1,
     store(pred, data = input$ann_pred_data, name = input$ann_store_pred_name)
   )
 })
@@ -302,7 +302,7 @@ observeEvent(input$ann_store_res, {
   req(pressed(input$ann_run))
   robj <- .ann()
   if (!is.list(robj)) return()
-  withProgress(message = 'Storing residuals', value = 0,
+  withProgress(message = 'Storing residuals', value = 1,
     store(robj, name = input$ann_store_res_name)
   )
 })

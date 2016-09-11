@@ -342,7 +342,7 @@ logit_available <- reactive({
   req(input$logit_lev)
   req(input$logit_wts == "None" || available(input$logit_wts))
 
-  withProgress(message = 'Estimating model', value = 0,
+  withProgress(message = 'Estimating model', value = 1,
     do.call(logistic, logit_inputs())
   )
 })
@@ -380,7 +380,7 @@ logit_available <- reactive({
   if(input$logit_predict == "cmd" && is_empty(input$logit_pred_cmd))
     return("** Enter prediction commands **")
 
-  withProgress(message = "Generating predictions", value = 0, {
+  withProgress(message = "Generating predictions", value = 1, {
     do.call(predict, c(list(object = .logistic()), logit_pred_inputs()))
   })
 })
@@ -448,7 +448,7 @@ observeEvent(input$logit_store_res, {
   req(pressed(input$logit_run))
   robj <- .logistic()
   if (!is.list(robj)) return()
-  withProgress(message = "Storing residuals", value = 0,
+  withProgress(message = "Storing residuals", value = 1,
     store(robj, name = input$logit_store_res_name)
   )
 })
@@ -457,7 +457,7 @@ observeEvent(input$logit_store_pred, {
   req(!is_empty(input$logit_pred_data), pressed(input$logit_run))
   pred <- .predict_logistic()
   if (is.null(pred)) return()
-  withProgress(message = "Storing predictions", value = 0,
+  withProgress(message = "Storing predictions", value = 1,
     store(pred, data = input$logit_pred_data, name = input$logit_store_pred_name)
   )
 })
