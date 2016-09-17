@@ -4,3 +4,4 @@
 ^inst/rstudio$
 ^build$
 ^\.travis\.yml$
+cran-comments.md
