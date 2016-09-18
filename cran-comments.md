@@ -1,3 +1,12 @@
+## Resubmission
+
+This is a resubmission. In this version I have:
+
+* Updated a link to https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0) to fix a libcurl error. I prefer to keep this link in the README.md file because it provides a convenient summary of the terms of the AGPL3 license. The link is valid but perhaps there is something else that is required?
+* Added a link to  https://www.r-project.org/Licenses/AGPL-3 in the LICENSE file.
+
+## Previous cran-comments
+
 ## Test environments
 * local OS X install, R 3.3.1
 * local Windows install, R 3.3.1
