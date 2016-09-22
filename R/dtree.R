@@ -194,11 +194,6 @@ dtree <- function(yl, opt = "max") {
 
   vars <- ""
   if (!is.null(yl$variables)) {
-    # library(radiant.model)
-    # yl <- readLines("https://raw.githubusercontent.com/radiant-rstats/docs/gh-pages/examples/VMR-case-E.yaml") %>%
-    #   paste0(collapse = "\n")
-    # yl <- dtree_parser(yl)
-    # yl <- yaml::yaml.load(yl)
 
     vars <- yl$variables
     vn <- names(vars)
@@ -237,6 +232,19 @@ dtree <- function(yl, opt = "max") {
       return("\nUpdate the input file and try again." %>% add_class("dtree"))
     }
 
+    ## cycle through a nested list recursively
+    ## based on http://stackoverflow.com/a/26163152/1974918
+    nlapply <- function(x, fun){
+      if(is.list(x)){
+        lapply(x, nlapply, fun)
+      } else {
+        fun(x)
+      }
+    }
+
+    if (any(unlist(nlapply(yl, is.null))))
+      return("\nOne or more payoffs or probabilities were not specified.\nUpdate the input file and try again" %>% add_class("dtree"))
+
     ## based on http://stackoverflow.com/a/14656351/1974918
     tmp <- as.relistable(yl[setdiff(names(yl),"variables")]) %>% unlist
     for (i in seq_along(vn)) tmp <- gsub(vn[i], vars[[i]], tmp, fixed = TRUE)
@@ -257,15 +265,6 @@ dtree <- function(yl, opt = "max") {
     # toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(eval(parse(text = x)))
     toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(x)
 
-    ## cycle through a nested list recursively
-    ## based on http://stackoverflow.com/a/26163152/1974918
-    nlapply <- function(x, fun){
-      if(is.list(x)){
-        lapply(x, nlapply, fun)
-      } else {
-        fun(x)
-      }
-    }
     tmp <- nlapply(tmp, toNum)
 
     ## convert list to node object
@@ -285,7 +284,6 @@ dtree <- function(yl, opt = "max") {
   jl_init <- data.tree::Clone(jl)
 
   chance_payoff <- function(node) {
-    # if (is.null(node$payoff) || is.null(node$p)) {
     if (!isNum(node$payoff) || !isNum(node$p))  0
     else node$payoff * node$p
   }
@@ -293,21 +291,38 @@ dtree <- function(yl, opt = "max") {
   decision_payoff <- function(node)
     if(!isNum(node$payoff)) 0 else node$payoff
 
+  prob_checker <- function(node)
+    if (!isNum(node$p)) 0 else node$p
+
   type_none <- ""
+  prob_check <- ""
   calc_payoff <- function(x) {
     if (is_empty(x$type)) {
       x$payoff <- 0
       x$type <- "NONE"
       type_none <<- "One or more nodes do not have a 'type'. Search for 'NONE' in the output\nbelow and then update the input file"
-    } else if (x$type == 'chance') x$payoff <- sum(sapply(x$children, chance_payoff))
-    else if (x$type == 'decision') x$payoff <- get(opt)(sapply(x$children, decision_payoff))
+    } else if (x$type == 'chance') {
+      x$payoff <- sum(sapply(x$children, chance_payoff))
+
+      ## add after 2016 midterm
+      probs <- sapply(x$children, prob_checker)
+      if (min(probs) < 0) {
+        prob_check <<- "One or more probabilities are less than 0.\nPlease correct the inputs and re-run the analysis"
+      } else if (max(probs) > 1) {
+        prob_check <<- "One or more probabilities are more than 1.\nPlease correct the inputs and re-run the analysis"
+      } else if (round(sum(probs),2) != 1) {
+        prob_check <<- "Probabilities for one or more chance nodes do not sum to 1.\nPlease correct the inputs and re-run the analysis"
+      }
+
+    } else if (x$type == 'decision') {
+      x$payoff <- get(opt)(sapply(x$children, decision_payoff))
+    }
 
     ## subtract cost if specified
     if (isNum(x$cost)) x$payoff <- x$payoff - x$cost
   }
 
-  # err <- try(jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf), silent = TRUE)
-  err <- jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf)
+  err <- try(jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf), silent = TRUE)
 
   if (is(err, 'try-error')) {
     err <- paste0("**\nError calculating payoffs associated with a chance or decision node.\nPlease check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
@@ -326,7 +341,7 @@ dtree <- function(yl, opt = "max") {
     return(err %>% add_class("dtree"))
   }
 
-  list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt, type_none = type_none) %>%
+  list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt, type_none = type_none, prob_check = prob_check) %>%
     add_class("dtree")
 }
 
@@ -369,7 +384,6 @@ summary.dtree <- function(object, ...) {
     data.tree::Traverse(jl) %>%
       {data.frame(
         ` ` = data.tree::Get(.,"levelName"),
-        # Probability = Get(., "p", format = FormatPercent),
         Probability = data.tree::Get(., "p", format = print_percent),
         Payoff = data.tree::Get(., "payoff", format = print_money),
         Cost = data.tree::Get(., "cost", format = print_money),
@@ -381,21 +395,24 @@ summary.dtree <- function(object, ...) {
 
   if (all(object$vars != "")) {
     cat("Input values:\n")
-    # print(as.data.frame(object$vars) %>% set_names("") %>% round(4))
     print(as.data.frame(object$vars) %>% set_names(""))
-    cat("\n\n")
+    cat("\n")
   }
 
   ## initial setup
   if (object$type_none != "") {
     cat(paste0("\n\n**\n",object$type_none,"\n**\n\n"))
   } else {
-    cat("Initial decision tree:\n")
-    format_dtree(object$jl_init) %>% print(row.names = FALSE)
-  }
 
-  cat("\n\nFinal decision tree:\n")
-  format_dtree(object$jl) %>% print(row.names = FALSE)
+    if (object$prob_check != "")
+      cat(paste0("**\n",object$prob_check,"\n**\n\n"))
+
+    cat("\nInitial decision tree:\n")
+    format_dtree(object$jl_init) %>% print(row.names = FALSE)
+
+    cat("\n\nFinal decision tree:\n")
+    format_dtree(object$jl) %>% print(row.names = FALSE)
+  }
 }
 
 #' Plot method for the dtree function
@@ -531,7 +548,6 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL, shiny = FALSE, .
 
   if (is_empty(vars)) return("** No variables were specified **")
   if (is_empty(decs)) return("** No decisions were specified **")
-  # vars <- "wall cost 10000 40000 10000;\nP(MS) 0 1 0.2;"
   vars <- strsplit(vars, ";") %>% unlist %>% strsplit(" ")
 
   calc_payoff <- function(x, nm) {
