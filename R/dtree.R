@@ -243,7 +243,7 @@ dtree <- function(yl, opt = "max") {
     }
 
     if (any(unlist(nlapply(yl, is.null))))
-      return("\nOne or more payoffs or probabilities were not specified.\nUpdate the input file and try again" %>% add_class("dtree"))
+      return("**\nOne or more payoffs or probabilities were not specified.\nUpdate the input file and try again\n**" %>% add_class("dtree"))
 
     ## based on http://stackoverflow.com/a/14656351/1974918
     tmp <- as.relistable(yl[setdiff(names(yl),"variables")]) %>% unlist
@@ -304,7 +304,6 @@ dtree <- function(yl, opt = "max") {
     } else if (x$type == 'chance') {
       x$payoff <- sum(sapply(x$children, chance_payoff))
 
-      ## add after 2016 midterm
       probs <- sapply(x$children, prob_checker)
       if (min(probs) < 0) {
         prob_check <<- "One or more probabilities are less than 0.\nPlease correct the inputs and re-run the analysis"
