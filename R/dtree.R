@@ -155,6 +155,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 #'
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{plot.dtree}} to plot results
+#' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
 dtree <- function(yl, opt = "max") {
@@ -355,6 +356,7 @@ dtree <- function(yl, opt = "max") {
 #'
 #' @seealso \code{\link{dtree}} to generate the results
 #' @seealso \code{\link{plot.dtree}} to plot results
+#' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
 summary.dtree <- function(object, ...) {
@@ -429,6 +431,7 @@ summary.dtree <- function(object, ...) {
 #'
 #' @seealso \code{\link{dtree}} to generate the result
 #' @seealso \code{\link{summary.dtree}} to summarize results
+#' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
 plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, ...) {
@@ -539,6 +542,10 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
 #' @param decs Decisions to include in the sensitivity analysis
 #' @param shiny Did the function call originate inside a shiny app
 #' @param ... Additional arguments
+#'
+#' @seealso \code{\link{dtree}} to generate the result
+#' @seealso \code{\link{plot.dtree}} to summarize results
+#' @seealso \code{\link{summary.dtree}} to summarize results
 #'
 #' @export
 sensitivity.dtree <- function(object, vars = NULL, decs = NULL, shiny = FALSE, ...) {
