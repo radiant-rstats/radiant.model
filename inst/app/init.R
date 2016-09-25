@@ -9,7 +9,9 @@ r_url_list[["Logistic regression (GLM)"]] <-
                               "Predict" = "model/logistic/predict/",
                               "Plot"    = "model/logistic/plot/"))
 r_url_list[["Neural Network (ANN)"]] <-
-  list("tabs_ann" = list("Summary" = "model/ann/", "Plot" = "model/ann/plot/"))
+  list("tabs_ann" = list("Summary" = "model/ann/",
+                         "Predict" = "model/ann/predict/",
+                         "Plot" = "model/ann/plot/"))
 # r_url_list[["Collaborative Filtering"]] <-
   # list("tabs_crs" = list("Summary" = "model/crs/", "Plot" = "model/crs/plot/"))
 r_url_list[["Evaluate regression"]] <-
