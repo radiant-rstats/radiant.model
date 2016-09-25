@@ -24,5 +24,7 @@ See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example i
 \code{\link{summary.dtree}} to summarize results
 
 \code{\link{plot.dtree}} to plot results
+
+\code{\link{sensitivity.dtree}} to plot results
 }
 
