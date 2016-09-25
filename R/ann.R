@@ -101,7 +101,7 @@ ann <- function(dataset, rvar, evar,
               linout = linout, entropy = entropy, skip = skip, trace = FALSE, data = dat)
 
   ## need do.call so Garson/Olden plot will work
-  if (!is_not(seed)) set.seed(seed)
+  seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
   model <- do.call(nnet::nnet, nninput)
 
   ## ann returns residuals as a matrix

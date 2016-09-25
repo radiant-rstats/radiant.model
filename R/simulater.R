@@ -44,7 +44,7 @@ simulater <- function(const = "",
                       dat = NULL) {
 
   ## remove any non-numbers from seed, including spaces
-  seed %>% gsub("[^0-9]","",.) %>% { if (. != "") set.seed(seed) }
+  seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
 
   if (is.null(dat)) {
     dat <- list()
@@ -395,7 +395,7 @@ repeater <- function(nr = 12,
   dat <- sim; rm(sim)
   if (is.character(dat)) dat <- getdata(dat)
 
-  seed %>% gsub("[^0-9]","",.) %>% { if (. != "") set.seed(seed) }
+  seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
 
   if (identical(vars, "") && identical(grid, "")) {
     mess <- c("error",paste0("Select variables to re-simulate and/or a specify a constant\nto change using 'Grid search'"))
