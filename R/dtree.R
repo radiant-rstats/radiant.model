@@ -213,11 +213,22 @@ dtree <- function(yl, opt = "max") {
       }
     }
 
-    for (i in 2:max(2,length(vn))) {
-      vars <- gsub(vn[i-1], paste0("(",vars[[i-1]],")"), vars, fixed = TRUE)
-      vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+",x), x, eval(parse(text = x))))
+    ## is there a subtree to evaluate?
+    for (i in vn) {
+      if (grepl("dtree\\(.*\\)", vars[i])) {
+        tree <- sub("dtree\\((.*)\\)","\\1", vars[i]) %>% gsub("[\"\']","",.)
+        if (tree %in% r_data$dtree_list) {
+          ret <- dtree(tree)
+          if (!is.null(ret$jl))
+            vars[i] <- ret$jl$Get(function(x) x$payoff)[1]
+          else
+            vars[i] <- "No payoff available. Incorrect tree specification"
+
+        } else {
+          vars[i] <- paste0("Decision tree \"", tree, "\" is not available")
+        }
+      }
     }
-    names(vars) <- vn
 
     for (i in 2:max(2,length(vn))) {
       vars <- gsub(vn[i-1], paste0("(",vars[[i-1]],")"), vars, fixed = TRUE)
