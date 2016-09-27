@@ -218,12 +218,16 @@ dtree <- function(yl, opt = "max") {
       if (grepl("dtree\\(.*\\)", vars[i])) {
         tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*","\\1",vars[i]) %>% gsub("[\"\']","",.)
         if (exists("r_data") && !is.null(r_data$dtree_list) && tree %in% r_data$dtree_list) {
-          ret <- eval(parse(text = vars[i]))
-          if (!is.null(ret$jl))
-            vars[i] <- ret$jl$Get(function(x) x$payoff)[1]
-          else
-            vars[i] <- "No payoff available. Incorrect tree specification"
-
+          ret <- try(eval(parse(text = vars[i])), silent = TRUE)
+          if (is(ret, 'try-error')) {
+            return("**\nThe dtree command was invalid. Please fix it and try again\n**" %>% add_class("dtree"))
+          } else {
+            if (!is.null(ret$jl)) {
+              vars[i] <- ret$jl$Get(function(x) x$payoff)[1]
+            } else {
+              vars[i] <- "No payoff available. Incorrect tree specification"
+            }
+          }
         } else {
           vars[i] <- paste0("Decision tree \"", tree, "\" is not available")
         }
