@@ -216,9 +216,9 @@ dtree <- function(yl, opt = "max") {
     ## is there a subtree to evaluate?
     for (i in vn) {
       if (grepl("dtree\\(.*\\)", vars[i])) {
-        tree <- sub("dtree\\((.*)\\)","\\1", vars[i]) %>% gsub("[\"\']","",.)
-        if (tree %in% r_data$dtree_list) {
-          ret <- dtree(tree)
+        tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*","\\1",vars[i]) %>% gsub("[\"\']","",.)
+        if (exists("r_data") && !is.null(r_data$dtree_list) && tree %in% r_data$dtree_list) {
+          ret <- eval(parse(text = vars[i]))
           if (!is.null(ret$jl))
             vars[i] <- ret$jl$Get(function(x) x$payoff)[1]
           else

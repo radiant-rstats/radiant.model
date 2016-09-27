@@ -1,6 +1,6 @@
 # to avoid 'no visible binding for global variable' NOTE
 globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Predictor",
-                  "total","TN","FN","FP","TP","total"))
+                  "total","TN","FN","FP","TP","total","r_data"))
 
 #' radiant.model
 #'
