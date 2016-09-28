@@ -144,7 +144,7 @@ output$dtree <- renderUI({
       td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px")),
       td(HTML("&nbsp;&nbsp;&nbsp;")),
       td(radioButtons(inputId = "dtree_orient", label = "Plot direction:",
-        c("Top-down" = "TD", "Left-right" = "LR"), inline = TRUE))
+        c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE))
     )),
     DiagrammeR::DiagrammeROutput("dtree_plot", height = "600px")
   ),
