@@ -5,7 +5,7 @@
 \title{Plot method for the dtree function}
 \usage{
 \method{plot}{dtree}(x, symbol = "$", dec = 2, final = FALSE,
-  shiny = FALSE, ...)
+  orient = "LR", shiny = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{dtree}}}
@@ -15,6 +15,8 @@
 \item{dec}{Decimal places to round results to}
 
 \item{final}{If TRUE plot the decision tree solution, else the initial decision tree}
+
+\item{orient}{Plot orientation: LR for vertical and TD for horizontal}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 
