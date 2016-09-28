@@ -505,8 +505,10 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
     paste0(" ", node$id, lbl)
   }
 
-  style_decision <- jl$Get("id", filterFun = function(x) x$type == "decision")
+  style_decision <- jl$Get("id", filterFun = function(x) x$type == "decision" && is.null(x$cost))
   if (is.null(style_decision)) style_decision <- "id_null"
+  style_decision_with_cost <- jl$Get("id", filterFun = function(x) x$type == "decision" && !is.null(x$cost))
+  if (is.null(style_decision_with_cost)) style_decision_with_cost <- "id_null"
   style_chance <- jl$Get("id", filterFun = function(x) x$type == "chance" && is.null(x$cost))
   if (is.null(style_chance)) style_chance <- "id_null"
   style_chance_with_cost <- jl$Get("id", filterFun = function(x) x$type == "chance" && !is.null(x$cost))
@@ -529,7 +531,9 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
     classDef chance fill:#FF8C00,stroke:#333,stroke-width:1px;
     classDef chance_with_cost fill:#FF8C00,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
     classDef decision fill:#9ACD32,stroke:#333,stroke-width:1px;
+    classDef decision_with_cost fill:#9ACD32,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
     class ", paste(style_decision, collapse = ","), " decision;
+    class ", paste(style_decision_with_cost, collapse = ","), " decision_with_cost;
     class ", paste(style_chance, collapse = ","), " chance;
     class ", paste(style_chance_with_cost, collapse = ","), " chance_with_cost;")
 
