@@ -346,6 +346,7 @@ dtree <- function(yl, opt = "max") {
 
   decision <- function(x) {
     po <- sapply(x$children, decision_payoff)
+    if (isNum(x$cost)) po <- po - x$cost
     x$decision <- names(po[po == x$payoff])
   }
 
