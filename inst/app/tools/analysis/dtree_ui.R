@@ -138,13 +138,13 @@ output$dtree <- renderUI({
       td(radioButtons(inputId = "dtree_final", label = "Plot decision tree:",
         c("Initial" = FALSE, "Final" = TRUE),
         selected = state_init("dtree_final", FALSE), inline = TRUE)),
+      td(HTML("&nbsp;&nbsp;&nbsp;")),
+      td(radioButtons(inputId = "dtree_orient", label = "Plot direction:",
+        c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE)),
       td(actionButton("dtree_eval_plot", "Calculate"), style="padding-top:30px;"),
       td(numericInput("dtree_dec", "Decimals", value = state_init("dtree_dec", 2),
          min = 0, max = 10, width = "70px")),
-      td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px")),
-      td(HTML("&nbsp;&nbsp;&nbsp;")),
-      td(radioButtons(inputId = "dtree_orient", label = "Plot direction:",
-        c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE))
+      td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px"))
     )),
     DiagrammeR::DiagrammeROutput("dtree_plot", height = "600px")
   ),
@@ -380,8 +380,10 @@ observeEvent(input$dtree_remove, {
      else paste0(sub("list(", "render(plot(result, ", ., fixed = TRUE),")")} %>%
      gsub("[\"\']TRUE[\'\"]", "TRUE", .)
 
-  # update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
-  update_report(inp_main = list(yl = dtree_name, opt = input$dtree_opt),
+  inp <- list(yl = dtree_name)
+  if (input$dtree_opt == "min") inp$opt <- "min"
+
+  update_report(inp_main = inp,
                 fun_name = "dtree",
                 inp_out = inp_out,
                 outputs = outputs,
