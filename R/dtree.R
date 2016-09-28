@@ -439,6 +439,7 @@ summary.dtree <- function(object, ...) {
 #' @param symbol Monetary symbol to use ($ is the default)
 #' @param dec Decimal places to round results to
 #' @param final If TRUE plot the decision tree solution, else the initial decision tree
+#' @param orient Plot orientation: LR for vertical and TD for horizontal
 #' @param shiny Did the function call originate inside a shiny app
 #' @param ... further arguments passed to or from other methods
 #'
@@ -449,7 +450,7 @@ summary.dtree <- function(object, ...) {
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, ...) {
+plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", shiny = FALSE, ...) {
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
@@ -544,7 +545,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, shiny = FALSE, .
                    id = data.tree::Get(trv, ToLabel),
                    tooltip = data.tree::Get(trv, ToolTip))
 
-  paste("graph LR", paste( paste0(df$from, df$edge, df$to), collapse = "\n"),
+  ## use LR or TD
+  paste(paste0("graph ", orient), paste( paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(unique(na.omit(df$tooltip)), collapse = "\n"),
     style, sep = "\n") %>%
     DiagrammeR::DiagrammeR(.)
