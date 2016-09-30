@@ -32,7 +32,7 @@ output$ui_dtree_list <- renderUI({
 })
 
 output$ui_dtree_name <- renderUI({
-  dtree_name <- input$dtree_list
+  dtree_name <- input$dtree_list[1]
   if (length(dtree_name) == 0) dtree_name <- dtree_name()
   if (is_empty(dtree_name)) dtree_name <- "dtree"
   textInput("dtree_name", NULL, dtree_name, width = "100px")
@@ -47,8 +47,10 @@ output$ui_dtree_sense_name <- renderUI({
 
   dte <- dtree_eval()
   if (length(dte) < 2) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
-  vars <- dte$vars
+  vars <- dte$yl$variables
   if (is_empty(vars)) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
+  vars <- vars[!is.na(sshhr(sapply(vars, as.numeric)))]
+  if (length(vars) == 0) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
   vars[names(vars)] <- names(vars)
 
   selectInput("dtree_sense_name", label = "Sensitivity to changes in:",
@@ -191,7 +193,7 @@ observe({
 
 dtree_name <- function() {
   isolate({
-    dtree_name <- input$dtree_name
+    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
     if (is_empty(dtree_name)) {
       dtree_name <- stringr::str_match(input$dtree_edit, "\\s*name:\\s*(.*)\\n\\s*type:")[2]
       if (is.na(dtree_name)) {
@@ -207,6 +209,7 @@ dtree_name <- function() {
 
 dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
   req(vals_dtree$dtree_run != 1)
+
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
 
@@ -314,12 +317,12 @@ observeEvent(input$dtree_load_yaml, {
 
 observeEvent(input$dtree_list, {
   isolate({
-    dtree_name <- input$dtree_name
+    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
     if (is_empty(dtree_name)) dtree_name <- dtree_name()
     r_data[[dtree_name]] <- input$dtree_edit
   })
 
-  shinyAce::updateAceEditor(session, "dtree_edit", value = r_data[[input$dtree_list]])
+  shinyAce::updateAceEditor(session, "dtree_edit", value = r_data[[input$dtree_list[1]]])
 })
 
 observeEvent(input$dtree_report1, {
@@ -342,8 +345,9 @@ observeEvent(input$dtree_edit, {
 
 
 dtree_namer <- reactive({
-  dtree_name <- input$dtree_name
-  if (is_empty(dtree_name)) dtree_name <- input$dtree_list
+  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
+
+  if (is_empty(dtree_name)) dtree_name <- input$dtree_list[1]
   if (is_empty(dtree_name)) dtree_name <- dtree_name()
 
   r_data[[dtree_name]] <- input$dtree_edit
@@ -354,7 +358,7 @@ dtree_namer <- reactive({
 
 ## remove yaml input
 observeEvent(input$dtree_remove, {
-  dtree_name <- input$dtree_list
+  dtree_name <- input$dtree_list[1]
   r_data[["dtree_list"]] <- setdiff(r_data[["dtree_list"]], dtree_name)
   r_data[[dtree_name]] <- NULL
 })

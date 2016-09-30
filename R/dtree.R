@@ -146,6 +146,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 #'
 #' @param yl A yaml string or a list (e.g., from yaml::yaml.load_file())
 #' @param opt Find the maximum ("max") or minimum ("min") value for each decision node
+#' @param base List of variable definitions from a base tree used when calling a sub-tree
 #'
 #' @return A list with the initial tree and the calculated tree
 #'
@@ -158,7 +159,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-dtree <- function(yl, opt = "max") {
+dtree <- function(yl, opt = "max", base = character(0)) {
 
   ## Adapted from https://github.com/gluc/useR15/blob/master/01_showcase/02_decision_tree.R
   ## load yaml from string if list not provide
@@ -166,10 +167,9 @@ dtree <- function(yl, opt = "max") {
 
     ## get input file from r_data
     if (!grepl("\\n", yl)) yl <- getdata(yl)
-
     yl <- dtree_parser(yl)
-    ## cleanup the input file
 
+    ## cleanup the input file
     # return(paste0(paste0("\n**\n", yl, collapse = "\n"), "\n**\n") %>% add_class("dtree")
 
     if ("dtree" %in% class(yl)) return(yl)
@@ -194,9 +194,20 @@ dtree <- function(yl, opt = "max") {
   }
 
   vars <- ""
+
+  ## can call a sub-tree that doesn't have any variables
+  if (length(base) > 0) {
+    base <- base[!grepl("dtree\\(.*\\)", base)]
+    if(is.null(yl$variables)) yl$variables <- base
+  }
+
   if (!is.null(yl$variables)) {
 
     vars <- yl$variables
+
+    ## overwrite the values in vars that are also in base
+    if (length(base) > 0) vars[names(base)] <- base
+
     vn <- names(vars)
 
     if (length(vn) > 1) {
@@ -218,8 +229,10 @@ dtree <- function(yl, opt = "max") {
       if (grepl("dtree\\(.*\\)", vars[i])) {
         tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*","\\1",vars[i]) %>% gsub("[\"\']","",.)
         if (exists("r_data") && !is.null(r_data$dtree_list) && tree %in% r_data$dtree_list) {
-          ret <- try(eval(parse(text = vars[i])), silent = TRUE)
-          if (is(ret, 'try-error')) {
+          cmd <- gsub("\\)\\s*$", paste0(", base = ", list(vars[!grepl("dtree\\(.*\\)", vars)]), "\\)"), vars[i])
+          ret <- try(eval(parse(text = cmd)), silent = TRUE)
+
+          if (is(ret, 'try-error') || !is.list(ret)) {
             return("**\nThe dtree command was invalid. Please fix it and try again\n**" %>% add_class("dtree"))
           } else {
             if (!is.null(ret$jl)) {
@@ -381,6 +394,8 @@ summary.dtree <- function(object, ...) {
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
+
+
   print_money <- function(x) {
     x %>% {if (isNum(.)) . else ""} %>%
       format(digits = 10, nsmall = 2, decimal.mark = ".", big.mark = ",", scientific = FALSE)
@@ -453,6 +468,9 @@ summary.dtree <- function(object, ...) {
 #' @export
 plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", shiny = FALSE, ...) {
 
+  ## avoid error when dec is missing
+  if (is_not(dec)) dec <- 2
+
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
   if ("character" %in% class(x))
@@ -468,6 +486,11 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", s
 
   ## create start labels
   FromLabel <- function(node) {
+
+    ## testing
+    # if (node$isRoot) return (node$id)
+    ## testing
+
     if (node$parent$isRoot) ToLabel(node$parent)
     else as.character(node$parent$id)
   }
@@ -546,13 +569,15 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", s
                    id = data.tree::Get(trv, ToLabel),
                    tooltip = data.tree::Get(trv, ToolTip))
 
+  ## check if the first node needs a tooltip
+  trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
+  df[1, "tooltip"] <- data.tree::Get(trv, ToolTip)
+
   ## use LR or TD
   paste(paste0("graph ", orient), paste( paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(unique(na.omit(df$tooltip)), collapse = "\n"),
     style, sep = "\n") %>%
     DiagrammeR::DiagrammeR(.)
-    # {if (shiny) . else HTML(DiagrammeR::renderDiagrammeR(.))}
-  # {if (shiny) . else DiagrammeR::DiagrammeR(.)}
 }
 
 #' Evaluate sensitivity of the decision tree
