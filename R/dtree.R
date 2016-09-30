@@ -193,6 +193,19 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     return(add_class(err, "dtree"))
   }
 
+
+  ## grabing variables from base if available
+  if (!is.null(yl$variables) && is.character(yl$variables[1])) {
+    if (exists("r_data") && !is.null(r_data$dtree_list) && yl$variables %in% r_data$dtree_list) {
+      yl$variables <-
+        getdata(yl$variables) %>%
+        dtree_parser %>%
+        {yaml::yaml.load(.)} %>%
+        .$variables %>%
+        .[!grepl("dtree\\(.*\\)", .)]
+    }
+  }
+
   vars <- ""
 
   ## can call a sub-tree that doesn't have any variables
