@@ -14,6 +14,9 @@
 dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
+  ## remove characters that may cause problems in shinyAce
+  yl %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r","\n",.)
+
   ## collect errors
   err <- c()
 

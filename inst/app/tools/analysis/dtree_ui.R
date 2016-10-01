@@ -308,6 +308,10 @@ observeEvent(input$dtree_load_yaml, {
   ## loading yaml file from disk
   inFile <- input$dtree_load_yaml
   yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
+
+  ## remove characters that may cause problems in shinyAce
+  yaml_file %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r","\n",.)
+
   dtree_name <- sub(paste0(".",tools::file_ext(inFile$name)),"",inFile$name)
   r_data[[dtree_name]] <- yaml_file
   r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
