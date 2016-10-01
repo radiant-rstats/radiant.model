@@ -194,9 +194,13 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   }
 
 
-  ## grabing variables from base if available
+  ## getting variables from base if available
   if (!is.null(yl$variables) && is.character(yl$variables[1])) {
-    if (exists("r_data") && !is.null(r_data$dtree_list) && yl$variables %in% r_data$dtree_list) {
+    if (exists("r_data") && !is.null(r_data$dtree_list)) {
+      if (!yl$variables %in% r_data$dtree_list) {
+        err <- "**\nThe tree listed is not available. Please provide another name.\n**"
+        return(add_class(err, "dtree"))
+      }
       yl$variables <-
         getdata(yl$variables) %>%
         dtree_parser %>%
