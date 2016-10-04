@@ -366,7 +366,7 @@ summary.logistic <- function(object,
 #' @details See \url{http://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{logistic}}
-#' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "hist" shows histograms of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" is a series of four plots used to visually evaluate model. "coef" provides a coefficient plot
+#' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" is a series of four plots used to visually evaluate model. "coef" provides a coefficient plot
 #' @param conf_lev Confidence level to use for coefficient and odds confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
 #' @param shiny Did the function call originate inside a shiny app
@@ -413,7 +413,7 @@ plot.logistic <- function(x,
   ## use orginal data rather than the logical used for estimation
   model[[rvar]] <- object$rv
 
-  if ("hist" %in% plots) {
+  if ("dist" %in% plots) {
     for (i in vars)
       plot_list[[i]] <- visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
   }

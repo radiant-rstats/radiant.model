@@ -10,7 +10,7 @@
 \arguments{
 \item{x}{Return value from \code{\link{regress}}}
 
-\item{plots}{Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "hist" to show histograms of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals. "leverage" to show leverage plots for each explanatory variable}
+\item{plots}{Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "dist" to shows histograms (or frequency bar plots) of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals. "leverage" to show leverage plots for each explanatory variable}
 
 \item{lines}{Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line","loess")}
 
@@ -34,7 +34,7 @@ See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example
 result <- regress("diamonds", "price", c("carat","clarity"))
 plot(result, plots = "dashboard", lines = c("line","loess"))
 plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
-plot(result, plots = "hist")
+plot(result, plots = "dist")
 plot(result, plots = "scatter", lines = c("line","loess"))
 plot(result, plots = "correlations")
 plot(result, plots = "resid_pred", lines = "line")

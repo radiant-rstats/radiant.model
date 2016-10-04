@@ -9,7 +9,7 @@ reg_check <- c("Standardize" = "standardize", "Center" = "center",
 reg_sum_check <- c("RMSE" = "rmse", "Sum of squares" = "sumsquares",
                    "VIF" = "vif", "Confidence intervals" = "confint")
 reg_lines <- c("Line" = "line", "Loess" = "loess", "Jitter" = "jitter")
-reg_plots <- c("None" = "", "Histograms" = "hist",
+reg_plots <- c("None" = "", "Distribution" = "dist",
                "Correlations" = "correlations", "Scatter" = "scatter",
                "Dashboard" = "dashboard",
                "Residual vs explanatory" = "resid_pred",
@@ -248,7 +248,7 @@ reg_plot <- reactive({
   plot_width <- 650
   nrVars <- length(input$reg_evar) + 1
 
-  if (input$reg_plots == "hist") plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
+  if (input$reg_plots == "dist") plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
   if (input$reg_plots == "dashboard") plot_height <- 1.5 * plot_height
   if (input$reg_plots == "correlations") { plot_height <- 150 * nrVars; plot_width <- 150 * nrVars }
   if (input$reg_plots == "coef") plot_height <- 300 + 20 * length(.regress()$model$coefficients)

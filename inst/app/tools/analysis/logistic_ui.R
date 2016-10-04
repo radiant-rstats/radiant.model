@@ -5,7 +5,7 @@ logit_check <- c("Standardize" = "standardize", "Center" = "center",
                "Stepwise" = "stepwise")
 logit_sum_check <- c("VIF" = "vif", "Confidence intervals" = "confint",
                    "Odds" = "odds")
-logit_plots <- c("None" = "", "Histograms" = "hist",
+logit_plots <- c("None" = "", "Distribution" = "dist",
                  "Correlations" = "correlations", "Scatter" = "scatter",
                  "Model fit" = "fit", "Coefficient plot" = "coef")
 
@@ -273,7 +273,7 @@ logit_plot <- reactive({
   plot_width <- 650
   nrVars <- length(input$logit_evar) + 1
 
-  if (input$logit_plots == 'hist') plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
+  if (input$logit_plots == 'dist') plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
   if (input$logit_plots == 'fit') plot_width <- 1.5 * plot_width
   if (input$logit_plots == "correlations") { plot_height <- 150 * nrVars; plot_width <- 150 * nrVars }
   if (input$logit_plots == 'scatter') plot_height <- 300 * nrVars
