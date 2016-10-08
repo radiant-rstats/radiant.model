@@ -590,12 +590,11 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", s
                    tooltip = data.tree::Get(trv, ToolTip))
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
-  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip))
+  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% na.omit %>% unique
 
   ## use LR or TD
-  paste(paste0("graph ", orient), paste( paste0(df$from, df$edge, df$to), collapse = "\n"),
-    paste(unique(na.omit(ttip)), collapse = "\n"),
-    style, sep = "\n") %>%
+  paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
+    paste(ttip, collapse = "\n"), style, sep = "\n") %>%
     ## address image size in pdf
     DiagrammeR::mermaid(., width = "100%")
     # DiagrammeR::DiagrammeR(.)
