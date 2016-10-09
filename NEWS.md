@@ -8,3 +8,4 @@
 - Multiple tooltips in sequence in Decision Analysis
 - Decision Analysis plot size in PDF was too small
 - Replace histogram by distribution in regression plots
+- Fix bug in regex for overlapping labels in variables section of Model > Decision Analysis

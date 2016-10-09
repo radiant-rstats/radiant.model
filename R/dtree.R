@@ -231,11 +231,11 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     vn <- names(vars)
 
     if (length(vn) > 1) {
-      ret <- sapply(vn, function(x) grepl(x, vn)) %>% set_rownames(vn)
-      prob <- colSums(ret) > 1
-      if (any(prob)) {
+      ret <- sapply(vn, function(x) grepl(x, vn, fixed = TRUE)) %>% set_rownames(vn)
+      overlap <- colSums(ret) > 1
+      if (any(overlap)) {
         cat("Some of the variable labels overlap. Each label should be unique\nand not be part of another label. An easy fix may be to use\nsomewhat longer labels (e.g., success instead of S). To use\nsearch-and-replace in the editor press CTRL-F (CMD-F on mac) twice.\n\n")
-        ret <- ret[,prob, drop = FALSE]
+        ret <- ret[,overlap, drop = FALSE]
         for (i in 1:ncol(ret)) {
           tmp <- names(ret[ret[,i],i])
           cat(tmp[1], "is part of", paste0(tail(tmp,-1), collapse = ", "), "\n")
