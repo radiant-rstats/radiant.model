@@ -58,6 +58,9 @@ regress <- function(dataset, rvar, evar,
     ## using backward stepwise selection
     model <- lm(form, data = dat) %>%
       step(k = 2, scope = list(upper = form), direction = "backward")
+
+    ## adding full data even if all variables are not significant
+    model$model <- dat
   } else {
     model <- lm(form, data = dat)
   }
@@ -69,6 +72,7 @@ regress <- function(dataset, rvar, evar,
   }
 
   coeff <- tidy(model)
+
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   colnames(coeff) <- c("  ","coefficient","std.error","t.value","p.value"," ")
   isFct <- sapply(select(dat,-1), function(x) is.factor(x) || is.logical(x))
@@ -142,7 +146,6 @@ summary.regress <- function(object,
   }
 
   coeff <- object$coeff
-  # object$coeff$p.value <- "NaN"
   cat("\n")
   if (all(object$coeff$p.value == "NaN")) {
     coeff[,2] %<>% {sprintf(paste0("%.",dec,"f"),.)}
@@ -161,6 +164,9 @@ summary.regress <- function(object,
 
   ## adjusting df for included intercept term
   df_int <- if (attr(object$model$terms, "intercept")) 1L else 0L
+
+  ## if stepwise returns only an intercept
+  if (nrow(coeff) == 1) return("\nModel contains only an intercept. No additional output shown")
 
   reg_fit <- glance(object$model) %>% round(dec)
   if (reg_fit['p.value'] < .001) reg_fit['p.value'] <- "< .001"
@@ -212,7 +218,7 @@ summary.regress <- function(object,
           { if (nrow(.) < 8) t(.) else . } %>%
           print
       } else {
-        cat("Insufficient explanatory variables to calculate\nmulticollinearity diagnostics (VIF)")
+        cat("Insufficient number of explanatory variables to calculate\nmulticollinearity diagnostics (VIF)\n")
       }
     }
     cat("\n")
@@ -388,6 +394,8 @@ plot.regress <- function(x, plots = "",
   }
 
   if ("coef" %in% plots) {
+
+    if (nrow(object$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
 
     yl <- if ("standardize" %in% object$check) "Coefficient (standardized)" else "Coefficient"
 
@@ -696,12 +704,12 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
 
   if (n == -1) {
     cat("\n")
-    formatdf(x[,vars], attr(x, "dec")) %>% print(row.names = FALSE)
+    formatdf(x[,vars, drop = FALSE], attr(x, "dec")) %>% print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
       cat("Rows shown           :", n, "\n")
     cat("\n")
-    head(x[,vars], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
+    head(x[,vars, drop = FALSE], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
   }
 }
 

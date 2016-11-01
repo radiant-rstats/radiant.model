@@ -92,6 +92,9 @@ logistic <- function(dataset, rvar, evar,
     # model <- sshhr(glm(as.formula(paste(rvar, "~ 1")), weights = wts,
     model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
              step(k = 2, scope = list(upper = form), direction = "backward")
+
+    ## adding full data even if all variables are not significant
+    model$model <- dat
   } else {
     model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat))
   }
@@ -240,7 +243,7 @@ summary.logistic <- function(object,
           { if (nrow(.) < 8) t(.) else . } %>%
           print
       } else {
-        cat("Insufficient number of explanatory variables selected to calculate\nmulticollinearity diagnostics")
+        cat("Insufficient number of explanatory variables to calculate\nmulticollinearity diagnostics (VIF)\n")
       }
     }
     cat("\n")
@@ -420,9 +423,7 @@ plot.logistic <- function(x,
 
   if ("coef" %in% plots) {
 
-    ## no plots if aliased coefficients present
-    # if (anyNA(object$model$coeff))
-      # return("Model has missing coefficient(s) because the set of explanatory variables\nexhibit perfect multicollinearity. No plot shown.")
+    if (nrow(object$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
 
     yl <-
       {if (sum(c("standardize","center") %in% object$check) == 2) {
