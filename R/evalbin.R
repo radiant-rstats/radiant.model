@@ -78,7 +78,7 @@ evalbin <- function(dataset, pred, rvar,
 	  if (lev == "") {
 	  	lev <- levs[1]
 	  } else {
-	  	if (!lev %in% levs) return(add_class("", "evalbin"))
+	  	if (!lev %in% levs) return(add_class("Level provided not found", "evalbin"))
 	  }
 
 	  ## transformation to TRUE/FALSE depending on the selected level (lev)
@@ -92,7 +92,7 @@ evalbin <- function(dataset, pred, rvar,
 
 	  for (j in seq_along(pred)) {
 	  	pname <- paste0(pred[j], pext[i])
-	  	auc_list[[pname]] <- auc(dat[[pred[j]]],dat[[rvar]], TRUE)[["W"]]
+	  	auc_list[[pname]] <- auc(dat[[pred[j]]],dat[[rvar]], TRUE)
 	  	lg_list[[pname]] <-
 			  dat %>%
 			  select_(.dots = c(pred[j],rvar)) %>%
@@ -446,7 +446,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' auc(mtcars$mpg, mtcars$vs, 1)
+#' auc(runif(nrow(mtcars)), mtcars$vs, 1)
 #'
 #' @export
 auc <- function(pred, rvar, lev) {
@@ -458,5 +458,5 @@ auc <- function(pred, rvar, lev) {
   ## need as.numeric to avoid integer-overflows
  	denom <- as.numeric(length(x1)) * length(x2)
 	wt <- wilcox.test(x1, x2, exact = FALSE)$statistic / denom
-	ifelse (wt < .5, 1 - wt, wt)
+	ifelse (wt < .5, 1 - wt, wt)[["W"]]
 }

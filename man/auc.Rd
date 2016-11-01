@@ -23,7 +23,7 @@ Area Under the Curve (AUC)
 See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
-auc(mtcars$mpg, mtcars$vs, 1)
+auc(runif(nrow(mtcars)), mtcars$vs, 1)
 
 }
 \seealso{
