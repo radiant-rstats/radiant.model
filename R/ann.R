@@ -172,7 +172,7 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
 #' result <- ann("titanic", "survived", "pclass", lev = "Yes")
 #' summary(result)
 #'
-#' @seealso \code{\link{ann}} to generate esults
+#' @seealso \code{\link{ann}} to generate results
 #' @seealso \code{\link{plot.ann}} to plot results
 #' @seealso \code{\link{predict.ann}} for prediction
 #'
@@ -254,12 +254,8 @@ plot.ann <- function(x, shiny = FALSE, ...) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
-#'  predict(result, pred_cmd = "pclass = levels(pclass)")
-#' logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") %>%
-#'   predict(pred_cmd = "sex = c('male','female')")
-#' logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") %>%
-#'  predict(pred_data = "titanic")
+#' result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' predict(result, pred_cmd = "pclass = levels(pclass)")
 #'
 #' @seealso \code{\link{ann}} to generate the result
 #' @seealso \code{\link{summary.ann}} to summarize results
@@ -282,7 +278,7 @@ predict.ann <- function(object,
     pred_val
   }
 
-  predict.model(object, pfun, "ann.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "ann.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Print method for predict.ann
@@ -293,7 +289,7 @@ predict.ann <- function(object,
 #'
 #' @export
 print.ann.predict <- function(x, ..., n = 10)
-  print.model.predict(x, ..., n = n, header = "Artificial Neural Network (ANN)")
+  print_predict_model(x, ..., n = n, header = "Artificial Neural Network (ANN)")
 
 #' Deprecated function to store predictions from an ANN
 #'
