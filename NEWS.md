@@ -1,6 +1,8 @@
-# CHANGES IN radiant.model VERSION 0.6.5 (unreleased)
+# CHANGES IN radiant.model VERSION 0.6.6 (unreleased)
 
 ## NEW FEATURES
+
+- Added Model > Naive Bayes based on e1071
 
 ## BUG FIXES
 
@@ -10,3 +12,5 @@
 - Replace histogram by distribution in regression plots
 - Fix bug in regex for overlapping labels in variables section of Model > Decision Analysis
 - Fixes for model with only an intercept (e.g., after stepwise regression)
+- Update Predict settings when dataset is changed
+- Fix for predict when using center or standardize with a command to generate the predictions
