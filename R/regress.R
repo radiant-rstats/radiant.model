@@ -6,7 +6,7 @@
 #' @param rvar The response variable in the regression
 #' @param evar Explanatory variables in the regression
 #' @param int Interaction terms to include in the model
-#' @param check "standardize" to see standardized coefficient estimates. "stepwise" to apply step-wise selection of variables in estimation
+#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list of all variables variables used in the regress function as an object of class regress
@@ -50,19 +50,30 @@ regress <- function(dataset, rvar, evar,
     }
   }
 
-  form <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
-
-  if ("stepwise" %in% check) {
+  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
+  form_lower <- paste(rvar, "~ 1") %>% as.formula
+  if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
+  if ("stepwise-backward" %in% check) {
     ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
-    # model <- lm(paste(rvar, "~ 1") %>% as.formula, data = dat) %>%
-    ## using backward stepwise selection
-    model <- lm(form, data = dat) %>%
-      step(k = 2, scope = list(upper = form), direction = "backward")
+    model <- lm(form_upper, data = dat) %>%
+      step(k = 2, scope = list(lower = form_lower), direction = "backward")
+
+    ## adding full data even if all variables are not significant
+    model$model <- dat
+  } else if ("stepwise-forward" %in% check) {
+    model <- lm(form_lower, data = dat) %>%
+      step(k = 2, scope = list(upper = form_upper), direction = "forward")
+
+    ## adding full data even if all variables are not significant
+    model$model <- dat
+  } else if ("stepwise-both" %in% check) {
+    model <- lm(form_lower, data = dat) %>%
+      step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
 
     ## adding full data even if all variables are not significant
     model$model <- dat
   } else {
-    model <- lm(form, data = dat)
+    model <- lm(form_upper, data = dat)
   }
 
   ## needed for prediction if standardization or centering is used
@@ -124,10 +135,13 @@ summary.regress <- function(object,
   if (is.character(object)) return(object)
   if (class(object$model)[1] != 'lm') return(object)
 
-  if ("stepwise" %in% object$check) {
-    cat("-----------------------------------------------\n")
-    cat("Backward stepwise selection of variables\n")
-    cat("-----------------------------------------------\n")
+  if (any(grepl("stepwise", object$check))) {
+    step_type <- if ("stepwise-backward" %in% object$check) "Backward"
+      else if ("stepwise-forward" %in% object$check) "Forward"
+      else "Forward and Backward"
+    cat("----------------------------------------------------\n")
+    cat(step_type, "stepwise selection of variables\n")
+    cat("----------------------------------------------------\n")
   }
 
   cat("Linear regression (OLS)\n")
@@ -244,7 +258,7 @@ summary.regress <- function(object,
   }
 
   if (!is.null(test_var) && test_var[1] != "") {
-    if ("stepwise" %in% object$check) {
+    if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
       sub_form <- ". ~ 1"
@@ -497,7 +511,7 @@ predict.regress <- function(object,
     pred_val
   }
 
-  predict.model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Predict method for model functions
@@ -517,7 +531,7 @@ predict.regress <- function(object,
 #' @importFrom radiant.data set_attr
 #'
 #' @export
-predict.model <- function(object, pfun, mclass,
+predict_model <- function(object, pfun, mclass,
                           pred_data = "",
                           pred_cmd = "",
                           conf_lev = 0.95,
@@ -530,22 +544,34 @@ predict.model <- function(object, pfun, mclass,
   if (is_empty(pred_data) && is_empty(pred_cmd))
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
 
-  # if ("standardize" %in% object$check)
-  #   return("Standardized coefficients will not be used for prediction.\nPlease uncheck the 'standardize' box and try again")
-
-  # if ("center" %in% object$check)
-  #   return("Centered coefficients will not be used for prediction.\nPlease uncheck the 'center' box and try again")
-
   pred_type <- "cmd"
   vars <- object$evar
   if (is_empty(pred_data) && !is_empty(pred_cmd)) {
+
+    dat <- object$model$model
+    if ("center" %in% object$check) {
+      ms <- attr(object$model$model, "ms")
+      if (!is.null(ms))
+        dat <- mutate_each_(dat, funs(. + ms$.), vars = names(ms))
+
+    } else if ("standardize" %in% object$check) {
+      ms <- attr(object$model$model, "ms")
+      sds <- attr(object$model$model,"sds")
+      if (!is.null(ms) && !is.null(sds))
+        dat <- mutate_each_(dat, funs(. * 2 * sds$. + ms$.), vars = names(ms))
+    }
+
     pred_cmd %<>% gsub("\"","\'",.) %>% gsub(";\\s*$","",.) %>% gsub(";",",",.)
-    pred <- try(eval(parse(text = paste0("with(object$model$model, expand.grid(", pred_cmd ,"))"))), silent = TRUE)
+    pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd ,"))"))), silent = TRUE)
     if (is(pred, 'try-error'))
       return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
 
     # adding information to the prediction data.frame
-    dat_classes <- attr(object$model$term, "dataClasses")[-1]
+    dat <- select_(dat, .dots = vars)
+    if (!is.null(object$model$term))
+      dat_classes <- attr(object$model$term, "dataClasses")[-1]
+    else
+      dat_classes <- getclass(dat)
 
     ## weights mess-up data manipulation below so remove from
     wid <- which(names(dat_classes) %in% "(weights)")
@@ -554,7 +580,6 @@ predict.model <- function(object, pfun, mclass,
     isFct <- dat_classes == "factor"
     isLog <- dat_classes == "logical"
     isNum <- dat_classes == "numeric"
-    dat <- select_(object$model$model, .dots = vars)
 
     # based on http://stackoverflow.com/questions/19982938/how-to-find-the-most-frequent-values-across-several-columns-containing-factors
     max_freq <- function(x) names(which.max(table(x)))
@@ -632,7 +657,7 @@ predict.model <- function(object, pfun, mclass,
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
       if (!is.null(ms))
-        pred_val[["Prediction"]] <- pred_val[["Prediction"]]  + ms
+        pred_val[["Prediction"]] <- pred_val[["Prediction"]] + ms
     } else if ("standardize" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
       sds <- attr(object$model$model,"sds")[[object$rvar]]
@@ -643,7 +668,7 @@ predict.model <- function(object, pfun, mclass,
     pred <- data.frame(pred, pred_val, check.names = FALSE)
     vars <- colnames(pred)
 
-    if ("stepwise" %in% object$check) {
+    if (any(grepl("stepwise", object$check))) {
       ## show only the selected variables when printing predictions
       object$evar <- attr(terms(object$model), "variables") %>% as.character %>% .[-c(1,2)]
       vars <- c(object$evar, colnames(pred_val))
@@ -675,13 +700,14 @@ predict.model <- function(object, pfun, mclass,
 #' @param lev The level in the response variable defined as _success_ for classification models
 #'
 #' @export
-print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
+print_predict_model <- function(x, ..., n = 10, header = "", lev = "") {
 
+  class(x) <- "data.frame"
   data_filter <- attr(x, "data_filter")
   vars <- attr(x, "vars")
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
-  pred_cmd <- gsub("([=+-/*])", " \\1 ", attr(x, "pred_cmd")) %>% gsub("([;])", "\\1 ", .)
+  pred_cmd <- gsub("([\\=\\+\\*-])", " \\1 ", attr(x, "pred_cmd")) %>% gsub("([;,])", "\\1 ", .)
 
   cat(header)
   cat("\nData                 :", attr(x, "dataset"), "\n")
@@ -721,7 +747,7 @@ print.model.predict <- function(x, ..., n = 10, header = "", lev = "") {
 #'
 #' @export
 print.regress.predict <- function(x, ..., n = 10)
-  print.model.predict(x, ..., n = n, header = "Linear regression (OLS)")
+  print_predict_model(x, ..., n = n, header = "Linear regression (OLS)")
 
 #' Plot method for model.predict functions
 #'
