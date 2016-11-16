@@ -160,7 +160,7 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 		if (object$data_filter %>% gsub("\\s","",.) != "")
 			cat("Filter      :", gsub("\\n","", object$data_filter), "\n")
 		cat("Results for :", object$train, "\n")
-		cat("Perdictors  :", paste0(object$pred, collapse=", "), "\n")
+		cat("Predictors  :", paste0(object$pred, collapse=", "), "\n")
 		cat("Response    :", object$rvar, "\n")
 	  cat("Level       :", object$lev, "in", object$rvar, "\n")
 		cat("Bins        :", object$qnt, "\n")
@@ -452,6 +452,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 auc <- function(pred, rvar, lev) {
  	## based on examples in colAUC at ...
  	## https://cran.r-project.org/web/packages/caTools/caTools.pdf
+ 	if (missing(lev) && is.factor(rvar)) lev <- levels(rvar)[1]
  	stopifnot(length(lev) == 1, lev %in% rvar)
  	x1 <- pred[rvar == lev]
   x2 <- pred[rvar != lev]

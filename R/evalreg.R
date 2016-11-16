@@ -75,7 +75,7 @@ summary.evalreg <- function(object, ...) {
 	if (object$data_filter %>% gsub("\\s","",.) != "")
 		cat("Filter      :", gsub("\\n","", object$data_filter), "\n")
 	cat("Results for :", object$train, "\n")
-	cat("Perdictors  :", paste0(object$pred, collapse=", "), "\n")
+	cat("Predictors  :", paste0(object$pred, collapse=", "), "\n")
 	cat("Response    :", object$rvar, "\n\n")
 	print(formatdf(object$dat), row.names = FALSE)
 }
