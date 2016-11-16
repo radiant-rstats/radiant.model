@@ -2,10 +2,9 @@
 # Regression - UI
 ################################################################
 reg_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
-# reg_predict <- c("None" = "none", "Variable" = "vars", "Data" = "data","Command" = "cmd")
 reg_predict <- c("None" = "none", "Data" = "data","Command" = "cmd", "Data & Command" = "datacmd")
 reg_check <- c("Standardize" = "standardize", "Center" = "center",
-               "Stepwise" = "stepwise")
+               "Stepwise" = "stepwise-backward")
 reg_sum_check <- c("RMSE" = "rmse", "Sum of squares" = "sumsquares",
                    "VIF" = "vif", "Confidence intervals" = "confint")
 reg_lines <- c("Line" = "line", "Loess" = "loess", "Jitter" = "jitter")
@@ -142,6 +141,11 @@ output$ui_reg_int <- renderUI({
   selectInput("reg_int", label = NULL, choices = choices,
     selected = state_init("reg_int"),
     multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
+})
+
+## reset prediction settings when the dataset changes
+observeEvent(input$dataset, {
+  updateSelectInput(session = session, inputId = "reg_predict", selected = "none")
 })
 
 output$ui_reg_predict_plot <- renderUI({
@@ -317,19 +321,11 @@ reg_available <- reactive({
 
 .regress <- eventReactive(input$reg_run, {
   req(available(input$reg_rvar), available(input$reg_evar))
-
-  ## need dependency in reg_int so I can have names(input) in isolate
-  # input$reg_int
-  # isolate(req("reg_int" %in% names(input)))
-
-  # req(input$reg_pause == FALSE, cancelOutput = TRUE)
-
   do.call(regress, reg_inputs())
 })
 
 .summary_regress <- reactive({
   if (reg_available() != "available") return(reg_available())
-  # if (input$reg_rvar %in% input$reg_evar) return()
   if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
   do.call(summary, c(list(object = .regress()), reg_sum_inputs()))
 })
@@ -338,10 +334,6 @@ reg_available <- reactive({
   if (reg_available() != "available") return(reg_available())
   if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
   if (is_empty(input$reg_predict, "none")) return("** Select prediction input **")
-  # req(!is_empty(input$reg_predict, "none"))
-     # (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd)))
-  # if (is_empty(input$reg_predict, "none"))
-
   if((input$reg_predict == "data" || input$reg_predict == "datacmd") && is_empty(input$reg_pred_data))
     return("** Select data for prediction **")
   if(input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd))
@@ -395,13 +387,14 @@ observeEvent(input$regress_report, {
   if (!is_empty(input$reg_predict, "none") &&
       (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
-    # pred_args[["prn"]] <- 10
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
-    dataset <- if (input$reg_predict %in% c("data","datacmd")) input$reg_pred_data else input$dataset
-    xcmd <-
-      paste0("print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$reg_store_pred_name,"')\n") %>%
-      paste0("# write.csv(pred, file = '~/reg_predictions.csv', row.names = FALSE)")
+
+    xcmd <- paste0("print(pred, n = 10)")
+    if (input$reg_predict %in% c("data","datacmd"))
+      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$reg_pred_data, "', name = '", input$reg_store_pred_name,"')")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/reg_predictions.csv', row.names = FALSE)")
+
     if (input$reg_pred_plot && !is_empty(input$reg_xvar)) {
       inp_out[[3 + figs]] <- clean_args(reg_pred_plot_inputs(), reg_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"

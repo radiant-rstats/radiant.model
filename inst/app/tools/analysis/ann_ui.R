@@ -95,6 +95,11 @@ output$ui_ann_wts <- renderUI({
     multiple = FALSE)
 })
 
+## reset prediction settings when the dataset changes
+observeEvent(input$dataset, {
+  updateSelectInput(session = session, inputId = "ann_predict", selected = "none")
+})
+
 output$ui_ann_predict_plot <- renderUI({
   predict_plot_controls("ann")
 })
@@ -311,8 +316,7 @@ output$dl_ann_pred <- downloadHandler(
   filename = function() { "ann_predictions.csv" },
   content = function(file) {
     if (pressed(input$ann_run)) {
-      data.frame(pred_ann = predict(.ann(), input$ann_pred_data)) %>%
-        write.csv(file = file, row.names = FALSE)
+      .predict_ann() %>% write.csv(file = file, row.names = FALSE)
     } else {
       cat("No output available. Press the Estimate button to generate results", file = file)
     }
@@ -322,12 +326,9 @@ output$dl_ann_pred <- downloadHandler(
 observeEvent(input$ann_report, {
   outputs <- c("summary")
   inp_out <- list("","")
-  xcmd <- "NeuralNetTools::plotnet(result$model)\n"
-  figs <- FALSE
-  # if (!is_empty(input$ann_plots)) {
-    outputs <- c(outputs, "plot")
-    figs <- TRUE
-  # }
+  xcmd <- "NeuralNetTools::plotnet(result$model)"
+  outputs <- c(outputs, "plot")
+  figs <- TRUE
   if (!is_empty(input$ann_predict, "none") &&
       (!is_empty(input$ann_pred_data) || !is_empty(input$ann_pred_cmd))) {
 
@@ -335,12 +336,11 @@ observeEvent(input$ann_report, {
     inp_out[[2 + figs]] <- pred_args
 
     outputs <- c(outputs,"pred <- predict")
-    dataset <- if (input$ann_predict %in% c("data","datacmd")) input$ann_pred_data else input$dataset
-    xcmd <-
-      paste0(xcmd, "print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$ann_store_pred_name,"')\n") %>%
-      paste0("# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
 
-    if (input$ann_predict == "cmd") xcmd <- "NeuralNetTools::plotnet(result$model)\n"
+    xcmd <- paste0(xcmd, "\nprint(pred, n = 10)")
+    if (input$ann_predict %in% c("data","datacmd"))
+      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$ann_pred_data, "', name = '", input$ann_store_pred_name,"')")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
 
     if (input$ann_pred_plot && !is_empty(input$ann_xvar)) {
       inp_out[[3 + figs]] <- clean_args(ann_pred_plot_inputs(), ann_pred_plot_args[-1])
@@ -359,23 +359,3 @@ observeEvent(input$ann_report, {
                 fig.height = ann_plot_height(),
                 xcmd = xcmd)
 })
-
-# observeEvent(input$ann_report, {
-#   outputs <- c("summary","plot")
-#   inp_out <- list("","")
-#   # xcmd <-
-#   #   paste0("print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$ann_store_pred_name,"')\n") %>%
-#   #   paste0("# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
-#   xcmd <- "NeuralNetTools::plotnet(result$model)\n"
-#   xcmd <- paste0(xcmd, "pred <- predict(result,'", input$ann_pred_data,"')\n")
-#   xcmd <-  paste0(xcmd, "store(pred, data = '", input$ann_pred_data, "', name = '", input$ann_pred_name,"')\n")
-#   xcmd <-  paste0(xcmd, "# write.csv(pred, file = '~/ann_predictions.csv', row.names = FALSE)")
-#   update_report(inp_main = clean_args(ann_inputs(), ann_args),
-#                 fun_name = "ann",
-#                 inp_out = inp_out,
-#                 outputs = outputs,
-#                 figs = TRUE,
-#                 fig.width = ann_plot_width(),
-#                 fig.height = ann_plot_height(),
-#                 xcmd = xcmd)
-# })

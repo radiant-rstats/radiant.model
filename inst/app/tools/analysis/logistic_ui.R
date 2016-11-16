@@ -2,7 +2,7 @@
 logit_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
 logit_predict <- c("None" = "none", "Data" = "data","Command" = "cmd", "Data & Command" = "datacmd")
 logit_check <- c("Standardize" = "standardize", "Center" = "center",
-               "Stepwise" = "stepwise")
+               "Stepwise" = "stepwise-backward")
 logit_sum_check <- c("VIF" = "vif", "Confidence intervals" = "confint",
                    "Odds" = "odds")
 logit_plots <- c("None" = "", "Distribution" = "dist",
@@ -166,6 +166,11 @@ output$ui_logit_int <- renderUI({
 	selectInput("logit_int", label = NULL, choices = choices,
     selected = state_init("logit_int"),
   	multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
+})
+
+## reset prediction settings when the dataset changes
+observeEvent(input$dataset, {
+  updateSelectInput(session = session, inputId = "logit_predict", selected = "none")
 })
 
 output$ui_logit_predict_plot <- renderUI({
@@ -419,12 +424,11 @@ observeEvent(input$logistic_report, {
     inp_out[[2 + figs]] <- pred_args
 
     outputs <- c(outputs,"pred <- predict")
-    dataset <- if (input$logit_predict %in% c("data","datacmd")) input$logit_pred_data else input$dataset
-    xcmd <-
-      paste0("print(pred, n = 10)\nstore(pred, data = '", dataset, "', name = '", input$logit_store_pred_name,"')\n") %>%
-      paste0("# write.csv(pred, file = '~/logit_predictions.csv', row.names = FALSE)")
 
-    if (input$logit_predict == "cmd") xcmd <- ""
+    xcmd <- paste0("print(pred, n = 10)")
+    if (input$logit_predict %in% c("data","datacmd"))
+      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$logit_pred_data, "', name = '", input$logit_store_pred_name,"')")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/logit_predictions.csv', row.names = FALSE)")
 
     if (input$logit_pred_plot && !is_empty(input$logit_xvar)) {
       inp_out[[3 + figs]] <- clean_args(logit_pred_plot_inputs(), logit_pred_plot_args[-1])
