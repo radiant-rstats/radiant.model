@@ -4,6 +4,10 @@ r_url_list[["Linear regression (OLS)"]] <-
   list("tabs_regress" = list("Summary" = "model/regress/",
                              "Predict" = "model/regress/predict/",
                              "Plot"    = "model/regress/plot/"))
+r_url_list[["Naive Bayes"]] <-
+  list("tabs_nb" = list("Summary" = "model/nb/",
+                        "Predict" = "model/nb/predict/",
+                        "Plot"    = "model/nb/plot/"))
 r_url_list[["Logistic regression (GLM)"]] <-
   list("tabs_logistic" = list("Summary" = "model/logistic/",
                               "Predict" = "model/logistic/predict/",
@@ -11,7 +15,7 @@ r_url_list[["Logistic regression (GLM)"]] <-
 r_url_list[["Neural Network (ANN)"]] <-
   list("tabs_ann" = list("Summary" = "model/ann/",
                          "Predict" = "model/ann/predict/",
-                         "Plot" = "model/ann/plot/"))
+                         "Plot"    = "model/ann/plot/"))
 # r_url_list[["Collaborative Filtering"]] <-
   # list("tabs_crs" = list("Summary" = "model/crs/", "Plot" = "model/crs/plot/"))
 r_url_list[["Evaluate regression"]] <-
@@ -33,6 +37,7 @@ options(radiant.model_ui =
       tabPanel("Linear regression (OLS)", uiOutput("regress")),
       tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
       tabPanel("Neural Network (ANN)", uiOutput("ann")),
+      tabPanel("Naive Bayes", uiOutput("nb")),
       # "----", "Recommend",
       # tabPanel("Collaborative Filtering", uiOutput("crs")),
       "----", "Evaluate",

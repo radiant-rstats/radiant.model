@@ -1,6 +1,7 @@
 help_model <- c("Linear regression (OLS)" = "regress.Rmd",
                 "Logistic regression (GLM)" = "logistic.Rmd",
                 "Neural Network (ANN)" = "ann.md",
+                "Naive Bayes" = "nb.md",
                 # "Collaborative filtering" = "crs.md",
                 "Evaluate regression" = "evalreg.md",
                 "Evaluate classification" = "evalbin.md",
