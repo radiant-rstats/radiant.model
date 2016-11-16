@@ -20,7 +20,7 @@ logistic(dataset, rvar, evar, lev = "", int = "", wts = "None",
 
 \item{wts}{Weights to use in estimation}
 
-\item{check}{Optional estimation parameters. "standardize" to output standardized coefficient estimates. "stepwise" to apply step-wise selection of variables}
+\item{check}{Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 }

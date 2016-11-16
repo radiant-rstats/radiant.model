@@ -29,12 +29,8 @@ Predict method for the ann function
 See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 }
 \examples{
-result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
- predict(result, pred_cmd = "pclass = levels(pclass)")
-logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") \%>\%
-  predict(pred_cmd = "sex = c('male','female')")
-logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") \%>\%
- predict(pred_data = "titanic")
+result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
+predict(result, pred_cmd = "pclass = levels(pclass)")
 
 }
 \seealso{

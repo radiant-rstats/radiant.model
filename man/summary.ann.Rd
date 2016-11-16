@@ -23,7 +23,7 @@ summary(result)
 
 }
 \seealso{
-\code{\link{ann}} to generate esults
+\code{\link{ann}} to generate results
 
 \code{\link{plot.ann}} to plot results
 
