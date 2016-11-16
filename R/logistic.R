@@ -8,7 +8,7 @@
 #' @param lev The level in the response variable defined as _success_
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
-#' @param check Optional estimation parameters. "standardize" to output standardized coefficient estimates. "stepwise" to apply step-wise selection of variables
+#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
@@ -85,18 +85,30 @@ logistic <- function(dataset, rvar, evar,
     dat <- scaledf(dat, scale = FALSE, wts = wts)
   }
 
-  form <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
-
-  if ("stepwise" %in% check) {
+  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
+  form_lower <- paste(rvar, "~ 1") %>% as.formula
+  if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
+  if ("stepwise-backward" %in% check) {
     ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
-    # model <- sshhr(glm(as.formula(paste(rvar, "~ 1")), weights = wts,
-    model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
-             step(k = 2, scope = list(upper = form), direction = "backward")
+    model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
+      step(k = 2, scope = list(lower = form_lower), direction = "backward")
+
+    ## adding full data even if all variables are not significant
+    model$model <- dat
+  } else if ("stepwise-forward" %in% check) {
+    model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
+      step(k = 2, scope = list(upper = form_upper), direction = "forward")
+
+    ## adding full data even if all variables are not significant
+    model$model <- dat
+  } else if ("stepwise-both" %in% check) {
+    model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
+      step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
 
     ## adding full data even if all variables are not significant
     model$model <- dat
   } else {
-    model <- sshhr(glm(form, weights = wts, family = binomial(link = "logit"), data = dat))
+    model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dat))
   }
 
   ## needed for prediction if standardization or centering is used
@@ -173,11 +185,15 @@ summary.logistic <- function(object,
   if (is.character(object)) return(object)
   if (class(object$model)[1] != 'glm') return(object)
 
-  if ("stepwise" %in% object$check) {
-    cat("-----------------------------------------------\n")
-    cat("Backward stepwise selection of variables\n")
-    cat("-----------------------------------------------\n")
+  if (any(grepl("stepwise", object$check))) {
+    step_type <- if ("stepwise-backward" %in% object$check) "Backward"
+      else if ("stepwise-forward" %in% object$check) "Forward"
+      else "Forward and Backward"
+    cat("----------------------------------------------------\n")
+    cat(step_type, "stepwise selection of variables\n")
+    cat("----------------------------------------------------\n")
   }
+
   cat("Logistic regression (GLM)")
   cat("\nData                 :", object$dataset)
   if (object$data_filter %>% gsub("\\s","",.) != "")
@@ -294,7 +310,7 @@ summary.logistic <- function(object,
   }
 
   if (!is_empty(test_var)) {
-    if ("stepwise" %in% object$check) {
+    if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
       # sub_form <- ". ~ 1"
@@ -564,7 +580,7 @@ predict.logistic <- function(object,
     pred_val
   }
 
-  predict.model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Print method for logistic.predict
@@ -575,7 +591,7 @@ predict.logistic <- function(object,
 #'
 #' @export
 print.logistic.predict <- function(x, ..., n = 10) {
-  print.model.predict(x, ..., n = n,
+  print_predict_model(x, ..., n = n,
                       header = "Logistic regression (GLM)",
                       lev = attr(x, "lev"))
 }
