@@ -4,5 +4,11 @@ warnings_are_errors: true
 sudo: required
 dist: trusty
 
+repos:
+  minicran: https://radiant-rstats.github.io/minicran
+  CRAN: https://cloud.r-project.org
+
 r_github_packages:
+  - radiant-rstats/radiant.data
+  - radiant-rstats/radiant.basics
   - kevinushey/sourcetools
