@@ -5,7 +5,6 @@
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the logit (probit) model
 #' @param evar Explanatory variables in the model
-#' @param lev The level in the response variable defined as _success_
 #' @param laplace	Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
@@ -21,7 +20,7 @@
 #' @importFrom e1071 naiveBayes
 #'
 #' @export
-nb <- function(dataset, rvar, evar, lev = "", laplace = 0, data_filter = "") {
+nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
 
   if (rvar %in% evar)
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -38,9 +37,7 @@ nb <- function(dataset, rvar, evar, lev = "", laplace = 0, data_filter = "") {
 
   ## make sure the dv is a factor
   if (!is.factor(dat[[1]])) dat <- as_factor(dat[[1]])
-
-  # levs <- if (is.factor(dat[[1]])) levels(dat[[1]]) else levels(as_factor(dat[[1]]))
-  levs <- levels(dat[[1]])
+  lev <- levels(dat[[1]])
 
   ## estimate using e1071
   form <- paste0(rvar, " ~ ", paste0(evar, collapse = "+")) %>% as.formula
@@ -81,14 +78,15 @@ summary.nb <- function(object, dec = 3, ...) {
 
   if (is.character(object)) return(object)
 
-  cat("Naive Bayes Classifier\n")
+  cat("Naive Bayes Classifier")
   cat("\nData                 :", object$dataset)
   if (object$data_filter %>% gsub("\\s","",.) != "")
     cat("\nFilter               :", gsub("\\n","", object$data_filter))
   cat("\nResponse variable    :", object$rvar)
-  cat("\nLevels               :", paste0(object$levs, collapse = ", "), "in", object$rvar)
-  cat("\nExplanatory variables:", paste0(object$evar, collapse=", "),"\n")
-    cat("Nr obs               :", formatnr(nrow(object$model$model), dec = 0), "\n")
+  cat("\nLevels               :", paste0(object$lev, collapse = ", "), "in", object$rvar)
+  cat("\nExplanatory variables:", paste0(object$evar, collapse = ", "))
+  cat("\nLaplace              :", object$laplace)
+  cat("\nNr obs               :", formatnr(nrow(object$model$model), dec = 0), "\n")
 
   cat("\nA-priori probabilities:\n")
   apriori <- object$model$apriori %>% {. / sum(.)}
@@ -129,7 +127,7 @@ plot.nb <- function(x, shiny = FALSE, ...) {
 
   x <- mutate_each(object$model$model[,-1, drop = FALSE], funs(as_numeric))
   y <- object$model$model[[1]]
-  k <- length(object$levs)
+  k <- length(object$lev)
 
   if (k == 2) {
     ## with two variables one of them would be set to 0 by caret::varImp
@@ -142,7 +140,7 @@ plot.nb <- function(x, shiny = FALSE, ...) {
       ylab("Variable Importance (AUC)")
   } else {
 
-    cmb <- combn(object$levs, 2)
+    cmb <- combn(object$lev, 2)
     vimp <- matrix(NA, ncol(cmb), ncol(x))
 
     for (i in 1:ncol(cmb)) {
@@ -196,8 +194,22 @@ predict.nb <- function(object,
                        dec = 3,
                        ...) {
 
+  if (is.character(object)) return(object)
   pfun <- function(model, pred, se, conf_lev) {
-    pred_val <- try(sshhr(predict(object$model, pred, type = "raw")), silent = TRUE)
+
+    ## need to make sure levels in original data and pred are the same
+    ## as predict.naiveBayes relies on this ordering
+    set_levels <- function(name) {
+      if (!is.null(model$model[[name]]) && is.factor(model$model[[name]])) {
+        levs <- levels(model$model[[name]])
+        levs_pred <- levels(pred[[name]])
+        if (is.null(levs_pred) || !all(levs == levs_pred))
+          pred[[name]] <<- factor(pred[[name]], levels = levs)
+      }
+    }
+
+    fix <- sapply(colnames(pred), set_levels)
+    pred_val <- try(sshhr(predict(model, pred, type = "raw")), silent = TRUE)
 
     if (!is(pred_val, 'try-error')) {
       pred_val %<>% as.data.frame
@@ -221,8 +233,7 @@ predict.nb <- function(object,
 #'
 #' @export
 print.nb.predict <- function(x, ..., n = 10) {
-  print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier")
-  # radiant.model:::print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier")
+  print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier", lev = attr(x, "lev"))
 }
 
 #' Plot method for nb.predict function
@@ -252,6 +263,9 @@ plot.nb.predict <- function(x, xvar = "",
 
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
+
+  if (facet_col != "." && facet_row == facet_col)
+    return("The same variable cannot be used for both Facet row and Facet column")
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
@@ -340,6 +354,7 @@ predict.naiveBayes <- function(object,
                                threshold = 0.001,
                                eps = 0,
                                ...) {
+
     type <- match.arg(type)
     newdata <- as.data.frame(newdata)
     attribs <- match(names(object$tables), names(newdata))

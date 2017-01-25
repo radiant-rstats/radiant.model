@@ -109,8 +109,9 @@ output$ui_nb <- renderUI({
       )
     ),
     wellPanel(
-	    uiOutput("ui_nb_rvar"),
-	    uiOutput("ui_nb_evar")
+      uiOutput("ui_nb_rvar"),
+      uiOutput("ui_nb_evar"),
+      numericInput("nb_laplace", label = "Laplace:", min = 0, value = state_init("nb_laplace",0))
     ),
   	help_and_report(modal_title = "Naive Bayes",
   	                fun_name = "nb",
