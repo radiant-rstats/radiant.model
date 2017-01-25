@@ -59,7 +59,7 @@ output$ui_evalreg <- renderUI({
       uiOutput("ui_ereg_pred"),
       uiOutput("ui_ereg_train")
   	),
-  	help_and_report(modal_title = "Model evalreg",
+  	help_and_report(modal_title = "Evaluate regressions",
   	                fun_name = "evalreg",
   	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalreg.md")))
 	)
