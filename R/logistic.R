@@ -1,9 +1,9 @@
-#' Generalized linear models (GLM)
+#' Logistic regression
 #'
 #' @details See \url{http://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
-#' @param rvar The response variable in the logit (probit) model
+#' @param rvar The response variable in the model
 #' @param evar Explanatory variables in the model
 #' @param lev The level in the response variable defined as _success_
 #' @param int Interaction term to include in the model
@@ -555,12 +555,13 @@ predict.logistic <- function(object,
                              dec = 3,
                              ...) {
 
+ if (is.character(object)) return(object)
  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <-
       try(sshhr(
-        predict(object$model, pred, type = 'response', se.fit = se)),
+        predict(model, pred, type = 'response', se.fit = se)),
         silent = TRUE
       )
 
@@ -590,11 +591,8 @@ predict.logistic <- function(object,
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.logistic.predict <- function(x, ..., n = 10) {
-  print_predict_model(x, ..., n = n,
-                      header = "Logistic regression (GLM)",
-                      lev = attr(x, "lev"))
-}
+print.logistic.predict <- function(x, ..., n = 10)
+  print_predict_model(x, ..., n = n, header = "Logistic regression (GLM)")
 
 #' Deprecated function to store logistic regression residuals and predictions
 #'
