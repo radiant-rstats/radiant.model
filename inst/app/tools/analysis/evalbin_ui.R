@@ -85,18 +85,18 @@ output$ui_evalbin <- renderUI({
           inline = TRUE)
       ),
       conditionalPanel("input.tabs_evalbin == 'Confusion'",
-        checkboxInput("ebin_scale_y", "Scale free Y-axis", state_init("ebin_scale_y", FALSE))
+        checkboxInput("ebin_scale_y", "Scale free Y-axis", state_init("ebin_scale_y", TRUE))
       )
   	),
     conditionalPanel("input.tabs_evalbin != 'Confusion'",
-      help_and_report(modal_title = "Model evaluate classification",
+      help_and_report(modal_title = "Evaluate classification",
                       fun_name = "evalbin",
                       help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalbin.md")))
     ),
     conditionalPanel("input.tabs_evalbin == 'Confusion'",
       help_and_report(modal_title = "Model evaluate confusion matrix",
                       fun_name = "confusion",
-                      help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/confusion.md")))
+                      help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalbin.md")))
     )
 	)
 })
@@ -115,13 +115,18 @@ confusion_plot_height <- function() 800
 # output is called from the main radiant ui.R
 output$evalbin <- renderUI({
 	register_print_output("summary_evalbin", ".summary_evalbin")
-  register_print_output("summary_confusion", ".summary_confusion")
 	register_plot_output("plot_evalbin", ".plot_evalbin",
                        	width_fun = "ebin_plot_width",
                        	height_fun = "ebin_plot_height")
+  register_print_output("summary_confusion", ".summary_confusion")
   register_plot_output("plot_confusion", ".plot_confusion",
                         width_fun = "confusion_plot_width",
                         height_fun = "confusion_plot_height")
+  register_print_output("summary_performance", ".summary_performance")
+  # register_plot_output("plot_performance", ".plot_performance",
+  #                       width_fun = "confusion_plot_width",
+  #                       height_fun = "confusion_plot_height")
+
 
 	# one output with components stacked
 	# ebin_output_panels <- tagList(
@@ -135,6 +140,12 @@ output$evalbin <- renderUI({
       plot_downloader("evalbin", height = ebin_plot_height()),
       plotOutput("plot_evalbin", height = "100%")
     ),
+    # tabPanel("Performance",
+    #    downloadLink("dl_performance_tab", "", class = "fa fa-download alignright"), br(),
+    #    verbatimTextOutput("summary_performance"),
+    #    plot_downloader("performance", height = ebin_plot_height()),
+    #    plotOutput("plot_performance", height = "100%")
+    # ),
     tabPanel("Confusion",
        downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
        verbatimTextOutput("summary_confusion"),
@@ -214,7 +225,9 @@ observeEvent(input$evalbin_report, {
 })
 
 observeEvent(input$confusion_report, {
-  inp_out <- list(scale_y = input$ebin_scale_y) %>% list("",.)
+  inp_out <- list("","")
+  if (!input$ebin_scale_y)
+    inp_out[[2]] <- list(scale_y = input$ebin_scale_y)
   outputs <- c("summary","plot")
   update_report(inp_main = clean_args(ebin_inputs(), ebin_args),
                 fun_name = "confusion",
@@ -229,17 +242,20 @@ observeEvent(input$confusion_report, {
 output$dl_ebin_tab <- downloadHandler(
   filename = function() { "evalbin.csv" },
   content = function(file) {
-    do.call(summary, c(list(object = .evalbin()), ebin_inputs(),
-            list(prn = FALSE))) %>%
-      write.csv(., file = file, row.names = FALSE)
+    # do.call(summary, c(list(object = .evalbin()), ebin_inputs(),
+            # list(prn = TRUE))) %>%
+      eb <- .evalbin()
+      if (!is_empty(eb$dat))
+        write.csv(eb$dat, file = file, row.names = FALSE)
   }
 )
 
 output$dl_confusion_tab <- downloadHandler(
   filename = function() { "confusion.csv" },
   content = function(file) {
-    do.call(summary, c(list(object = .confusion()), ebin_inputs(),
-            list(prn = FALSE))) %>%
-      write.csv(., file = file, row.names = FALSE)
+    # do.call(summary, c(list(object = .confusion()), ebin_inputs(),
+            # list(prn = FALSE))) %>%
+    .confusion()$dat %>%
+    write.csv(., file = file, row.names = FALSE)
   }
 )

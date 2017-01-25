@@ -25,7 +25,7 @@
 evalbin <- function(dataset, pred, rvar,
                     lev = "",
                     qnt = 10,
-                    margin = 1,
+                    margin = 2,
                     cost = 1,
                     train = "",
                     method = "xtile",
@@ -125,7 +125,8 @@ evalbin <- function(dataset, pred, rvar,
 	  	  pl <- c(pl, max(lg_list[[pname]]$profit))
 		}
 		prof_list <- c(prof_list, pl / abs(max(pl)))
-		pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit / abs(max(profit)))
+		# pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit / abs(max(profit)))
+		pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit)
 	}
 	dat <- bind_rows(pdat) %>% mutate(profit = ifelse (is.na(profit), 0, profit))
 	names(prof_list) <- names(auc_list)
@@ -139,7 +140,7 @@ evalbin <- function(dataset, pred, rvar,
 #' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{evalbin}}
-#' @param prn Print model evalbin results (default is TRUE)
+#' @param prn Print full table of measures per model and bin
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalbin}} to summarize results
@@ -154,25 +155,23 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 
   if (is.character(object)) return(object)
 
-	if (prn) {
-		cat("Evaluate predictions for binary response models\n")
-		cat("Data        :", object$dataset, "\n")
-		if (object$data_filter %>% gsub("\\s","",.) != "")
-			cat("Filter      :", gsub("\\n","", object$data_filter), "\n")
-		cat("Results for :", object$train, "\n")
-		cat("Predictors  :", paste0(object$pred, collapse=", "), "\n")
-		cat("Response    :", object$rvar, "\n")
-	  cat("Level       :", object$lev, "in", object$rvar, "\n")
-		cat("Bins        :", object$qnt, "\n")
-		cat("Margin:Cost :", object$margin, ":", object$cost, "\n")
-		prof <- object$prof_list
-		cat("Profit index:", paste0(names(prof), " (", round(prof,3), ")", collapse=", "), "\n")
-		auc <- unlist(object$auc_list)
-		cat("AUC         :", paste0(names(auc), " (", round(auc,3), ")", collapse=", "), "\n\n")
+	cat("Evaluate predictions for binary response models\n")
+	cat("Data        :", object$dataset, "\n")
+	if (object$data_filter %>% gsub("\\s","",.) != "")
+		cat("Filter      :", gsub("\\n","", object$data_filter), "\n")
+	cat("Results for :", object$train, "\n")
+	cat("Predictors  :", paste0(object$pred, collapse=", "), "\n")
+	cat("Response    :", object$rvar, "\n")
+  cat("Level       :", object$lev, "in", object$rvar, "\n")
+	cat("Bins        :", object$qnt, "\n")
+	cat("Margin:Cost :", object$margin, ":", object$cost, "\n")
+	# prof <- object$prof_list
+	# cat("Profit index:", paste0(names(prof), " (", round(prof,3), ")", collapse=", "), "\n")
+	# auc <- unlist(object$auc_list)
+	# cat("AUC         :", paste0(names(auc), " (", round(auc,3), ")", collapse=", "), "\n\n")
+
+	if (prn)
 		print(formatdf(as.data.frame(object$dat), 3), row.names = FALSE)
-	} else {
-    return(add_class(object$dat, "evalbin"))
-	}
 }
 
 #' Confusion matrix
@@ -186,27 +185,26 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 #' @param margin Margin on each customer purchase
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
-#' @param method Use either ntile or xtile to split the data (default is xtile)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param ... further arguments passed to or from other methods
 #'
 #' @return A list of results
 #'
-#' @seealso \code{\link{summary.evalbin}} to summarize results
-#' @seealso \code{\link{plot.evalbin}} to plot results
+#' @seealso \code{\link{summary.confusion}} to summarize results
+#' @seealso \code{\link{plot.confusion}} to plot results
 #'
-#' @examples
-#' result <- evalbin("titanic", c("age","fare"), "survived")
+#' @importFrom psych cohen.kappa
 #'
 #' @export
 confusion <- function(dataset, pred, rvar,
                       lev = "",
-                      margin = 1,
+                      margin = 2,
                       cost = 1,
                       train = "",
-                      method = "xtile",
                       data_filter = "",
                       ...) {
+
+	profit <- NULL
 
 	## in case no inputs were provided
 	if (is_not(margin) || is_not(cost)) {
@@ -232,6 +230,7 @@ confusion <- function(dataset, pred, rvar,
 
 	if (!is_string(dataset)) dataset <- "-----"
 
+	# auc_list <- list()
 	pdat <- list()
 	for (i in names(dat_list)) {
 		dat <- dat_list[[i]]
@@ -244,9 +243,14 @@ confusion <- function(dataset, pred, rvar,
 	      lev <- as.character(rv) %>% as.factor %>% levels %>% .[1]
 	  }
 
-
 	  ## transformation to TRUE/FALSE depending on the selected level (lev)
 	  dat[[rvar]] <- dat[[rvar]] == lev
+
+  	auc_vec <- rep(NA, length(pred)) %>% set_names(pred)
+  	for (p in pred) auc_vec[p] <- auc(dat[[p]], dat[[rvar]], TRUE)
+
+  	p_vec <- colMeans(dat[,pred, drop = FALSE]) / mean(dat[[rvar]])
+
   	dat[, pred] <- select_(dat, .dots = pred) > break_even
 
   	if (length(pred) > 1) {
@@ -262,53 +266,90 @@ confusion <- function(dataset, pred, rvar,
 	  	  set_names(c("TN","FN","FP","TP"))
 	  }
 	  ret <- lapply(select_(dat,.dots = pred), make_tab) %>% as.data.frame %>% t %>% as.data.frame
-	  ret <- bind_cols(data.frame(Type = rep(i, length(pred)), Predictor = pred), ret)
+	  ret <- bind_cols(data.frame(Type = rep(i, length(pred)), Predictor = pred), ret,
+	                   data.frame(AUC = auc_vec, p.ratio = p_vec))
+
 	  pdat[[i]] <- ret
   }
 
+
+  # profit = margin * cumsum(nr_resp) - cost * cumsum(nr_obs),
+  # ROME = profit / (cost * cumsum(nr_obs)),
+
 	dat <- bind_rows(pdat) %>% as.data.frame %>%
-	  mutate(total = TN+FN+FP+TP, TPR = TP/(TP+FN), TNR = TN/(TN+FP))
+	  # mutate(TP = TP, FP = FP, TN = TN, FN = FN,
+	  mutate(total = TN+FN+FP+TP, TPR = TP/(TP+FN), TNR = TN/(TN+FP),
+	         precision = TP / (TP + FP),
+	         accuracy = (TP + TN) / total,
+	         profit = margin * TP - cost * (TP + FP),
+	         ROME = profit / (cost * (TP + FP)),
+	         kappa = 0)
+  				 # kappa = psych::cohen.kappa(matrix(c(TN,FP,FN,TP), ncol = 2))[["kappa"]])
+
+	dat <- group_by_(dat, "Type") %>% mutate(index = profit / max(profit)) %>% ungroup
+	dat <- mutate(dat, profit = as.integer(round(profit,0)))
+
+	for (i in 1:nrow(dat)) {
+		tmp <- dat[i,]
+  	dat$kappa[i] <- psych::cohen.kappa(matrix(with(tmp, c(TN,FP,FN,TP)), ncol = 2))[["kappa"]]
+	}
+
+	dat <- select_(dat, .dots = c("Type","Predictor", "TP", "FP", "TN", "FN",
+	                              "total", "TPR", "TNR", "precision", "accuracy",
+	                              "kappa", "profit", "index", "ROME", "AUC"))
+
 	rm(pdat, dat_list)
 
 	as.list(environment()) %>% add_class("confusion")
 }
 
-summary.confusion <- function(object, prn = TRUE, ...) {
+#' Summary method for the confusion matrix
+#'
+#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#'
+#' @param object Return value from \code{\link{confusion}}
+#' @param ... further arguments passed to or from other methods
+#'
+#' @seealso \code{\link{confusion}} to generate results
+#' @seealso \code{\link{plot.confusion}} to visualize result
+#'
+#' @export
+summary.confusion <- function(object, ...) {
 
   if (is.character(object)) return(object)
 
-	if (prn) {
-		cat("Confusion matrix\n")
-		cat("Data        :", object$dataset, "\n")
-		if (object$data_filter %>% gsub("\\s","",.) != "")
-			cat("Filter      :", gsub("\\n","", object$data_filter), "\n")
-		cat("Results for :", object$train, "\n")
-		cat("Predictors  :", paste0(object$pred, collapse=", "), "\n")
-		cat("Response    :", object$rvar, "\n")
-	  cat("Level       :", object$lev, "in", object$rvar, "\n")
-		cat("Margin:Cost :", object$margin, ":", object$cost, "\n")
-		# cat("AUC         :", paste0(names(auc), " (", round(auc,3), ")", collapse=", "), "\n\n")
-		cat("\n")
-		print(formatdf(as.data.frame(object$dat), 3), row.names = FALSE)
-	} else {
-    return(add_class(object$dat, "confusion"))
-	}
+	cat("Confusion matrix\n")
+	cat("Data       :", object$dataset, "\n")
+	if (object$data_filter %>% gsub("\\s","",.) != "")
+		cat("Filter     :", gsub("\\n","", object$data_filter), "\n")
+	cat("Results for:", object$train, "\n")
+	cat("Predictors :", paste0(object$pred, collapse=", "), "\n")
+	cat("Response   :", object$rvar, "\n")
+  cat("Level      :", object$lev, "in", object$rvar, "\n")
+	cat("Margin:Cost:", object$margin, ":", object$cost, "\n")
+	cat("\n")
+
+	print(formatdf(as.data.frame(object$dat[,1:10]), 3), row.names = FALSE)
+	cat("\n")
+	print(formatdf(as.data.frame(object$dat[,c(1,2, 11:16)]), 3, mark = ","), row.names = FALSE)
 }
 
 #' Plot method for the confusion matrix
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
-#' @param x Return value from \code{\link{evalreg}}
+#' @param x Return value from \code{\link{confusion}}
+#' @param vars Measures to plot
 #' @param scale_y Free scale in faceted plot of the confusion matrix (TRUE or FALSE)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param ... further arguments passed to or from other methods
 #'
-#' @seealso \code{\link{evalreg}} to generate results
-#' @seealso \code{\link{summary.evalreg}} to summarize results
+#' @seealso \code{\link{confusion}} to generate results
+#' @seealso \code{\link{summary.confusion}} to summarize results
 #'
 #' @export
-plot.confusion <- function(x, scale_y = FALSE, shiny = FALSE, ...) {
+plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
+                           scale_y = TRUE, shiny = FALSE, ...) {
 
 	object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
@@ -316,7 +357,7 @@ plot.confusion <- function(x, scale_y = FALSE, shiny = FALSE, ...) {
 	dat <- object$dat %>%
 	  mutate_each_(funs(if (is.numeric(.)) . / total else .), vars = c("TN","FN","FP","TP"))
 
-	gather_(dat, "Metric", "Value", c("TN","FN","FP","TP","TPR","TNR"), factor_key = TRUE) %>%
+	gather_(dat, "Metric", "Value", vars, factor_key = TRUE) %>%
 		mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
 		{if (scale_y) {
 	    visualize(., xvar = "Predictor", yvar = "Value", type = "bar",
@@ -400,9 +441,10 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 
 		plot_list[["profit"]] <-
 			visualize(dat, xvar = "cum_prop", yvar = "profit", type = "line", color = "pred", custom = TRUE) +
+			# geom_point(aes(shape = pred)) +
 			geom_point() +
 			geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
-			ylab("Profit index") +
+			ylab("Profit") +
 			xlab("Proportion of customers")
 	}
 
