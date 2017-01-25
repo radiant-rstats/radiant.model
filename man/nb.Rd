@@ -4,7 +4,7 @@
 \alias{nb}
 \title{Naive Bayes using e1071::naiveBayes}
 \usage{
-nb(dataset, rvar, evar, lev = "", laplace = 0, data_filter = "")
+nb(dataset, rvar, evar, laplace = 0, data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
@@ -12,8 +12,6 @@ nb(dataset, rvar, evar, lev = "", laplace = 0, data_filter = "")
 \item{rvar}{The response variable in the logit (probit) model}
 
 \item{evar}{Explanatory variables in the model}
-
-\item{lev}{The level in the response variable defined as _success_}
 
 \item{laplace}{Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.}
 

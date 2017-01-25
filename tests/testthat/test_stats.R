@@ -35,12 +35,12 @@ test_that("logistic", {
 
 test_that("logistic - predict", {
   result <- logistic("titanic", "survived", c("pclass","sex"))
-  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'"))[9] %>% trim
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'"))[10] %>% trim
   # cat(paste0(res1, "\n"))
   res2 <- "2nd female      0.779"
   expect_equal(res1,res2)
 
-  res1 <- capture.output(predict(result, pred_data = "titanic"))[9] %>% trim
+  res1 <- capture.output(predict(result, pred_data = "titanic"))[10] %>% trim
   # cat(paste0(res1, "\n"))
   res2 <- "1st female      0.896"
   expect_equal(res1,res2)
@@ -48,12 +48,12 @@ test_that("logistic - predict", {
 
 test_that("ann - predict for classification", {
   result <- ann("titanic", "survived", c("pclass","sex"), seed = 1234)
-  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'", dec = 1))[9] %>% trim
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'", dec = 1))[10] %>% trim
   # cat(paste0(res1, "\n"))
   res2 <- "2nd female        0.8"
   expect_equal(res1,res2)
 
-  res1 <- capture.output(predict(result, pred_data = "titanic", dec = 1))[9] %>% trim
+  res1 <- capture.output(predict(result, pred_data = "titanic", dec = 1))[10] %>% trim
   # cat(paste0(res1, "\n"))
   res2 <- "1st female        0.9"
   expect_equal(res1,res2)

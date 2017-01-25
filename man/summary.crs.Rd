@@ -4,10 +4,12 @@
 \alias{summary.crs}
 \title{Summary method for Collaborative Filter}
 \usage{
-\method{summary}{crs}(object, ...)
+\method{summary}{crs}(object, n = 36, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{crs}}}
+
+\item{n}{Number of lines of recommendations to print. Use -1 to print all lines}
 
 \item{...}{further arguments passed to or from other methods}
 }

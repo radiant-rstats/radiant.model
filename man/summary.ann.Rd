@@ -4,10 +4,12 @@
 \alias{summary.ann}
 \title{Summary method for the ann function}
 \usage{
-\method{summary}{ann}(object, ...)
+\method{summary}{ann}(object, prn = TRUE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{ann}}}
+
+\item{prn}{Print list of weights}
 
 \item{...}{further arguments passed to or from other methods}
 }

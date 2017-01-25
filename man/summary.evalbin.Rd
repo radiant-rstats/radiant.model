@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{Return value from \code{\link{evalbin}}}
 
-\item{prn}{Print model evalbin results (default is TRUE)}
+\item{prn}{Print full table of measures per model and bin}
 
 \item{...}{further arguments passed to or from other methods}
 }

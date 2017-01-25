@@ -11,7 +11,7 @@ ann(dataset, rvar, evar, type = "classification", lev = "", size = 1,
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
 
-\item{rvar}{The response variable in the logit (probit) model}
+\item{rvar}{The response variable in the model}
 
 \item{evar}{Explanatory variables in the model}
 

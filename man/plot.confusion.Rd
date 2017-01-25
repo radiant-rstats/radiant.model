@@ -4,10 +4,13 @@
 \alias{plot.confusion}
 \title{Plot method for the confusion matrix}
 \usage{
-\method{plot}{confusion}(x, scale_y = FALSE, shiny = FALSE, ...)
+\method{plot}{confusion}(x, vars = c("kappa", "index", "ROME", "AUC"),
+  scale_y = TRUE, shiny = FALSE, ...)
 }
 \arguments{
-\item{x}{Return value from \code{\link{evalreg}}}
+\item{x}{Return value from \code{\link{confusion}}}
+
+\item{vars}{Measures to plot}
 
 \item{scale_y}{Free scale in faceted plot of the confusion matrix (TRUE or FALSE)}
 
@@ -19,11 +22,11 @@
 Plot method for the confusion matrix
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \seealso{
-\code{\link{evalreg}} to generate results
+\code{\link{confusion}} to generate results
 
-\code{\link{summary.evalreg}} to summarize results
+\code{\link{summary.confusion}} to summarize results
 }
 

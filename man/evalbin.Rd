@@ -4,7 +4,7 @@
 \alias{evalbin}
 \title{Model evalbin}
 \usage{
-evalbin(dataset, pred, rvar, lev = "", qnt = 10, margin = 1, cost = 1,
+evalbin(dataset, pred, rvar, lev = "", qnt = 10, margin = 2, cost = 1,
   train = "", method = "xtile", data_filter = "")
 }
 \arguments{

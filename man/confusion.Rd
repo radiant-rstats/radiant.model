@@ -4,8 +4,8 @@
 \alias{confusion}
 \title{Confusion matrix}
 \usage{
-confusion(dataset, pred, rvar, lev = "", margin = 1, cost = 1,
-  train = "", method = "xtile", data_filter = "", ...)
+confusion(dataset, pred, rvar, lev = "", margin = 2, cost = 1,
+  train = "", data_filter = "", ...)
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
@@ -22,8 +22,6 @@ confusion(dataset, pred, rvar, lev = "", margin = 1, cost = 1,
 
 \item{train}{Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin}
 
-\item{method}{Use either ntile or xtile to split the data (default is xtile)}
-
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 
 \item{...}{further arguments passed to or from other methods}
@@ -37,13 +35,9 @@ Confusion matrix
 \details{
 See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
-\examples{
-result <- evalbin("titanic", c("age","fare"), "survived")
-
-}
 \seealso{
-\code{\link{summary.evalbin}} to summarize results
+\code{\link{summary.confusion}} to summarize results
 
-\code{\link{plot.evalbin}} to plot results
+\code{\link{plot.confusion}} to plot results
 }
 

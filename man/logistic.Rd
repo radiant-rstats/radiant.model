@@ -2,7 +2,7 @@
 % Please edit documentation in R/logistic.R
 \name{logistic}
 \alias{logistic}
-\title{Generalized linear models (GLM)}
+\title{Logistic regression}
 \usage{
 logistic(dataset, rvar, evar, lev = "", int = "", wts = "None",
   check = "", data_filter = "")
@@ -10,7 +10,7 @@ logistic(dataset, rvar, evar, lev = "", int = "", wts = "None",
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
 
-\item{rvar}{The response variable in the logit (probit) model}
+\item{rvar}{The response variable in the model}
 
 \item{evar}{Explanatory variables in the model}
 
@@ -28,7 +28,7 @@ logistic(dataset, rvar, evar, lev = "", int = "", wts = "None",
 A list with all variables defined in logistic as an object of class logistic
 }
 \description{
-Generalized linear models (GLM)
+Logistic regression
 }
 \details{
 See \url{http://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
