@@ -42,4 +42,19 @@
     left: 0;
     top: 0;
   }
+  #crtree * {
+    visibility: hidden;
+  }
+  #crtree_plot, #crtree_plot * {
+    visibility: visible;
+  }
+  #crtree_plot {
+    /* based on http://stackoverflow.com/a/7167406/1974918 */
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0;
+  }
 }
