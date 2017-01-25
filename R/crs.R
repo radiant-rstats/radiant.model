@@ -7,32 +7,20 @@
 #' @param prod String with name of the variable with product ids
 #' @param pred Products to predict for
 #' @param rate String with name of the variable with product ratings
-#' @param name Name for the prediction variable
-#' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
 #'
 #' @return A data.frame with the original data and a new column with predicted ratings
 #'
 #' @export
-crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") {
-
-  if (data_filter == "")
-    return("A data filter must be set" %>% add_class("crs"))
-
-  # library(radiant)
-  # loadr("~/ca/week7/crs/cf_demo.rda")
-  # dataset <- "cf_demo"
-  # id <- "Users"
-  # prod <- "Movies"
-  # rate <- "Ratings"
-  # data_filter <- "training == 1"
-  # pred
+crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   vars <- c(id, prod, rate)
   dat <- getdata(dataset, vars, na.rm = FALSE)
   if (!is_string(dataset)) dataset <- "-----"
 
   ## creating a matrix layout
-  ## NOT efficient -- improvement possible with dplyr or sparse matrix?
+  ## will not be efficient for very large and sparse datasets
+  ## improvement possible with dplyr or sparse matrix?
   dat <- spread_(dat, prod, rate)
 
   idv <- select_(dat,id)
@@ -51,80 +39,74 @@ crs <- function(dataset, id, prod, pred, rate, name = "pred", data_filter = "") 
   ind <- (1:length(cn))[-nind]
 
   ## average scores and rankings
-  # avg <- slice(dat, uid) %>% select(nind) %>% summarise_each(funs(mean_rm))
-  avg <- dat[uid,] %>% select(nind) %>% summarise_each(funs(mean_rm))
-  ravg <- min_rank(desc(avg)) %>% t %>% as.data.frame
-  names(ravg) <- names(avg)
+  avg <- dat[uid,,drop = FALSE] %>% select(nind) %>% summarise_each(funs(mean_rm))
+  ravg <- avg
+  ravg[1,] <- min_rank(desc(avg))
+  ravg <- mutate_each(ravg, funs(as.integer))
 
   ## actual scores and rankings (if available, else will be NA)
-  # act <- slice(dat, -uid) %>% select(nind)
-  act <- dat[-uid,] %>% select(nind)
+  act <- dat[-uid,, drop = FALSE] %>% select(nind)
+  ract <- act
 
-  ## ract line below doesn't work with ratings0 when only one movie has been selected
-  # print(act)
-  # return()
+  if (nrow(act) == 0)
+    return("Invalid filter used. Users to predict for should not be in the training set." %>% add_class("crs"))
 
-  ract <- as.data.frame(t(apply(act,1, function(x) min_rank(desc(x))))) %>%
-    bind_cols(idv[-uid,],.) %>% as_data_frame
-    # bind_cols(slice(idv,-uid),.) %>% as_data_frame
-  act <- bind_cols(idv[-uid,],act) %>% as.data.frame
-  # act <- bind_cols(slice(idv,-uid),act) %>% as.data.frame
+  rank <- apply(act,1, function(x) as.integer(min_rank(desc(x)))) %>%
+    {if(length(pred) == 1) . else t(.)}
+  ract[,pred] <- rank
+  ract <- bind_cols(idv[-uid,, drop = FALSE], ract) # %>% as_data_frame
+  act <- bind_cols(idv[-uid,, drop = FALSE],act) # %>% as.data.frame
 
-  ## CF calculations
+  ## CF calculations per row
   ms <- apply(select(dat,-nind), 1, function(x) mean(x, na.rm = TRUE))
   sds <- apply(select(dat,-nind), 1, function(x) sd(x, na.rm = TRUE))
-
-  # print(head(dat))
-  # print(print(environment() %>% as.list))
-  # print(sys.call())
-  # as.list(return(environment()) %>% add_class("crs"))
 
   ## to forego standardization
   # ms <- ms * 0
   # sds <- sds/sds
 
+  ## standardized ratings
   if (length(nind) < 2) {
     srate <- (dat[uid,nind] - ms[uid]) / sds[uid]
   } else {
     srate <- sweep(dat[uid,nind], 1, ms[uid], "-") %>% sweep(1, sds[uid] ,"/")
   }
+  ## comfirmed to produce consistent results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
+  srate[is.na(srate)] <- 0
+  srate <- mutate_each(as.data.frame(srate), funs(ifelse (is.infinite(.), 0, .)))
 
-  cors <- cor(t(dat[uid, ind]), t(dat[-uid, ind]), use = "pairwise.complete.obs")
-  dnom <- apply(cors, 2, function(x) sum(abs(x)))
+  cors <- sshhr(cor(t(dat[uid, ind]), t(dat[-uid, ind]), use = "pairwise.complete.obs"))
+
+  ## comfirmed to produce correct results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
+  cors[is.na(cors)] <- 0
+  dnom <- apply(cors, 2, function(x) sum(abs(x), na.rm = TRUE))
   wts <- sweep(cors, 2, dnom, "/")
   cf <-
     (crossprod(wts, as.matrix(srate)) * sds[-uid] + ms[-uid]) %>%
     as.data.frame %>%
-    bind_cols(idv[-uid,],.) %>%
-    # bind_cols(slice(idv,-uid),.) %>%
-    as.data.frame
-
-  if (ncol(cf) == 2) colnames(cf) <- c(id, pred)
+    bind_cols(idv[-uid,, drop = FALSE],.) %>%
+    set_colnames(c(id, pred)) # %>% as.data.frame
 
   ## Ranking based on CF
-  rcf <- as.data.frame(t(apply(select(cf,-1),1, function(x) min_rank(desc(x))))) %>%
-    bind_cols(idv[-uid,],.) %>% as.data.frame
-    # bind_cols(slice(idv,-uid),.) %>% as.data.frame
+  rcf <- cf
+  rank <- apply(select(cf,-1),1, function(x) as.integer(min_rank(desc(x)))) %>%
+    {if(length(pred) == 1) . else t(.)}
+  rcf[,pred] <- rank
+
+  recommendations <-
+    inner_join(
+      bind_cols(gather(act, "product", "rating", -1),
+                select_(gather(ract, "product", "ranking", -1), .dots = "ranking"),
+                select_(gather(cf, "product", "cf", -1), .dots = "cf"),
+                select_(gather(rcf, "product", "cf_rank", -1), .dots = "cf_rank")),
+      data.frame(product = names(avg), average = t(avg), avg_rank = t(ravg)),
+      by = "product") %>%
+    arrange_(c(id, "product")) %>%
+    select_(.dots = c(id, "product", "rating", "average", "cf", "ranking", "avg_rank", "cf_rank"))
 
   rm(dat, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
 
   as.list(environment()) %>% add_class("crs")
-}
-
-## Test settings for simulater function, will not be run when sourced
-if (getOption("radiant.testthat", default = FALSE)) {
-  main__ <- function() {
-    # use dplyr or a sparce matrix?
-    # http://www.mzan.com/article/33777165-correlation-using-funs-in-dplyr.shtml
-    # http://stackoverflow.com/questions/29270704/correlation-matrix-of-grouped-variables-in-dplyr
-    # http://stats.stackexchange.com/questions/120513/cross-correlation-for-very-sparse-binary-data
-    # Can you do something like the above with cosine similarity
-    # options(radiant.testthat = TRUE)
-    library(radiant.model)
-    result <- crs()
-    stopifnot(1 == 1)
-  }
-  main__()
 }
 
 #' Summary method for Collaborative Filter
@@ -132,37 +114,69 @@ if (getOption("radiant.testthat", default = FALSE)) {
 #' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{crs}}
+#' @param n Number of lines of recommendations to print. Use -1 to print all lines
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{crs}} to generate the results
 #' @seealso \code{\link{plot.crs}} to plot results
 #'
 #' @export
-summary.crs <- function(object, ...) {
+summary.crs <- function(object, n = 36, ...) {
 
-  if (is.character(object))
-    return(cat(object))
+  if (is.character(object)) return(cat(object))
 
-  # return("here")
+  cat("Collaborative filtering")
+  cat("\nData       :", object$dataset)
+  if (object$data_filter %>% gsub("\\s","",.) != "")
+    cat("\nFilter     :", gsub("\\n","", object$data_filter))
+  cat("\nUser id    :", object$id)
+  cat("\nProduct id :", object$prod)
+  cat("\nPredict for:", paste0(object$pred, collapse=", "),"\n")
+  if (nrow(object$recommendations) > n)
+    cat("Rows shown :", n, "\n")
 
-  cat("Avergage Ratings:\n\n")
-  print(formatdf(object$avg, dec = 2), row.names = FALSE)
+  if (nrow(object$act) > 0 && !any(is.na(object$act))) {
+    ## From FZs do file output, calculate if actual ratings are available
+    ## best based on highest average rating
+    best <- which(object$ravg == 1)
+    ar1 <- mean(object$ract[,best + 1] == 1)
+    cat("\nAverage rating picks the best product", formatnr(ar1, dec = 1, perc = TRUE), "of the time")
 
-  cat("\nAvergage Rankings:\n\n")
-  print(formatdf(object$ravg, dec = 2), row.names = FALSE)
+    ## best based on cf
+    best <- which(object$rcf == 1, arr.ind = TRUE)
+    cf1 <- mean(object$ract[best] == 1)
+    cat("\nCollaborative filtering picks the best product", formatnr(cf1, dec = 1, perc = TRUE), "of the time")
 
-  cat("\nRatings from Collaborative Filter:\n\n")
-  print(formatdf(object$cf, dec = 2), row.names = FALSE)
+    ## best based on highest average rating in top 3
+    best <- which(object$ravg == 1)
+    ar3 <- mean(object$ract[,best + 1] < 4)
+    cat("\nPick based on average rating is in the top 3 products", formatnr(ar3, dec = 1, perc = TRUE), "of the time")
 
-  cat("\nRankings from Collaborative Filter:\n\n")
-  print(formatdf(object$rcf, dec = 2), row.names = FALSE)
+    ## best based on cf in top 3
+    best <- which(object$rcf == 1, arr.ind = TRUE)
+    cf3 <- mean(object$ract[best] < 4)
+    cat("\nPick based on collaborative filtering is in the top 3 products", formatnr(cf3, dec = 1, perc = TRUE), "of the time")
 
-  if (!any(is.na(object$act))) {
-    cat("\nActual ratings:\n\n")
-    print(formatdf(object$act, dec = 2), row.names = FALSE)
+    ## best 3 based on highest average rating contains best product
+    best <- which(object$ravg < 4)
+    inar3 <- mean(rowSums(object$ract[,best + 1, drop = FALSE] == 1) > 0)
+    cat("\nTop 3 based on average ratings contains the best product", formatnr(inar3, dec = 1, perc = TRUE), "of the time")
 
-    cat("\nActual rankings:\n\n")
-    print(formatdf(object$ract, dec = 2), row.names = FALSE)
+    ## best 3 based on cf contains best product
+    best <- which(object$rcf < 4, arr.ind = TRUE)
+    ract <- object$ract
+    ract[!object$rcf < 4] <- NA
+    incf3 <- mean(rowSums(ract == 1, na.rm = TRUE) > 0)
+    cat("\nTop 3 based on collaborative filtering contains the best product", formatnr(incf3, dec = 1, perc = TRUE), "of the time\n")
+  }
+
+  cat("\nRecommendations:\n\n")
+
+  if (n == -1) {
+    cat("\n")
+    print(formatdf(object$recommendations, dec = 2), row.names = FALSE)
+  } else {
+    head(object$recommendations, n) %>% formatdf(dec = 2) %>% print(row.names = FALSE)
   }
 }
 
@@ -180,59 +194,62 @@ summary.crs <- function(object, ...) {
 #' @export
 plot.crs <- function(x, shiny = FALSE, ...) {
 
-  # object <- x; rm(x)
-  # if (is.character(object)) return(object)
+  object <- x; rm(x)
+  if (is.character(object)) return(object)
 
-  return("Plotting for Collaborative Filter not yet available")
+  if (any(is.na(object$act)))
+    return("Plotting for Collaborative Filter requires the actual ratings associated\nwith the predictions")
 
-  # object <- crs(dataset, id, prod, pred, rate, name = "pred", data_filter = data_filter)
+  ## use quantile to avoid plotting extreme predictions
+  lim <- quantile(object$recommendations[, c("rating", "cf")], probs = c(.025,.975), na.rm = TRUE)
 
-  # dat <- gather_(object$cf, "product", "cf", colnames(object$cf)[-1])
-  # rcf <- gather_(object$rcf, "product", "rcf", colnames(object$rcf)[-1])
+  p <- visualize(object$recommendations, xvar = "cf", yvar = "rating",
+                 type = "scatter", facet_col = "product", check = "line",
+                 custom = TRUE) +
+    geom_segment(aes(x = 1, y = 1, xend = 5, yend = 5), color = "blue", size = .05) +
+    coord_cartesian(xlim = lim, ylim = lim) +
+    xlab("Predicted ratings") +
+    ylab("Actual ratings") +
+    ggtitle("Recommendations based on Collaborative Filtering") +
+    theme(legend.position = "none")
 
-  # act <- gather_(object$act, "product", "act", colnames(object$act)[-1])
-  # ract <- gather_(object$ract, "product", "ract", colnames(object$ract)[-1])
-
-  # dat <- bind_cols(dat, select_(rcf, "rcf"), select_(act, "act"), select_(ract, "ract")) %>% arrange(user, product)
-
-  # avg <- object$avg[1,] %>% unlist %>% unname
-  # ravg <- object$ravg[1,] %>% unlist %>% unname
-  # dat <- cbind(dat, avg, ravg) %>% arrange(user, product)
-
-  # dat <- select(dat, user, product, act, avg, cf, ract, ravg, rcf) %>%
-  #   arrange(user, product)
-  # # dat %>% filter(user %in% 62:63) %>%
-  # # write.csv(file = "~/ca/week7/cf-table.csv", row.names = FALSE)
-
-  # visualize(dat, xvar = "cf", yvar = "act", type = "scatter", facet_col = "product", check = "line", data_filter = "", custom = TRUE) +
-  # geom_segment(aes(x = 1, y = 1, xend = 5, yend = 5), color = "blue", size = .05) +
-  # ylim(1,5) + xlim(1,5) +
-  # xlab("Predicted ratings") +
-  # ylab("Actual ratings") +
-  # ggtitle("Predictions from Collaborative Filtering") +
-  # theme(legend.position = "none")
-
-  # sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 1))) ) %>%
-  #   { if (shiny) . else print(.) }
-
+  if (shiny) p else print(p)
 }
 
 #' Store predicted values generated in the crs function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details Store data frame with predictions in Radiant r_data list if available. See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
-#' @param pred Return value from predict.nnet
-#' @param data Dataset name
-#' @param name Variable name assigned to the predicted values
+#' @param object Return value from crs
+#' @param name Name of the dataset to store
+#' @param envir Environment to assign 'new' dataset (optional). Used when an r_data list is not available
+#' @param ... further arguments passed to or from other methods
+#'
+#' @importFrom pryr where
 #'
 #' @export
-store_crs <- function(pred, data,
-                      name = "pred_crs") {
+store.crs <- function(object, name = "predict_cf", envir = parent.frame(), ...) {
 
-  ## merging data
-  # combinedata(dataset, cf, by = id, add = "pred", type = "left_join", name = dataset)
+  object <- object$recommendations
+  if (exists("r_environment")) {
+    env <- r_environment
+  } else if (exists("r_data")) {
+    env <- pryr::where("r_data")
+  } else {
+    assign(name, object, envir = envir)
+    message("Dataset ", name, " created in ", environmentName(envir), " environment")
+    return(invisible())
+  }
 
-  ## fix empty name input
-  # if (gsub("\\s","",name) == "") name <- "pred_ann"
-  # changedata(data, vars = pred, var_names = name)
+  # ## use data description from the original if available
+  if (is_empty(env$r_data[[paste0(name, "_descr")]])) {
+    attr(object, "description") <- paste0("## Collaborative Filtering\n\nThis dataset contains predicted ratings and ranking based on collaborative filter applied to the ", attr(object,"dataset"), "dataset.")
+  } else {
+    attr(object, "description") <- env$r_data[[paste0(name, "_descr")]]
+  }
+
+  env$r_data[[name]] <- object
+  env$r_data[[paste0(name,"_descr")]] <- attr(object, "description")
+  env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique
 }
+
