@@ -210,12 +210,6 @@ output$ui_logistic <- renderUI({
             tags$td(actionButton("logit_store_pred", "Store"), style="padding-top:30px;")
           )
         )
-        # conditionalPanel("input.logit_predict == 'cmd'",
-        #   tags$table(
-        #     tags$td(textInput("logit_store_pred_dat_name", "Store predicted dataset:", state_init("logit_store_pred_dat_name",paste0(input$dataset,"_pred")))),
-        #     tags$td(actionButton("logit_store_pred", "Store"), style="padding-top:30px;")
-        #   )
-        # )
       )
     ),
     conditionalPanel(condition = "input.tabs_logistic == 'Plot'",
@@ -227,9 +221,6 @@ output$ui_logistic <- renderUI({
       )
     ),
     wellPanel(
-      # checkboxInput("logit_pause", "Pause estimation", state_init("logit_pause", FALSE)),
-    	# radioButtons(inputId = "logit_link", label = NULL, logit_link,
-    	# 	selected = state_init("logit_link","logit"), inline = TRUE),
 	    uiOutput("ui_logit_rvar"),
       uiOutput("ui_logit_lev"),
 	    uiOutput("ui_logit_evar"),

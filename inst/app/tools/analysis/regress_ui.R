@@ -414,10 +414,6 @@ observeEvent(input$reg_store_res, {
   req(pressed(input$reg_run))
   robj <- .regress()
   if (!is.list(robj)) return()
-  # if (length(robj$model$residuals) != nrow(getdata(input$dataset, filt = "", na.rm = FALSE))) {
-  #   return(message("The number of residuals is not equal to the number of rows in the data. If the data has missing values these will need to be removed."))
-  # }
-  # store_reg(robj, data = input$dataset, type = "residuals", name = input$reg_store_res_name)
   withProgress(message = 'Storing residuals', value = 1,
     store(robj, name = input$reg_store_res_name)
   )
@@ -427,9 +423,6 @@ observeEvent(input$reg_store_pred, {
   req(!is_empty(input$reg_pred_data), pressed(input$reg_run))
   pred <- .predict_regress()
   if (is.null(pred)) return()
-  # if (nrow(pred) != nrow(getdata(input$reg_pred_data, filt = "", na.rm = FALSE)))
-  #   return(message("The number of predicted values is not equal to the number of rows in the data. If the data has missing values these will need to be removed."))
-  # store_reg(pred, data = input$reg_pred_data, type = "prediction", name = input$reg_store_pred_name)
   withProgress(message = 'Storing predictions', value = 1,
     store(pred, data = input$reg_pred_data, name = input$reg_store_pred_name)
   )

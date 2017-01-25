@@ -329,7 +329,6 @@ plot.regress <- function(x, plots = "",
   if (class(object$model)[1] != 'lm') return(object)
 
   ## checking object size
-  # object_size(object$model, model)
   model <- ggplot2::fortify(object$model)
 
   rvar <- object$rvar
@@ -487,6 +486,7 @@ predict.regress <- function(object,
                             dec = 3,
                             ...) {
 
+ if (is.character(object)) return(object)
  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
  pfun <- function(model, pred, se, conf_lev) {
@@ -579,10 +579,10 @@ predict_model <- function(object, pfun, mclass,
 
     isFct <- dat_classes == "factor"
     isLog <- dat_classes == "logical"
-    isNum <- dat_classes == "numeric"
+    isNum <- dat_classes == "numeric" | dat_classes == "integer"
 
     # based on http://stackoverflow.com/questions/19982938/how-to-find-the-most-frequent-values-across-several-columns-containing-factors
-    max_freq <- function(x) names(which.max(table(x)))
+    max_freq <- function(x) names(which.max(table(x))) %>% as.factor
     max_lfreq <- function(x) ifelse(mean(x) > .5, TRUE, FALSE)
 
     plug_data <- data.frame(init___ = 1)
@@ -678,7 +678,9 @@ predict_model <- function(object, pfun, mclass,
     pred <- set_attr(pred, "dataset", object$dataset) %>%
       set_attr("data_filter", object$data_filter) %>%
       set_attr("rvar", object$rvar) %>%
+      set_attr("lev", object$lev) %>%
       set_attr("evar", object$evar) %>%
+      set_attr("wtsname", object$wtsname) %>%
       set_attr("vars", vars) %>%
       set_attr("dec", dec) %>%
       set_attr("pred_type", pred_type) %>%
@@ -697,10 +699,9 @@ predict_model <- function(object, pfun, mclass,
 #' @param ... further arguments passed to or from other methods
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #' @param header Header line
-#' @param lev The level in the response variable defined as _success_ for classification models
 #'
 #' @export
-print_predict_model <- function(x, ..., n = 10, header = "", lev = "") {
+print_predict_model <- function(x, ..., n = 10, header = "") {
 
   class(x) <- "data.frame"
   data_filter <- attr(x, "data_filter")
@@ -714,9 +715,11 @@ print_predict_model <- function(x, ..., n = 10, header = "", lev = "") {
   if (data_filter %>% gsub("\\s","",.) != "")
     cat("Filter               :", gsub("\\n","", data_filter), "\n")
   cat("Response variable    :", attr(x, "rvar"), "\n")
-  if (!is_empty(lev))
-    cat("Level                :", lev, "in", attr(x, "rvar"), "\n")
+  if (!is_empty(attr(x, "lev")))
+    cat("Level(s)             :", paste0(attr(x, "lev"), collapse = ", "), "in", attr(x, "rvar"), "\n")
   cat("Explanatory variables:", paste0(attr(x, "evar"), collapse=", "), "\n")
+  if (!is_empty(attr(x, "wtsname")))
+    cat("Weights used         :", attr(x, "wtsname"), "\n")
 
   if (!is.character(pred_data)) pred_data <- "-----"
   if (pred_type == "cmd") {
@@ -781,6 +784,9 @@ plot.model.predict <- function(x, xvar = "",
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
 
+  if (facet_col != "." && facet_row == facet_col)
+    return("The same variable cannot be used for both Facet row and Facet column")
+
   object <- x; rm(x)
   if (is.character(object)) return(object)
 
@@ -803,24 +809,36 @@ plot.model.predict <- function(x, xvar = "",
     byvar <- if (is.null(byvar)) facet_col else unique(c(byvar, facet_col))
 
   tbv <- if (is.null(byvar)) xvar else c(xvar, byvar)
+
+  if ( any(!tbv %in% colnames(object)))
+    return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
+
   tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>% summarise_each(funs(mean))
   if (color == 'none') {
-    p <- ggplot(tmp, aes_string(x=xvar, y="Prediction")) + geom_line(aes(group = 1))
+    p <- ggplot(tmp, aes_string(x=xvar, y="Prediction"))
   } else {
-    p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + geom_line()
-  }
-
-  if (facet_row != "." || facet_col != ".") {
-    facets <- ifelse (facet_row == ".", paste("~", facet_col), paste(facet_row, '~', facet_col))
-    facet_fun <- ifelse (facet_row == ".", facet_wrap, facet_grid)
-    p <- p + facet_fun(as.formula(facets))
+    p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color))
   }
 
   if (length(pvars) == 3) {
     if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11)
       p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size=.3)
     else
-      p <- p + geom_smooth(aes_string(ymin = "ymin", ymax = "ymax"), stat="identity")
+      p <- p + geom_ribbon(aes_string(ymin = "ymin", ymax = "ymax"), fill = "grey70", color = NA, alpha = .5)
+  }
+
+  ## needed now that geom_smooth no longer accepts ymin and ymax as arguments
+  ## can't see line properly using geom_ribbon
+  if (color == 'none') {
+    p <- p + geom_line(aes(group = 1))
+  } else {
+    p <- p + geom_line()
+  }
+
+  if (facet_row != "." || facet_col != ".") {
+    facets <- ifelse (facet_row == ".", paste("~", facet_col), paste(facet_row, '~', facet_col))
+    facet_fun <- ifelse (facet_row == ".", facet_wrap, facet_grid)
+    p <- p + facet_fun(as.formula(facets))
   }
 
   sshhr(p)
