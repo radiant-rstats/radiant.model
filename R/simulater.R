@@ -398,7 +398,7 @@ repeater <- function(nr = 12,
   seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
 
   if (identical(vars, "") && identical(grid, "")) {
-    mess <- c("error",paste0("Select variables to re-simulate and/or a specify a constant\nto change using 'Grid search'"))
+    mess <- c("error",paste0("Select variables to re-simulate and/or a specify a constant\nto change using 'Grid search' when Group by is set to Repeat"))
     return(add_class(mess, "repeater"))
   }
 
@@ -507,14 +507,13 @@ repeater <- function(nr = 12,
       obj <- s[[i]][1]
       fobj <- s[[i]][-1]
       if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
-      # out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
-      out <- do.call(with, list(ret, parse(text = fobj)))
+      out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
       if (!is(out, 'try-error')) {
         ret[[obj]] <- out
       } else {
         ret[[obj]] <- NA
-        mess <- paste0("Formula was not successfully evaluated:\n\n", strsplit(form,";") %>% unlist %>% paste0(collapse="\n"),"\n\nNote that these formulas can only be applied to selected 'Output variables'")
-        return(mess)
+        mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form,";") %>% unlist %>% paste0(collapse="\n"),"\n\nMessage: ", attr(out,"condition")$message,"\n\nNote that these formulas can only be applied to selected 'Output variables'"))
+        return(add_class(mess, "repeater"))
       }
     }
   }
@@ -590,8 +589,11 @@ summary.repeater <- function(object,
                              ...) {
 
   if (is.character(object)) {
-    if (object[1] == "error") return(cat(object[2]))
-    else object <- getdata(object)
+    if (length(object) == 2 && object[1] == "error") {
+      return(cat(object[2]))
+    } else {
+      object <- getdata(object)
+    }
   }
 
   ## getting the repeater call

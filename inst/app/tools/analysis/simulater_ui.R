@@ -548,11 +548,14 @@ sim_plot_height <- function() {
 })
 
 .summary_repeat <- eventReactive(input$runRepeat, {
+  if (length(input$rep_sum_vars) == 0)
+    return("Select at least one Output variable")
   summary(.repeater(), dec = input$rep_dec)
 })
 
 rep_plot_width <- function() 650
 rep_plot_height <- function() {
+  if (length(input$rep_sum_vars) == 0) return(300)
   rp <- .repeater()
   if (is.character(rp)) {
     if (rp[1] == "error") return(300)
@@ -569,6 +572,7 @@ rep_plot_height <- function() {
 
 .plot_repeat <- reactive({
   req(input$rep_show_plots)
+  req(length(input$rep_sum_vars) > 0)
   object <- .repeater()
   if (is.null(object)) return(invisible())
   withProgress(message = 'Generating repeated simulation plots', value = 1, {
