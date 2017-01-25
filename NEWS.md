@@ -1,8 +1,12 @@
-# CHANGES IN radiant.model VERSION 0.6.6 (unreleased)
+# CHANGES IN radiant.model VERSION 0.7
 
 ## NEW FEATURES
 
 - Added Model > Naive Bayes based on e1071
+- Added Model > Classification and regression trees based on rpart
+- Added Model > Claborative Fitlering
+- Various enhancements to evaluate (binary) classification models
+- Improved plot sizing for Model > Decision Analysis
 
 ## BUG FIXES
 
