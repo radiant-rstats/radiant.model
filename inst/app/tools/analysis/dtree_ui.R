@@ -148,7 +148,7 @@ output$dtree <- renderUI({
          min = 0, max = 10, width = "70px")),
       td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px"))
     )),
-    DiagrammeR::DiagrammeROutput("dtree_plot", height = "600px")
+    DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
   ),
   tabPanel("Sensitivity",
     sidebarLayout(
@@ -242,10 +242,6 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
     return(invisible())
   } else {
     pinp <- dtree_plot_inputs()
-    # pinp$shiny <- TRUE
-    # DiagrammeR::DiagrammeR(do.call(plot, c(list(x = dt), pinp)))
-
-    pinp$shiny <- TRUE
     do.call(plot, c(list(x = dt), pinp))
   }
 })

@@ -349,7 +349,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     if (is_empty(x$type)) {
       x$payoff <- 0
       x$type <- "NONE"
-      type_none <<- "One or more nodes do not have a 'type'. Search for 'NONE' in the output\nbelow and then update the input file"
+      type_none <<- "One or more nodes do not have a 'type'. Check and update the input file"
     } else if (x$type == 'chance') {
       x$payoff <- sum(sapply(x$children, chance_payoff))
 
@@ -390,7 +390,9 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     return(err %>% add_class("dtree"))
   }
 
-  list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt, type_none = type_none, prob_check = prob_check) %>%
+  list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt,
+       type_none = type_none, prob_check = prob_check,
+       payoff = jl$Get(function(x) x$payoff)) %>%
     add_class("dtree")
 }
 
@@ -413,8 +415,6 @@ summary.dtree <- function(object, ...) {
   if (is.character(object)) return(cat(object))
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
-
-
 
   print_money <- function(x) {
     x %>% {if (isNum(.)) . else ""} %>%
@@ -476,17 +476,17 @@ summary.dtree <- function(object, ...) {
 #' @param dec Decimal places to round results to
 #' @param final If TRUE plot the decision tree solution, else the initial decision tree
 #' @param orient Plot orientation: LR for vertical and TD for horizontal
-#' @param shiny Did the function call originate inside a shiny app
 #' @param ... further arguments passed to or from other methods
 #'
 #' @importFrom data.tree Traverse Get isNotRoot
+#' @importFrom DiagrammeR DiagrammeR mermaid
 #'
 #' @seealso \code{\link{dtree}} to generate the result
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", shiny = FALSE, ...) {
+plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", ...) {
 
   ## avoid error when dec is missing
   if (is_not(dec)) dec <- 2
@@ -595,9 +595,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", s
   ## use LR or TD
   paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(ttip, collapse = "\n"), style, sep = "\n") %>%
-    ## address image size in pdf
-    DiagrammeR::mermaid(., width = "100%")
-    # DiagrammeR::DiagrammeR(.)
+    ## address image size in pdf and html
+    DiagrammeR::mermaid(., width = "100%", height = "100%")
 }
 
 #' Evaluate sensitivity of the decision tree
