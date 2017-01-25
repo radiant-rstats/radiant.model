@@ -169,7 +169,9 @@ output$ui_ann <- renderUI({
 ann_plot <- reactive({
 
   if (ann_available() != "available") return()
-  plot_height <- max(500, length(.ann()$model$coefnames) * 50)
+  res <- .ann()
+  if (is.character(res)) return()
+  plot_height <- max(500, length(res$model$coefnames) * 50)
   plot_width <- 650
   list(plot_width = plot_width, plot_height = plot_height)
 })
@@ -289,6 +291,7 @@ ann_available <- reactive({
 
 .plot_ann_net <- reactive({
   if (ann_available() != "available") return(invisible())
+  req(input$ann_size)
   .ann() %>%
     { if (is.character(.)) invisible()
       else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
@@ -325,7 +328,7 @@ output$dl_ann_pred <- downloadHandler(
 
 observeEvent(input$ann_report, {
   outputs <- c("summary")
-  inp_out <- list("","")
+  inp_out <- list(list(prn = TRUE),"")
   xcmd <- "NeuralNetTools::plotnet(result$model)"
   outputs <- c(outputs, "plot")
   figs <- TRUE

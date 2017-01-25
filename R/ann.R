@@ -3,7 +3,7 @@
 #' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
-#' @param rvar The response variable in the logit (probit) model
+#' @param rvar The response variable in the model
 #' @param evar Explanatory variables in the model
 #' @param type Model type (i.e., "classification" or "regression")
 #' @param lev The level in the response variable defined as _success_
@@ -166,6 +166,7 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
 #' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{ann}}
+#' @param prn Print list of weights
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -177,7 +178,7 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
 #' @seealso \code{\link{predict.ann}} for prediction
 #'
 #' @export
-summary.ann <- function(object, ...) {
+summary.ann <- function(object, prn = TRUE, ...) {
 
   if (is.character(object)) return(object)
 
@@ -195,16 +196,28 @@ summary.ann <- function(object, ...) {
   cat("\nExplanatory variables:", paste0(object$evar, collapse=", "),"\n")
   if (length(object$wtsname) > 0)
     cat("Weights used         :", object$wtsname, "\n")
+  cat("Network size         :", object$size, "\n")
+  cat("Parameter decay      :", object$decay, "\n")
+  if (!is_empty(object$seed))
+    cat("Seed                 :", object$seed, "\n")
+
+  network <- paste0(object$model$n, collapse = "-")
+  nweights <- length(object$model$wts)
+  cat("Network              :", network, "with", nweights, "weights\n")
 
   if (!is_empty(object$wts, "None") && class(object$wts) == "integer")
-    cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n\n")
+    cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n")
   else
-    cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n\n")
+    cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n")
 
-  print(object$model)
-
-  if (object$model$convergence != 0)
-    cat("\n\nThe model did not converge.")
+  if (object$model$convergence != 0) {
+    cat("\n** The model did not converge **")
+  } else {
+    if (prn) {
+      cat("Weights              :\n")
+      cat(paste0(capture.output(print(summary(object$model)))[c(-1, -2)], collapse = "\n"))
+    }
+  }
 }
 
 #' Plot method for the ann function
@@ -269,8 +282,9 @@ predict.ann <- function(object,
                         dec = 3,
                         ...) {
 
+  if (is.character(object)) return(object)
   pfun <- function(model, pred, se, conf_lev) {
-    pred_val <- try(sshhr(predict(object$model, pred)), silent = TRUE)
+    pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
     if (!is(pred_val, 'try-error'))
       pred_val %<>% as.data.frame %>% select(1) %>% set_colnames("Prediction")
