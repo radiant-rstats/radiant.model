@@ -1,10 +1,11 @@
 help_model <- c("Linear regression (OLS)" = "regress.Rmd",
                 "Logistic regression (GLM)" = "logistic.Rmd",
-                "Neural Network (ANN)" = "ann.md",
                 "Naive Bayes" = "nb.md",
-                # "Collaborative filtering" = "crs.md",
+                "Neural Network (ANN)" = "ann.md",
+                "Classification and regression trees" = "crtree.md",
                 "Evaluate regression" = "evalreg.md",
                 "Evaluate classification" = "evalbin.md",
+                "Collaborative filtering" = "crs.md",
                 "Decision analysis" = "dtree.Rmd", "Simulate" = "simulater.md")
 output$help_model <- reactive(append_help("help_model", file.path(getOption("radiant.path.model"),"app/tools/help/"), Rmd = TRUE))
 observeEvent(input$help_model_all, {help_switch(input$help_model_all, "help_model")})

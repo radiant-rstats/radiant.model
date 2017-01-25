@@ -1,5 +1,9 @@
 predict_plot_controls <- function(type, vars_color = NULL, init_color = "none") {
-  vars <- input[[paste0(type,"_evar")]]
+
+  inp <- input[[paste0(type,"_evar")]]
+  req(available(inp))
+  vars <- varnames() %>% .[. %in% inp]
+
   xvar <- paste0(type, "_xvar")
   frow <- paste0(type, "_facet_row")
   fcol <- paste0(type, "_facet_col")
@@ -10,7 +14,7 @@ predict_plot_controls <- function(type, vars_color = NULL, init_color = "none") 
 
   tagList(
     selectizeInput(xvar, "X-variable:", choices = vars,
-      selected = state_multiple(xvar, vars),
+      selected = state_single(xvar, vars),
       multiple = FALSE),
     selectizeInput(frow, "Facet row:", vars_facet,
       selected = state_single(frow, vars_facet, "."),
