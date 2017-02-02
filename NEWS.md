@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model VERSION 0.7
+# CHANGES IN radiant.model VERSION 0.7.1
 
 ## NEW FEATURES
 
@@ -18,3 +18,4 @@
 - Fixes for model with only an intercept (e.g., after stepwise regression)
 - Update Predict settings when dataset is changed
 - Fix for predict when using center or standardize with a command to generate the predictions
+- Show full confusion matrix even if some elements are missing

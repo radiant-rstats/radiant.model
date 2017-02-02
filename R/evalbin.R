@@ -125,10 +125,11 @@ evalbin <- function(dataset, pred, rvar,
 	  	  pl <- c(pl, max(lg_list[[pname]]$profit))
 		}
 		prof_list <- c(prof_list, pl / abs(max(pl)))
-		# pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit / abs(max(profit)))
 		pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit)
 	}
 	dat <- bind_rows(pdat) %>% mutate(profit = ifelse (is.na(profit), 0, profit))
+	dat$pred <- factor(dat$pred, levels = pred)
+
 	names(prof_list) <- names(auc_list)
 	rm(lg_list, pdat)
 
@@ -230,7 +231,6 @@ confusion <- function(dataset, pred, rvar,
 
 	if (!is_string(dataset)) dataset <- "-----"
 
-	# auc_list <- list()
 	pdat <- list()
 	for (i in names(dat_list)) {
 		dat <- dat_list[[i]]
@@ -241,6 +241,8 @@ confusion <- function(dataset, pred, rvar,
 	      lev <- levels(rv)[1]
 	    else
 	      lev <- as.character(rv) %>% as.factor %>% levels %>% .[1]
+	  } else {
+	  	if (!lev %in% dat[[rvar]]) return(add_class("Please update the selected level in the response variable", "confusion"))
 	  }
 
 	  ## transformation to TRUE/FALSE depending on the selected level (lev)
@@ -260,10 +262,24 @@ confusion <- function(dataset, pred, rvar,
  		}
 
 	  make_tab <- function(x) {
-	  	table(dat[[rvar]], x) %>%
-	  	  as.data.frame %>%
-	  	  .$Freq %>%
-	  	  set_names(c("TN","FN","FP","TP"))
+	  	ret <- rep(0L, 4) %>% set_names(c("TN","FN","FP","TP"))
+	  	tab <- table(dat[[rvar]], x) %>% as.data.frame
+	  	## ensure a value is availble for all four options
+	  	for (i in 1:nrow(tab)) {
+	  		if (tab[i,1] == "TRUE") {
+	  			if (tab[i,2] == "TRUE") 
+	  				ret["TP"] <- tab[i,3]
+	  			else 
+	  				ret["FN"] <- tab[i,3]
+
+	  		} else {
+	  			if (tab[i,2] == "TRUE") 
+	  				ret["FP"] <- tab[i,3]
+	  			else 
+	  				ret["TN"] <- tab[i,3]
+	  		}
+	  	}
+	  	return(ret)
 	  }
 	  ret <- lapply(select_(dat,.dots = pred), make_tab) %>% as.data.frame %>% t %>% as.data.frame
 	  ret <- bind_cols(data.frame(Type = rep(i, length(pred)), Predictor = pred), ret,
@@ -272,19 +288,13 @@ confusion <- function(dataset, pred, rvar,
 	  pdat[[i]] <- ret
   }
 
-
-  # profit = margin * cumsum(nr_resp) - cost * cumsum(nr_obs),
-  # ROME = profit / (cost * cumsum(nr_obs)),
-
 	dat <- bind_rows(pdat) %>% as.data.frame %>%
-	  # mutate(TP = TP, FP = FP, TN = TN, FN = FN,
 	  mutate(total = TN+FN+FP+TP, TPR = TP/(TP+FN), TNR = TN/(TN+FP),
 	         precision = TP / (TP + FP),
 	         accuracy = (TP + TN) / total,
 	         profit = margin * TP - cost * (TP + FP),
 	         ROME = profit / (cost * (TP + FP)),
 	         kappa = 0)
-  				 # kappa = psych::cohen.kappa(matrix(c(TN,FP,FN,TP), ncol = 2))[["kappa"]])
 
 	dat <- group_by_(dat, "Type") %>% mutate(index = profit / max(profit)) %>% ungroup
 	dat <- mutate(dat, profit = as.integer(round(profit,0)))
@@ -352,7 +362,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
                            scale_y = TRUE, shiny = FALSE, ...) {
 
 	object <- x; rm(x)
-  if (is.character(object) || is.null(object)) return(invisible())
+ 	if (is.character(object) || is.null(object)) return(invisible())
 
 	dat <- object$dat %>%
 	  mutate_each_(funs(if (is.numeric(.)) . / total else .), vars = c("TN","FN","FP","TP"))
