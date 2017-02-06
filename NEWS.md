@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model VERSION 0.7.1
+# CHANGES IN radiant.model VERSION 0.7.2
 
 ## NEW FEATURES
 
@@ -19,3 +19,4 @@
 - Update Predict settings when dataset is changed
 - Fix for predict when using center or standardize with a command to generate the predictions
 - Show full confusion matrix even if some elements are missing
+- Fix for warnings when creating profit and gains charts

@@ -128,7 +128,7 @@ evalbin <- function(dataset, pred, rvar,
 		pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit)
 	}
 	dat <- bind_rows(pdat) %>% mutate(profit = ifelse (is.na(profit), 0, profit))
-	dat$pred <- factor(dat$pred, levels = pred)
+	dat$pred <- factor(dat$pred, levels = unique(dat$pred))
 
 	names(prof_list) <- names(auc_list)
 	rm(lg_list, pdat)
@@ -420,14 +420,14 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 	}
 
 	if ("gains" %in% plots) {
-		init <- object$dat[1,] %>% {.[1,] <- 0; .}
 		dat <-
 	    object$dat %>%
 		  select(pred, cum_prop, cum_gains) %>%
 		  group_by(pred) %>%
 		  mutate(obs = 1:n())
+
 		init <- dat %>% filter(obs == 1)
-		init$cum_prop <- init$cum_gains <- init$obs <- 0
+		init[,c("cum_prop", "cum_gains", "obs")] <- 0 
 		dat <- bind_rows(init, dat) %>% arrange(pred, obs)
 
 		plot_list[["gains"]] <-
@@ -439,19 +439,18 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 	}
 
 	if ("profit" %in% plots) {
-		init <- object$dat[1,] %>% {.[1,] <- 0; .}
 		dat <-
 	    object$dat %>%
 		  select(pred, cum_prop, profit) %>%
 		  group_by(pred) %>%
 		  mutate(obs = 1:n())
+
 		init <- dat %>% filter(obs == 1)
-		init$profit <- init$cum_prop <- init$obs <- 0
+		init[,c("profit", "cum_prop", "obs")] <- 0 
 		dat <- bind_rows(init, dat) %>% arrange(pred, obs)
 
 		plot_list[["profit"]] <-
 			visualize(dat, xvar = "cum_prop", yvar = "profit", type = "line", color = "pred", custom = TRUE) +
-			# geom_point(aes(shape = pred)) +
 			geom_point() +
 			geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
 			ylab("Profit") +
