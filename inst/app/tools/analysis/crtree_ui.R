@@ -376,8 +376,8 @@ observeEvent(input$crtree_report, {
 
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$crtree_predict %in% c("data","datacmd"))
-      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$crtree_pred_data, "', name = '", input$crtree_store_pred_name,"')")
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/crtree_predictions.csv', row.names = FALSE)\n")
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$crtree_pred_data, "\", name = \"", input$crtree_store_pred_name,"\")")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/crtree_predictions.csv\", row.names = FALSE)\n")
 
     if (input$crtree_pred_plot && !is_empty(input$crtree_xvar)) {
       inp_out[[3 + figs]] <- clean_args(crtree_pred_plot_inputs(), crtree_pred_plot_args[-1])

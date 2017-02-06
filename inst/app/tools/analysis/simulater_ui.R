@@ -575,7 +575,7 @@ rep_plot_height <- function() {
   req(length(input$rep_sum_vars) > 0)
   object <- .repeater()
   if (is.null(object)) return(invisible())
-  withProgress(message = 'Generating repeated simulation plots', value = 1, {
+  withProgress(message = "Generating repeated simulation plots", value = 1, {
     rep_plot_inputs() %>% { .$shiny <- TRUE; . } %>%
       { do.call(plot, c(list(x = object), .)) }
   })

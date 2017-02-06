@@ -392,8 +392,8 @@ observeEvent(input$regress_report, {
 
     xcmd <- paste0("print(pred, n = 10)")
     if (input$reg_predict %in% c("data","datacmd"))
-      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$reg_pred_data, "', name = '", input$reg_store_pred_name,"')")
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/reg_predictions.csv', row.names = FALSE)")
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = \"", input$reg_store_pred_name,"\")")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
 
     if (input$reg_pred_plot && !is_empty(input$reg_xvar)) {
       inp_out[[3 + figs]] <- clean_args(reg_pred_plot_inputs(), reg_pred_plot_args[-1])

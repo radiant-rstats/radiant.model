@@ -418,8 +418,8 @@ observeEvent(input$logistic_report, {
 
     xcmd <- paste0("print(pred, n = 10)")
     if (input$logit_predict %in% c("data","datacmd"))
-      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$logit_pred_data, "', name = '", input$logit_store_pred_name,"')")
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/logit_predictions.csv', row.names = FALSE)")
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = \"", input$logit_store_pred_name,"\")")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
 
     if (input$logit_pred_plot && !is_empty(input$logit_xvar)) {
       inp_out[[3 + figs]] <- clean_args(logit_pred_plot_inputs(), logit_pred_plot_args[-1])

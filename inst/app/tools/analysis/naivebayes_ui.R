@@ -264,8 +264,8 @@ observeEvent(input$nb_report, {
 
     xcmd <- paste0("print(pred, n = 10)")
     if (input$nb_predict %in% c("data","datacmd"))
-      xcmd <- paste0(xcmd, "\nstore(pred, data = '", input$nb_pred_data, "', name = '", input$nb_store_pred_name,"')")
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = '~/nb_predictions.csv', row.names = FALSE)")
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$nb_pred_data, "\", name = \"", input$nb_store_pred_name,"\")")
+    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/nb_predictions.csv\", row.names = FALSE)")
 
     if (input$nb_pred_plot && !is_empty(input$nb_xvar)) {
       inp_out[[3 + figs]] <- clean_args(nb_pred_plot_inputs(), nb_pred_plot_args[-1])
