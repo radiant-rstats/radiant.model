@@ -1,3 +1,5 @@
+ann_plots <- c("None" = "", "Network" = "net", "Olsen" = "olsen", "Garson" = "garson")
+
 ## list of function arguments
 ann_args <- as.list(formals(ann))
 
@@ -9,6 +11,18 @@ ann_inputs <- reactive({
   for (i in r_drop(names(ann_args)))
     ann_args[[i]] <- input[[paste0("ann_",i)]]
   ann_args
+})
+
+ann_plot_args <- as.list(if (exists("plot.ann")) formals(plot.ann)
+                         else formals(radiant.model:::plot.ann))
+
+## list of function inputs selected by user
+ann_plot_inputs <- reactive({
+  ## loop needed because reactive values don't allow single bracket indexing
+  for (i in names(ann_plot_args))
+    ann_plot_args[[i]] <- input[[paste0("ann_",i)]]
+
+  ann_plot_args
 })
 
 ann_pred_args <- as.list(if (exists("predict.ann")) formals(predict.ann)
@@ -137,6 +151,12 @@ output$ui_ann <- renderUI({
         )
       )
     ),
+    conditionalPanel(condition = "input.tabs_ann == 'Plot'",
+      wellPanel(
+        selectInput("ann_plots", "Plots:", choices = ann_plots, 
+          selected = state_single("ann_plots", ann_plots))
+      )
+    ),
     wellPanel(
       radioButtons("ann_type", label = NULL, c("classification","regression"),
         selected = state_init("ann_type", "classification"),
@@ -169,11 +189,12 @@ output$ui_ann <- renderUI({
 ann_plot <- reactive({
 
   if (ann_available() != "available") return()
+  req(input$ann_plots)
   res <- .ann()
   if (is.character(res)) return()
-  plot_height <- max(500, length(res$model$coefnames) * 50)
-  plot_width <- 650
-  list(plot_width = plot_width, plot_height = plot_height)
+  mlt <- if ("net" %in% input$ann_plots) 40 else 15
+  plot_height <- max(500, length(res$model$coefnames) * mlt)
+  list(plot_width = 650, plot_height = plot_height)
 })
 
 ann_plot_width <- function()
@@ -204,9 +225,9 @@ output$ann <- renderUI({
 		ann_output_panels <- tabsetPanel(
 	    id = "tabs_ann",
 	    tabPanel("Summary",
-        verbatimTextOutput("summary_ann"),
-        plot_downloader("ann_net", height = ann_plot_height()),
-        plotOutput("plot_ann_net", width = "100%", height = "100%")),
+        verbatimTextOutput("summary_ann")),
+        # plot_downloader("ann_net", height = ann_plot_height()),
+        # plotOutput("plot_ann_net", width = "100%", height = "100%")),
       tabPanel("Predict",
         conditionalPanel("input.ann_pred_plot == true",
           plot_downloader("ann", height = ann_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),
@@ -250,7 +271,6 @@ ann_available <- reactive({
   summary(.ann())
 })
 
-
 .predict_ann <- reactive({
   if (ann_available() != "available") return(ann_available())
   if (not_pressed(input$ann_run)) return("** Press the Estimate button to estimate the model **")
@@ -283,19 +303,44 @@ ann_available <- reactive({
   do.call(plot, c(list(x = .predict_ann()), ann_pred_plot_inputs()))
 })
 
+# .plot_ann <- reactive({
+#   if (ann_available() != "available") return(ann_available())
+#   if (not_pressed(input$ann_run)) return("** Press the Estimate button to estimate the model **")
+#   plot(.ann(), shiny = TRUE)
+# })
+
 .plot_ann <- reactive({
-  if (ann_available() != "available") return(ann_available())
-  if (not_pressed(input$ann_run)) return("** Press the Estimate button to estimate the model **")
-  plot(.ann(), shiny = TRUE)
+  if (ann_available() != "available")
+    return(ann_available())
+
+  req(input$ann_size)
+
+  if (is_empty(input$ann_plots))
+    return("Please select a neural network plot from the drop-down menu")
+  if (not_pressed(input$ann_run))
+    return("** Press the Estimate button to estimate the model **")
+
+  pinp <- ann_plot_inputs()
+  pinp$shiny <- TRUE
+
+  if (input$ann_plots == "net") {
+    # capture_plot(plot, c(list(x = .ann()), pinp))
+    # .plot_ann_net()
+    # .ann() %>% { if (is.character(.)) invisible() else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
+    .ann() %>% { if (is.character(.)) invisible() else capture_plot( do.call(plot, c(list(x = .), pinp))) }
+  } else {
+    do.call(plot, c(list(x = .ann()), pinp))
+  }
 })
 
-.plot_ann_net <- reactive({
-  if (ann_available() != "available") return(invisible())
-  req(input$ann_size)
-  .ann() %>%
-    { if (is.character(.)) invisible()
-      else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
-})
+
+# .plot_ann_net <- reactive({
+#   if (ann_available() != "available") return(invisible())
+#   req(input$ann_size)
+#   .ann() %>%
+#     { if (is.character(.)) invisible()
+#       else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
+# })
 
 observeEvent(input$ann_store_pred, {
   req(!is_empty(input$ann_pred_data), pressed(input$ann_run))
@@ -329,9 +374,17 @@ output$dl_ann_pred <- downloadHandler(
 observeEvent(input$ann_report, {
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE),"")
-  xcmd <- "NeuralNetTools::plotnet(result$model)"
-  outputs <- c(outputs, "plot")
-  figs <- TRUE
+  # xcmd <- "NeuralNetTools::plotnet(result$model)"
+  xcmd <- ""
+  # outputs <- c(outputs, "plot")
+  figs <- FALSE
+
+  if (!is_empty(input$ann_plots)) {
+    inp_out[[2]] <- clean_args(ann_plot_inputs(), ann_plot_args[-1])
+    outputs <- c(outputs, "plot")
+    figs <- TRUE
+  }
+
   if (!is_empty(input$ann_predict, "none") &&
       (!is_empty(input$ann_pred_data) || !is_empty(input$ann_pred_cmd))) {
 

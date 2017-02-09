@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model VERSION 0.7.2
+# CHANGES IN radiant.model VERSION 0.7.3
 
 ## NEW FEATURES
 
@@ -7,6 +7,7 @@
 - Added Model > Claborative Fitlering
 - Various enhancements to evaluate (binary) classification models
 - Improved plot sizing for Model > Decision Analysis
+- Added Garson plot and moved all plots to the ANN > Plot tab
 
 ## BUG FIXES
 

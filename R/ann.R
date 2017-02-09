@@ -100,8 +100,17 @@ ann <- function(dataset, rvar, evar,
               rang = .1, size = size, decay = decay, weights = wts, maxit = 10000,
               linout = linout, entropy = entropy, skip = skip, trace = FALSE, data = dat)
 
+  ## based on http://stackoverflow.com/a/14324316/1974918
+  seed <- seed %>% gsub("[^0-9]","",.) 
+  if (!is_empty(seed)) {
+    if (exists(".Random.seed")) {
+      gseed <- .Random.seed
+      on.exit({.Random.seed <<- gseed})
+    }
+    set.seed(seed) 
+  }
+
   ## need do.call so Garson/Olden plot will work
-  seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
   model <- do.call(nnet::nnet, nninput)
 
   ## ann returns residuals as a matrix
@@ -226,6 +235,7 @@ summary.ann <- function(object, prn = TRUE, ...) {
 #'
 #' @param x Return value from \code{\link{ann}}
 #' @param shiny Did the function call originate inside a shiny app
+#' @param plots Plots to produce for the specified ANN model. Use "" to avoid showing any plots (default). Options are "olsen" or "garson" for importance plots, or "net" to depict the network structure
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -236,16 +246,24 @@ summary.ann <- function(object, prn = TRUE, ...) {
 #' @seealso \code{\link{summary.ann}} to summarize results
 #' @seealso \code{\link{predict.ann}} for prediction
 #'
-#' @importFrom NeuralNetTools plotnet olden
+#' @importFrom NeuralNetTools plotnet olden garson
 #'
 #' @export
-plot.ann <- function(x, shiny = FALSE, ...) {
+plot.ann <- function(x, plots = "garson", shiny = FALSE, ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
   plot_list <- list()
-  plot_list[[1]] <- NeuralNetTools::olden(object$model) + coord_flip()
-  # plot_list[[2]] <- NeuralNetTools::garson(object$model) + coord_flip()
+
+  if ("olsen" %in% plots) 
+    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model) + coord_flip()
+
+  if ("garson" %in% plots) 
+    plot_list[["garson"]] <- NeuralNetTools::garson(object$model) + coord_flip()
+
+  if ("net" %in% plots) 
+      return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model)))
+
   nrCol <- 1
 
   if (length(plot_list) > 0) {
