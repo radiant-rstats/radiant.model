@@ -4,10 +4,12 @@
 \alias{plot.ann}
 \title{Plot method for the ann function}
 \usage{
-\method{plot}{ann}(x, shiny = FALSE, ...)
+\method{plot}{ann}(x, plots = "garson", shiny = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{ann}}}
+
+\item{plots}{Plots to produce for the specified ANN model. Use "" to avoid showing any plots (default). Options are "olsen" or "garson" for importance plots, or "net" to depict the network structure}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 
