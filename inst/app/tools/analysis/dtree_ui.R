@@ -239,7 +239,7 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
   if (is_empty(input$dtree_final)) return(invisible())
   dt <- dtree_eval()
   if (is.null(dt)) {
-    return(invisible())
+    invisible()
   } else {
     pinp <- dtree_plot_inputs()
     do.call(plot, c(list(x = dt), pinp))
