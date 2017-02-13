@@ -6,7 +6,7 @@
 \usage{
 crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
   cp = 0.001, nodes = NA, K = 10, seed = 1234, split = "gini",
-  prior = NA, loss = c(1, 1), check = "", data_filter = "")
+  prior = "0.5 0.5", loss = c(1, 1), check = "", data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
