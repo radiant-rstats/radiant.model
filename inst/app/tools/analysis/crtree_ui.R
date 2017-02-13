@@ -111,10 +111,11 @@ output$ui_crtree_wts <- renderUI({
 
 output$ui_crtree_prior <- renderUI({
   req(input$crtree_type == "classification")
-  textInput("crtree_prior", label = "Priors:", value = state_init("crtree_prior", NA))
+  # textInput("crtree_prior", label = "Priors:", value = state_init("crtree_prior", NA))
+  textInput("crtree_prior", label = "Priors:", value = state_init("crtree_prior", crtree_args$prior, na.rm = FALSE))
 })
 
-# observeEvent(input$crtree_type == "regression", {
+# observeEvent(length(input$crtree_prior) > 0 && is.na(input$crtree_prior), {
 #   updateTextInput(session = session, inputId = "crtree_prior", value = "")
 # })
 
@@ -240,10 +241,11 @@ output$crtree <- renderUI({
 	    tabPanel("Plot",
         conditionalPanel("input.crtree_plots == 'tree'",
           actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
-          DiagrammeR::DiagrammeROutput("crtree_plot_diagram", width = "100%", height = "100%")
+          DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
         ),
-       conditionalPanel("input.crtree_plots == 'prune' | input.crtree_plots == 'imp'",
-          plot_downloader(paste0("crtree_", input$ctree_plots), height = crtree_plot_height(), po = "dlp_", pre = ".plot_"),
+        conditionalPanel("input.crtree_plots == 'prune' | input.crtree_plots == 'imp'",
+          # plot_downloader(paste0("crtree_", input$ctree_plots), height = crtree_plot_height()),
+          plot_downloader("crtree", height = crtree_plot_height()),
           plotOutput("plot_crtree", width = "100%", height = "100%")
         )
       )
@@ -256,13 +258,13 @@ output$crtree <- renderUI({
 
 })
 
-output$crtree_plot_diagram <- DiagrammeR::renderDiagrammeR({
+output$crtree_plot <- DiagrammeR::renderDiagrammeR({
   cr <- .crtree()
   if (is.null(cr)) {
     invisible()
   } else {
     withProgress(message = 'Generating tree diagramm', value = 1,
-      plot(cr, orient = input$crtree_orient)
+      plot(cr, plots = "tree", orient = input$crtree_orient)
     )
   }
 })

@@ -41,7 +41,7 @@ crtree <- function(dataset, rvar, evar,
                    K = 10,
                    seed = 1234,
                    split = "gini",
-                   prior = NA,
+                   prior = "0.5 0.5",
                    loss = c(1,1),
                    check = "",
                    data_filter = "") {
