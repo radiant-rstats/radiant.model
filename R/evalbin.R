@@ -294,6 +294,7 @@ confusion <- function(dataset, pred, rvar,
 	         accuracy = (TP + TN) / total,
 	         profit = margin * TP - cost * (TP + FP),
 	         ROME = profit / (cost * (TP + FP)),
+	         contact = (TP + FP) / total,
 	         kappa = 0)
 
 	dat <- group_by_(dat, "Type") %>% mutate(index = profit / max(profit)) %>% ungroup
@@ -306,7 +307,7 @@ confusion <- function(dataset, pred, rvar,
 
 	dat <- select_(dat, .dots = c("Type","Predictor", "TP", "FP", "TN", "FN",
 	                              "total", "TPR", "TNR", "precision", "accuracy",
-	                              "kappa", "profit", "index", "ROME", "AUC"))
+	                              "kappa", "profit", "index", "ROME", "contact", "AUC"))
 
 	rm(pdat, dat_list)
 
@@ -341,7 +342,7 @@ summary.confusion <- function(object, ...) {
 
 	print(formatdf(as.data.frame(object$dat[,1:10]), 3), row.names = FALSE)
 	cat("\n")
-	print(formatdf(as.data.frame(object$dat[,c(1,2, 11:16)]), 3, mark = ","), row.names = FALSE)
+	print(formatdf(as.data.frame(object$dat[,c(1,2, 11:17)]), 3, mark = ","), row.names = FALSE)
 }
 
 #' Plot method for the confusion matrix
