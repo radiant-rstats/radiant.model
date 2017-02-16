@@ -4,7 +4,7 @@
 \alias{confusion}
 \title{Confusion matrix}
 \usage{
-confusion(dataset, pred, rvar, lev = "", margin = 2, cost = 1,
+confusion(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
   train = "", data_filter = "", ...)
 }
 \arguments{
@@ -16,9 +16,9 @@ confusion(dataset, pred, rvar, lev = "", margin = 2, cost = 1,
 
 \item{lev}{The level in the response variable defined as _success_}
 
-\item{margin}{Margin on each customer purchase}
-
 \item{cost}{Cost for each connection (e.g., email or mailing)}
+
+\item{margin}{Margin on each customer purchase}
 
 \item{train}{Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin}
 

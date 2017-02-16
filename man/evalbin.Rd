@@ -4,7 +4,7 @@
 \alias{evalbin}
 \title{Model evalbin}
 \usage{
-evalbin(dataset, pred, rvar, lev = "", qnt = 10, margin = 2, cost = 1,
+evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
   train = "", method = "xtile", data_filter = "")
 }
 \arguments{
@@ -18,9 +18,9 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, margin = 2, cost = 1,
 
 \item{qnt}{Number of bins to create}
 
-\item{margin}{Margin on each customer purchase}
-
 \item{cost}{Cost for each connection (e.g., email or mailing)}
+
+\item{margin}{Margin on each customer purchase}
 
 \item{train}{Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin}
 

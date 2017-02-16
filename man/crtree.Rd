@@ -6,7 +6,7 @@
 \usage{
 crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
   cp = 0.001, nodes = NA, K = 10, seed = 1234, split = "gini",
-  prior = "0.5 0.5", loss = c(1, 1), check = "", data_filter = "")
+  prior = NA, cost = NA, margin = NA, check = "", data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
@@ -31,9 +31,11 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
 
 \item{split}{Splitting criterium to use (i.e., "gini" or "information")}
 
-\item{prior}{Adjust the initial probabilities (e.g., set to .5 .5 in unbalanced samples)}
+\item{prior}{Adjust the initial probabily for the selected level (e.g., set to .5 in unbalanced samples)}
 
-\item{loss}{A two element vector with margin and cost. The first element is the cost of a false negative and the second, the cost of a false positive (e.g., c(6, 0.5))}
+\item{cost}{Cost for each connection (e.g., email or mailing)}
+
+\item{margin}{Margin on each customer purchase}
 
 \item{check}{Optional estimation parameters ("standardize" is the default)}
 
