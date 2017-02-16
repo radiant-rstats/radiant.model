@@ -13,8 +13,9 @@
 #' @param K Number of folds use in cross-validation
 #' @param seed Random seed used for cross-validation
 #' @param split Splitting criterium to use (i.e., "gini" or "information")
-#' @param prior Adjust the initial probabilities (e.g., set to .5 .5 in unbalanced samples)
-#' @param loss A two element vector with margin and cost. The first element is the cost of a false negative and the second, the cost of a false positive (e.g., c(6, 0.5))
+#' @param prior Adjust the initial probabily for the selected level (e.g., set to .5 in unbalanced samples)
+#' @param cost Cost for each connection (e.g., email or mailing)
+#' @param margin Margin on each customer purchase
 #' @param check Optional estimation parameters ("standardize" is the default)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
@@ -41,8 +42,9 @@ crtree <- function(dataset, rvar, evar,
                    K = 10,
                    seed = 1234,
                    split = "gini",
-                   prior = "0.5 0.5",
-                   loss = c(1,1),
+                   prior = NA,
+                   cost = NA,
+                   margin = NA,
                    check = "",
                    data_filter = "") {
 
@@ -132,69 +134,60 @@ crtree <- function(dataset, rvar, evar,
 
   form <- paste(rvar, "~ . ")
 
-  # if (!is_not(wts) && is.integer(wts)) {
-  #   control <- tree::tree.control(sum(wts), mindev = mindev)
-  # } else {
-  #   control <- tree::tree.control(nrow(dat), mindev = mindev)
-  # }
+  seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
 
   ## make max tree
   # http://stackoverflow.com/questions/24150058/rpart-doesnt-build-a-full-tree-problems-with-cp
   # if (cp == 0) cp <- -1
   control <- rpart::rpart.control(cp = cp, xval = K, minsplit = 2, minbucket = 1)
 
-  # .5/0.0194
-  # 1/0.0194
-
-  # churn <- c(rep("yes", 13650), rep("no", 51*13650))
-  # mean(churn == "yes")
-
-  # 1.9612/0.0388
-  # control[["nmax"]] <- 500
-  # print(control)
-
-  # control <- tree::tree.control(sum(wts), mindev = mindev)
-  # set.seed(1234)
-  # loss_matrix <- matrix(c(0,6,.5,0), nrow = 2)
-
-  seed %>% gsub("[^0-9]","",.) %>% { if (!is_empty(.)) set.seed(seed) }
-
-  # loss <- c(6, .5)
-  # prior <- NULL
-
-
   parms <- list(split = split)
-  # parms <- list(split = split, prior = c(.5, .5))
+  # prior <- NULL
+  # prior <- .5
+  # loss <- c(6,.5)
+  # cost <- .5
+  # margin <- 6
   if (type == "classification") {
-    # parms[["loss"]] <- matrix(c(0,loss[1],loss[2],0), byrow = TRUE, nrow = 2)
-    if (!is_empty(prior)) {
-      prior <- gsub(","," ", prior) %>% strsplit("\\s+") %>% unlist
-      asNum <- function(x) ifelse(length(x) > 1, as.numeric(x[1])/as.numeric(x[2]), as.numeric(x[1]))
-      prior <- sshhr( strsplit(prior, "/") %>% sapply(asNum) )
+
+    ind <- if(which(lev %in% levels(dat[[rvar]])) == 1) c(1,2) else c(2,1)
+
+    if (!is_not(cost) && !is_not(margin)) {
+
+      parms[["loss"]] <- c(as_numeric(margin), as_numeric(cost)) %>% .[ind] %>%
+        {matrix(c(0,.[1],.[2],0), byrow = TRUE, nrow = 2)}
+      # print(parms)
+      # parms[["loss"]] <- NULL
+      # if (which(lev %in% levels(dat[[rvar]])) == 1) {
+      #   parms[["loss"]] <- matrix(c(0,cost,margin,0), byrow = TRUE, nrow = 2)
+      # } else {
+      #   parms[["loss"]] <- matrix(c(0,margin,cost,0), byrow = TRUE, nrow = 2)
+      # }
+      # parms[["loss"]] <- matrix(c(0,loss[1],loss[2],0), byrow = TRUE, nrow = 2)
+    } else if (!is_empty(prior)) {
+      # prior <- gsub(","," ", prior) %>% strsplit("\\s+") %>% unlist
+      # asNum <- function(x) ifelse(length(x) > 1, as.numeric(x[1])/as.numeric(x[2]), as.numeric(x[1]))
+      # prior <- sshhr( strsplit(prior, "/") %>% sapply(asNum) )
 
       if (!is.numeric(prior))
-        return("Priors did not resolve to a numeric factor" %>% add_class("crtree"))
-      else if (length(prior) == 2 && sum(prior) == 1)
-        parms[["prior"]] <- prior
-      else if (length(prior) > 2)
-        return("Priors only supported for bivariate classification" %>% add_class("crtree"))
+        return("Prior did not resolve to a numeric factor" %>% add_class("crtree"))
+      else if (prior > 1 || prior < 0)
+        return("Prior is not a valid probability" %>% add_class("crtree"))
       else
-        return("Priors must sum to 1. Use fractions if needed" %>% add_class("crtree"))
+        parms[["prior"]] <- c(prior, 1 - prior) %>% .[ind]
+
+        # return("Prior did not resolve to a numeric factor" %>% add_class("crtree"))
+      # else if (length(prior) == 2 && sum(prior) == 1)
+        # parms[["prior"]] <- prior
+      # else if (length(prior) > 2)
+        # return("Priors only supported for bivariate classification" %>% add_class("crtree"))
+      # else
+        # return("Priors must sum to 1. Use fractions if needed" %>% add_class("crtree"))
     }
-    # if (!is_not(loss) && length(loss) == 2)
-    #   parms[["loss"]] <- matrix(c(0,loss[1],loss[2],0), byrow = TRUE, nrow = 2)
   }
 
-  # parms <- list(prior = c(.5, .5))
-  # wts <- NULL
   model <- rpart::rpart(as.formula(form), data = dat,
                         parms = parms,
                         weights = wts, control = control)
-  # model <- rpart::rpart(as.formula(form), data = dat, parms = list(prior = c(0.0194, 1-0.0194)), control = control)
-
-  ## needed so cv.crtree can find relevant inputs
-  # crtree_input <- list(formula = as.formula(form), data = dat, weights = wts, control = control)
-  # model <- do.call(tree::tree, crtree_input)
 
   if (!is_not(nodes)) {
     unpruned <- model
@@ -211,7 +204,13 @@ crtree <- function(dataset, rvar, evar,
   model$residuals <- residuals(model, type = "pearson")
 
   ## adjusting predicted probabilities
-  if (!is_empty(prior) && length(prior) == 2) {
+  # if (!is_empty(prior) && length(prior) == 2) {
+  # if (!is_empty(prior)) {
+
+  if (is_not(cost) && is_not(margin) && !is_empty(prior)) {
+
+    ## note that this adjust will reset the prior in the print out
+    ## to the original prior
 
     ## predicting using rpart
     # pred <- data.frame(rvar = dat[[rvar]] == lev, pred = predict(model, dat)[,lev])
@@ -229,7 +228,8 @@ crtree <- function(dataset, rvar, evar,
 
     ## using the SAS approach
     org_frac <- mean(dat[[rvar]] == lev)
-    over_frac <- prior[1]
+    # over_frac <- prior[which(lev %in% levels(dat[[rvar]]))]
+    over_frac <- prior
     model$frame$yval2[,4] <- 1/(1+(1/org_frac-1)/(1/over_frac-1)*(1/model$frame$yval2[,4]-1))
     model$frame$yval2[,5] <- 1 - model$frame$yval2[,4]
   }
@@ -294,6 +294,10 @@ summary.crtree <- function(object, prn = TRUE, ...) {
   if (!is_not(object$nodes)) {
     max_nodes <- sum(object$unpruned$frame$var == "<leaf>")
     cat("Maximum nr. nodes    :", object$nodes, "out of", max_nodes, "\n")
+  }
+  if (!is_empty(object$cost) && !is_empty(object$margin) && object$type == "classification") {
+    cat("Cost:Margin          :", object$cost, ":", object$margin, "\n")
+    if (!is_empty(object$prior)) object$prior <- "Prior ignored when cost and margin set"
   }
   if (!is_empty(object$prior) && object$type == "classification")
     cat("Priors               :", paste0(object$prior, collapse=", "),"\n")

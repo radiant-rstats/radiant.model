@@ -109,16 +109,6 @@ output$ui_crtree_wts <- renderUI({
     multiple = FALSE)
 })
 
-output$ui_crtree_prior <- renderUI({
-  req(input$crtree_type == "classification")
-  # textInput("crtree_prior", label = "Priors:", value = state_init("crtree_prior", NA))
-  textInput("crtree_prior", label = "Priors:", value = state_init("crtree_prior", crtree_args$prior, na.rm = FALSE))
-})
-
-# observeEvent(length(input$crtree_prior) > 0 && is.na(input$crtree_prior), {
-#   updateTextInput(session = session, inputId = "crtree_prior", value = "")
-# })
-
 ## reset prediction settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "crtree_predict", selected = "none")
@@ -181,19 +171,28 @@ output$ui_crtree <- renderUI({
       uiOutput("ui_crtree_lev"),
 	    uiOutput("ui_crtree_evar"),
       # uiOutput("ui_crtree_wts"),
-      uiOutput("ui_crtree_prior"),
+      conditionalPanel(condition = "input.crtree_type == 'classification'",
+        tags$table(
+          tags$td(numericInput("crtree_prior", label = "Prior:",
+            value = state_init("crtree_prior", .5, na.rm = FALSE))),
+          tags$td(numericInput("crtree_cost", label = "Cost:",
+            value = state_init("crtree_cost", NA))),
+          tags$td(numericInput("crtree_margin", label = "Margin:",
+            value = state_init("crtree_margin", NA)))
+        )
+      ),
       tags$table(
         tags$td(numericInput("crtree_cp", label = "Complexity:", min = 0,
           max = 1, step = 0.01,
           value = state_init("crtree_cp", 0.001), width = "116px")),
         tags$td(numericInput("crtree_nodes", label = "Max. nodes:", min = 2,
-          value = state_init("crtree_nodes", NA), width = "116px"))
+          value = state_init("crtree_nodes", NA), width = "100%"))
       ),
       tags$table(
         tags$td(numericInput("crtree_K", label = "K-folds:",
           value = state_init("crtree_K", 10), width = "116px")),
         tags$td(numericInput("crtree_seed", label = "Seed:",
-          value = state_init("crtree_seed", 1234), width = "116px"))
+          value = state_init("crtree_seed", 1234), width = "100%"))
       ),
 
       conditionalPanel(condition = "input.tabs_crtree == 'Summary'",
@@ -403,8 +402,9 @@ observeEvent(input$crtree_report, {
   }
 
   ci <- crtree_inputs()
-  if (input$crtree_type == "regression")
-    ci$prior <- NULL
+  if (input$crtree_type == "regression") {
+    ci$prior <- ci$cost <- ci$margin <- NULL
+  }
 
   update_report(inp_main = clean_args(ci, crtree_args),
                 fun_name = "crtree",

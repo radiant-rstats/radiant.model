@@ -65,8 +65,11 @@ output$ui_ann_rvar <- renderUI({
     isNum <- .getclass() %in% c("numeric","integer")
     vars <- varnames()[isNum]
   }
+
+  init <- if (input$ann_type == "classification") input$logit_rvar else input$reg_rvar
+
   selectInput(inputId = "ann_rvar", label = "Response variable:", choices = vars,
-  	selected = state_single("ann_rvar",vars), multiple = FALSE)
+  	selected = state_single("ann_rvar",vars, init), multiple = FALSE)
 })
 
 output$ui_ann_lev <- renderUI({

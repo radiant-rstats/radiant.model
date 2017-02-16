@@ -73,10 +73,10 @@ output$ui_evalbin <- renderUI({
         #   inline = TRUE),
       ),
       tags$table(
-        tags$td(numericInput("ebin_margin", label = "Margin:",
-          value = state_init("ebin_margin",2), width = "117px")),
         tags$td(numericInput("ebin_cost", label = "Cost:",
-          value = state_init("ebin_cost",1)))
+          value = state_init("ebin_cost",1))),
+        tags$td(numericInput("ebin_margin", label = "Margin:",
+          value = state_init("ebin_margin",2), width = "117px"))
       ),
       uiOutput("ui_ebin_train"),
       conditionalPanel("input.tabs_evalbin == 'Plot'",

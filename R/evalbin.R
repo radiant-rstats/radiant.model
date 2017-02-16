@@ -7,8 +7,8 @@
 #' @param rvar Response variable
 #' @param lev The level in the response variable defined as _success_
 #' @param qnt Number of bins to create
-#' @param margin Margin on each customer purchase
 #' @param cost Cost for each connection (e.g., email or mailing)
+#' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param method Use either ntile or xtile to split the data (default is xtile)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
@@ -25,15 +25,15 @@
 evalbin <- function(dataset, pred, rvar,
                     lev = "",
                     qnt = 10,
-                    margin = 2,
                     cost = 1,
+                    margin = 2,
                     train = "",
                     method = "xtile",
                     data_filter = "") {
 
 	## in case no inputs were provided
-	if (is.na(margin)) margin <- 0
 	if (is.na(cost)) cost <- 0
+	if (is.na(margin)) margin <- 0
 
 	## to avoid 'global not defined' warnings
 	nr_resp <- nr_obs <- cum_resp <- cum_resp_rate <- everything <- NULL
@@ -165,7 +165,7 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 	cat("Response    :", object$rvar, "\n")
   cat("Level       :", object$lev, "in", object$rvar, "\n")
 	cat("Bins        :", object$qnt, "\n")
-	cat("Margin:Cost :", object$margin, ":", object$cost, "\n")
+	cat("Cost:Margin :", object$cost, ":", object$margin, "\n")
 	# prof <- object$prof_list
 	# cat("Profit index:", paste0(names(prof), " (", round(prof,3), ")", collapse=", "), "\n")
 	# auc <- unlist(object$auc_list)
@@ -183,8 +183,8 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
 #' @param lev The level in the response variable defined as _success_
-#' @param margin Margin on each customer purchase
 #' @param cost Cost for each connection (e.g., email or mailing)
+#' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param ... further arguments passed to or from other methods
@@ -199,8 +199,8 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 #' @export
 confusion <- function(dataset, pred, rvar,
                       lev = "",
-                      margin = 2,
                       cost = 1,
+                      margin = 2,
                       train = "",
                       data_filter = "",
                       ...) {
@@ -337,7 +337,7 @@ summary.confusion <- function(object, ...) {
 	cat("Predictors :", paste0(object$pred, collapse=", "), "\n")
 	cat("Response   :", object$rvar, "\n")
   cat("Level      :", object$lev, "in", object$rvar, "\n")
-	cat("Margin:Cost:", object$margin, ":", object$cost, "\n")
+	cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
 	cat("\n")
 
 	print(formatdf(as.data.frame(object$dat[,1:10]), 3), row.names = FALSE)
