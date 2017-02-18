@@ -31,6 +31,9 @@ See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in 
 \examples{
 result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
 predict(result, pred_cmd = "pclass = levels(pclass)")
+result <- ann("diamonds", "price", "carat:color", type = "regression")
+predict(result, pred_cmd = "carat = 1:3")
+predict(result, pred_data = "diamonds") \%>\% head
 
 }
 \seealso{
