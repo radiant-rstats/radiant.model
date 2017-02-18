@@ -33,7 +33,9 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
 
   vars <- evar
-  if (length(vars) < (ncol(dat)-1)) vars <- colnames(dat)[-1]
+  ## in case : is used
+  if (length(vars) < (ncol(dat)-1)) 
+    vars <- evar <- colnames(dat)[-1]
 
   ## make sure the dv is a factor
   if (!is.factor(dat[[1]])) dat <- as_factor(dat[[1]])

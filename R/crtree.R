@@ -130,7 +130,8 @@ crtree <- function(dataset, rvar, evar,
   if ("standardize" %in% check) dat <- scaledf(dat, wts = wts)
 
   vars <- evar
-  if (length(vars) < (ncol(dat)-1)) vars <- colnames(dat)[-1]
+  ## in case : is used
+  if (length(vars) < (ncol(dat)-1)) vars <- evar <- colnames(dat)[-1]
 
   form <- paste(rvar, "~ . ")
 
