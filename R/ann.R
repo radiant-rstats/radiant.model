@@ -48,7 +48,6 @@ ann <- function(dataset, rvar, evar,
   if (is_empty(decay) || decay < 0)
     return("Decay should be larger than or equal to 0." %>% add_class("ann"))
 
-
   if (!is.null(wts) && wts == "None") {
     wts <- NULL
     vars <- c(rvar, evar)
@@ -91,7 +90,9 @@ ann <- function(dataset, rvar, evar,
   if ("standardize" %in% check) dat <- scaledf(dat, wts = wts)
 
   vars <- evar
-  if (length(vars) < (ncol(dat)-1)) vars <- colnames(dat)[-1]
+  ## in case : is used
+  if (length(vars) < (ncol(dat)-1)) 
+    vars <- evar <- colnames(dat)[-1]
 
   ## use decay
   # http://stats.stackexchange.com/a/70146/61693
@@ -130,9 +131,11 @@ ann <- function(dataset, rvar, evar,
 #' @param scale Scale data (TRUE or FALSE)
 #' @param sf Scaling factor (default is 2)
 #' @param wts Weights to use (default is NULL for no weights)
-#' @param calc Calculate mean and sd or use available attributes
+#' @param calc Calculate mean and sd or use attributes attached to dat
 #'
 #' @return Scaled data frame
+#'
+#' @seealso \code{\link{copy_attr}} to copy attributes from a traning to a validation dataset
 #'
 #' @export
 scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc = TRUE) {
@@ -156,14 +159,14 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
     if (is.null(ms) && is.null(sds)) return(dat)
   }
   if (center && scale) {
-    mutate_each_(dat, funs((. - ms$.) / (sf * sds$.)), vars = cn) %>%
+    mutate_each_(dat, funs((. - ms$.) / (sf * sds$.)), vars = intersect(names(ms), cn)) %>%
       set_attr("ms", ms) %>%
       set_attr("sds", sds)
   } else if (center) {
-    mutate_each_(dat, funs(. - ms$.), vars = cn) %>%
+    mutate_each_(dat, funs(. - ms$.), vars = intersect(names(ms), cn)) %>%
       set_attr("ms", ms)
   } else if (scale) {
-    mutate_each_(dat, funs(. / (sf * sds$.)), vars = cn) %>%
+    mutate_each_(dat, funs(. / (sf * sds$.)), vars = intersect(names(sds), cn)) %>%
       set_attr("sds", sds)
   } else {
     dat
@@ -287,6 +290,9 @@ plot.ann <- function(x, plots = "garson", shiny = FALSE, ...) {
 #' @examples
 #' result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
+#' result <- ann("diamonds", "price", "carat:color", type = "regression")
+#' predict(result, pred_cmd = "carat = 1:3")
+#' predict(result, pred_data = "diamonds") %>% head
 #'
 #' @seealso \code{\link{ann}} to generate the result
 #' @seealso \code{\link{summary.ann}} to summarize results
