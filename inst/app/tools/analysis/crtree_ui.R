@@ -212,6 +212,11 @@ crtree_plot_width <- function() 650
 
 crtree_plot_height <- function() 500
 
+crtree_plot_height <- function() {
+  if (crtree_available() != "available") return(500)
+  300 + 20 * length(.crtree()$vars)
+}
+
 crtree_pred_plot_height <- function()
   if (input$crtree_pred_plot) 500 else 0
 

@@ -120,7 +120,12 @@ output$ui_nb <- renderUI({
 })
 
 nb_plot_width <- function() 650
-nb_plot_height <- function() 500
+nb_plot_height <- function() {
+  if (nb_available() != "available") return(500)
+  n_lev <- length(.nb()$lev) - 1
+  n_vars <- length(.nb()$vars)
+  plot_height <- 300 + 20 * n_vars * n_lev
+}
 nb_pred_plot_height <- function() if (input$nb_pred_plot) 500 else 0
 
 ## output is called from the main radiant ui.R
