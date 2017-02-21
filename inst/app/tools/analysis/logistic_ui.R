@@ -255,7 +255,7 @@ output$ui_logistic <- renderUI({
         )
       )
 	  ),
-  	help_and_report(modal_title = "Logist regression (GLM)", fun_name = "logistic",
+  	help_and_report(modal_title = "Logistic regression (GLM)", fun_name = "logistic",
   	                help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/logistic.Rmd")))
 	)
 })
