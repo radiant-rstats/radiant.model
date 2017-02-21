@@ -502,7 +502,18 @@ plot.logistic <- function(x,
 
     model$.fittedbin <- radiant.data::xtile(model$.fitted, 20)
 
-    df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - .fitted))
+    min_bin <- min(model$.fittedbin)
+    max_bin <- max(model$.fittedbin)
+
+    # if (mean(model$.fitted[model$.fittedbin == min_bin]) < mean(model$.fitted[model$.fittedbin == max_bin])) {
+    if (prop(model$.actual[model$.fittedbin == min_bin]) < prop(model$.actual[model$.fittedbin == max_bin])) {
+      model$.fittedbin <- 1 + max_bin - model$.fittedbin
+      df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(.fitted))
+    } else {
+      df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - .fitted))
+    }
+
+    # df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(.fitted))
     plot_list[["fit"]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
       geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +
