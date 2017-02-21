@@ -494,8 +494,8 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
       imp <- x$model$variable.importance
       if (is.null(imp)) return("Variable importance information not available for singlenode tree")
 
-      df <- data.frame(vars = names(imp),
-                       imp = imp / sum(imp))
+      df <- data.frame(vars = names(imp), imp = imp / sum(imp)) %>% 
+        arrange_(.dots = "imp")
       df$vars <- factor(df$vars, levels = df$vars)
 
       # df$CP <- sqrt(df$CP * c(Inf, head(df$CP, -1))) # %>% round(5)
@@ -503,7 +503,9 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
         visualize(df, yvar = "imp", xvar = "vars", type = "bar", custom = TRUE) +
         xlab("") +
         ylab("Importance") +
-        ggtitle("Variable importance")
+        ggtitle("Variable importance") +
+        coord_flip() +
+        theme(axis.text.y = element_text(hjust = 0))
     }
 
     if (length(plot_list) > 0) {

@@ -136,10 +136,13 @@ plot.nb <- function(x, shiny = FALSE, ...) {
     # apply(x, 2, auc, y) %>% {. - min(.)} %>% {. / max(.)} %>% cbind(.,.) %>% set_colnames(levs)
     ## reporting auc for each variable
     # vimp <- apply(x, 2, auc, y) %>% round(., 3) %>% cbind(.,.) %>% set_colnames(levs)
-    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x))
+    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x)) %>% arrange_(.dots = "auc")
+    vimp$vars <- factor(vimp$vars, levels = vimp$vars)
     p <- visualize(vimp, yvar = "auc", xvar = "vars", type = "bar", custom = TRUE) +
-      coord_cartesian(ylim = c(0.5, max(vimp$auc))) +
-      ylab("Variable Importance (AUC)")
+      xlab("") +
+      ylab("Variable Importance (AUC)") +
+      coord_flip(ylim = c(0.5, max(vimp$auc))) +
+      theme(axis.text.y = element_text(hjust = 0))
   } else {
 
     cmb <- combn(object$lev, 2)
@@ -152,12 +155,17 @@ plot.nb <- function(x, shiny = FALSE, ...) {
     vimp <- as.data.frame(vimp)
     colnames(vimp) <- names(x)
     vimp$Predict <- apply(cmb, 2, paste0, collapse = " vs ")
-    vimp <- gather_(vimp, "vars", "auc", names(x))
+    vimp$Predict <- factor(vimp$Predict, levels = unique(rev(vimp$Predict)))
+    vimp <- gather_(vimp, "vars", "auc", names(x), factor_key = TRUE)
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
-      coord_cartesian(ylim = c(0.5, max(vimp$auc))) +
       guides(fill = guide_legend(title = "X-vars")) +
-      ylab("Variable Importance (AUC)")
+      xlab("") +
+      ylab("Variable Importance (AUC)") + 
+      # scale_x_discrete(limits = rev(vimp$Predict)) +
+      coord_flip(ylim = c(0.5, max(vimp$auc))) +
+      theme(axis.text.y = element_text(hjust = 0)) 
+
   }
 
   if (shiny) p else print(p)
@@ -289,11 +297,10 @@ plot.nb.predict <- function(x, xvar = "",
     p <- p + facet_fun(as.formula(facets))
   }
 
-  p <- p + guides(color = guide_legend(title = rvar))
+  p <- p + guides(color = guide_legend(title = rvar)) 
 
   sshhr(p)
 }
-
 
 #' Store predicted values generated in the nb function
 #'
@@ -328,74 +335,11 @@ store.nb.predict <- function(object, ..., data = attr(object,"pred_data"), name 
       df <- df[,1:length(name), drop = FALSE] %>% set_colnames(name)
   }
 
-  indr <- indexr(data, attr(object, "evar"), "")
+  indr <- indexr(data, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
+  # indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
+
   pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
   pred[indr$ind, ] <- df
 
   changedata(data, vars = pred, var_names = name)
 }
-
-#' Place holder for predict.naiveBayes until e1071 is updated to allow logical in prediction
-#'
-#' @param object An object of class \code{"naiveBayes"}.
-#' @param newdata A dataframe with new predictors (with possibly fewer
-#'    columns than the training data). Note that the column names of
-#'    \code{newdata} are matched against the training data ones.
-#' @param  type If \code{"raw"}, the conditional a-posterior
-#'    probabilities for each class are returned, and the class with
-#'    maximal probability else
-#' @param threshold Value replacing cells with probabilities within \code{eps} range.
-#' @param eps Double for specifying an epsilon-range to apply laplace
-#'    smoothing (to replace zero or close-zero probabilities by \code{theshold}.)
-#' @param ... Additional arguments
-#'
-#' @export
-predict.naiveBayes <- function(object,
-                               newdata,
-                               type = c("class", "raw"),
-                               threshold = 0.001,
-                               eps = 0,
-                               ...) {
-
-    type <- match.arg(type)
-    newdata <- as.data.frame(newdata)
-    attribs <- match(names(object$tables), names(newdata))
-    isnumeric <- sapply(newdata, is.numeric)
-    islogical <- sapply(newdata, is.logical)
-    newdata <- data.matrix(newdata)
-    L <- sapply(1:nrow(newdata), function(i) {
-        ndata <- newdata[i, ]
-        L <- log(object$apriori) + apply(log(sapply(seq_along(attribs),
-            function(v) {
-                nd <- ndata[attribs[v]]
-                if (is.na(nd)) rep(1, length(object$apriori)) else {
-                  prob <- if (isnumeric[attribs[v]]) {
-                    msd <- object$tables[[v]]
-                    msd[, 2][msd[, 2] <= eps] <- threshold
-                    dnorm(nd, msd[, 1], msd[, 2])
-                  } else if (islogical[attribs[v]]) {
-                    object$tables[[v]][, nd + 1]
-                  } else object$tables[[v]][, nd]
-                  prob[prob <= eps] <- threshold
-                  prob
-                }
-            })), 1, sum)
-        if (type == "class")
-            L
-        else {
-            ## Numerically unstable:
-            ##            L <- exp(L)
-            ##            L / sum(L)
-            ## instead, we use:
-            sapply(L, function(lp) {
-                1/sum(exp(L - lp))
-            })
-        }
-    })
-    if (type == "class")
-        factor(object$levels[apply(L, 2, which.max)], levels = object$levels)
-    else t(L)
-}
-
-
-
