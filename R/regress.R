@@ -708,7 +708,10 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   vars <- attr(x, "vars")
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
-  pred_cmd <- gsub("([\\=\\+\\*-])", " \\1 ", attr(x, "pred_cmd")) %>% gsub("([;,])", "\\1 ", .)
+
+  pred_cmd <- gsub("([\\=\\+\\*-])", " \\1 ", attr(x, "pred_cmd")) %>%
+    gsub("([;,])", "\\1 ", .) %>%
+    gsub("\\s+=\\s+=\\s+", " == ", .)
 
   cat(header)
   cat("\nData                 :", attr(x, "dataset"), "\n")
@@ -736,7 +739,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     formatdf(x[,vars, drop = FALSE], attr(x, "dec")) %>% print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
-      cat("Rows shown           :", n, "\n")
+      cat("Rows shown           :", n, "of", formatnr(nrow(x), dec = 0), "\n")
     cat("\n")
     head(x[,vars, drop = FALSE], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
   }
@@ -895,7 +898,7 @@ store.model.predict <- function(object, ..., data = attr(object,"pred_data"), na
   }
 
   vars <- colnames(object)[1:(ind-1)]
-  indr <- indexr(data, vars, "")
+  indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
   pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
