@@ -180,4 +180,9 @@ observeEvent(input$crs_store_pred, {
   pred <- .crs()
   if (!is.data.frame(pred$recommendations)) return("No data selected to generate recommendations")
   store(pred, input$crs_name)
+
+  ## alert user about new dataset
+  session$sendCustomMessage(type = "message",
+    message = paste0("Dataset '", input$crs_name, "' was successfully added to the datasets dropdown. Add code to R > Report to (re)create the dataset by clicking the report icon on the bottom left of your screen.")
+  )
 })
