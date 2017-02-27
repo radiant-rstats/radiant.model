@@ -18,7 +18,9 @@ ebin_inputs <- reactive({
 # Evaluate model evalbin
 ###############################################################
 output$ui_ebin_rvar <- renderUI({
-  vars <- two_level_vars()
+  withProgress(message = "Acquiring variable information", value = 1, {
+    vars <- two_level_vars()
+  })
   selectInput(inputId = "ebin_rvar", label = "Response variable:", choices = vars,
     selected = state_single("ebin_rvar", vars), multiple = FALSE)
 })

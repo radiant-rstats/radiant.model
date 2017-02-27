@@ -16,8 +16,10 @@ ereg_inputs <- reactive({
 # Evaluate model evalreg
 ###############################################################
 output$ui_ereg_rvar <- renderUI({
-  isNum <- .getclass() %in% c("integer","numeric")
-  vars <- varnames()[isNum]
+  withProgress(message = "Acquiring variable information", value = 1, {
+    isNum <- .getclass() %in% c("integer","numeric")
+    vars <- varnames()[isNum]
+  })
   selectInput(inputId = "ereg_rvar", label = "Response variable:", choices = vars,
     selected = state_single("ereg_rvar", vars), multiple = FALSE)
 })

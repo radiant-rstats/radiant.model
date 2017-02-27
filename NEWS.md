@@ -8,6 +8,7 @@
 - Various enhancements to evaluate (binary) classification models
 - Improved plot sizing for Model > Decision Analysis
 - Added Garson plot and moved all plots to the ANN > Plot tab
+- Show progress indicators if variable acquisition takes some time
 
 ## BUG FIXES
 

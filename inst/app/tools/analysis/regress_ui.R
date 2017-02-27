@@ -85,8 +85,10 @@ reg_pred_plot_inputs <- reactive({
 })
 
 output$ui_reg_rvar <- renderUI({
-  isNum <- "numeric" == .getclass() | "integer" == .getclass()
-  vars <- varnames()[isNum]
+  withProgress(message = "Acquiring variable information", value = 1, {
+    isNum <- "numeric" == .getclass() | "integer" == .getclass()
+    vars <- varnames()[isNum]
+  })
   selectInput(inputId = "reg_rvar", label = "Response variable:", choices = vars,
     selected = state_single("reg_rvar",vars), multiple = FALSE)
 })

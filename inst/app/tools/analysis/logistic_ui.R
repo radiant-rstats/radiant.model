@@ -85,8 +85,9 @@ logit_pred_plot_inputs <- reactive({
 })
 
 output$ui_logit_rvar <- renderUI({
-  # req(input$dataset)
- 	vars <- two_level_vars()
+  withProgress(message = "Acquiring variable information", value = 1, {
+ 	  vars <- two_level_vars()
+  })
   selectInput(inputId = "logit_rvar", label = "Response variable:", choices = vars,
   	selected = state_single("logit_rvar",vars), multiple = FALSE)
 })

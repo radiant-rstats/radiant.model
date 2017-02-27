@@ -59,12 +59,15 @@ crtree_pred_plot_inputs <- reactive({
 
 output$ui_crtree_rvar <- renderUI({
   req(input$crtree_type)
-  if (input$crtree_type == "classification") {
-    vars <- two_level_vars()
-  } else {
-    isNum <- .getclass() %in% c("numeric","integer")
-    vars <- varnames()[isNum]
-  }
+
+  withProgress(message = "Acquiring variable information", value = 1, {
+    if (input$crtree_type == "classification") {
+      vars <- two_level_vars()
+    } else {
+      isNum <- .getclass() %in% c("numeric","integer")
+      vars <- varnames()[isNum]
+    }
+  })
   selectInput(inputId = "crtree_rvar", label = "Response variable:", choices = vars,
   	selected = state_single("crtree_rvar",vars), multiple = FALSE)
 })

@@ -44,8 +44,10 @@ nb_pred_plot_inputs <- reactive({
 })
 
 output$ui_nb_rvar <- renderUI({
-	isFct <- "factor" == .getclass()
-  vars <- varnames()[isFct]
+  withProgress(message = "Acquiring variable information", value = 1, {
+  	isFct <- "factor" == .getclass()
+    vars <- varnames()[isFct]
+  })
   selectInput(inputId = "nb_rvar", label = "Response variable:", choices = vars,
   	selected = state_single("nb_rvar",vars), multiple = FALSE)
 })

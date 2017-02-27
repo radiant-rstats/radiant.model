@@ -13,5 +13,4 @@ source("init.R", encoding = getOption("radiant.encoding"), local = TRUE)
 options(radiant.url.patterns = make_url_patterns())
 
 ## print options
-# options(width = 250, scipen = 100)
 options(max.print = max(getOption("max.print"), 5000))

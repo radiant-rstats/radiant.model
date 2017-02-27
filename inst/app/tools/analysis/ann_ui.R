@@ -59,12 +59,15 @@ ann_pred_plot_inputs <- reactive({
 
 output$ui_ann_rvar <- renderUI({
   req(input$ann_type)
-  if (input$ann_type == "classification") {
-    vars <- two_level_vars()
-  } else {
-    isNum <- .getclass() %in% c("numeric","integer")
-    vars <- varnames()[isNum]
-  }
+
+  withProgress(message = "Acquiring variable information", value = 1, {
+    if (input$ann_type == "classification") {
+      vars <- two_level_vars()
+    } else {
+      isNum <- .getclass() %in% c("numeric","integer")
+      vars <- varnames()[isNum]
+    }
+  })
 
   init <- if (input$ann_type == "classification") input$logit_rvar else input$reg_rvar
 
