@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model VERSION 0.7.4
+# CHANGES IN radiant.model VERSION 0.7.8
 
 ## NEW FEATURES
 

@@ -462,15 +462,35 @@ output$dl_logit_coef <- downloadHandler(
   filename = function() { "logit_coefficients.csv" },
   content = function(file) {
     if (pressed(input$logit_run)) {
-      ret <- .logistic()[["coeff"]][-1,]
+      ret <- .logistic()
+
+      ## calculating the mean and sd for each variable
+      ## extract formula from http://stackoverflow.com/a/9694281/1974918
+      frm <- formula(ret$model$terms)
+      mm <- model.matrix(frm, ret$model$model) 
+      cms <- colMeans(mm, na.rm = TRUE)[-1]
+      csds <- apply(mm, 2, sd_rm)[-1]
+      rm(mm)
+
+      if ("standardize" %in% ret$check || "center" %in% ret$check) {
+        ms <- attr(ret$model$model, "ms")
+        nms <- intersect(names(cms), names(ms))
+        cms[nms] <- ms[nms]
+        sds <- attr(ret$model$model, "sds")
+        if (!is_empty(sds)) csds[nms] <- sds[nms]
+      }
+
+      ret <- ret[["coeff"]][-1,]
+      ret$mean <- cms %>% unlist
+      ret$sd <- csds %>% unlist
+      ret$importance <- pmax(ret$OR, 1/ret$OR)
+
       if ("standardize" %in% input$logit_check) {
-        ret$importance <- pmax(ret$OR, 1/ret$OR)
         cat("Standardized coefficients selected\n\n", file = file)
-        sshhr(write.table(ret, sep = ",", append = TRUE, file = file, row.names = FALSE))
       } else {
         cat("Standardized coefficients not selected\n\n", file = file)
-        sshhr(write.table(ret, sep = ",", append = TRUE, file = file, row.names = FALSE))
       }
+      sshhr(write.table(ret, sep = ",", append = TRUE, file = file, row.names = FALSE))
     } else {
       cat("No output available. Press the Estimate button to generate results", file = file)
     }
