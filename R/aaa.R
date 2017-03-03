@@ -15,8 +15,8 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @importFrom pryr where
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
 #' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif terms quantile
-#' @importFrom utils head tail relist as.relistable combn capture.output
-#' @importFrom stats residuals
+#' @importFrom utils head tail relist as.relistable combn capture.output write.table
+#' @importFrom stats residuals formula model.matrix
 #' @importFrom methods is
 #' @importFrom import from
 NULL

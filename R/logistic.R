@@ -654,3 +654,66 @@ confint_robust <- function (object, parm, level = 0.95, vcov = NULL, ...) {
     ci[] <- cf[parm] + ses %o% fac
     ci
 }
+
+#' Write coefficient table for linear and logistic regression
+#'
+#' @details Write coefficients and importance scores to csv
+#'
+#' @param object A fitted model object of class regress or logistic
+#' @param file A character string naming a file. "" indicates output to the console
+#' @param sort Sort table by variable importance
+#'
+#' @examples
+#' regress(diamonds, rvar = "price", evar = "carat:x", check = "standardize") %>%
+#'   write.coeff(sort = TRUE) %>%
+#'   formatdf(dec = 3)
+#'
+#' @export
+write.coeff <- function(object, file = "", sort = FALSE) {
+
+  if ("regress" %in% class(object)) {
+    mod_class <- "regress"
+  } else if ("logistic" %in% class(object)) {
+    mod_class <- "logistic"
+  } else {
+    "Object is not of class logistic or regress" %T>%
+      message %>%
+      cat("\n\n", file = file)
+    return(invisible())
+  }
+
+  ## calculating the mean and sd for each variable
+  ## extract formula from http://stackoverflow.com/a/9694281/1974918
+  frm <- formula(object$model$terms)
+  mm <- model.matrix(frm, object$model$model)
+  cms <- colMeans(mm, na.rm = TRUE)[-1]
+  csds <- apply(mm, 2, sd_rm)[-1]
+  rm(mm)
+
+  if ("standardize" %in% object$check || "center" %in% object$check) {
+    ms <- attr(object$model$model, "ms")
+    nms <- intersect(names(cms), names(ms))
+    cms[nms] <- ms[nms]
+    sds <- attr(object$model$model, "sds")
+    if (!is_empty(sds)) csds[nms] <- sds[nms]
+    cat("Standardized coefficients selected\n\n", file = file)
+  } else {
+    cat("Standardized coefficients not selected\n\n", file = file)
+  }
+
+  object <- object[["coeff"]][-1,]
+  object$mean <- cms %>% unlist
+  object$sd <- csds %>% unlist
+
+  if (mod_class == "logistic")
+    object$importance <- pmax(object$OR, 1/object$OR)
+  else
+    object$importance <- abs(object$coeff)
+
+  if (sort) object <- arrange_(object, "desc(importance)")
+
+  if (!is_empty(file))
+    sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))
+  else
+    object
+}
