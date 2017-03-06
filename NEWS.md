@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model VERSION 0.7.8
+# CHANGES IN radiant.model VERSION 0.7.10
 
 ## NEW FEATURES
 
@@ -9,6 +9,7 @@
 - Improved plot sizing for Model > Decision Analysis
 - Added Garson plot and moved all plots to the ANN > Plot tab
 - Show progress indicators if variable acquisition takes some time
+- Expanded coefficient csv file for linear and logistic regression
 
 ## BUG FIXES
 

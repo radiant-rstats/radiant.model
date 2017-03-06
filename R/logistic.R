@@ -78,6 +78,9 @@ logistic <- function(dataset, rvar, evar,
   var_check(evar, colnames(dat)[-1], int) %>%
     { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
 
+  ## add minmax attributes to data
+  mmx <- minmax(dat)
+
   ## scale data
   if ("standardize" %in% check) {
     dat <- scaledf(dat, wts = wts)
@@ -116,6 +119,9 @@ logistic <- function(dataset, rvar, evar,
     attr(model$model, "ms") <- attr(dat, "ms")
     attr(model$model, "sds") <- attr(dat, "sds")
   }
+
+  attr(model$model, "min") <- mmx[["min"]]
+  attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
@@ -655,6 +661,23 @@ confint_robust <- function (object, parm, level = 0.95, vcov = NULL, ...) {
     ci
 }
 
+#' Calculate min and max before standardization
+#'
+#' @param dat Data frame
+#' @return Data frame min and max attributes
+#'
+#' @export
+minmax <- function(dat) {
+  isNum <- sapply(dat, is.numeric)
+  if (sum(isNum) == 0) return(dat)
+  cn <- names(isNum)[isNum]
+
+  mn <- summarise_each_(dat, funs(min(., na.rm = TRUE)), vars = cn)
+  mx <- summarise_each_(dat, funs(max(., na.rm = TRUE)), vars = cn)
+
+  list(min = mn, max = mx)
+}
+
 #' Write coefficient table for linear and logistic regression
 #'
 #' @details Write coefficients and importance scores to csv
@@ -688,11 +711,19 @@ write.coeff <- function(object, file = "", sort = FALSE) {
   mm <- model.matrix(frm, object$model$model)
   cms <- colMeans(mm, na.rm = TRUE)[-1]
   csds <- apply(mm, 2, sd_rm)[-1]
+  cmn <- cms * 0
+  cmx <- cmn + 1
+  mn <- attr(object$model$model, "min")
+  nms <- intersect(names(cms), names(mn))
+  dummy <- cmx
+  dummy[nms] <- 0
+  cmn[nms] <- mn[nms]
+  mx <- attr(object$model$model, "max")
+  cmx[nms] <- mx[nms]
   rm(mm)
 
   if ("standardize" %in% object$check || "center" %in% object$check) {
     ms <- attr(object$model$model, "ms")
-    nms <- intersect(names(cms), names(ms))
     cms[nms] <- ms[nms]
     sds <- attr(object$model$model, "sds")
     if (!is_empty(sds)) csds[nms] <- sds[nms]
@@ -702,8 +733,11 @@ write.coeff <- function(object, file = "", sort = FALSE) {
   }
 
   object <- object[["coeff"]][-1,]
+  object$dummy <- dummy
   object$mean <- cms %>% unlist
   object$sd <- csds %>% unlist
+  object$min <- cmn %>% unlist
+  object$max <- cmx %>% unlist
 
   if (mod_class == "logistic")
     object$importance <- pmax(object$OR, 1/object$OR)

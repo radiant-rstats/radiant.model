@@ -40,6 +40,9 @@ regress <- function(dataset, rvar, evar,
   var_check(evar, colnames(dat)[-1], int) %>%
     { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
 
+  ## add minmax attributes to data
+  mmx <- minmax(dat)
+
   ## scale data
   isNum <- sapply(dat, is.numeric)
   if (sum(isNum) > 0) {
@@ -81,6 +84,9 @@ regress <- function(dataset, rvar, evar,
     attr(model$model, "ms") <- attr(dat, "ms")
     attr(model$model, "sds") <- attr(dat, "sds")
   }
+
+  attr(model$model, "min") <- mmx[["min"]]
+  attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
 
