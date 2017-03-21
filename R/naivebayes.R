@@ -27,7 +27,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
            add_class("nb"))
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
-  if (!is_string(dataset)) dataset <- "-----"
+  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   if (any(summarise_each(dat, funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))

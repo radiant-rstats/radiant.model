@@ -10,6 +10,7 @@
 - Added Garson plot and moved all plots to the ANN > Plot tab
 - Show progress indicators if variable acquisition takes some time
 - Expanded coefficient csv file for linear and logistic regression
+- Show dataset name in output if dataframe passed directly to analysis function 
 
 ## BUG FIXES
 

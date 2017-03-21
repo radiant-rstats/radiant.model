@@ -16,7 +16,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   vars <- c(id, prod, rate)
   dat <- getdata(dataset, vars, na.rm = FALSE)
-  if (!is_string(dataset)) dataset <- "-----"
+  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets

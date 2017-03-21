@@ -23,7 +23,7 @@ Store predicted values generated in model functions
 See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-regress(diamonds, rvar = "price", evar = c("carat","cut")) \%>\%
+regress(diamonds, rvar = "price", evar = c("carat","cut"))  \%>\%
   predict(diamonds) \%>\%
   store(name = "pred, pred_low, pred_high") \%>\% head
 

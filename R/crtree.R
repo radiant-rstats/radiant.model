@@ -85,7 +85,7 @@ crtree <- function(dataset, rvar, evar,
   }
 
   dat <- getdata(dataset, vars, filt = data_filter)
-  if (!is_string(dataset)) dataset <- "-----"
+  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   if (!is_not(wts)) {
     wts <- dat[[wtsname]]
@@ -494,7 +494,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
       imp <- x$model$variable.importance
       if (is.null(imp)) return("Variable importance information not available for singlenode tree")
 
-      df <- data.frame(vars = names(imp), imp = imp / sum(imp)) %>% 
+      df <- data.frame(vars = names(imp), imp = imp / sum(imp)) %>%
         arrange_(.dots = "imp")
       df$vars <- factor(df$vars, levels = df$vars)
 

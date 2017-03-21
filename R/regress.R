@@ -30,7 +30,7 @@ regress <- function(dataset, rvar, evar,
            add_class("regress"))
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
-  if (!is_string(dataset)) dataset <- "-----"
+  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   if (any(summarise_each(dat, funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>%
@@ -730,7 +730,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   if (!is_empty(attr(x, "wtsname")))
     cat("Weights used         :", attr(x, "wtsname"), "\n")
 
-  if (!is.character(pred_data)) pred_data <- "-----"
+  if (!is.character(pred_data)) pred_data <- deparse(substitute(pred_data)) %>% set_attr("df", TRUE)
   if (pred_type == "cmd") {
     cat("Prediction command   :", pred_cmd, "\n")
   } else if (pred_type == "datacmd") {
@@ -882,7 +882,7 @@ store_reg <- function(object, data = object$dataset,
 #' @param name Variable name(s) assigned to predicted values
 #'
 #' @examples
-#' regress(diamonds, rvar = "price", evar = c("carat","cut")) %>%
+#' regress(diamonds, rvar = "price", evar = c("carat","cut"))  %>%
 #'   predict(diamonds) %>%
 #'   store(name = "pred, pred_low, pred_high") %>% head
 #'
@@ -926,7 +926,7 @@ store.model.predict <- function(object, ..., data = attr(object,"pred_data"), na
 #' @export
 store.model <- function(object, ..., name = "residuals") {
   if (is_empty(name)) name <- "residuals"
-  dat <- {if (object$dataset == "-----") object$model$model else object$dataset}
+  dat <- if (length(attr(object$dataset, "df")) > 0) object$model$model else object$dataset
   indr <- indexr(dat, c(object$rvar, object$evar), object$data_filter)
   res <- rep(NA, indr$nr)
   res[indr$ind] <- object$model$residuals

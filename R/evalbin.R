@@ -54,7 +54,7 @@ evalbin <- function(dataset, pred, rvar,
 		dat_list[["All"]] <- getdata(dataset, vars, filt = "")
 	}
 
-	if (!is_string(dataset)) dataset <- "-----"
+	if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   qnt_name <- "bins"
   if (method == "xtile") method <- "radiant.data::xtile"
@@ -229,7 +229,7 @@ confusion <- function(dataset, pred, rvar,
 		dat_list[["All"]] <- getdata(dataset, vars, filt = "")
 	}
 
-	if (!is_string(dataset)) dataset <- "-----"
+	if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
 	pdat <- list()
 	for (i in names(dat_list)) {
