@@ -24,3 +24,4 @@
 - Fix for predict when using center or standardize with a command to generate the predictions
 - Show full confusion matrix even if some elements are missing
 - Fix for warnings when creating profit and gains charts
+- Product dropdown for Model > Collaborative filtering did not list all variables

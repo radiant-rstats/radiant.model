@@ -22,7 +22,7 @@ output$ui_crs_id <- renderUI({
 output$ui_crs_prod <- renderUI({
   req(available(input$crs_id))
   vars <- varnames()
-  vars <- vars[-which(input$crs_id %in% vars)]
+  vars <- vars[-which(vars %in% input$crs_id)]
 
   selectInput(inputId = "crs_prod", label = "Product id:", choices = vars,
     selected = state_single("crs_prod", vars), multiple = FALSE)
