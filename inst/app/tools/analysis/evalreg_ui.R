@@ -39,11 +39,11 @@ output$ui_ereg_pred <- renderUI({
 })
 
 output$ui_ereg_train <- renderUI({
-  if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
-      is_empty(input$data_filter)) {
-    ereg_train <- ereg_train[1]
-    r_state$ereg_train <<- ereg_train
-  }
+  # if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
+  #     is_empty(input$data_filter)) {
+  #   ereg_train <- ereg_train[1]
+  #   r_state$ereg_train <<- ereg_train
+  # }
 
   radioButtons("ereg_train", label = "Show results for:", ereg_train,
     selected = state_init("ereg_train", "All"),
@@ -92,7 +92,6 @@ output$evalreg <- renderUI({
 })
 
 .evalreg <- eventReactive(input$ereg_run, {
-  # req(input$ereg_pause == FALSE, cancelOutput = TRUE)
 	do.call(evalreg, ereg_inputs())
 })
 

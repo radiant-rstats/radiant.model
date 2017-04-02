@@ -18,6 +18,9 @@ evalreg <- function(dataset, pred, rvar,
                     train = "",
                     data_filter = "") {
 
+  if (train != "All" && is_empty(data_filter))
+    return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
+
 	dat_list <- list()
 	vars <- c(pred, rvar)
 	if (train == "Both") {

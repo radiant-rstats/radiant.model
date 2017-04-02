@@ -35,6 +35,9 @@ evalbin <- function(dataset, pred, rvar,
 	if (is.na(cost)) cost <- 0
 	if (is.na(margin)) margin <- 0
 
+  if (train != "All" && is_empty(data_filter))
+    return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("evalbin"))
+
 	## to avoid 'global not defined' warnings
 	nr_resp <- nr_obs <- cum_resp <- cum_resp_rate <- everything <- NULL
 	profit <- ROME <- NULL
@@ -204,6 +207,10 @@ confusion <- function(dataset, pred, rvar,
                       train = "",
                       data_filter = "",
                       ...) {
+
+
+  if (train != "All" && is_empty(data_filter))
+    return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
 
 	profit <- NULL
 

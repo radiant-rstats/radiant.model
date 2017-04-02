@@ -45,11 +45,11 @@ output$ui_ebin_pred <- renderUI({
 })
 
 output$ui_ebin_train <- renderUI({
-  if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
-      is_empty(input$data_filter)) {
-    ebin_train <- ebin_train[1]
-    r_state$ebin_train <<- ebin_train
-  }
+  # if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
+  #     is_empty(input$data_filter)) {
+  #   ebin_train <- ebin_train[1]
+  #   r_state$ebin_train <<- ebin_train
+  # }
 
   radioButtons("ebin_train", label = "Show results for:", ebin_train,
     selected = state_init("ebin_train", "All"),
@@ -63,16 +63,12 @@ output$ui_evalbin <- renderUI({
       actionButton("ebin_run", "Evaluate", width = "100%")
     ),
   	wellPanel(
-      # checkboxInput("ebin_pause", "Pause evaluation", state_init("ebin_pause", FALSE)),
 	    uiOutput("ui_ebin_rvar"),
       uiOutput("ui_ebin_lev"),
       uiOutput("ui_ebin_pred"),
       conditionalPanel("input.tabs_evalbin != 'Confusion'",
         numericInput("ebin_qnt", label = "# quantiles:",
           value = state_init("ebin_qnt", 10), min = 2)
-      # radioButtons("ebin_method", label = "Method:", ebin_method,
-        #   selected = state_init("ebin_method", "xtile"),
-        #   inline = TRUE),
       ),
       tags$table(
         tags$td(numericInput("ebin_cost", label = "Cost:",
@@ -244,19 +240,14 @@ observeEvent(input$confusion_report, {
 output$dl_ebin_tab <- downloadHandler(
   filename = function() { "evalbin.csv" },
   content = function(file) {
-    # do.call(summary, c(list(object = .evalbin()), ebin_inputs(),
-            # list(prn = TRUE))) %>%
-      eb <- .evalbin()
-      if (!is_empty(eb$dat))
-        write.csv(eb$dat, file = file, row.names = FALSE)
+    eb <- .evalbin()
+    if (!is_empty(eb$dat)) write.csv(eb$dat, file = file, row.names = FALSE)
   }
 )
 
 output$dl_confusion_tab <- downloadHandler(
   filename = function() { "confusion.csv" },
   content = function(file) {
-    # do.call(summary, c(list(object = .confusion()), ebin_inputs(),
-            # list(prn = FALSE))) %>%
     .confusion()$dat %>%
     write.csv(., file = file, row.names = FALSE)
   }
