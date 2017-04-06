@@ -37,6 +37,10 @@ options(radiant.url.list = r_url_list); rm(r_url_list)
 options(radiant.model_ui =
 	tagList(
     navbarMenu("Model",
+      tags$head(
+        tags$script(src = "www_model/js/run_return.js"),
+        tags$link(rel = "stylesheet", type = "text/css", href = "www_model/style.css")
+      ),
       "Estimate",
       tabPanel("Linear regression (OLS)", uiOutput("regress")),
       tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
@@ -50,8 +54,7 @@ options(radiant.model_ui =
       tabPanel("Collaborative Filtering", uiOutput("crs")),
       "----", "Decide",
       tabPanel("Decision analysis", uiOutput("dtree")),
-      tabPanel("Simulate", uiOutput("simulater")),
-      includeCSS(file.path(getOption("radiant.path.model"),"app/www/style.css"))
+      tabPanel("Simulate", uiOutput("simulater"))
     )
   )
 )
