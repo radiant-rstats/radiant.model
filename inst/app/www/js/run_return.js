@@ -31,3 +31,33 @@ $(document).keydown(function(event) {
     $("#runRepeat").click();
   }
 });
+
+$(document).keydown(function(event) {
+  if ($("#ann_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#ann_report").click();
+  } else if ($("#crs_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#crs_report").click();
+  } else if ($("#crtree_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#crtree_report").click();
+  } else if ($("#dtree_report1").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#dtree_report1").click();
+  } else if ($("#dtree_report2").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#dtree_report2").click();
+  } else if ($("#evalbin_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#evalbin_report").click();
+  } else if ($("#confusion_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#confusion_report").click();
+  } else if ($("#evalreg_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#evalreg_report").click();
+  } else if ($("#logistic_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#logistic_report").click();
+  } else if ($("#nb_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#nb_report").click();
+  } else if ($("#regress_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#regress_report").click();
+  } else if ($("#simulater_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#simulater_report").click();
+  } else if ($("#repeater_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#repeater_report").click();
+  }
+});

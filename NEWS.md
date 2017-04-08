@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model VERSION 0.7.15
+# CHANGES IN radiant.model
 
 ## NEW FEATURES
 
@@ -12,6 +12,7 @@
 - Expanded coefficient csv file for linear and logistic regression
 - Show dataset name in output if dataframe passed directly to analysis function 
 - As an alternative to using the Estimate button to run a model you can now also use CTRL-enter or CMD-enter
+- Use ALT-enter as a keyboard short-cut to generate code and sent to R > Report
 
 ## BUG FIXES
 
