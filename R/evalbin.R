@@ -486,7 +486,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
     if (length(plot_list) == 1) return(plot_list[[plots]]) else return(plot_list)
   }
 
-	sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 1))) ) %>%
+	sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 1))) ) %>%
 	 	{ if (shiny) . else print(.) }
 }
 

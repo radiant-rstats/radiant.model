@@ -487,7 +487,9 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
       }
 
       plot_list[["prune"]] <-
-        gridExtra::arrangeGrob(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
+        gridExtra::grid.arrange(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
+        # gridExtra::arrangeGrob(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
+        # list(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
     }
     if ("imp" %in% plots) {
 
@@ -509,8 +511,12 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
     }
 
     if (length(plot_list) > 0) {
-      sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 1))) ) %>%
-        { if (shiny) . else print(.) }
+      if (plots == "prune") {
+        plot_list[["prune"]] %>% { if (shiny) . else print(.) }
+      } else {
+        sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 1))) ) %>%
+          { if (shiny) . else print(.) }
+      }
     }
   }
 }

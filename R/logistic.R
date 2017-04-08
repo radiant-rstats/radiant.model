@@ -532,7 +532,7 @@ plot.logistic <- function(x,
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
   if (length(plot_list) > 0) {
-    sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = nrCol))) ) %>%
+    sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = nrCol))) ) %>%
       { if (shiny) . else print(.) }
   }
 }

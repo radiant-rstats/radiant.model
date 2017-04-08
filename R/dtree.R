@@ -658,6 +658,6 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL, shiny = FALSE, .
         ggtitle(paste0("Sensitivity of decisions to changes in ",i)) + xlab(i)
   }
 
-  sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 1))) ) %>%
+  sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 1))) ) %>%
     { if (shiny) . else print(.) }
 }

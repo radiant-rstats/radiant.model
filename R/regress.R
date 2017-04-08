@@ -453,7 +453,7 @@ plot.regress <- function(x, plots = "",
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
   if (exists("plot_list")) {
-    sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = 2))) ) %>%
+    sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 2))) ) %>%
         {if (shiny) . else print(.)}
   }
 }

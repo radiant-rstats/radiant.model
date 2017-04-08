@@ -270,7 +270,7 @@ plot.ann <- function(x, plots = "garson", shiny = FALSE, ...) {
   nrCol <- 1
 
   if (length(plot_list) > 0) {
-    sshhr( do.call(gridExtra::arrangeGrob, c(plot_list, list(ncol = nrCol))) ) %>%
+    sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = nrCol))) ) %>%
       { if (shiny) . else print(.) }
   }
 }
