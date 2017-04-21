@@ -127,7 +127,7 @@ output$crs <- renderUI({
 
   if(length(input$crs_pred) < 1) return("Please select one or more products to generate recommendations" %>% add_class("crs"))
 
-  withProgress(message = "Estimating model", value = 1,
+  withProgress(message = "Estimating model", value = 1, {
 	  do.call(crs, crs_inputs())
   })
 })
