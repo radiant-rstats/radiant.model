@@ -43,6 +43,8 @@ $(document).keydown(function(event) {
     $("#dtree_report1").click();
   } else if ($("#dtree_report2").is(":visible") && event.altKey && event.keyCode == 13) {
     $("#dtree_report2").click();
+  } else if ($("#dtree_report").is(":visible") && event.altKey && event.keyCode == 13) {
+    $("#dtree_report").click();
   } else if ($("#evalbin_report").is(":visible") && event.altKey && event.keyCode == 13) {
     $("#evalbin_report").click();
   } else if ($("#confusion_report").is(":visible") && event.altKey && event.keyCode == 13) {
