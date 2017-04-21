@@ -18,8 +18,8 @@ evalreg <- function(dataset, pred, rvar,
                     train = "",
                     data_filter = "") {
 
-  if (train != "All" && is_empty(data_filter))
-    return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
+  if (!train %in% c("","All") && is_empty(data_filter))
+    return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("confusion"))
 
 	dat_list <- list()
 	vars <- c(pred, rvar)
@@ -88,21 +88,21 @@ summary.evalreg <- function(object, ...) {
 #' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{evalreg}}
-#' @param shiny Did the function call originate inside a shiny app
+#' @param vars Measures to plot, i.e., one or more of "Rsq", "RSME", "MAE"
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalreg}} to generate results
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #'
 #' @export
-plot.evalreg <- function(x, shiny = FALSE, ...) {
+plot.evalreg <- function(x, vars = c("Rsq","RSME","MAE"), ...) {
 
 	object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
 
-	gather_(object$dat, "Metric", "Value", c("Rsq","RSME","MAE"), factor_key = TRUE) %>%
+	gather_(object$dat, "Metric", "Value", vars, factor_key = TRUE) %>%
 		mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
 		visualize(xvar = "Predictor", yvar = "Value", type = "bar",
 		          facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE) +
-		ylab("") + xlab("Predictor")
+		labs(y = "", x = "Predictor")
 }

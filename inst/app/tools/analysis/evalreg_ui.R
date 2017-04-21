@@ -39,12 +39,6 @@ output$ui_ereg_pred <- renderUI({
 })
 
 output$ui_ereg_train <- renderUI({
-  # if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
-  #     is_empty(input$data_filter)) {
-  #   ereg_train <- ereg_train[1]
-  #   r_state$ereg_train <<- ereg_train
-  # }
-
   radioButtons("ereg_train", label = "Show results for:", ereg_train,
     selected = state_init("ereg_train", "All"),
     inline = TRUE)
@@ -106,10 +100,12 @@ output$evalreg <- renderUI({
   if (not_pressed(input$ereg_run)) return(invisible())
   if (not_available(input$ereg_rvar) || not_available(input$ereg_pred)) return(" ")
   req(input$ereg_train)
-  plot(.evalreg(), shiny = TRUE)
+  plot(.evalreg())
 })
 
 observeEvent(input$evalreg_report, {
+  if (is_empty(input$ereg_pred)) return(invisible())
+
   outputs <- c("summary","plot")
   update_report(inp_main = clean_args(ereg_inputs(), ereg_args),
                 fun_name = "evalreg",

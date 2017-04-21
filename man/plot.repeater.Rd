@@ -4,12 +4,14 @@
 \alias{plot.repeater}
 \title{Plot repeated simulation}
 \usage{
-\method{plot}{repeater}(x, shiny = FALSE, ...)
+\method{plot}{repeater}(x, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{repeater}}}
 
 \item{shiny}{Did the function call originate inside a shiny app}
+
+\item{custom}{Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.}
 
 \item{...}{further arguments passed to or from other methods}
 }

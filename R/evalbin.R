@@ -35,8 +35,8 @@ evalbin <- function(dataset, pred, rvar,
 	if (is.na(cost)) cost <- 0
 	if (is.na(margin)) margin <- 0
 
-  if (train != "All" && is_empty(data_filter))
-    return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("evalbin"))
+  if (!train %in% c("","All") && is_empty(data_filter))
+    return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalbin"))
 
 	## to avoid 'global not defined' warnings
 	nr_resp <- nr_obs <- cum_resp <- cum_resp_rate <- everything <- NULL
@@ -209,7 +209,7 @@ confusion <- function(dataset, pred, rvar,
                       ...) {
 
 
-  if (train != "All" && is_empty(data_filter))
+  if (!train %in% c("","All") && is_empty(data_filter))
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
 
 	profit <- NULL
@@ -357,9 +357,8 @@ summary.confusion <- function(object, ...) {
 #' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{confusion}}
-#' @param vars Measures to plot
+#' @param vars Measures to plot, i.e., one or more of "TP", "FP", "TN", "FN", "total", "TPR", "TNR", "precision", "accuracy", "kappa", "profit", "index", "ROME", "contact", "AUC"
 #' @param scale_y Free scale in faceted plot of the confusion matrix (TRUE or FALSE)
-#' @param shiny Did the function call originate inside a shiny app
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{confusion}} to generate results
@@ -367,7 +366,7 @@ summary.confusion <- function(object, ...) {
 #'
 #' @export
 plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
-                           scale_y = TRUE, shiny = FALSE, ...) {
+                           scale_y = TRUE, ...) {
 
 	object <- x; rm(x)
  	if (is.character(object) || is.null(object)) return(invisible())
@@ -380,11 +379,11 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 		{if (scale_y) {
 	    visualize(., xvar = "Predictor", yvar = "Value", type = "bar",
 		    facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE) +
-			  ylab("") + xlab("Predictor")
+			  labs(y = "", x = "Predictor")
 			} else {
 		    visualize(., xvar = "Predictor", yvar = "Value", type = "bar",
 			    facet_row = "Metric", fill = "Type", custom = TRUE) +
-				  ylab("") + xlab("Predictor")
+			  	labs(y = "", x = "Predictor")
 			}
 	  }
 }
@@ -396,6 +395,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' @param x Return value from \code{\link{evalbin}}
 #' @param plots Plots to return
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalbin}} to generate results
@@ -408,7 +408,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
-plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
+plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, custom = FALSE, ...) {
 
 	## to avoid 'global not defined' warnings
 	pred <- cum_prop <- cum_gains <- obs <- profit <- NULL
@@ -423,8 +423,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 			visualize(object$dat, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
 			geom_point() +
 			geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), size = .1, color = "black") +
-			ylab("Cumulative lift") +
-			xlab("Proportion of customers")
+			labs(y = "Cumulative lift", x = "Proportion of customers")
 	}
 
 	if ("gains" %in% plots) {
@@ -442,8 +441,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 		  visualize(dat, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
 			geom_point() +
 			geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), size = .1, color = "black") +
-			ylab("Cumulative gains") +
-			xlab("Proportion of customers")
+			labs(y = "Cumulative gains", x = "Proportion of customers")
 	}
 
 	if ("profit" %in% plots) {
@@ -461,8 +459,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 			visualize(dat, xvar = "cum_prop", yvar = "profit", type = "line", color = "pred", custom = TRUE) +
 			geom_point() +
 			geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
-			ylab("Profit") +
-			xlab("Proportion of customers")
+			labs(y = "Profit", x = "Proportion of customers")
 	}
 
 	if ("rome" %in% plots) {
@@ -470,8 +467,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 			visualize(object$dat, xvar = "cum_prop", yvar = "ROME", type = "line", color = "pred", custom = TRUE) +
 			geom_point() +
 			geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
-			ylab("Return on Marketing Expenditures (ROME)") +
-			xlab("Proportion of customers")
+			labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers")
 	}
 
 	for (i in names(plot_list)) {
@@ -481,13 +477,11 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, ...) {
 			plot_list[[i]] <- plot_list[[i]] + labs(colour = "Predictor")
 	}
 
-	dots <- list(...)
-  if ("custom" %in% names(dots) && dots$custom == TRUE) {
-    if (length(plot_list) == 1) return(plot_list[[plots]]) else return(plot_list)
-  }
+  if (custom)
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
-	sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 1))) ) %>%
-	 	{ if (shiny) . else print(.) }
+	sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
+	 	{if (shiny) . else print(.)}
 }
 
 #' Area Under the Curve (AUC)

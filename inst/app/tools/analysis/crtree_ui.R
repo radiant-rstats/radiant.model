@@ -1,5 +1,4 @@
-# ctree_plots <- c("Tree" = "tree", "Prune" = "prune", "Importance" = "imp")
-ctree_plots <- c("Prune" = "prune" , "Tree" = "tree", "Importance" = "imp")
+ctree_plots <- c("None" = "", "Prune" = "prune" , "Tree" = "tree", "Importance" = "imp")
 
 ## list of function arguments
 crtree_args <- as.list(formals(crtree))
@@ -45,17 +44,6 @@ crtree_pred_plot_inputs <- reactive({
     crtree_pred_plot_args[[i]] <- input[[paste0("crtree_",i)]]
   crtree_pred_plot_args
 })
-
-# crtree_plot_args <- as.list(if (exists("plot.crtree")) formals(plot.crtree)
-#                             else formals(radiant.model:::plot.crtree))
-
-# crtree_plot_inputs <- reactive({
-#   # loop needed because reactive values don't allow single bracket indexing
-#   for (i in names(crtree_plot_args))
-#     crtree_plot_args[[i]] <- input[[paste0("crtree_",i)]]
-#   crtree_plot_args
-# })
-
 
 output$ui_crtree_rvar <- renderUI({
   req(input$crtree_type)
@@ -250,14 +238,12 @@ output$crtree <- renderUI({
           actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
           DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
         ),
-        conditionalPanel("input.crtree_plots == 'prune' | input.crtree_plots == 'imp'",
-          # plot_downloader(paste0("crtree_", input$ctree_plots), height = crtree_plot_height()),
+        conditionalPanel("input.crtree_plots != 'tree'",
           plot_downloader("crtree", height = crtree_plot_height()),
           plotOutput("plot_crtree", width = "100%", height = "100%")
         )
       )
 	  )
-
 		stat_tab_panel(menu = "Model > Estimate",
 		              tool = "Classification and regression trees",
 		              tool_ui = "ui_crtree",
@@ -279,10 +265,12 @@ output$crtree_plot <- DiagrammeR::renderDiagrammeR({
 .plot_crtree <- reactive({
   if (crtree_available() != "available") return(crtree_available())
   if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
-    if (input$crtree_plots == "prune")
-      plot(.crtree(), plots = "prune", shiny = TRUE)
-    else if (input$crtree_plots == "imp")
-      plot(.crtree(), plots = "imp", shiny = TRUE)
+  if (is_empty(input$crtree_plots)) return("Please select a plot type from the drop-down menu")
+
+  if (input$crtree_plots == "prune")
+    plot(.crtree(), plots = "prune", shiny = TRUE)
+  else if (input$crtree_plots == "imp")
+    plot(.crtree(), plots = "imp", shiny = TRUE)
 })
 
 crtree_available <- reactive({
@@ -296,7 +284,7 @@ crtree_available <- reactive({
 })
 
 .crtree <- eventReactive(input$crtree_run, {
-  withProgress(message = 'Estimating model', value = 1,
+  withProgress(message = "Estimating model", value = 1,
 	  do.call(crtree, crtree_inputs())
   )
 })
@@ -371,6 +359,7 @@ output$dl_crtree_pred <- downloadHandler(
 )
 
 observeEvent(input$crtree_report, {
+  if (is_empty(input$crtree_evar)) return(invisible())
   outputs <- c("summary")
   inp_out <- list("","")
   xcmd <- ""
@@ -397,15 +386,15 @@ observeEvent(input$crtree_report, {
   }
 
   if (input$crtree_plots == "tree") {
-    xcmd <- paste0(xcmd, "#plot(result, plots = \"prune\")")
+    xcmd <- paste0(xcmd, "#plot(result, plots = \"prune\", custom = FALSE)")
     xcmd <- paste0(xcmd, "\nrender(plot(result, orient = \"", input$crtree_orient, "\"))")
   } else if (input$crtree_plots == "prune") {
     figs <- TRUE
-    xcmd <- paste0(xcmd, "plot(result, plots = \"prune\")")
+    xcmd <- paste0(xcmd, "plot(result, plots = \"prune\", custom = FALSE)")
     xcmd <- paste0(xcmd, "\n#render(plot(result, orient = \"", input$crtree_orient, "\"))")
   } else {
     figs <- TRUE
-    xcmd <- paste0(xcmd, "plot(result, plots = \"imp\")")
+    xcmd <- paste0(xcmd, "plot(result, plots = \"imp\", custom = FALSE)")
     xcmd <- paste0(xcmd, "\n#render(plot(result, orient = \"", input$crtree_orient, "\"))")
   }
 

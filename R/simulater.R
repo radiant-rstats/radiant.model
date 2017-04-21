@@ -294,6 +294,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 #'
 #' @param x Return value from \code{\link{simulater}}
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -306,7 +307,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 #' @seealso \code{\link{summary.simulater}} to summarize results
 #'
 #' @export
-plot.simulater <- function(x, shiny = FALSE, ...) {
+plot.simulater <- function(x, shiny = FALSE, custom = FALSE, ...) {
 
   if (is.character(x)) {
     if (x[1] == "error") return(invisible())
@@ -325,8 +326,11 @@ plot.simulater <- function(x, shiny = FALSE, ...) {
       visualize(select_(object, .dots = i), xvar = i, bins = 20, custom = TRUE)
   }
 
-  sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = min(length(plot_list),2)))) ) %>%
-    { if (shiny) . else print(.) }
+  if (custom)
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list),2))) %>%
+    {if (shiny) . else print(.)}
 }
 
 #' Repeat simulation
@@ -630,10 +634,11 @@ summary.repeater <- function(object,
 #'
 #' @param x Return value from \code{\link{repeater}}
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @export
-plot.repeater <- function(x, shiny = FALSE, ...) {
+plot.repeater <- function(x, shiny = FALSE, custom = FALSE, ...) {
 
   if (is.character(x)) {
     if (x[1] == "error") return(invisible())
@@ -664,8 +669,11 @@ plot.repeater <- function(x, shiny = FALSE, ...) {
 
   if (length(plot_list) == 0) return(invisible())
 
-  sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = min(length(plot_list),2)))) ) %>%
-    { if (shiny) . else print(.) }
+  if (custom)
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list),2))) %>%
+    {if (shiny) . else print(.)}
 }
 
 #' Print simulation summary

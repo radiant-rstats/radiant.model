@@ -5,16 +5,14 @@
 \title{Plot method for the confusion matrix}
 \usage{
 \method{plot}{confusion}(x, vars = c("kappa", "index", "ROME", "AUC"),
-  scale_y = TRUE, shiny = FALSE, ...)
+  scale_y = TRUE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{confusion}}}
 
-\item{vars}{Measures to plot}
+\item{vars}{Measures to plot, i.e., one or more of "TP", "FP", "TN", "FN", "total", "TPR", "TNR", "precision", "accuracy", "kappa", "profit", "index", "ROME", "contact", "AUC"}
 
 \item{scale_y}{Free scale in faceted plot of the confusion matrix (TRUE or FALSE)}
-
-\item{shiny}{Did the function call originate inside a shiny app}
 
 \item{...}{further arguments passed to or from other methods}
 }

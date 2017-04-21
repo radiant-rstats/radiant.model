@@ -175,7 +175,7 @@ nb_available <- reactive({
 })
 
 .nb <- eventReactive(input$nb_run, {
-  withProgress(message = 'Estimating model', value = 1,
+  withProgress(message = "Estimating model", value = 1,
 	  do.call(nb, nb_inputs())
   )
 })
@@ -222,7 +222,7 @@ nb_available <- reactive({
 .plot_nb <- reactive({
   if (nb_available() != "available") return(nb_available())
   if (not_pressed(input$nb_run)) return("** Press the Estimate button to estimate the model **")
-  plot(.nb(), shiny = TRUE)
+  plot(.nb())
 })
 
 observeEvent(input$nb_store_pred, {

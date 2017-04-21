@@ -4,15 +4,16 @@
 
 - Added Model > Naive Bayes based on e1071
 - Added Model > Classification and regression trees based on rpart
-- Added Model > Claborative Fitlering
+- Added Model > Collaborative Filtering and example dataset (data/cf.rda)
 - Various enhancements to evaluate (binary) classification models
 - Improved plot sizing for Model > Decision Analysis
 - Added Garson plot and moved all plots to the ANN > Plot tab
 - Show progress indicators if variable acquisition takes some time
 - Expanded coefficient csv file for linear and logistic regression
 - Show dataset name in output if dataframe passed directly to analysis function 
-- As an alternative to using the Estimate button to run a model you can now also use CTRL-enter or CMD-enter
+- As an alternative to using the Estimate button to run a model you can now also use CTRL-enter (CMD-enter on mac)
 - Use ALT-enter as a keyboard short-cut to generate code and sent to R > Report
+- Improved documentation on how to customize plots in R > Report
 
 ## BUG FIXES
 

@@ -421,7 +421,7 @@ plot.logistic <- function(x,
 
   if (class(object$model)[1] != 'glm') return(object)
 
-  if (plots[1] == "")
+  if (is_empty(plots[1]))
     return("Please select a logistic regression plot from the drop-down menu")
 
   model <- ggplot2::fortify(object$model)
@@ -441,7 +441,7 @@ plot.logistic <- function(x,
 
   if ("dist" %in% plots) {
     for (i in vars)
-      plot_list[[i]] <- visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
+      plot_list[[paste("dist_", i)]] <- visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
   }
 
   if ("coef" %in% plots) {
@@ -487,22 +487,21 @@ plot.logistic <- function(x,
             theme(axis.text.y = element_text(hjust = 0))
   }
 
-
-  if (plots == "scatter") {
+  if ("scatter" %in% plots) {
     for (i in evar) {
       if ("factor" %in% class(model[,i])) {
-        plot_list[[i]] <- ggplot(model, aes_string(x=i, fill=rvar)) +
-                        geom_bar(position = "fill", alpha=.5) +
-                        labs(list(y = ""))
+        plot_list[[paste0("scatter_",i)]] <- ggplot(model, aes_string(x=i, fill=rvar)) +
+                            geom_bar(position = "fill", alpha=.5) +
+                            labs(y = "")
       } else {
-        plot_list[[i]] <-
+        plot_list[[paste0("scatter_",i)]] <-
           visualize(select_(model, .dots = c(i,rvar)), xvar = rvar, yvar = i, check = "jitter", type = "scatter", custom = TRUE)
       }
     }
     nrCol <- 1
   }
 
-  if (plots == "fit") {
+  if ("fit" %in% plots) {
 
     if (nrow(model) < 30)
       return("Insufficient observations to generate Model fit plot")
@@ -525,15 +524,15 @@ plot.logistic <- function(x,
       labs(list(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability"))
   }
 
-  if (plots == "correlations")
+  if ("correlations" %in% plots)
     return(radiant.basics:::plot.correlation_(select_(model, .dots = vars)))
 
   if (custom)
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
   if (length(plot_list) > 0) {
-    sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = nrCol))) ) %>%
-      { if (shiny) . else print(.) }
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>%
+      {if (shiny) . else print(.)}
   }
 }
 

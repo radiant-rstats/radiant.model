@@ -607,6 +607,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
 #' @param vars Variables to include in the sensitivity analysis
 #' @param decs Decisions to include in the sensitivity analysis
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... Additional arguments
 #'
 #' @seealso \code{\link{dtree}} to generate the result
@@ -614,7 +615,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #'
 #' @export
-sensitivity.dtree <- function(object, vars = NULL, decs = NULL, shiny = FALSE, ...) {
+sensitivity.dtree <- function(object, vars = NULL, decs = NULL, 
+                              shiny = FALSE, custom = FALSE, ...) {
 
   yl <- object$yl
 
@@ -658,6 +660,9 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL, shiny = FALSE, .
         ggtitle(paste0("Sensitivity of decisions to changes in ",i)) + xlab(i)
   }
 
-  sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 1))) ) %>%
-    { if (shiny) . else print(.) }
+  if (custom)
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
+    {if (shiny) . else print(.)}
 }

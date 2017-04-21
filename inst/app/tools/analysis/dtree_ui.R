@@ -214,7 +214,7 @@ dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
   dtree_name <- dtree_namer()
 
   if (input$dtree_edit != "") {
-    withProgress(message = 'Creating decision tree', value = 1, {
+    withProgress(message = "Creating decision tree", value = 1, {
       dtree(input$dtree_edit, opt = input$dtree_opt)
     })
   }
@@ -369,7 +369,7 @@ observeEvent(input$dtree_remove, {
   inp_out <- list("", "")
   figs <- FALSE
   if (!is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
-    inp_out[[2]] <- list(vars = gsub("\n+", "", input$dtree_sense), decs = input$dtree_sense_decision)
+    inp_out[[2]] <- list(vars = gsub("\n+", "", input$dtree_sense), decs = input$dtree_sense_decision, custom = FALSE)
     outputs <- c(outputs, "sensitivity")
     figs <- TRUE
   }

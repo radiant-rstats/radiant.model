@@ -1,4 +1,4 @@
-ann_plots <- c("None" = "", "Network" = "net", "Olsen" = "olsen", "Garson" = "garson")
+ann_plots <- c("None" = "", "Network" = "net", "Olden" = "olden", "Garson" = "garson")
 
 ## list of function arguments
 ann_args <- as.list(formals(ann))
@@ -11,18 +11,6 @@ ann_inputs <- reactive({
   for (i in r_drop(names(ann_args)))
     ann_args[[i]] <- input[[paste0("ann_",i)]]
   ann_args
-})
-
-ann_plot_args <- as.list(if (exists("plot.ann")) formals(plot.ann)
-                         else formals(radiant.model:::plot.ann))
-
-## list of function inputs selected by user
-ann_plot_inputs <- reactive({
-  ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(ann_plot_args))
-    ann_plot_args[[i]] <- input[[paste0("ann_",i)]]
-
-  ann_plot_args
 })
 
 ann_pred_args <- as.list(if (exists("predict.ann")) formals(predict.ann)
@@ -265,7 +253,7 @@ ann_available <- reactive({
 
 # .ann <- eventReactive(input$ann_run | input$ann_pause == TRUE, {
 .ann <- eventReactive(input$ann_run, {
-  withProgress(message = 'Estimating model', value = 1,
+  withProgress(message = "Estimating model", value = 1,
 	  do.call(ann, ann_inputs())
   )
 })
@@ -309,12 +297,6 @@ ann_available <- reactive({
   do.call(plot, c(list(x = .predict_ann()), ann_pred_plot_inputs()))
 })
 
-# .plot_ann <- reactive({
-#   if (ann_available() != "available") return(ann_available())
-#   if (not_pressed(input$ann_run)) return("** Press the Estimate button to estimate the model **")
-#   plot(.ann(), shiny = TRUE)
-# })
-
 .plot_ann <- reactive({
   if (ann_available() != "available")
     return(ann_available())
@@ -326,27 +308,14 @@ ann_available <- reactive({
   if (not_pressed(input$ann_run))
     return("** Press the Estimate button to estimate the model **")
 
-  pinp <- ann_plot_inputs()
-  pinp$shiny <- TRUE
+  pinp <- list(plots = input$ann_plots, shiny  = TRUE)
 
   if (input$ann_plots == "net") {
-    # capture_plot(plot, c(list(x = .ann()), pinp))
-    # .plot_ann_net()
-    # .ann() %>% { if (is.character(.)) invisible() else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
     .ann() %>% { if (is.character(.)) invisible() else capture_plot( do.call(plot, c(list(x = .), pinp))) }
   } else {
     do.call(plot, c(list(x = .ann()), pinp))
   }
 })
-
-
-# .plot_ann_net <- reactive({
-#   if (ann_available() != "available") return(invisible())
-#   req(input$ann_size)
-#   .ann() %>%
-#     { if (is.character(.)) invisible()
-#       else capture_plot( do.call(NeuralNetTools::plotnet, list(mod_in = .$model)) ) }
-# })
 
 observeEvent(input$ann_store_pred, {
   req(!is_empty(input$ann_pred_data), pressed(input$ann_run))
@@ -378,15 +347,16 @@ output$dl_ann_pred <- downloadHandler(
 )
 
 observeEvent(input$ann_report, {
+  if (is_empty(input$ann_evar)) return(invisible())
+
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE),"")
-  # xcmd <- "NeuralNetTools::plotnet(result$model)"
   xcmd <- ""
-  # outputs <- c(outputs, "plot")
   figs <- FALSE
 
   if (!is_empty(input$ann_plots)) {
-    inp_out[[2]] <- clean_args(ann_plot_inputs(), ann_plot_args[-1])
+    # inp_out[[2]] <- clean_args(ann_plot_inputs(), ann_plot_args[-1])
+    inp_out[[2]] <- list(plots = input$ann_plots, custom = FALSE)
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }

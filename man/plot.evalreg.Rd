@@ -4,12 +4,12 @@
 \alias{plot.evalreg}
 \title{Plot method for the evalreg function}
 \usage{
-\method{plot}{evalreg}(x, shiny = FALSE, ...)
+\method{plot}{evalreg}(x, vars = c("Rsq", "RSME", "MAE"), ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{evalreg}}}
 
-\item{shiny}{Did the function call originate inside a shiny app}
+\item{vars}{Measures to plot, i.e., one or more of "Rsq", "RSME", "MAE"}
 
 \item{...}{further arguments passed to or from other methods}
 }

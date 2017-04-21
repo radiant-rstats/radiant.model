@@ -339,7 +339,7 @@ logit_available <- reactive({
   req(input$logit_lev)
   req(input$logit_wts == "None" || available(input$logit_wts))
 
-  withProgress(message = 'Estimating model', value = 1,
+  withProgress(message = "Estimating model", value = 1,
     do.call(logistic, logit_inputs())
   )
 })
@@ -405,6 +405,7 @@ observeEvent(input$logistic_report, {
   figs <- FALSE
   if (!is_empty(input$logit_plots)) {
     inp_out[[2]] <- clean_args(logit_plot_inputs(), logit_plot_args[-1])
+    inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }

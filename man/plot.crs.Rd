@@ -4,12 +4,10 @@
 \alias{plot.crs}
 \title{Plot method for the crs function}
 \usage{
-\method{plot}{crs}(x, shiny = FALSE, ...)
+\method{plot}{crs}(x, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{crs}}}
-
-\item{shiny}{Did the function call originate inside a shiny app}
 
 \item{...}{further arguments passed to or from other methods}
 }

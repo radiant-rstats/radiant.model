@@ -4,12 +4,10 @@
 \alias{plot.nb}
 \title{Plot method for the nb function}
 \usage{
-\method{plot}{nb}(x, shiny = FALSE, ...)
+\method{plot}{nb}(x, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{nb}}}
-
-\item{shiny}{Did the function call originate inside a shiny app}
 
 \item{...}{further arguments passed to or from other methods}
 }

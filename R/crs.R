@@ -11,6 +11,8 @@
 #'
 #' @return A data.frame with the original data and a new column with predicted ratings
 #'
+#' @importFrom dplyr distinct_
+#'
 #' @export
 crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
@@ -21,6 +23,13 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets
   ## improvement possible with dplyr or sparse matrix?
+
+  ## make sure spread doesn't complain
+  cn <- colnames(dat)
+  nr <- distinct_(dat, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% nrow
+  if (nr < nrow(dat))
+    return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
+
   dat <- spread_(dat, prod, rate)
 
   idv <- select_(dat,id)
@@ -188,14 +197,13 @@ summary.crs <- function(object, n = 36, ...) {
 #' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{crs}}
-#' @param shiny Did the function call originate inside a shiny app
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{crs}} to generate results
 #' @seealso \code{\link{summary.crs}} to summarize results
 #'
 #' @export
-plot.crs <- function(x, shiny = FALSE, ...) {
+plot.crs <- function(x, ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
@@ -211,12 +219,14 @@ plot.crs <- function(x, shiny = FALSE, ...) {
                  custom = TRUE) +
     geom_segment(aes(x = 1, y = 1, xend = 5, yend = 5), color = "blue", size = .05) +
     coord_cartesian(xlim = lim, ylim = lim) +
-    xlab("Predicted ratings") +
-    ylab("Actual ratings") +
-    ggtitle("Recommendations based on Collaborative Filtering") +
+    labs(
+      title = "Recommendations based on Collaborative Filtering",
+      x = "Predicted ratings",
+      y = "Actual ratings"
+    ) +
     theme(legend.position = "none")
 
-  if (shiny) p else print(p)
+  sshhr(p)
 }
 
 #' Store predicted values generated in the crs function

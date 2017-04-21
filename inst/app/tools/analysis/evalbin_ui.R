@@ -200,12 +200,14 @@ output$evalbin <- renderUI({
   if (not_pressed(input$ebin_run)) return(invisible())
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred)) return(" ")
   req(input$ebin_train, !is_not(input$ebin_scale_y))
-  plot(.confusion(), scale_y = input$ebin_scale_y, shiny = TRUE)
+  plot(.confusion(), scale_y = input$ebin_scale_y)
 })
 
 observeEvent(input$evalbin_report, {
+  if (is_empty(input$ebin_rvar) || is_empty(input$ebin_pred)) return(invisible())
+  
   if (length(input$ebin_plots) > 0) {
-    inp_out <- list(plots = input$ebin_plots) %>% list("",.)
+    inp_out <- list("", list(plots = input$ebin_plots, custom = FALSE))
     outputs <- c("summary","plot")
     figs <- TRUE
   } else {
@@ -223,6 +225,8 @@ observeEvent(input$evalbin_report, {
 })
 
 observeEvent(input$confusion_report, {
+  if (is_empty(input$ebin_rvar) || is_empty(input$ebin_pred)) return(invisible())
+
   inp_out <- list("","")
   if (!input$ebin_scale_y)
     inp_out[[2]] <- list(scale_y = input$ebin_scale_y)

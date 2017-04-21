@@ -108,7 +108,6 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @details See \url{http://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{nb}}
-#' @param shiny Did the function call originate inside a shiny app
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -122,7 +121,7 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @seealso \code{\link{predict.nb}} for prediction
 #'
 #' @export
-plot.nb <- function(x, shiny = FALSE, ...) {
+plot.nb <- function(x, ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
@@ -165,10 +164,9 @@ plot.nb <- function(x, shiny = FALSE, ...) {
       # scale_x_discrete(limits = rev(vimp$Predict)) +
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
       theme(axis.text.y = element_text(hjust = 0)) 
-
   }
 
-  if (shiny) p else print(p)
+  sshhr(p)
 }
 
 #' Predict method for the nb function

@@ -67,7 +67,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 The easiest way to visualize an interaction like this is with an ugly but functional interaction plot:
 
-![plot of chunk unnamed-chunk-5](/private/var/folders/q0/8qtlcpfx7zz58jkkttgzwtc00000gp/T/Rtmp2SYABvunnamed-chunk-5-1.png)
+
 
 (it takes 3 arguments: the first is the factor for the x-axis, then the trace factor for the different lines, then the response variable). And then of course you could instead use a barplot (using something like ggplot to make it prettier).
 

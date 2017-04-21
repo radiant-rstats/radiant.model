@@ -114,6 +114,14 @@ ann <- function(dataset, rvar, evar,
   ## need do.call so Garson/Olden plot will work
   model <- do.call(nnet::nnet, nninput)
 
+  coefnames <- model$coefnames
+  isFct <- sapply(select(dat,-1), function(x) is.factor(x) || is.logical(x))
+  if (sum(isFct) > 0) {
+    for (i in names(isFct[isFct])) 
+      coefnames <- gsub(i, paste0(i,"|"), coefnames) %>% gsub("\\|\\|","\\|", .)
+    rm(i, isFct)
+  }
+
   ## ann returns residuals as a matrix
   model$residuals <- model$residuals[,1]
 
@@ -238,12 +246,13 @@ summary.ann <- function(object, prn = TRUE, ...) {
 #'
 #' @param x Return value from \code{\link{ann}}
 #' @param shiny Did the function call originate inside a shiny app
-#' @param plots Plots to produce for the specified ANN model. Use "" to avoid showing any plots (default). Options are "olsen" or "garson" for importance plots, or "net" to depict the network structure
+#' @param plots Plots to produce for the specified ANN model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
 #' result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
-#' plot(result, plots = c("imp","net"))
+#' plot(result, plots = c("olden","net"))
 #'
 #' @seealso \code{\link{ann}} to generate results
 #' @seealso \code{\link{summary.ann}} to summarize results
@@ -252,26 +261,29 @@ summary.ann <- function(object, prn = TRUE, ...) {
 #' @importFrom NeuralNetTools plotnet olden garson
 #'
 #' @export
-plot.ann <- function(x, plots = "garson", shiny = FALSE, ...) {
+plot.ann <- function(x, plots = "garson", shiny = FALSE, custom = FALSE, ...) {
 
   object <- x; rm(x)
   if (is.character(object)) return(object)
   plot_list <- list()
 
-  if ("olsen" %in% plots) 
-    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model) + coord_flip()
+  if ("olsen" %in% plots || "olden" %in% plots) ## legacy for typo
+    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames) + 
+      coord_flip()
 
   if ("garson" %in% plots) 
-    plot_list[["garson"]] <- NeuralNetTools::garson(object$model) + coord_flip()
+    plot_list[["garson"]] <- NeuralNetTools::garson(object$model, x_lab = object$coefnames) + 
+      coord_flip()
 
   if ("net" %in% plots) 
-      return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model)))
-
-  nrCol <- 1
+    return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model, x_names = object$coefnames)))
 
   if (length(plot_list) > 0) {
-    sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = nrCol))) ) %>%
-      { if (shiny) . else print(.) }
+    if (custom)
+      if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
+      {if (shiny) . else print(.)}
   }
 }
 

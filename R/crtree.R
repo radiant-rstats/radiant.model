@@ -325,6 +325,7 @@ summary.crtree <- function(object, prn = TRUE, ...) {
 #' @param labs Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)
 #' @param dec Decimal places to round results to
 #' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -342,7 +343,9 @@ summary.crtree <- function(object, prn = TRUE, ...) {
 #' @seealso \code{\link{predict.crtree}} for prediction
 #'
 #' @export
-plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, shiny = FALSE, ...) {
+plot.crtree <- function(x, plots = "tree", orient = "LR", 
+                        labs = TRUE, dec = 2, shiny = FALSE, 
+                        custom = FALSE, ...) {
 
   if (is_empty(plots) || "tree" %in% plots) {
 
@@ -463,13 +466,15 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
         geom_line() +
         geom_vline(xintercept = size1, linetype = "dashed") +
         geom_hline(yintercept = min(df$xerror), linetype = "dashed") +
-        xlab("Number of nodes") +
-        ylab("Relative error") +
-        ggtitle("Evaluate tree pruning based on cross-validation")
+        labs(
+          title = "Evaluate tree pruning based on cross-validation",
+          x = "Number of nodes", 
+          y = "Relative error"
+        )
 
       if (nrow(df) < 10) p <- p + scale_x_continuous(breaks = df$nsplit)
 
-      footnote <- paste0("\nFootnote: Minimum error achieved with ", size1, " nodes")
+      footnote <- paste0("\nMinimum error achieved with ", size1, " nodes")
       ## http://stats.stackexchange.com/questions/13471/how-to-choose-the-number-of-splits-in-rpart
 
       ind2 <- min(which(df$xerror < (df$xerror[ind1] + df$xstd[ind1])))
@@ -477,19 +482,10 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
         geom_vline(xintercept = size2, linetype = "dotdash", color = "blue") +
         geom_hline(yintercept = df$xerror[ind1] + df$xstd[ind1], linetype = "dotdash", color = "blue")
 
-      if (size2 < size1) {
-        # ind2 <- min(which(df$xerror < (df$xerror[ind1] + df$xstd[ind1])))
-        # p <- p +
-        #   geom_vline(xintercept = size2, linetype = "dotdash", color = "blue") +
-        #   geom_hline(yintercept = df$xerror[ind1] + df$xstd[ind1], linetype = "dotdash", color = "blue")
-
+      if (size2 < size1) 
         footnote <- paste0(footnote, ". Error from tree with ", size2, " nodes is within one std. of minimum")
-      }
 
-      plot_list[["prune"]] <-
-        gridExtra::grid.arrange(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
-        # gridExtra::arrangeGrob(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
-        # list(p, bottom = grid::textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = grid::gpar(fontface = "italic", fontsize = 10)))
+      plot_list[["prune"]] <- p + labs(caption = footnote)
     }
     if ("imp" %in% plots) {
 
@@ -500,23 +496,23 @@ plot.crtree <- function(x, plots = "tree", orient = "LR", labs = TRUE, dec = 2, 
         arrange_(.dots = "imp")
       df$vars <- factor(df$vars, levels = df$vars)
 
-      # df$CP <- sqrt(df$CP * c(Inf, head(df$CP, -1))) # %>% round(5)
       plot_list[["imp"]] <-
         visualize(df, yvar = "imp", xvar = "vars", type = "bar", custom = TRUE) +
-        xlab("") +
-        ylab("Importance") +
-        ggtitle("Variable importance") +
+        labs(
+          title = "Variable importance",
+          x = "",
+          y = "Importance"
+        ) +
         coord_flip() +
         theme(axis.text.y = element_text(hjust = 0))
     }
 
     if (length(plot_list) > 0) {
-      if (plots == "prune") {
-        plot_list[["prune"]] %>% { if (shiny) . else print(.) }
-      } else {
-        sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 1))) ) %>%
-          { if (shiny) . else print(.) }
-      }
+      if (custom)
+        if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+          
+      sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
+        {if (shiny) . else print(.)}
     }
   }
 }
@@ -561,15 +557,7 @@ predict.crtree <- function(object,
     pred_val
   }
 
-  pred <- predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec)
-
-  # if (!is_not(object$prior)) {
-  #   org_frac <- mean(object$model$model[[object$rvar]] == object$lev)
-  #   over_frac <- object$prior[1]
-  #   pred$Prediction <- 1/(1+(1/org_frac-1)/(1/over_frac-1)*(1/pred$Prediction-1))
-  # }
-
-  pred
+  predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
 #' Print method for predict.crtree

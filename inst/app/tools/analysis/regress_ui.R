@@ -125,9 +125,10 @@ output$ui_reg_show_interactions <- renderUI({
   radioButtons(inputId = "reg_show_interactions", label = "Interactions:",
     choices = choices, selected = state_init("reg_show_interactions"),
     inline = TRUE)
- })
+})
 
 output$ui_reg_int <- renderUI({
+
   if (isolate("reg_show_interactions" %in% names(input)) &&
       is_empty(input$reg_show_interactions)) {
     choices <- character(0)
@@ -139,6 +140,14 @@ output$ui_reg_int <- renderUI({
     ## list of interaction terms to show
     choices <- iterms(vars, input$reg_show_interactions)
   }
+
+  # req(length(input$reg_evar) > 0)
+  # req(input$reg_show_interactions)
+  # vars <- input$reg_evar
+  # if (not_available(vars) || length(vars) < 2 || is_empty(input$reg_show_interactions)) 
+  #   choices <- character(0)
+  # else
+  #   choices <- iterms(vars, input$reg_show_interactions)
 
   selectInput("reg_int", label = NULL, choices = choices,
     selected = state_init("reg_int"),
@@ -210,7 +219,6 @@ output$ui_regress <- renderUI({
       uiOutput("ui_reg_evar"),
 
       conditionalPanel(condition = "input.reg_evar != null",
-
         uiOutput("ui_reg_show_interactions"),
         conditionalPanel(condition = "input.reg_show_interactions != ''",
           uiOutput("ui_reg_int")
@@ -323,7 +331,9 @@ reg_available <- reactive({
 
 .regress <- eventReactive(input$reg_run, {
   req(available(input$reg_rvar), available(input$reg_evar))
-  do.call(regress, reg_inputs())
+  withProgress(message = "Estimating model", value = 1, {
+    do.call(regress, reg_inputs())
+  })
 })
 
 .summary_regress <- reactive({
@@ -375,12 +385,14 @@ reg_available <- reactive({
 })
 
 observeEvent(input$regress_report, {
+  if (is_empty(input$reg_evar)) return(invisible())
   outputs <- c("summary")
   inp_out <- list("","")
   inp_out[[1]] <- clean_args(reg_sum_inputs(), reg_sum_args[-1])
   figs <- FALSE
   if (!is_empty(input$reg_plots)) {
     inp_out[[2]] <- clean_args(reg_plot_inputs(), reg_plot_args[-1])
+    inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }
@@ -416,7 +428,7 @@ observeEvent(input$reg_store_res, {
   req(pressed(input$reg_run))
   robj <- .regress()
   if (!is.list(robj)) return()
-  withProgress(message = 'Storing residuals', value = 1,
+  withProgress(message = "Storing residuals", value = 1,
     store(robj, name = input$reg_store_res_name)
   )
 })
@@ -425,7 +437,7 @@ observeEvent(input$reg_store_pred, {
   req(!is_empty(input$reg_pred_data), pressed(input$reg_run))
   pred <- .predict_regress()
   if (is.null(pred)) return()
-  withProgress(message = 'Storing predictions', value = 1,
+  withProgress(message = "Storing predictions", value = 1,
     store(pred, data = input$reg_pred_data, name = input$reg_store_pred_name)
   )
 })

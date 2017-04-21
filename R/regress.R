@@ -345,44 +345,45 @@ plot.regress <- function(x, plots = "",
   nlines <- sub("jitter","",lines)
 
   plot_list <- list()
-  if ("dist" %in% plots)
-    for (i in vars) {
-      plot_list[[paste0("dist",i)]] <-
-        visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
-    }
-
   if ("dashboard" %in% plots) {
 
-    plot_list[[1]] <-
+    plot_list[["dash1"]] <-
       visualize(model, xvar = ".fitted", yvar = rvar, type = "scatter", custom = TRUE) +
       labs(list(title = "Actual vs Fitted values", x = "Fitted", y = "Actual"))
 
-    plot_list[[2]] <-
+    plot_list[["dash2"]] <-
       visualize(model, xvar = ".fitted", yvar = ".resid", type = "scatter", custom = TRUE) +
       labs(list(title = "Residuals vs Fitted", x = "Fitted values", y = "Residuals"))
 
-    plot_list[[3]] <- ggplot(model, aes(y=.resid, x=seq_along(.resid))) + geom_line() +
+    plot_list[["dash3"]] <- ggplot(model, aes(y=.resid, x=seq_along(.resid))) + geom_line() +
       labs(list(title = "Residuals vs Row order", x = "Row order", y = "Residuals"))
 
-    plot_list[[4]] <- ggplot(model, aes_string(sample=".stdresid")) + stat_qq(alpha = .5) +
+    plot_list[["dash4"]] <- ggplot(model, aes_string(sample=".stdresid")) + stat_qq(alpha = .5) +
       labs(list(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals"))
 
-    plot_list[[5]] <-
+    plot_list[["dash5"]] <-
       visualize(model, xvar = ".resid", custom = TRUE) +
       labs(list(title = "Histogram of residuals", x = "Residuals"))
 
-    plot_list[[6]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
+    plot_list[["dash6"]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
       stat_function(fun = dnorm, args = list(mean = mean(model[,'.resid']), sd = sd(model[,'.resid'])), color = "blue") +
       labs(list(title = "Residuals vs Normal density", x = "Residuals", y = "")) + theme(axis.text.y = element_blank())
 
     if ("loess" %in% lines)
-      for (i in 1:3) plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "loess", size = .75, linetype = "dotdash") )
+      for (i in paste0("dash",1:3)) plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "loess", size = .75, linetype = "dotdash") )
 
     if ("line" %in% lines) {
-      for (i in c(1,4))
+      for (i in paste0("dash",c(1,4)))
         plot_list[[i]] <- plot_list[[i]] + geom_abline(linetype = 'dotdash')
-      for (i in 2:3)
+      for (i in paste0("dash",2:3))
         plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", colour = 'black') )
+    }
+  }
+
+  if ("dist" %in% plots) {
+    for (i in vars) {
+      plot_list[[paste0("dist",i)]] <-
+        visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
     }
   }
 
@@ -401,11 +402,11 @@ plot.regress <- function(x, plots = "",
   if ("resid_pred" %in% plots) {
     for (i in evar) {
       if ("factor" %in% class(model[,i])) {
-        plot_list[[i]] <-
+        plot_list[[paste0("resid_",i)]] <-
           visualize(select_(model, .dots = c(i,".resid")), xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = .2, custom = TRUE) +
           ylab("residuals")
       } else {
-        plot_list[[i]] <-
+        plot_list[[paste0("resid_",i)]] <-
           visualize(select_(model, .dots = c(i,".resid")), xvar = i, yvar = ".resid", type = "scatter", check = nlines, custom = TRUE) +
           ylab("residuals")
       }
@@ -418,8 +419,7 @@ plot.regress <- function(x, plots = "",
 
     yl <- if ("standardize" %in% object$check) "Coefficient (standardized)" else "Coefficient"
 
-    p <-
-      confint(object$model, level = conf_lev) %>%
+    plot_list[["coeff"]] <- confint(object$model, level = conf_lev) %>%
       data.frame %>%
       na.omit %>%
       set_colnames(c("Low","High")) %>%
@@ -431,11 +431,9 @@ plot.regress <- function(x, plots = "",
           geom_pointrange(aes_string(x = "variable", y = "coefficient",
                           ymin = "Low", ymax = "High")) +
           geom_hline(yintercept = 0, linetype = 'dotdash', color = "blue") +
-          xlab("") +
-          ylab(yl) +
+          labs(x = "", y = yl) +
           scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
           coord_flip() + theme(axis.text.y = element_text(hjust = 0))
-    return(p)
   }
 
   if ("correlations" %in% plots)
@@ -449,12 +447,12 @@ plot.regress <- function(x, plots = "",
   #          layout = c(ceiling(length(evar)/2),2)))
   # }
 
-  if (custom)
-    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+  if (length("plot_list") > 0) {
+    if (custom)
+      if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
-  if (exists("plot_list")) {
-    sshhr( do.call(gridExtra::grid.arrange, c(plot_list, list(ncol = 2))) ) %>%
-        {if (shiny) . else print(.)}
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 2)) %>%
+       {if (shiny) . else print(.)}
   }
 }
 

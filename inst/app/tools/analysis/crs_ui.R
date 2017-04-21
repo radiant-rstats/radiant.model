@@ -14,7 +14,7 @@ crs_inputs <- reactive({
 # Evaluate model evalbin
 ###############################################################
 output$ui_crs_id <- renderUI({
-  vars <- varnames()
+  vars <- c("None" = "", varnames())
   selectInput(inputId = "crs_id", label = "User id:", choices = vars,
     selected = state_single("crs_id", vars), multiple = FALSE)
 })
@@ -116,8 +116,9 @@ output$crs <- renderUI({
 })
 
 .crs <- eventReactive(input$crs_run, {
+  if (is_empty(input$crs_id))
+    return("This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>% suggest_data("cf"))
 
-  req(available(input$crs_id))
   if (!input$show_filter || is_empty(input$data_filter))
     return("A data filter must be set to generate recommendations using\ncollaborative filtering. Add a filter in the Data > View tab.\nNote that the users in the training sample should not overlap\nwith the users in the validation sample." %>% add_class("crs"))
 
@@ -126,24 +127,32 @@ output$crs <- renderUI({
 
   if(length(input$crs_pred) < 1) return("Please select one or more products to generate recommendations" %>% add_class("crs"))
 
-	do.call(crs, crs_inputs())
+  withProgress(message = "Estimating model", value = 1,
+	  do.call(crs, crs_inputs())
+  })
 })
 
 .summary_crs <- reactive({
+  if (is_empty(input$crs_id))
+    return("This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>% suggest_data("cf"))
+
   if (not_pressed(input$crs_run)) return("** Press the Estimate button to generate recommendations **")
   summary(.crs())
 })
 
 .plot_crs <- reactive({
+  if (is_empty(input$crs_id)) return(invisible())
   if (not_pressed(input$crs_run)) return("** Press the Estimate button to generate recommendations **")
-  plot.crs(.crs(), shiny = TRUE)
+  plot.crs(.crs())
 })
 
 ## Add reporting option
 observeEvent(input$crs_report, {
-
+  crs <- .crs() 
   inp_out <- list(list(n = 36),"")
-  if (!any(is.na(.crs()$act))) {
+  if (is.character(crs)) {
+    return(invisible())
+  } else if (!any(is.na(crs$act))) {
     outputs <- c("summary","plot")
     figs <- TRUE
   } else {
