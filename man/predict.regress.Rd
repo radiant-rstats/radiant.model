@@ -45,4 +45,3 @@ rm(dpred, envir = .GlobalEnv)
 
 \code{\link{plot.regress}} to plot results
 }
-

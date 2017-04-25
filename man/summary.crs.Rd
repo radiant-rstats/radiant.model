@@ -24,4 +24,3 @@ See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in 
 
 \code{\link{plot.crs}} to plot results
 }
-

@@ -42,4 +42,3 @@ plot(result, plots = "coef")
 
 \code{\link{plot.model.predict}} to plot prediction output
 }
-

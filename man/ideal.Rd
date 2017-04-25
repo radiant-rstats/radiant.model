@@ -15,4 +15,3 @@ Ideal data for linear regression
 Description provided in attr(ideal,"description")
 }
 \keyword{datasets}
-

@@ -24,4 +24,3 @@ See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example
 
 \code{\link{summary.evalreg}} to summarize results
 }
-

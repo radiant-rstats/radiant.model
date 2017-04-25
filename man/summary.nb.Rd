@@ -31,4 +31,3 @@ summary(result)
 
 \code{\link{predict.nb}} for prediction
 }
-

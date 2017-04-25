@@ -28,4 +28,3 @@ regress(diamonds, rvar = "price", evar = c("carat","cut"))  \%>\%
   store(name = "pred, pred_low, pred_high") \%>\% head
 
 }
-

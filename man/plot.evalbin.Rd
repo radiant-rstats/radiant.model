@@ -36,4 +36,3 @@ evalbin("titanic", c("age","fare"), "survived") \%>\% summary
 
 \code{\link{summary.evalbin}} to summarize results
 }
-

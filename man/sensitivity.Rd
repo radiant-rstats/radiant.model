@@ -14,4 +14,3 @@ sensitivity(object, ...)
 \description{
 Method to evaluate sensitivity of an analysis
 }
-

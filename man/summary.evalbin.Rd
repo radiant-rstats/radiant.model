@@ -29,4 +29,3 @@ evalbin("titanic", c("age","fare"), "survived") \%>\% summary
 
 \code{\link{plot.evalbin}} to plot results
 }
-

@@ -22,4 +22,3 @@ Deprecated function to store regression residuals and predictions
 \details{
 Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
 }
-

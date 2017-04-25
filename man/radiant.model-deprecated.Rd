@@ -2,11 +2,11 @@
 % Please edit documentation in R/deprecated.R
 \docType{package}
 \name{radiant.model-deprecated}
+\alias{radiant.model-deprecated}
+\alias{regression}
 \alias{glm_reg}
 \alias{performance}
-\alias{radiant.model-deprecated}
 \alias{radiant.model-deprecated-package}
-\alias{regression}
 \title{Deprecated function(s) in the radiant.model package}
 \usage{
 regression(...)

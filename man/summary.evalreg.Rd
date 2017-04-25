@@ -22,4 +22,3 @@ See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example
 
 \code{\link{plot.evalreg}} to plot results
 }
-

@@ -18,4 +18,3 @@ sim_summary(dat, dc = getclass(dat), fun = "", dec = 4)
 \description{
 Print simulation summary
 }
-

@@ -33,4 +33,3 @@ plot(result)
 
 \code{\link{summary.simulater}} to summarize results
 }
-

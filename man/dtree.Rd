@@ -29,4 +29,3 @@ See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example i
 
 \code{\link{sensitivity.dtree}} to plot results
 }
-

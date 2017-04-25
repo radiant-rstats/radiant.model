@@ -41,4 +41,3 @@ predict(result, pred_data = "diamonds") \%>\% head
 
 \code{\link{summary.ann}} to summarize results
 }
-

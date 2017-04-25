@@ -14,4 +14,3 @@
 \description{
 Method to render DiagrammeR plots
 }
-

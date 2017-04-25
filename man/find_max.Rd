@@ -17,4 +17,3 @@ Value of val at the maximum of var
 \description{
 Find maxium value of a vector
 }
-

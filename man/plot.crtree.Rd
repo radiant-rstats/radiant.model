@@ -46,4 +46,3 @@ plot(result, plots = "imp")
 
 \code{\link{predict.crtree}} for prediction
 }
-

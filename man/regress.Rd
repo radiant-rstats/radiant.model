@@ -40,4 +40,3 @@ result <- regress("diamonds", "price", c("carat","clarity"), check = "standardiz
 
 \code{\link{predict.regress}} to generate predictions
 }
-

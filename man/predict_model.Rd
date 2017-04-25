@@ -32,4 +32,3 @@ Predict method for model functions
 \details{
 See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
-

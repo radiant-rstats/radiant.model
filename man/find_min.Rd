@@ -17,4 +17,3 @@ Value of val at the minimum of var
 \description{
 Find minimum value of a vector
 }
-

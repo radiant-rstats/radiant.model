@@ -29,4 +29,3 @@ summary(result)
 
 \code{\link{plot.simulater}} to plot results
 }
-

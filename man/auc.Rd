@@ -33,4 +33,3 @@ auc(runif(nrow(mtcars)), mtcars$vs, 1)
 
 \code{\link{plot.evalbin}} to plot results
 }
-

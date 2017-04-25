@@ -33,4 +33,3 @@ summary(result)
 
 \code{\link{predict.crtree}} for prediction
 }
-

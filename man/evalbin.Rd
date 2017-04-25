@@ -46,4 +46,3 @@ result <- evalbin("titanic", c("age","fare"), "survived")
 
 \code{\link{plot.evalbin}} to plot results
 }
-

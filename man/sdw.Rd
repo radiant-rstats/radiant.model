@@ -15,4 +15,3 @@ A vector of standard deviation estimates
 \description{
 Standard deviation of weighted sum of variables
 }
-

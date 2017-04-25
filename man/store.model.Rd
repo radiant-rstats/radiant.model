@@ -24,4 +24,3 @@ regress(diamonds, rvar = "price", evar = c("carat","cut")) \%>\%
   store \%>\% head
 
 }
-

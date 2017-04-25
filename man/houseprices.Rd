@@ -15,4 +15,3 @@ Houseprices
 Description provided in attr(houseprices,"description")
 }
 \keyword{datasets}
-

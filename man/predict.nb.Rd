@@ -43,4 +43,3 @@ predict(result, pred_data = "titanic", pred_names = NA)
 
 \code{\link{summary.nb}} to summarize results
 }
-

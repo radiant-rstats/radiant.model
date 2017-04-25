@@ -25,4 +25,3 @@ regress(diamonds, rvar = "price", evar = "carat:x", check = "standardize") \%>\%
   formatdf(dec = 3)
 
 }
-

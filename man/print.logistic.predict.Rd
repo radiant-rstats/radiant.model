@@ -16,4 +16,3 @@
 \description{
 Print method for logistic.predict
 }
-

@@ -34,4 +34,3 @@ plot(pred, xvar = "age", facet_col = "sex")
 \seealso{
 \code{\link{predict.nb}} to generate predictions
 }
-

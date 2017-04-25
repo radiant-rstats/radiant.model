@@ -36,4 +36,3 @@ plot(result, plots = c("olden","net"))
 
 \code{\link{predict.ann}} for prediction
 }
-

@@ -39,4 +39,3 @@ logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") \%>\%
 
 \code{\link{predict.logistic}} to generate predictions
 }
-

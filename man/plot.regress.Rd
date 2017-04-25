@@ -47,4 +47,3 @@ plot(result, plots = "resid_pred", lines = "line")
 
 \code{\link{predict.regress}} to generate predictions
 }
-

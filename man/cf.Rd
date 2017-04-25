@@ -15,4 +15,3 @@ Movie ratings
 Use collaborative filtering to create recommendations based on ratings from existing users. Description provided in attr(df,"description")
 }
 \keyword{datasets}
-

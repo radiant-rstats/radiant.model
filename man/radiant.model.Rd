@@ -4,6 +4,7 @@
 \name{radiant.model}
 \alias{radiant.model}
 \alias{radiant.model-package}
+\alias{radiant.model}
 \title{radiant.model}
 \usage{
 radiant.model()
@@ -16,4 +17,3 @@ Launch Radiant in the default browser
 \details{
 See \url{http://radiant-rstats.github.io/docs} for documentation and tutorials
 }
-

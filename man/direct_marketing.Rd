@@ -15,4 +15,3 @@ Direct marketing data
 Description provided in attr(direct_marketing,"description")
 }
 \keyword{datasets}
-

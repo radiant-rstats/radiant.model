@@ -23,4 +23,3 @@ Confidence interval for robust estimators
 \details{
 Wrapper for confint.default with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
 }
-

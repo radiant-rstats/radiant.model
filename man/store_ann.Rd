@@ -19,4 +19,3 @@ Deprecated function to store predictions from an ANN
 \details{
 Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
 }
-

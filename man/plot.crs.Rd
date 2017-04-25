@@ -22,4 +22,3 @@ See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in 
 
 \code{\link{summary.crs}} to summarize results
 }
-

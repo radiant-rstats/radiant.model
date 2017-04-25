@@ -37,4 +37,3 @@ result <- nb("titanic", "survived", c("pclass","sex","age"))
 
 \code{\link{predict.nb}} for prediction
 }
-

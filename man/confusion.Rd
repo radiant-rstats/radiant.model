@@ -40,4 +40,3 @@ See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example
 
 \code{\link{plot.confusion}} to plot results
 }
-

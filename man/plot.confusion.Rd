@@ -27,4 +27,3 @@ See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example
 
 \code{\link{summary.confusion}} to summarize results
 }
-

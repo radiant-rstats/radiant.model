@@ -18,4 +18,3 @@ print_predict_model(x, ..., n = 10, header = "")
 \description{
 Print method for the model prediction
 }
-

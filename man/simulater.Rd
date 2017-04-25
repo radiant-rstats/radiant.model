@@ -57,4 +57,3 @@ result <- simulater(const = "cost 3", norm = "demand 2000 1000",
 
 \code{\link{plot.simulater}} to plot results
 }
-

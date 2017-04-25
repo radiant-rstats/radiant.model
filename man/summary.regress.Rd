@@ -41,4 +41,3 @@ ideal \%>\% regress("y", "x1:x3") \%>\% summary
 
 \code{\link{predict.regress}} to generate predictions
 }
-

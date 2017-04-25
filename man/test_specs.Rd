@@ -24,4 +24,3 @@ See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example
 test_specs("a", c("a:b", "b:c"))
 
 }
-

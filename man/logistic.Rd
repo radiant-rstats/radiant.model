@@ -47,4 +47,3 @@ result <- logistic("titanic", "survived", c("pclass","sex"))
 
 \code{\link{plot.model.predict}} to plot prediction output
 }
-

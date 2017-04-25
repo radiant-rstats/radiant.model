@@ -29,4 +29,3 @@ store(pred, data = titanic, name = "pred") \%>\% head
 store(pred, data = titanic) \%>\% head
 
 }
-

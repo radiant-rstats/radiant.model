@@ -15,4 +15,3 @@ Cleaned string
 \description{
 Clean input command string
 }
-

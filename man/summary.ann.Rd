@@ -31,4 +31,3 @@ summary(result)
 
 \code{\link{predict.ann}} for prediction
 }
-

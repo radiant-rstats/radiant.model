@@ -63,4 +63,3 @@ result <- crtree("diamonds", "price", c("carat","clarity"), type = "regression")
 
 \code{\link{predict.crtree}} for prediction
 }
-

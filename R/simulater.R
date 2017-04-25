@@ -440,7 +440,7 @@ repeater <- function(nr = 12,
   summarize_sim <- function(object) {
     if (fun != "none") {
       object %<>% group_by_(byvar) %>%
-        summarise_each_(make_funs(fun), vars = sum_vars) %>%
+        summarise_at(.cols = sum_vars, .funs = make_funs(fun)) %>%
         set_colnames(c(byvar, sum_vars))
 
       # if (length(sum_vars) == 1 && length(fun) > 1) colnames(object) <- paste0(sum_vars, "_", colnames(object))
@@ -698,7 +698,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
       cn <- names(dc)[isConst]
       cat("Constants:\n")
       select(dat, which(isConst)) %>% na.omit %>% .[1,] %>% as.data.frame %>%
-        round(dec) %>% mutate_each(funs(formatC(., big.mark = ",", digits = dec, format = "f"))) %>%
+        round(dec) %>% mutate_all(funs(formatC(., big.mark = ",", digits = dec, format = "f"))) %>%
         set_rownames("") %>% set_colnames(cn) %>%
         print
       cat("\n")
@@ -711,8 +711,8 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
       select(dat, which(isNum & !isConst)) %>%
         tidyr::gather_("variable", "values", cn) %>%
         group_by_("variable") %>%
-        summarise_each(funs(n = length, mean = mean_rm, sd = sd_rm, min = min_rm, `25%` = p25,
-                       median = median_rm, `75%` = p75, max = max_rm)) %>%
+        summarise_all(funs(n = length, mean = mean_rm, sd = sd_rm, min = min_rm, `25%` = p25,
+                           median = median_rm, `75%` = p75, max = max_rm)) %>%
         { if (fun == "" || fun == "none") . else {.[[1]] <- paste0(fun, " of ", .[[1]])}; . } %>%
         { .[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE) %>%
@@ -724,7 +724,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
 
   if (sum(isLogic) > 0) {
     cat("Logicals:\n")
-    select(dat, which(isLogic)) %>% summarise_each(funs(sum, mean)) %>% round(dec) %>%
+    select(dat, which(isLogic)) %>% summarise_all(funs(sum, mean)) %>% round(dec) %>%
       matrix(ncol = 2) %>% set_colnames(c("TRUE (nr)  ", "TRUE (prop)")) %>%
       set_rownames(names(dat)[isLogic]) %>% print
     cat("\n")

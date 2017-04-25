@@ -53,4 +53,3 @@ result <- ann("diamonds", "price", c("carat","clarity"), type = "regression")
 
 \code{\link{predict.ann}} for prediction
 }
-

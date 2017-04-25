@@ -29,7 +29,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
-  if (any(summarise_each(dat, funs(does_vary)) == FALSE))
+  if (any(summarise_all(dat, funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
 
   vars <- evar
@@ -126,7 +126,8 @@ plot.nb <- function(x, ...) {
   object <- x; rm(x)
   if (is.character(object)) return(object)
 
-  x <- mutate_each(object$model$model[,-1, drop = FALSE], funs(as_numeric))
+  # x <- mutate_all(object$model$model[,-1, drop = FALSE], funs(as_numeric))
+  x <- mutate_all(select(object$model$model, -1), funs(as_numeric))
   y <- object$model$model[[1]]
   k <- length(object$lev)
 
@@ -286,7 +287,7 @@ plot.nb.predict <- function(x, xvar = "",
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
   if (facet_col != ".") byvar <- unique(c(byvar, facet_col))
 
-  tmp <- object %>% group_by_(.dots = byvar) %>% select_(.dots = c(byvar, "Prediction")) %>% summarise_each(funs(mean))
+  tmp <- object %>% group_by_(.dots = byvar) %>% select_(.dots = c(byvar, "Prediction")) %>% summarise_all(funs(mean))
   p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + geom_line()
 
   if (facet_row != "." || facet_col != ".") {

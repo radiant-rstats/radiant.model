@@ -33,4 +33,3 @@ See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example i
 
 \code{\link{summary.dtree}} to summarize results
 }
-

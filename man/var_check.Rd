@@ -29,4 +29,3 @@ var_check("a:d", c("a","b","c","d"))
 var_check(c("a", "b"), c("a", "b"), "a:c")
 
 }
-

@@ -40,4 +40,3 @@ predict(result, pred_data = "titanic") \%>\% head
 
 \code{\link{summary.crtree}} to summarize results
 }
-

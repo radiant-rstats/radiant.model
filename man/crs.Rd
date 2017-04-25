@@ -28,4 +28,3 @@ Collaborative Filtering
 \details{
 See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }
-

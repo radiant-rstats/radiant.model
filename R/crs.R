@@ -48,10 +48,10 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ind <- (1:length(cn))[-nind]
 
   ## average scores and rankings
-  avg <- dat[uid,,drop = FALSE] %>% select(nind) %>% summarise_each(funs(mean_rm))
+  avg <- dat[uid,,drop = FALSE] %>% select(nind) %>% summarise_all(funs(mean_rm))
   ravg <- avg
   ravg[1,] <- min_rank(desc(avg))
-  ravg <- mutate_each(ravg, funs(as.integer))
+  ravg <- mutate_all(ravg, funs(as.integer))
 
   ## actual scores and rankings (if available, else will be NA)
   act <- dat[-uid,, drop = FALSE] %>% select(nind)
@@ -82,7 +82,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   }
   ## comfirmed to produce consistent results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
   srate[is.na(srate)] <- 0
-  srate <- mutate_each(as.data.frame(srate), funs(ifelse (is.infinite(.), 0, .)))
+  srate <- mutate_all(as.data.frame(srate), funs(ifelse (is.infinite(.), 0, .)))
 
   cors <- sshhr(cor(t(dat[uid, ind]), t(dat[-uid, ind]), use = "pairwise.complete.obs"))
 

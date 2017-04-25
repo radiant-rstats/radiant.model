@@ -15,4 +15,3 @@ Data frame min and max attributes
 \description{
 Calculate min and max before standardization
 }
-

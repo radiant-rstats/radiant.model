@@ -48,8 +48,8 @@ evalreg <- function(dataset, pred, rvar,
 		    Type = rep(i, length(pred)),
 		    Predictor = pred,
 		    Rsq = cor(rv, dat[pred])^2 %>% .[1,],
-		    RSME = summarise_each_(dat, funs(mean((rv - .)^2, na.rm = TRUE) %>% sqrt), vars = pred) %>% unlist,
-		    MAE = summarise_each_(dat, funs(mean(abs(rv - .), na.rm = TRUE)), vars = pred) %>% unlist
+		    RSME = summarise_at(dat, .cols = pred, .funs = funs(mean((rv - .)^2, na.rm = TRUE) %>% sqrt)) %>% unlist,
+		    MAE = summarise_at(dat, .cols = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist
 	    )
   }
 

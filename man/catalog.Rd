@@ -15,4 +15,3 @@ Catalog sales for men's and women's apparel
 Description provided in attr(catalog,"description")
 }
 \keyword{datasets}
-

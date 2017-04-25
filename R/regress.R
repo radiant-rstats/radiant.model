@@ -32,7 +32,7 @@ regress <- function(dataset, rvar, evar,
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
-  if (any(summarise_each(dat, funs(does_vary)) == FALSE))
+  if (any(summarise_all(dat, funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>%
            add_class("regress"))
 
@@ -254,7 +254,7 @@ summary.regress <- function(object,
         as.data.frame %>%
         set_colnames(c("Low","High")) %>%
         { .$`+/-` <- (.$High - .$Low)/2; . } %>%
-        mutate_each(funs(sprintf(paste0("%.",dec,"f"),.))) %>%
+        mutate_all(funs(sprintf(paste0("%.",dec,"f"),.))) %>%
         cbind(coeff[[2]],.) %>%
         set_rownames(object$coeff$`  `) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %T>%
@@ -556,13 +556,13 @@ predict_model <- function(object, pfun, mclass,
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")
       if (!is.null(ms))
-        dat <- mutate_each_(dat, funs(. + ms$.), vars = names(ms))
+        dat <- mutate_at(dat, .cols = names(ms), .funs = funs(. + ms$.))
 
     } else if ("standardize" %in% object$check) {
       ms <- attr(object$model$model, "ms")
       sds <- attr(object$model$model,"sds")
       if (!is.null(ms) && !is.null(sds))
-        dat <- mutate_each_(dat, funs(. * 2 * sds$. + ms$.), vars = names(ms))
+        dat <- mutate_at(dat, .cols = names(ms), .funs = funs(. * 2 * sds$. + ms$.))
     }
 
     pred_cmd %<>% gsub("\"","\'",.) %>% gsub(";\\s*$","",.) %>% gsub(";",",",.)
@@ -591,11 +591,11 @@ predict_model <- function(object, pfun, mclass,
 
     plug_data <- data.frame(init___ = 1)
     if (sum(isNum) > 0)
-      plug_data %<>% bind_cols(., summarise_each_(dat, funs(mean), vars[isNum]))
+      plug_data %<>% bind_cols(., summarise_at(dat, .cols = vars[isNum], .funs = funs(mean)))
     if (sum(isFct) > 0)
-      plug_data %<>% bind_cols(., summarise_each_(dat, funs(max_freq), vars[isFct]))
+      plug_data %<>% bind_cols(., summarise_at(dat, .cols = vars[isFct], .funs = funs(max_freq)))
     if (sum(isLog) > 0)
-      plug_data %<>% bind_cols(., summarise_each_(dat, funs(max_lfreq), vars[isLog]))
+      plug_data %<>% bind_cols(., summarise_at(dat, .cols = vars[isLog], .funs = funs(max_lfreq)))
 
     rm(dat)
 
@@ -820,11 +820,12 @@ plot.model.predict <- function(x, xvar = "",
   if ( any(!tbv %in% colnames(object)))
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
 
-  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>% summarise_each(funs(mean))
+  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>% 
+    summarise_all(funs(mean))
   if (color == 'none') {
-    p <- ggplot(tmp, aes_string(x=xvar, y="Prediction"))
+    p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction"))
   } else {
-    p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color))
+    p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color))
   }
 
   if (length(pvars) == 3) {

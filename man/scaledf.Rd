@@ -29,4 +29,3 @@ Center or standardize variables in a data frame
 \seealso{
 \code{\link{copy_attr}} to copy attributes from a traning to a validation dataset
 }
-

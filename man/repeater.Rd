@@ -43,4 +43,3 @@ repeater(nr = 12, vars = c("E","price"), sum_vars = "profit",
          seed = "1234", sim = result) \%>\% head
 
 }
-

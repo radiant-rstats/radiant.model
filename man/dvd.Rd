@@ -15,4 +15,3 @@ Data on DVD sales
 Binary purchase response to coupon value. Description provided in attr(dvd,"description")
 }
 \keyword{datasets}
-

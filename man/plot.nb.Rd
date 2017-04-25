@@ -31,4 +31,3 @@ plot(result)
 
 \code{\link{predict.nb}} for prediction
 }
-
