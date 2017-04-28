@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model
+# CHANGES IN radiant.model 0.8.0
 
 ## NEW FEATURES
 
@@ -27,3 +27,7 @@
 - Show full confusion matrix even if some elements are missing
 - Fix for warnings when creating profit and gains charts
 - Product dropdown for Model > Collaborative filtering did not list all variables
+
+## Deprecated
+
+- Use of *_each is deprecated
