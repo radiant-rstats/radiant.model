@@ -1,6 +1,6 @@
 #' Linear regression using OLS
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the regression
@@ -108,7 +108,7 @@ regress <- function(dataset, rvar, evar,
 
 #' Summary method for the regress function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
 #' @param sum_check Optional output. "rsme" to show the root mean squared error and the standard deviation of the residuals. "sumsquares" to show the sum of squares table. "vif" to show multicollinearity diagnostics. "confint" to show coefficient confidence interval estimates.
@@ -297,7 +297,7 @@ summary.regress <- function(object,
 
 #' Plot method for the regress function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{regress}}
 #' @param plots Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "dist" to shows histograms (or frequency bar plots) of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals. "leverage" to show leverage plots for each explanatory variable
@@ -310,13 +310,13 @@ summary.regress <- function(object,
 #'
 #' @examples
 #' result <- regress("diamonds", "price", c("carat","clarity"))
-#' plot(result, plots = "dashboard", lines = c("line","loess"))
 #' plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
 #' plot(result, plots = "dist")
+#' \dontrun{
 #' plot(result, plots = "scatter", lines = c("line","loess"))
-#' plot(result, plots = "correlations")
 #' plot(result, plots = "resid_pred", lines = "line")
-#'
+#' plot(result, plots = "dashboard", lines = c("line","loess"))
+#' }
 #' @seealso \code{\link{regress}} to generate the results
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{predict.regress}} to generate predictions
@@ -458,7 +458,7 @@ plot.regress <- function(x, plots = "",
 
 #' Predict method for the regress function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
 #' @param pred_data Name of the dataset to use for prediction
@@ -520,7 +520,7 @@ predict.regress <- function(object,
 
 #' Predict method for model functions
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
 #' @param pfun Function to use for prediction
@@ -873,7 +873,7 @@ store_reg <- function(object, data = object$dataset,
 
 #' Store predicted values generated in model functions
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from model function
 #' @param ... Additional arguments
@@ -912,7 +912,7 @@ store.model.predict <- function(object, ..., data = attr(object,"pred_data"), na
 
 #' Store residuals from a model
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from a model function
 #' @param ... Additional arguments
@@ -934,7 +934,7 @@ store.model <- function(object, ..., name = "residuals") {
 
 #' Check if main effects for all interaction effects are included in the model
 #' If ':' is used to select a range _evar_ is updated
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param ev List of explanatory variables provided to _regress_ or _logistic_
 #' @param cn Column names for all explanatory variables in _dat_
@@ -967,7 +967,7 @@ var_check <- function(ev, cn, intv = "") {
 
 #' Add interaction terms to list of test variables if needed
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param test_var List of variables to use for testing for regress or logistic
 #' @param int Interaction terms specified

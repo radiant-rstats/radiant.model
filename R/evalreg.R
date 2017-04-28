@@ -1,6 +1,6 @@
 #' Model evalreg
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param pred Predictions or predictors
@@ -61,7 +61,7 @@ evalreg <- function(dataset, pred, rvar,
 
 #' Summary method for the evalreg function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{evalreg}}
 #' @param ... further arguments passed to or from other methods
@@ -85,7 +85,7 @@ summary.evalreg <- function(object, ...) {
 
 #' Plot method for the evalreg function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{evalreg}}
 #' @param vars Measures to plot, i.e., one or more of "Rsq", "RSME", "MAE"

@@ -1,6 +1,6 @@
 #' Artificial Neural Networks
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the model
@@ -183,7 +183,7 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
 
 #' Summary method for the ann function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{ann}}
 #' @param prn Print list of weights
@@ -242,7 +242,7 @@ summary.ann <- function(object, prn = TRUE, ...) {
 
 #' Plot method for the ann function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{ann}}
 #' @param shiny Did the function call originate inside a shiny app
@@ -289,7 +289,7 @@ plot.ann <- function(x, plots = "garson", shiny = FALSE, custom = FALSE, ...) {
 
 #' Predict method for the ann function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{ann}}
 #' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation

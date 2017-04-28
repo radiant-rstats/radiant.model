@@ -1,6 +1,6 @@
 #' Parse yaml input for dtree to provide (more) useful error messages
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param yl A yaml string
 #'
@@ -145,7 +145,7 @@ if (getOption("radiant.testthat", default = FALSE)) {
 
 #' Create a decision tree
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param yl A yaml string or a list (e.g., from yaml::yaml.load_file())
 #' @param opt Find the maximum ("max") or minimum ("min") value for each decision node
@@ -398,7 +398,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
 #' Summary method for the dtree function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{simulater}}
 #' @param ... further arguments passed to or from other methods
@@ -469,7 +469,7 @@ summary.dtree <- function(object, ...) {
 
 #' Plot method for the dtree function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{dtree}}
 #' @param symbol Monetary symbol to use ($ is the default)
@@ -601,7 +601,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
 
 #' Evaluate sensitivity of the decision tree
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{dtree}}
 #' @param vars Variables to include in the sensitivity analysis

@@ -1,6 +1,6 @@
 #' Naive Bayes using e1071::naiveBayes
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/naivebayes.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the logit (probit) model
@@ -61,7 +61,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
 
 #' Summary method for the nb function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{nb}}
 #' @param dec Decimals
@@ -105,7 +105,7 @@ summary.nb <- function(object, dec = 3, ...) {
 
 #' Plot method for the nb function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{nb}}
 #' @param ... further arguments passed to or from other methods
@@ -172,7 +172,7 @@ plot.nb <- function(x, ...) {
 
 #' Predict method for the nb function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{nb}}
 #' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
@@ -303,7 +303,7 @@ plot.nb.predict <- function(x, xvar = "",
 
 #' Store predicted values generated in the nb function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param object Return value from model function
 #' @param ... Additional arguments

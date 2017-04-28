@@ -20,5 +20,5 @@
 Store predicted values generated in the crs function
 }
 \details{
-Store data frame with predictions in Radiant r_data list if available. See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+Store data frame with predictions in Radiant r_data list if available. See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }

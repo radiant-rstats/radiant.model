@@ -28,17 +28,17 @@
 Plot method for the regress function
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
 result <- regress("diamonds", "price", c("carat","clarity"))
-plot(result, plots = "dashboard", lines = c("line","loess"))
 plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
 plot(result, plots = "dist")
+\dontrun{
 plot(result, plots = "scatter", lines = c("line","loess"))
-plot(result, plots = "correlations")
 plot(result, plots = "resid_pred", lines = "line")
-
+plot(result, plots = "dashboard", lines = c("line","loess"))
+}
 }
 \seealso{
 \code{\link{regress}} to generate the results

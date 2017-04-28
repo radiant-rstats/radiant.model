@@ -24,7 +24,7 @@ A list of results
 Model evalreg
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 }
 \seealso{
 \code{\link{summary.evalreg}} to summarize results

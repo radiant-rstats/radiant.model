@@ -17,7 +17,7 @@
 Summary method for Collaborative Filter
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }
 \seealso{
 \code{\link{crs}} to generate the results

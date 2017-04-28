@@ -24,7 +24,7 @@ A list with all variables defined in nb as an object of class nb
 Naive Bayes using e1071::naiveBayes
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/naivebayes.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
 result <- nb("titanic", "survived", c("pclass","sex","age"))

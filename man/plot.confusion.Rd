@@ -20,7 +20,7 @@
 Plot method for the confusion matrix
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \seealso{
 \code{\link{confusion}} to generate results

@@ -20,7 +20,7 @@
 Store predicted values generated in the nb function
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
 result <- nb("titanic", "survived", c("pclass","sex","age"))

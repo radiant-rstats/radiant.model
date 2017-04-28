@@ -22,7 +22,7 @@
 Plot method for the ann function
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
 }
 \examples{
 result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")

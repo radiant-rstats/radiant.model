@@ -1,6 +1,6 @@
 #' Collaborative Filtering
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param id String with name of the variable containing user ids
@@ -120,7 +120,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
 #' Summary method for Collaborative Filter
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{crs}}
 #' @param n Number of lines of recommendations to print. Use -1 to print all lines
@@ -194,7 +194,7 @@ summary.crs <- function(object, n = 36, ...) {
 
 #' Plot method for the crs function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{crs}}
 #' @param ... further arguments passed to or from other methods
@@ -231,7 +231,7 @@ plot.crs <- function(x, ...) {
 
 #' Store predicted values generated in the crs function
 #'
-#' @details Store data frame with predictions in Radiant r_data list if available. See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details Store data frame with predictions in Radiant r_data list if available. See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param object Return value from crs
 #' @param name Name of the dataset to store

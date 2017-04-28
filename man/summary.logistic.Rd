@@ -24,7 +24,7 @@
 Summary method for the logistic function
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 }
 \examples{
 result <- logistic("titanic", "survived", "pclass", lev = "Yes")

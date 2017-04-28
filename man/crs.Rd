@@ -26,5 +26,5 @@ A data.frame with the original data and a new column with predicted ratings
 Collaborative Filtering
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }

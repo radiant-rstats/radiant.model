@@ -1,6 +1,6 @@
 #' Model evalbin
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param pred Predictions or predictors
@@ -141,7 +141,7 @@ evalbin <- function(dataset, pred, rvar,
 
 #' Summary method for the evalbin function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{evalbin}}
 #' @param prn Print full table of measures per model and bin
@@ -180,7 +180,7 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 
 #' Confusion matrix
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param pred Predictions or predictors
@@ -323,7 +323,7 @@ confusion <- function(dataset, pred, rvar,
 
 #' Summary method for the confusion matrix
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{confusion}}
 #' @param ... further arguments passed to or from other methods
@@ -354,7 +354,7 @@ summary.confusion <- function(object, ...) {
 
 #' Plot method for the confusion matrix
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{confusion}}
 #' @param vars Measures to plot, i.e., one or more of "TP", "FP", "TN", "FN", "total", "TPR", "TNR", "precision", "accuracy", "kappa", "profit", "index", "ROME", "contact", "AUC"
@@ -390,7 +390,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 
 #' Plot method for the evalbin function
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{evalbin}}
 #' @param plots Plots to return
@@ -486,7 +486,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, custom = F
 
 #' Area Under the Curve (AUC)
 #'
-#' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param pred Prediction or predictor
 #' @param rvar Response variable

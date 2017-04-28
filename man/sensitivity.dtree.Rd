@@ -24,7 +24,7 @@
 Evaluate sensitivity of the decision tree
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
 \seealso{
 \code{\link{dtree}} to generate the result

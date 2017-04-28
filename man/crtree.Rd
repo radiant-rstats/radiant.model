@@ -48,7 +48,7 @@ A list with all variables defined in crtree as an object of class tree
 Classification and regression trees
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 }
 \examples{
 result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")

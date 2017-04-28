@@ -22,7 +22,7 @@
 Plot method for the evalbin function
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
 evalbin("titanic", "age", "survived") \%>\% plot

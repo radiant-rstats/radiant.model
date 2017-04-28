@@ -30,5 +30,5 @@ predict_model(object, pfun, mclass, pred_data = "", pred_cmd = "",
 Predict method for model functions
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }

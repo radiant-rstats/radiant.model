@@ -1,6 +1,6 @@
 # #' RFM model
 # #'
-# #' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+# #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 # #'
 # #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 # #' @param pred Prediction or predictor
@@ -130,7 +130,7 @@
 
 # # #' Summary method for the evalbin function
 # # #'
-# # #' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+# # #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 # # #'
 # # #' @param object Return value from \code{\link{evalbin}}
 # # #' @param prn Print model evalbin results (default is TRUE)
@@ -168,7 +168,7 @@
 
 # # #' Plot method for the evalbin function
 # # #'
-# # #' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+# # #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 # # #'
 # # #' @param x Return value from \code{\link{evalbin}}
 # # #' @param plots Plots to return
@@ -236,7 +236,7 @@
 
 # # #' Area Under the Curve (AUC)
 # # #'
-# # #' @details See \url{http://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+# # #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 # # #'
 # # #' @param pred Prediction or predictor
 # # #' @param rvar Response variable

@@ -20,7 +20,7 @@
 Store predicted values generated in model functions
 }
 \details{
-See \url{http://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
 regress(diamonds, rvar = "price", evar = c("carat","cut"))  \%>\%
