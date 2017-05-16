@@ -279,7 +279,7 @@ output$plot_dtree_sensitivity <- renderPlot({
       }
     }
   })
-}, width = dtree_sense_width, height = dtree_sense_height)
+}, width = dtree_sense_width, height = dtree_sense_height, res = 96)
 
 
 output$dtree_save <- downloadHandler(
@@ -380,8 +380,8 @@ observeEvent(input$dtree_remove, {
   xcmd <-
     clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
     deparse(control = c("keepNA"), width.cutoff = 500L) %>%
-    {if (. == "list()") "render(plot(result))"
-     else paste0(sub("list(", "render(plot(result, ", ., fixed = TRUE),")")} %>%
+    {if (. == "list()") "plot(result) %>% render"
+     else paste0(sub("list(", "plot(result, ", ., fixed = TRUE)," %>% render")} %>%
      gsub("[\"\']TRUE[\'\"]", "TRUE", .)
 
   inp <- list(yl = dtree_name)

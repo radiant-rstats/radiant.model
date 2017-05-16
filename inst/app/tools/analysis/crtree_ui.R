@@ -387,15 +387,15 @@ observeEvent(input$crtree_report, {
 
   if (input$crtree_plots == "tree") {
     xcmd <- paste0(xcmd, "#plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\nrender(plot(result, orient = \"", input$crtree_orient, "\"))")
+    xcmd <- paste0(xcmd, "\nplot(result, orient = \"", input$crtree_orient, "\") %>% render")
   } else if (input$crtree_plots == "prune") {
     figs <- TRUE
     xcmd <- paste0(xcmd, "plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#render(plot(result, orient = \"", input$crtree_orient, "\"))")
+    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render")
   } else {
     figs <- TRUE
     xcmd <- paste0(xcmd, "plot(result, plots = \"imp\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#render(plot(result, orient = \"", input$crtree_orient, "\"))")
+    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render")
   }
 
   ci <- crtree_inputs()
