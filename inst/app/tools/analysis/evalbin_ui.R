@@ -45,12 +45,6 @@ output$ui_ebin_pred <- renderUI({
 })
 
 output$ui_ebin_train <- renderUI({
-  # if (is.null(input$show_filter) || input$show_filter == "FALSE" ||
-  #     is_empty(input$data_filter)) {
-  #   ebin_train <- ebin_train[1]
-  #   r_state$ebin_train <<- ebin_train
-  # }
-
   radioButtons("ebin_train", label = "Show results for:", ebin_train,
     selected = state_init("ebin_train", "All"),
     inline = TRUE)
