@@ -134,7 +134,7 @@ logistic <- function(dataset, rvar, evar,
 
     rm(i, isFct)
   }
-  coeff$`  ` %<>% format(justify = "left")
+  # coeff$`  ` %<>% format(justify = "left")
 
   if (!is_empty(wts, "None") && class(wts) != "integer") {
     vcov <- sandwich::vcovHC(model, type="HC0")
@@ -221,6 +221,7 @@ summary.logistic <- function(object,
   cat("\n")
 
   coeff <- object$coeff
+  coeff$`  ` %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
   coeff[,2:6] %<>% formatdf(dec)
   coeff$p.value[p.small] <- "< .001"

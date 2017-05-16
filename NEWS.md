@@ -1,3 +1,7 @@
+# CHANGES IN radiant.model 0.8.1
+
+* Moved coefficient formatting summary.regress and logist.regress to make result$coeff more easily accessible
+
 # CHANGES IN radiant.model 0.8.0
 
 ## NEW FEATURES
