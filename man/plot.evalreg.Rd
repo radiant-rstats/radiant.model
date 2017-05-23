@@ -4,12 +4,12 @@
 \alias{plot.evalreg}
 \title{Plot method for the evalreg function}
 \usage{
-\method{plot}{evalreg}(x, vars = c("Rsq", "RSME", "MAE"), ...)
+\method{plot}{evalreg}(x, vars = c("Rsq", "RMSE", "MAE"), ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{evalreg}}}
 
-\item{vars}{Measures to plot, i.e., one or more of "Rsq", "RSME", "MAE"}
+\item{vars}{Measures to plot, i.e., one or more of "Rsq", "RMSE", "MAE"}
 
 \item{...}{further arguments passed to or from other methods}
 }

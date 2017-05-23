@@ -48,7 +48,7 @@ evalreg <- function(dataset, pred, rvar,
 		    Type = rep(i, length(pred)),
 		    Predictor = pred,
 		    Rsq = cor(rv, dat[pred])^2 %>% .[1,],
-		    RSME = summarise_at(dat, .cols = pred, .funs = funs(mean((rv - .)^2, na.rm = TRUE) %>% sqrt)) %>% unlist,
+		    RMSE = summarise_at(dat, .cols = pred, .funs = funs(mean((rv - .)^2, na.rm = TRUE) %>% sqrt)) %>% unlist,
 		    MAE = summarise_at(dat, .cols = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist
 	    )
   }
@@ -88,14 +88,14 @@ summary.evalreg <- function(object, ...) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{evalreg}}
-#' @param vars Measures to plot, i.e., one or more of "Rsq", "RSME", "MAE"
+#' @param vars Measures to plot, i.e., one or more of "Rsq", "RMSE", "MAE"
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalreg}} to generate results
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #'
 #' @export
-plot.evalreg <- function(x, vars = c("Rsq","RSME","MAE"), ...) {
+plot.evalreg <- function(x, vars = c("Rsq","RMSE","MAE"), ...) {
 
 	object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
