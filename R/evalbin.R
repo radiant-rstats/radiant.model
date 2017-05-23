@@ -38,10 +38,6 @@ evalbin <- function(dataset, pred, rvar,
   if (!train %in% c("","All") && is_empty(data_filter))
     return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalbin"))
 
-	## to avoid 'global not defined' warnings
-	nr_resp <- nr_obs <- cum_resp <- cum_resp_rate <- everything <- NULL
-	profit <- ROME <- NULL
-
 	if (is_empty(qnt)) qnt <- 10
 
 	dat_list <- list()
@@ -212,8 +208,6 @@ confusion <- function(dataset, pred, rvar,
   if (!train %in% c("","All") && is_empty(data_filter))
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
 
-	profit <- NULL
-
 	## in case no inputs were provided
 	if (is_not(margin) || is_not(cost)) {
 		break_even <- 0.5
@@ -274,15 +268,15 @@ confusion <- function(dataset, pred, rvar,
 	  	## ensure a value is availble for all four options
 	  	for (i in 1:nrow(tab)) {
 	  		if (tab[i,1] == "TRUE") {
-	  			if (tab[i,2] == "TRUE") 
+	  			if (tab[i,2] == "TRUE")
 	  				ret["TP"] <- tab[i,3]
-	  			else 
+	  			else
 	  				ret["FN"] <- tab[i,3]
 
 	  		} else {
-	  			if (tab[i,2] == "TRUE") 
+	  			if (tab[i,2] == "TRUE")
 	  				ret["FP"] <- tab[i,3]
-	  			else 
+	  			else
 	  				ret["TN"] <- tab[i,3]
 	  		}
 	  	}
@@ -296,13 +290,18 @@ confusion <- function(dataset, pred, rvar,
   }
 
 	dat <- bind_rows(pdat) %>% as.data.frame %>%
-	  mutate(total = TN+FN+FP+TP, TPR = TP/(TP+FN), TNR = TN/(TN+FP),
-	         precision = TP / (TP + FP),
-	         accuracy = (TP + TN) / total,
-	         profit = margin * TP - cost * (TP + FP),
-	         ROME = profit / (cost * (TP + FP)),
-	         contact = (TP + FP) / total,
-	         kappa = 0)
+	  mutate(
+	    total = TN + FN + FP + TP,
+	    TPR = TP / (TP + FN),
+	    TNR = TN / (TN + FP),
+	    precision = TP / (TP + FP),
+	    Fscore = 2 * (precision * TPR) / (precision + TPR),
+	    accuracy = (TP + TN) / total,
+	    profit = margin * TP - cost * (TP + FP),
+	    ROME = profit / (cost * (TP + FP)),
+	    contact = (TP + FP) / total,
+	    kappa = 0
+	  )
 
 	dat <- group_by_(dat, "Type") %>% mutate(index = profit / max(profit)) %>% ungroup
 	dat <- mutate(dat, profit = as.integer(round(profit,0)))
@@ -313,7 +312,7 @@ confusion <- function(dataset, pred, rvar,
 	}
 
 	dat <- select_(dat, .dots = c("Type","Predictor", "TP", "FP", "TN", "FN",
-	                              "total", "TPR", "TNR", "precision", "accuracy",
+	                              "total", "TPR", "TNR", "precision", "Fscore", "accuracy",
 	                              "kappa", "profit", "index", "ROME", "contact", "AUC"))
 
 	rm(pdat, dat_list)
@@ -347,9 +346,9 @@ summary.confusion <- function(object, ...) {
 	cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
 	cat("\n")
 
-	print(formatdf(as.data.frame(object$dat[,1:10]), 3), row.names = FALSE)
+	print(formatdf(as.data.frame(object$dat[,1:11]), 3), row.names = FALSE)
 	cat("\n")
-	print(formatdf(as.data.frame(object$dat[,c(1,2, 11:17)]), 3, mark = ","), row.names = FALSE)
+	print(formatdf(as.data.frame(object$dat[,c(1,2, 12:18)]), 3, mark = ","), row.names = FALSE)
 }
 
 #' Plot method for the confusion matrix
@@ -410,9 +409,6 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' @export
 plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, custom = FALSE, ...) {
 
-	## to avoid 'global not defined' warnings
-	pred <- cum_prop <- cum_gains <- obs <- profit <- NULL
-
 	object <- x; rm(x)
   if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||
       is.null(plots)) return(invisible())
@@ -434,7 +430,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, custom = F
 		  mutate(obs = 1:n())
 
 		init <- dat %>% filter(obs == 1)
-		init[,c("cum_prop", "cum_gains", "obs")] <- 0 
+		init[,c("cum_prop", "cum_gains", "obs")] <- 0
 		dat <- bind_rows(init, dat) %>% arrange(pred, obs)
 
 		plot_list[["gains"]] <-
@@ -452,7 +448,7 @@ plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, custom = F
 		  mutate(obs = 1:n())
 
 		init <- dat %>% filter(obs == 1)
-		init[,c("profit", "cum_prop", "obs")] <- 0 
+		init[,c("profit", "cum_prop", "obs")] <- 0
 		dat <- bind_rows(init, dat) %>% arrange(pred, obs)
 
 		plot_list[["profit"]] <-

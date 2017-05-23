@@ -1,6 +1,11 @@
-# CHANGES IN radiant.model 0.8.1
+# CHANGES IN radiant.model 0.8.2
 
 * Moved coefficient formatting summary.regress and logist.regress to make result$coeff more easily accessible
+* Added F-score to _Model > Evaluate classification > Confusion_
+
+## BUG FIXES
+
+* Fixed RSME typo
 
 # CHANGES IN radiant.model 0.8.0
 
