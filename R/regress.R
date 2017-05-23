@@ -88,7 +88,7 @@ regress <- function(dataset, rvar, evar,
   attr(model$model, "min") <- mmx[["min"]]
   attr(model$model, "max") <- mmx[["max"]]
   if ("robust" %in% check) {
-    ct = coeftest(model, vcovHC(model, type = "HC1"))
+    ct = lmtest::coeftest(model, sandwich::vcovHC(model, type = "HC1"))
     coeff = tidy(ct)
   } else {
     coeff <- tidy(model)
@@ -827,7 +827,7 @@ plot.model.predict <- function(x, xvar = "",
   if ( any(!tbv %in% colnames(object)))
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
 
-  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>% 
+  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>%
     summarise_all(funs(mean))
   if (color == 'none') {
     p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction"))
