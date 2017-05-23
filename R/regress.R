@@ -87,8 +87,12 @@ regress <- function(dataset, rvar, evar,
 
   attr(model$model, "min") <- mmx[["min"]]
   attr(model$model, "max") <- mmx[["max"]]
-
-  coeff <- tidy(model)
+  if ("robust" %in% check) {
+    ct = lmtest::coeftest(model, sandwich::vcovHC(model, type = "HC1"))
+    coeff = tidy(ct)
+  } else {
+    coeff <- tidy(model)
+  }
 
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   colnames(coeff) <- c("  ","coefficient","std.error","t.value","p.value"," ")
@@ -163,6 +167,9 @@ summary.regress <- function(object,
     cat("**Standardized coefficients shown (2 X SD)**\n")
   } else if ("center" %in% object$check) {
     cat("**Centered coefficients shown (x - mean(x))**\n")
+  }
+  if ("robust" %in% object$check) {
+    cat("**Robust standard errors (HC1)**\n")
   }
 
   coeff <- object$coeff

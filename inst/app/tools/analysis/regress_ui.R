@@ -3,7 +3,7 @@
 ################################################################
 reg_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
 reg_predict <- c("None" = "none", "Data" = "data","Command" = "cmd", "Data & Command" = "datacmd")
-reg_check <- c("Standardize" = "standardize", "Center" = "center",
+reg_check <- c("Robust SE" = "robust", "Standardize" = "standardize", "Center" = "center",
                "Stepwise" = "stepwise-backward")
 reg_sum_check <- c("RMSE" = "rmse", "Sum of squares" = "sumsquares",
                    "VIF" = "vif", "Confidence intervals" = "confint")
@@ -144,7 +144,7 @@ output$ui_reg_int <- renderUI({
   # req(length(input$reg_evar) > 0)
   # req(input$reg_show_interactions)
   # vars <- input$reg_evar
-  # if (not_available(vars) || length(vars) < 2 || is_empty(input$reg_show_interactions)) 
+  # if (not_available(vars) || length(vars) < 2 || is_empty(input$reg_show_interactions))
   #   choices <- character(0)
   # else
   #   choices <- iterms(vars, input$reg_show_interactions)

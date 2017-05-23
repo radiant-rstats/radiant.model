@@ -42,19 +42,20 @@ options(radiant.model_ui =
         tags$link(rel = "stylesheet", type = "text/css", href = "www_model/style.css")
       ),
       "Estimate",
-      tabPanel("Linear regression (OLS)", uiOutput("regress")),
-      tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
-      tabPanel("Naive Bayes", uiOutput("nb")),
-      tabPanel("Neural Network (ANN)", uiOutput("ann")),
-      tabPanel("Classification and regression trees", uiOutput("crtree")),
-      "----", "Evaluate",
-      tabPanel("Evaluate regression", uiOutput("evalreg")),
-      tabPanel("Evaluate classification", uiOutput("evalbin")),
-      "----", "Recommend",
-      tabPanel("Collaborative Filtering", uiOutput("crs")),
-      "----", "Decide",
-      tabPanel("Decision analysis", uiOutput("dtree")),
-      tabPanel("Simulate", uiOutput("simulater"))
+      tabPanel("Linear regression (OLS)", uiOutput("regress"))
+      # ,
+      # tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
+      # tabPanel("Naive Bayes", uiOutput("nb")),
+      # tabPanel("Neural Network (ANN)", uiOutput("ann")),
+      # tabPanel("Classification and regression trees", uiOutput("crtree")),
+      # "----", "Evaluate",
+      # tabPanel("Evaluate regression", uiOutput("evalreg")),
+      # tabPanel("Evaluate classification", uiOutput("evalbin")),
+      # "----", "Recommend",
+      # tabPanel("Collaborative Filtering", uiOutput("crs")),
+      # "----", "Decide",
+      # tabPanel("Decision analysis", uiOutput("dtree")),
+      # tabPanel("Simulate", uiOutput("simulater"))
     )
   )
 )

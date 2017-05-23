@@ -9,7 +9,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @name radiant.model
 #' @docType package
 #' @import radiant.data shiny ggplot2
-#' @importFrom gridExtra grid.arrange 
+#' @importFrom gridExtra grid.arrange
 #' @importFrom dplyr mutate_at mutate_all summarise_at summarise_all arrange select select_ filter mutate mutate_ funs group_by group_by_ summarise summarise_ slice as_data_frame bind_cols bind_rows desc first last min_rank data_frame inner_join arrange_ ungroup
 #' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames set_names extract2
 #' @importFrom tidyr spread_ gather_ gather
@@ -21,6 +21,8 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @importFrom stats residuals formula model.matrix
 #' @importFrom methods is
 #' @importFrom import from
+#' @importFrom lmtest coeftest
+#' @importFrom sandwich vcovHC
 NULL
 
 #' Catalog sales for men's and women's apparel

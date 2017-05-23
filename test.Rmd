@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r fig.width=7, fig.height=6.92, dpi = 72}
+library(radiant)
+library(stargazer)
+
+result <- regress(dataset = "diamonds", rvar = "price", evar = c( "depth"))
+summary(result, sum_check = "confint", test_var = c("clarity", "color"))
+```
+
+
+```{r fig.width=7, fig.height=6.92, dpi = 72}
+library(broom)
+library(knitr)
+result2 <- lm( price~depth, data = diamonds)
+# summary.lm(result2, signif.stars = TRUE) 
+tidy(result2, conf.int = TRUE) 
+```
+```{r}
+library(lmtest)
+library(zoo)
+library(sandwich)
+ct = coeftest(result2, vcovHC(result2, type = "HC1"))
+tidy(ct)
+```
+
+```{r}
+round(t(glance(result2)),3) %>% kable(col.names = c("Value"))
+
+```
+
+```{r}
+result <- regress(dataset = "diamonds", rvar = "carat", evar = c("cut", "color", "depth"), check = c("robust", "standardize"))
+summary(result, sum_check = c("rmse", "confint"))
+```
+
