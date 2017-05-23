@@ -215,13 +215,11 @@ output$ann <- renderUI({
                           height_fun = "ann_plot_height",
                           width_fun = "ann_plot_width")
 
-		## two separate tabs
+		## three separate tabs
 		ann_output_panels <- tabsetPanel(
 	    id = "tabs_ann",
 	    tabPanel("Summary",
         verbatimTextOutput("summary_ann")),
-        # plot_downloader("ann_net", height = ann_plot_height()),
-        # plotOutput("plot_ann_net", width = "100%", height = "100%")),
       tabPanel("Predict",
         conditionalPanel("input.ann_pred_plot == true",
           plot_downloader("ann", height = ann_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),

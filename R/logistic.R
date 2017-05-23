@@ -137,11 +137,10 @@ logistic <- function(dataset, rvar, evar,
   # coeff$`  ` %<>% format(justify = "left")
 
   if (!is_empty(wts, "None") && class(wts) != "integer") {
-    vcov <- sandwich::vcovHC(model, type="HC0")
-    # coeff$std.error <- sqrt(diag(sandwich::vcovHC(model, type="HC0")))
+    vcov <- sandwich::vcovHC(model, type = "HC0")
     coeff$std.error <- sqrt(diag(vcov))
     coeff$z.value <- coef(model) / coeff$std.error
-    coeff$p.value <- 2 * pnorm(abs(coef(model)/coeff$std.error), lower.tail=FALSE)
+    coeff$p.value <- 2 * pnorm(abs(coef(model)/coeff$std.error), lower.tail = FALSE)
     coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   }
 
@@ -655,7 +654,7 @@ confint_robust <- function (object, parm, level = 0.95, vcov = NULL, ...) {
     ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(parm, c("Low","High")))
 
     if (is.null(vcov))
-      vcov <- sandwich::vcovHC(object, type="HC0")
+      vcov <- sandwich::vcovHC(object, type = "HC0")
     ses <- sqrt(diag(vcov))[parm]
     ci[] <- cf[parm] + ses %o% fac
     ci
