@@ -281,10 +281,12 @@ output$regress <- renderUI({
     register_print_output("summary_regress", ".summary_regress")
     register_print_output("predict_regress", ".predict_print_regress")
     register_plot_output("predict_plot_regress", ".predict_plot_regress",
-                          height_fun = "reg_pred_plot_height")
-    register_plot_output("plot_regress", ".plot_regress",
-                         height_fun = "reg_plot_height",
-                         width_fun = "reg_plot_width")
+      height_fun = "reg_pred_plot_height"
+    )
+    register_plot_output("plot_regress", ".plot_regress", 
+      height_fun = "reg_plot_height", 
+      width_fun = "reg_plot_width"
+    )
 
     ## two separate tabs
     reg_output_panels <- tabsetPanel(
@@ -300,14 +302,18 @@ output$regress <- renderUI({
         downloadLink("dl_reg_pred", "", class = "fa fa-download alignright"), br(),
         verbatimTextOutput("predict_regress")
       ),
-      tabPanel("Plot", plot_downloader("regress", width = reg_plot_width, height = reg_plot_height),
-        plotOutput("plot_regress", width = "100%", height = "100%"))
+      tabPanel("Plot", 
+        plot_downloader("regress", width = reg_plot_width, height = reg_plot_height),
+        plotOutput("plot_regress", width = "100%", height = "100%")
+      )
     )
 
-    stat_tab_panel(menu = "Model > Estimate",
-                  tool = "Linear regression (OLS)",
-                  tool_ui = "ui_regress",
-                  output_panels = reg_output_panels)
+    stat_tab_panel(
+      menu = "Model > Estimate", 
+      tool = "Linear regression (OLS)", 
+      tool_ui = "ui_regress", 
+      output_panels = reg_output_panels
+    )
 })
 
 reg_available <- reactive({
@@ -321,7 +327,6 @@ reg_available <- reactive({
 })
 
 .regress <- eventReactive(input$reg_run, {
-
   withProgress(message = "Estimating model", value = 1, {
     do.call(regress, reg_inputs())
   })
@@ -348,7 +353,8 @@ reg_available <- reactive({
 })
 
 .predict_print_regress <- reactive({
-  .predict_regress() %>% {if (is.character(.)) cat(.,"\n") else print(.)}
+  .predict_regress() %>% 
+    {if (is.character(.)) cat(.,"\n") else print(.)}
 })
 
 .predict_plot_regress <- reactive({
