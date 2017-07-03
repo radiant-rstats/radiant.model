@@ -1,11 +1,13 @@
-# CHANGES IN radiant.model 0.8.2
+# CHANGES IN radiant.model 0.8.3
 
-* Moved coefficient formatting summary.regress and logist.regress to make result$coeff more easily accessible
+* Moved coefficient formatting from summary.regress and summary.logistic to make result$coeff more easily accessible
 * Added F-score to _Model > Evaluate classification > Confusion_
+* Added option to use robust standard errors in _Linear regression_ and _Logistic regression_. The `HC1` covariance matrix is used to produce results consistent with Stata
 
 ## BUG FIXES
 
 * Fixed RSME typo
+* Don't calculate VIFs when stepwise regression selects only one explanatory variable
 
 # CHANGES IN radiant.model 0.8.0
 
