@@ -2,10 +2,11 @@
 ## Simulate data
 #######################################
 
-sim_types <- c("Binomial" = "binom","Constant" = "const",
-               "Discrete" = "discrete", "Log normal" = "lnorm",
-               "Normal" = "norm", "Uniform" = "unif", "Data" = "data",
-               "Grid search" = "grid", "Sequence" = "sequ")
+sim_types <- c(
+  "Binomial" = "binom","Constant" = "const", "Discrete" = "discrete",
+  "Log normal" = "lnorm", "Normal" = "norm", "Uniform" = "unif",
+  "Data" = "data", "Grid search" = "grid", "Sequence" = "sequ"
+)
 
 sim_args <- as.list(formals(simulater))
 
@@ -15,7 +16,7 @@ sim_inputs <- reactive({
   for (i in names(sim_args))
     sim_args[[i]] <- input[[paste0("sim_",i)]]
 
-  if (!is.null(input$sim_types)) {
+  if (!is_empty(input$sim_types)) {
     for (i in sim_types)
       if (!i %in% input$sim_types) sim_args[[i]] <- ""
   }
@@ -31,11 +32,8 @@ rep_inputs <- reactive({
   for (i in names(rep_args))
     rep_args[[i]] <- input[[paste0("rep_",i)]]
 
-  # rep_args[["sim"]] <- paste0(input$sim_name,"_list")
   rep_args[["sim"]] <- input$sim_name
-
   rep_args
-
 })
 
 rep_sum_args <- as.list(if (exists("summary.repeater")) formals(summary.repeater)
@@ -60,18 +58,23 @@ rep_plot_inputs <- reactive({
   rep_plot_args
 })
 
-textinput_maker <- function(id = "const", lab = "Constant", rows = "2", pre = "sim_") {
+textinput_maker <- function(id = "const", lab = "Constant",
+                            rows = 3, pre = "sim_",
+                            placeholder = "Provide values in the input boxes above and then press the + symbol") {
   id <- paste0(pre, id)
-  tags$textarea(state_init(id), id = id, type = "text", rows = rows, class = "form-control")
+  tags$textarea(state_init(id), id = id,
+    type = "text",
+    rows = rows,
+    placeholder = placeholder,
+    class = "form-control"
+  )
 }
 
 output$ui_sim_types <- renderUI({
-
   selectizeInput("sim_types", label = "Select types:",
     choices = sim_types, multiple = TRUE,
     selected = state_multiple("sim_types", sim_types),
-    options = list(placeholder = 'Select types',
-                   plugins = list('remove_button'))
+    options = list(placeholder = "Select types", plugins = list("remove_button"))
   )
 })
 
@@ -112,9 +115,8 @@ output$ui_rep_vars <- renderUI({
   selectizeInput("rep_vars", label = "Variables to re-simulate:",
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_vars", vars),
-    options = list(placeholder = 'Select variables',
-                   plugins = list('remove_button'))
-    )
+    options = list(placeholder = "Select variables", plugins = list('remove_button'))
+  )
 })
 
 output$ui_rep_grid_vars <- renderUI({
@@ -142,9 +144,8 @@ output$ui_rep_sum_vars <- renderUI({
   selectizeInput("rep_sum_vars", label = "Output variables:",
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_sum_vars", vars),
-    options = list(placeholder = 'Select variables',
-                   plugins = list('remove_button', 'drag_drop'))
-    )
+    options = list(placeholder = "Select variables", plugins = list("remove_button", "drag_drop"))
+  )
 })
 
 output$ui_rep_byvar <- renderUI({
@@ -156,26 +157,38 @@ output$ui_rep_byvar <- renderUI({
 })
 
 output$ui_rep_fun <- renderUI({
-  choices <-
-    list("sum" = "sum_rm", "mean" = "mean_rm", "median" = "median_rm",
-         "min" = "min_rm", "max" = "max_rm", "last" = "last", "none" = "none")
+  choices <- list(
+    "sum" = "sum_rm", "mean" = "mean_rm", "median" = "median_rm",
+    "min" = "min_rm", "max" = "max_rm", "last" = "last", "none" = "none"
+  )
 
-  selectInput("rep_fun", label = "Apply function:",
-              choices = choices,
-              selected = state_single("rep_fun", choices, "sum_rm"),
-              multiple = FALSE)
+  selectInput("rep_fun", "Apply function:",
+    choices = choices,
+    selected = state_single("rep_fun", choices, "sum_rm"),
+    multiple = FALSE
+  )
 })
 
 var_updater <- function(variable, var_str, var_inputs) {
   if (is.null(variable) || variable == 0) return()
-  inp <- paste(var_inputs, collapse = " ")
+  if (any(is.na(var_inputs))) {
+    showModal(
+      modalDialog(title = "Inputs required",
+        span("Please provide all required inputs"),
+        footer = modalButton("OK"),
+        size = "s",
+        easyClose = TRUE
+      )
+    )
+  } else {
+    inp <- paste(var_inputs, collapse = " ")
+    if (is_empty(input[[var_str]]))
+      val <- paste0(inp, ";")
+    else
+      val <- paste0(inp, ";\n", input[[var_str]])
 
-  if (is_empty(input[[var_str]]))
-    val <- paste0(inp, ";")
-  else
-    val <- paste0(inp, ";\n", input[[var_str]])
-
-  updateTextInput(session = session, var_str, value = val)
+    updateTextInput(session = session, var_str, value = val)
+  }
 }
 
 var_remover <- function(variable) {
@@ -233,7 +246,6 @@ observeEvent(input$rep_grid_add, {
 observeEvent(input$sim_grid_add, {
   var_updater(input$sim_grid_add, "sim_grid",
               c(input$sim_grid_name, input$sim_grid_min, input$sim_grid_max, input$sim_grid_step))
-
 })
 
 observeEvent(input$sim_grid, {
@@ -485,19 +497,31 @@ output$simulater <- renderUI({
       id = "tabs_simulate",
       tabPanel("Simulate",
         HTML("<label>Simulation formulas:</label>"),
-        textinput_maker("form","Formula", rows = "5"),
+        textinput_maker("form","Formula",
+          rows = 5,
+          placeholder = "Use formulas to perform calculations on simulated variables (e.g., demand = 5 * price). Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples"
+        ),
         HTML("</br><label>Simulation summary:</label>"),
         verbatimTextOutput("summary_simulate"),
-        HTML("</br><label>Simulation plots:</label>"),
-        plotOutput("plot_simulate", height = "100%")
+        conditionalPanel(condition = "input.sim_show_plots == true",
+          HTML("</br><label>Simulation plots:</label>"),
+          plot_downloader("simulate", height = sim_plot_height),
+          plotOutput("plot_simulate", height = "100%")
+        )
       ),
       tabPanel("Repeat",
         HTML("<label>Repeated simulation formulas:</label>"),
-        textinput_maker("form","Rformula", rows = "3", pre = "rep_"),
+        textinput_maker("form","Rformula",
+          rows = 5, pre = "rep_",
+          placeholder = "Press the Repeat button to repeat the simulation specified in the Simulate tab. Use formulas to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples"
+        ),
         HTML("</br><label>Repeated simulation summary:</label>"),
         verbatimTextOutput("summary_repeat"),
-        HTML("</br><label>Repeated simulation plots:</label>"),
-        plotOutput("plot_repeat", height = "100%")
+        conditionalPanel(condition = "input.rep_show_plots == true",
+          HTML("</br><label>Repeated simulation plots:</label>"),
+          plot_downloader("repeat", height = rep_plot_height),
+          plotOutput("plot_repeat", height = "100%")
+        )
       )
     )
 
@@ -509,6 +533,12 @@ output$simulater <- renderUI({
 })
 
 .simulater <- eventReactive(input$runSim, {
+  validate(
+    need(
+      !is_empty(input$sim_types) || !is_empty(input$sim_form),
+      "No formulas or simulated variables specified"
+    )
+  )
   withProgress(message = "Running simulation", value = 1, {
     do.call(simulater, sim_inputs())
   })
@@ -537,7 +567,8 @@ sim_plot_height <- function() {
 .plot_simulate <- reactive({
   req(input$sim_show_plots)
   withProgress(message = "Generating simulation plots", value = 1, {
-    .simulater() %>% { if (is_empty(.)) invisible() else plot(., shiny = TRUE) }
+    .simulater() %>%
+      {if (is_empty(.)) invisible() else plot(., shiny = TRUE)}
   })
 })
 
@@ -600,11 +631,13 @@ observeEvent(input$simulater_report, {
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
 
-  update_report(inp_main = inp,
-                fun_name = "simulater", inp_out = inp_out,
-                outputs = outputs, figs = figs,
-                fig.width = sim_plot_width(),
-                fig.height = sim_plot_height())
+  update_report(
+    inp_main = inp,
+    fun_name = "simulater", inp_out = inp_out,
+    outputs = outputs, figs = figs,
+    fig.width = sim_plot_width(),
+    fig.height = sim_plot_height()
+  )
 })
 
 observeEvent(input$repeater_report, {
@@ -624,9 +657,11 @@ observeEvent(input$repeater_report, {
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
 
-  update_report(inp_main = inp,
-                fun_name = "repeater", inp_out = inp_out,
-                outputs = outputs, figs = figs,
-                fig.width = rep_plot_width(),
-                fig.height = rep_plot_height())
+  update_report(
+    inp_main = inp,
+    fun_name = "repeater", inp_out = inp_out,
+    outputs = outputs, figs = figs,
+    fig.width = rep_plot_width(),
+    fig.height = rep_plot_height()
+  )
 })
