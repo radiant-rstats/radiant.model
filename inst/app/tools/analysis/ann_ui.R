@@ -60,7 +60,7 @@ output$ui_ann_rvar <- renderUI({
   init <- if (input$ann_type == "classification") input$logit_rvar else input$reg_rvar
 
   selectInput(inputId = "ann_rvar", label = "Response variable:", choices = vars,
-  	selected = state_single("ann_rvar",vars, init), multiple = FALSE)
+    selected = state_single("ann_rvar",vars, init), multiple = FALSE)
 })
 
 output$ui_ann_lev <- renderUI({
@@ -77,7 +77,7 @@ output$ui_ann_lev <- renderUI({
 
 output$ui_ann_evar <- renderUI({
   if (not_available(input$ann_rvar)) return()
-	notChar <- "character" != .getclass()
+  notChar <- "character" != .getclass()
   vars <- varnames()[notChar]
   if (length(vars) > 0)
     vars <- vars[-which(vars == input$ann_rvar)]
@@ -86,7 +86,7 @@ output$ui_ann_evar <- renderUI({
 
   selectInput(inputId = "ann_evar", label = "Explanatory variables:", choices = vars,
     selected = state_multiple("ann_evar", vars, init),
-  	multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
+    multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
 
 output$ui_ann_wts <- renderUI({
@@ -155,9 +155,9 @@ output$ui_ann <- renderUI({
       radioButtons("ann_type", label = NULL, c("classification","regression"),
         selected = state_init("ann_type", "classification"),
         inline = TRUE),
-	    uiOutput("ui_ann_rvar"),
+      uiOutput("ui_ann_rvar"),
       uiOutput("ui_ann_lev"),
-	    uiOutput("ui_ann_evar"),
+      uiOutput("ui_ann_evar"),
       uiOutput("ui_ann_wts"),
       tags$table(
         tags$td(numericInput("ann_size", label = "Size:", min = 1, max = 20,
@@ -174,10 +174,10 @@ output$ui_ann <- renderUI({
         )
       )
     ),
-  	help_and_report(modal_title = "Neural Network (ANN)",
-  	                fun_name = "ann",
-  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/ann.md")))
-	)
+    help_and_report(modal_title = "Neural Network (ANN)",
+                    fun_name = "ann",
+                    help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/ann.md")))
+  )
 })
 
 ann_plot <- reactive({
@@ -204,38 +204,38 @@ ann_pred_plot_height <- function()
 ## output is called from the main radiant ui.R
 output$ann <- renderUI({
 
-		register_print_output("summary_ann", ".summary_ann")
+    register_print_output("summary_ann", ".summary_ann")
     register_plot_output("plot_ann_net", ".plot_ann_net",
                           height_fun = "ann_plot_height",
                           width_fun = "ann_plot_width")
     register_print_output("predict_ann", ".predict_print_ann")
     register_plot_output("predict_plot_ann", ".predict_plot_ann",
                           height_fun = "ann_pred_plot_height")
-		register_plot_output("plot_ann", ".plot_ann",
+    register_plot_output("plot_ann", ".plot_ann",
                           height_fun = "ann_plot_height",
                           width_fun = "ann_plot_width")
 
-		## three separate tabs
-		ann_output_panels <- tabsetPanel(
-	    id = "tabs_ann",
-	    tabPanel("Summary",
+    ## three separate tabs
+    ann_output_panels <- tabsetPanel(
+      id = "tabs_ann",
+      tabPanel("Summary",
         verbatimTextOutput("summary_ann")),
       tabPanel("Predict",
         conditionalPanel("input.ann_pred_plot == true",
-          plot_downloader("ann", height = ann_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),
+          plot_downloader("ann", height = ann_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
           plotOutput("predict_plot_ann", width = "100%", height = "100%")
         ),
         downloadLink("dl_ann_pred", "", class = "fa fa-download alignright"), br(),
         verbatimTextOutput("predict_ann")
       ),
-	    tabPanel("Plot", plot_downloader("ann", height = ann_plot_height()),
+      tabPanel("Plot", plot_downloader("ann", height = ann_plot_height),
                plotOutput("plot_ann", width = "100%", height = "100%"))
-	  )
+    )
 
-		stat_tab_panel(menu = "Model > Estimate",
-		              tool = "Neural Network (ANN)",
-		              tool_ui = "ui_ann",
-		             	output_panels = ann_output_panels)
+    stat_tab_panel(menu = "Model > Estimate",
+                  tool = "Neural Network (ANN)",
+                  tool_ui = "ui_ann",
+                  output_panels = ann_output_panels)
 
 })
 
@@ -252,7 +252,7 @@ ann_available <- reactive({
 # .ann <- eventReactive(input$ann_run | input$ann_pause == TRUE, {
 .ann <- eventReactive(input$ann_run, {
   withProgress(message = "Estimating model", value = 1,
-	  do.call(ann, ann_inputs())
+    do.call(ann, ann_inputs())
   )
 })
 

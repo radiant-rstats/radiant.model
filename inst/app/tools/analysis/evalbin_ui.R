@@ -1,4 +1,3 @@
-# ebin_method <- list("xtile" = "xtile", "ntile" = "ntile")
 ebin_plots <- list("Lift" = "lift", "Gains" = "gains", "Profit" = "profit", "ROME" = "rome")
 ebin_train <- list("All" = "All", "Training" = "Training", "Validation" = "Validation", "Both" = "Both")
 
@@ -39,7 +38,7 @@ output$ui_ebin_lev <- renderUI({
 output$ui_ebin_pred <- renderUI({
   isNum <- .getclass() %in% c("integer","numeric")
   vars <- varnames()[isNum]
-  selectInput(inputId = "ebin_pred", label = "Predictor:", choices = vars,
+  selectInput(inputId = "ebin_pred", label = "Select stored predictions:", choices = vars,
     selected = state_multiple("ebin_pred", vars),
     multiple = TRUE, size = min(4, length(vars)), selectize = FALSE)
 })
@@ -56,8 +55,8 @@ output$ui_evalbin <- renderUI({
     wellPanel(
       actionButton("ebin_run", "Evaluate", width = "100%")
     ),
-  	wellPanel(
-	    uiOutput("ui_ebin_rvar"),
+    wellPanel(
+      uiOutput("ui_ebin_rvar"),
       uiOutput("ui_ebin_lev"),
       uiOutput("ui_ebin_pred"),
       conditionalPanel("input.tabs_evalbin != 'Confusion'",
@@ -79,7 +78,7 @@ output$ui_evalbin <- renderUI({
       conditionalPanel("input.tabs_evalbin == 'Confusion'",
         checkboxInput("ebin_scale_y", "Scale free Y-axis", state_init("ebin_scale_y", TRUE))
       )
-  	),
+    ),
     conditionalPanel("input.tabs_evalbin != 'Confusion'",
       help_and_report(modal_title = "Evaluate classification",
                       fun_name = "evalbin",
@@ -90,13 +89,10 @@ output$ui_evalbin <- renderUI({
                       fun_name = "confusion",
                       help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalbin.md")))
     )
-	)
+  )
 })
 
-ebin_plot_width <- function() {
-  # if (length(input$ebin_pred) > 1 || (!is.null(input$ebin_train) && input$ebin_train == "Both")) 700 else 500
-  700
-}
+ebin_plot_width <- function() 700
 ebin_plot_height <- function() {
   if (is_empty(input$ebin_plots)) 200 else length(input$ebin_plots) * 500
 }
@@ -106,22 +102,17 @@ confusion_plot_height <- function() 800
 
 # output is called from the main radiant ui.R
 output$evalbin <- renderUI({
-	register_print_output("summary_evalbin", ".summary_evalbin")
-	register_plot_output("plot_evalbin", ".plot_evalbin",
-                       	width_fun = "ebin_plot_width",
-                       	height_fun = "ebin_plot_height")
+  register_print_output("summary_evalbin", ".summary_evalbin")
+  register_plot_output("plot_evalbin", ".plot_evalbin",
+                        width_fun = "ebin_plot_width",
+                        height_fun = "ebin_plot_height")
   register_print_output("summary_confusion", ".summary_confusion")
   register_plot_output("plot_confusion", ".plot_confusion",
                         width_fun = "confusion_plot_width",
                         height_fun = "confusion_plot_height")
   register_print_output("summary_performance", ".summary_performance")
-  # register_plot_output("plot_performance", ".plot_performance",
-  #                       width_fun = "confusion_plot_width",
-  #                       height_fun = "confusion_plot_height")
 
-
-	# one output with components stacked
-	# ebin_output_panels <- tagList(
+  # one output with components stacked
   ebin_output_panels <- tabsetPanel(
     id = "tabs_evalbin",
     tabPanel("Summary",
@@ -129,31 +120,25 @@ output$evalbin <- renderUI({
       verbatimTextOutput("summary_evalbin")
     ),
     tabPanel("Plot",
-      plot_downloader("evalbin", height = ebin_plot_height()),
+      plot_downloader("evalbin", height = ebin_plot_height),
       plotOutput("plot_evalbin", height = "100%")
     ),
-    # tabPanel("Performance",
-    #    downloadLink("dl_performance_tab", "", class = "fa fa-download alignright"), br(),
-    #    verbatimTextOutput("summary_performance"),
-    #    plot_downloader("performance", height = ebin_plot_height()),
-    #    plotOutput("plot_performance", height = "100%")
-    # ),
     tabPanel("Confusion",
        downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
        verbatimTextOutput("summary_confusion"),
-       plot_downloader("confusion", height = ebin_plot_height()),
+       plot_downloader("confusion", height = confusion_plot_height),
        plotOutput("plot_confusion", height = "100%")
     )
   )
 
-	stat_tab_panel(menu = "Model > Evaluate",
-	              tool = "Evaluate classification",
-	              tool_ui = "ui_evalbin",
-	             	output_panels = ebin_output_panels)
+  stat_tab_panel(menu = "Model > Evaluate",
+                tool = "Evaluate classification",
+                tool_ui = "ui_evalbin",
+                output_panels = ebin_output_panels)
 })
 
 .evalbin <- eventReactive(input$ebin_run, {
-	do.call(evalbin, ebin_inputs())
+  do.call(evalbin, ebin_inputs())
 })
 
 .summary_evalbin <- reactive({
@@ -199,7 +184,7 @@ output$evalbin <- renderUI({
 
 observeEvent(input$evalbin_report, {
   if (is_empty(input$ebin_rvar) || is_empty(input$ebin_pred)) return(invisible())
-  
+
   if (length(input$ebin_plots) > 0) {
     inp_out <- list("", list(plots = input$ebin_plots, custom = FALSE))
     outputs <- c("summary","plot")

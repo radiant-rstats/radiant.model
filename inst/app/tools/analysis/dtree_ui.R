@@ -88,7 +88,7 @@ output$ui_dtree_sense <- renderUI({
         td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
         td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
     )),
-    textinput_maker(id = "sense", lab = "Add variable", rows = "2", pre = "dtree_")
+    textinput_maker(id = "sense", lab = "Add variable", rows = 3, pre = "dtree_")
   )
 })
 
@@ -175,7 +175,7 @@ output$dtree <- renderUI({
                         help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))
       ),
       mainPanel(
-        plot_downloader("dtree_sensitivity", height = dtree_sense_height()),
+        plot_downloader("dtree_sensitivity", height = dtree_sense_height),
         plotOutput("plot_dtree_sensitivity")
       )
     )
@@ -209,6 +209,13 @@ dtree_name <- function() {
 
 dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
   req(vals_dtree$dtree_run != 1)
+
+  validate(
+    need(
+      !is_empty(input$dtree_edit),
+      "No decision tree input available"
+    )
+  )
 
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()

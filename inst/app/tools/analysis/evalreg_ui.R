@@ -33,7 +33,7 @@ output$ui_ereg_pred <- renderUI({
   if (length(vars) > 0 && input$ereg_rvar %in% vars)
     vars <- vars[-which(vars == input$ereg_rvar)]
 
-  selectInput(inputId = "ereg_pred", label = "Predictor:", choices = vars,
+  selectInput(inputId = "ereg_pred", label = "Select stored predictions:", choices = vars,
     selected = state_multiple("ereg_pred", vars),
     multiple = TRUE, size = min(4, length(vars)), selectize = FALSE)
 })
@@ -50,15 +50,15 @@ output$ui_evalreg <- renderUI({
     wellPanel(
       actionButton("ereg_run", "Evaluate", width = "100%")
     ),
-  	wellPanel(
-	    uiOutput("ui_ereg_rvar"),
+    wellPanel(
+      uiOutput("ui_ereg_rvar"),
       uiOutput("ui_ereg_pred"),
       uiOutput("ui_ereg_train")
-  	),
-  	help_and_report(modal_title = "Evaluate regressions",
-  	                fun_name = "evalreg",
-  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalreg.md")))
-	)
+    ),
+    help_and_report(modal_title = "Evaluate regressions",
+                    fun_name = "evalreg",
+                    help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/evalreg.md")))
+  )
 })
 
 ereg_plot_width <- function() 650
@@ -66,27 +66,27 @@ ereg_plot_height <- function() 650
 
 ## output is called from the main radiant ui.R
 output$evalreg <- renderUI({
-	register_print_output("summary_evalreg", ".summary_evalreg")
-	register_plot_output("plot_evalreg", ".plot_evalreg",
-                       	width_fun = "ereg_plot_width",
-                       	height_fun = "ereg_plot_height")
+  register_print_output("summary_evalreg", ".summary_evalreg")
+  register_plot_output("plot_evalreg", ".plot_evalreg",
+                        width_fun = "ereg_plot_width",
+                        height_fun = "ereg_plot_height")
 
-	## one output with components stacked
-	ereg_output_panels <- tagList(
+  ## one output with components stacked
+  ereg_output_panels <- tagList(
       downloadLink("dl_ereg_tab", "", class = "fa fa-download alignright"), br(),
       verbatimTextOutput("summary_evalreg"),
-      plot_downloader("evalreg", height = ereg_plot_height()),
+      plot_downloader("evalreg", height = ereg_plot_height),
       plotOutput("plot_evalreg", height = "100%")
   )
 
-	stat_tab_panel(menu = "Model > Evaluate",
-	              tool = "Evaluate Regression",
-	              tool_ui = "ui_evalreg",
-	             	output_panels = ereg_output_panels)
+  stat_tab_panel(menu = "Model > Evaluate",
+                tool = "Evaluate Regression",
+                tool_ui = "ui_evalreg",
+                output_panels = ereg_output_panels)
 })
 
 .evalreg <- eventReactive(input$ereg_run, {
-	do.call(evalreg, ereg_inputs())
+  do.call(evalreg, ereg_inputs())
 })
 
 .summary_evalreg <- reactive({

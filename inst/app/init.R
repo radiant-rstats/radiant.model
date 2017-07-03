@@ -35,7 +35,7 @@ options(radiant.url.list = r_url_list); rm(r_url_list)
 
 ## model menu
 options(radiant.model_ui =
-	tagList(
+  tagList(
     navbarMenu("Model",
       tags$head(
         tags$script(src = "www_model/js/run_return.js"),

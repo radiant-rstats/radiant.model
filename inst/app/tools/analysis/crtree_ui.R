@@ -57,7 +57,7 @@ output$ui_crtree_rvar <- renderUI({
     }
   })
   selectInput(inputId = "crtree_rvar", label = "Response variable:", choices = vars,
-  	selected = state_single("crtree_rvar",vars), multiple = FALSE)
+    selected = state_single("crtree_rvar",vars), multiple = FALSE)
 })
 
 output$ui_crtree_lev <- renderUI({
@@ -74,7 +74,7 @@ output$ui_crtree_lev <- renderUI({
 
 output$ui_crtree_evar <- renderUI({
   if (not_available(input$crtree_rvar)) return()
-	notChar <- "character" != .getclass()
+  notChar <- "character" != .getclass()
   vars <- varnames()[notChar]
   if (length(vars) > 0)
     vars <- vars[-which(vars == input$crtree_rvar)]
@@ -83,7 +83,7 @@ output$ui_crtree_evar <- renderUI({
 
   selectInput(inputId = "crtree_evar", label = "Explanatory variables:", choices = vars,
     selected = state_multiple("crtree_evar", vars, init),
-  	multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
+    multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
 
 output$ui_crtree_wts <- renderUI({
@@ -158,9 +158,9 @@ output$ui_crtree <- renderUI({
       radioButtons("crtree_type", label = NULL, c("classification","regression"),
         selected = state_init("crtree_type", "classification"),
         inline = TRUE),
-	    uiOutput("ui_crtree_rvar"),
+      uiOutput("ui_crtree_rvar"),
       uiOutput("ui_crtree_lev"),
-	    uiOutput("ui_crtree_evar"),
+      uiOutput("ui_crtree_evar"),
       # uiOutput("ui_crtree_wts"),
       conditionalPanel(condition = "input.crtree_type == 'classification'",
         tags$table(
@@ -193,10 +193,10 @@ output$ui_crtree <- renderUI({
         )
       )
     ),
-  	help_and_report(modal_title = "Classification and regression trees",
-  	                fun_name = "crtree",
-  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/crtree.md")))
-	)
+    help_and_report(modal_title = "Classification and regression trees",
+                    fun_name = "crtree",
+                    help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/crtree.md")))
+  )
 })
 
 crtree_plot_width <- function() 650
@@ -214,40 +214,40 @@ crtree_pred_plot_height <- function()
 ## output is called from the main radiant ui.R
 output$crtree <- renderUI({
 
-		register_print_output("summary_crtree", ".summary_crtree")
+    register_print_output("summary_crtree", ".summary_crtree")
     register_print_output("predict_crtree", ".predict_print_crtree")
     register_plot_output("predict_plot_crtree", ".predict_plot_crtree")
     register_plot_output("plot_crtree", ".plot_crtree",
                           height_fun = "crtree_plot_height",
                           width_fun = "crtree_plot_width")
 
-		## two separate tabs
-		crtree_output_panels <- tabsetPanel(
-	    id = "tabs_crtree",
+    ## two separate tabs
+    crtree_output_panels <- tabsetPanel(
+      id = "tabs_crtree",
       tabPanel("Summary", verbatimTextOutput("summary_crtree")),
       tabPanel("Predict",
         conditionalPanel("input.crtree_pred_plot == true",
-          plot_downloader("crtree", height = crtree_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),
+          plot_downloader("crtree", height = crtree_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
           plotOutput("predict_plot_crtree", width = "100%", height = "100%")
         ),
         downloadLink("dl_crtree_pred", "", class = "fa fa-download alignright"), br(),
         verbatimTextOutput("predict_crtree")
       ),
-	    tabPanel("Plot",
+      tabPanel("Plot",
         conditionalPanel("input.crtree_plots == 'tree'",
           actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
           DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
         ),
         conditionalPanel("input.crtree_plots != 'tree'",
-          plot_downloader("crtree", height = crtree_plot_height()),
+          plot_downloader("crtree", height = crtree_plot_height),
           plotOutput("plot_crtree", width = "100%", height = "100%")
         )
       )
-	  )
-		stat_tab_panel(menu = "Model > Estimate",
-		              tool = "Classification and regression trees",
-		              tool_ui = "ui_crtree",
-		             	output_panels = crtree_output_panels)
+    )
+    stat_tab_panel(menu = "Model > Estimate",
+                  tool = "Classification and regression trees",
+                  tool_ui = "ui_crtree",
+                  output_panels = crtree_output_panels)
 
 })
 
@@ -285,7 +285,7 @@ crtree_available <- reactive({
 
 .crtree <- eventReactive(input$crtree_run, {
   withProgress(message = "Estimating model", value = 1,
-	  do.call(crtree, crtree_inputs())
+    do.call(crtree, crtree_inputs())
   )
 })
 

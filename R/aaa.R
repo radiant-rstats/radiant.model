@@ -1,7 +1,7 @@
 # to avoid 'no visible binding for global variable' NOTE
 globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Predictor",
-                  "total","TN","FN","FP","TP","total","profit", "precision", "ROME", 
-                  "TPR", "nr_resp", "nr_obs", "cum_resp", "cum_resp_rate", "pred", 
+                  "total","TN","FN","FP","TP","total","profit", "precision", "ROME",
+                  "TPR", "nr_resp", "nr_obs", "cum_resp", "cum_resp_rate", "pred",
                   "cum_prop", "cum_gains", "obs", "everything", "r_data"))
 
 #' radiant.model
@@ -9,7 +9,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @name radiant.model
 #' @docType package
 #' @import radiant.data shiny ggplot2
-#' @importFrom gridExtra grid.arrange 
+#' @importFrom gridExtra grid.arrange
 #' @importFrom dplyr mutate_at mutate_all summarise_at summarise_all arrange select select_ filter mutate mutate_ funs group_by group_by_ summarise summarise_ slice as_data_frame bind_cols bind_rows desc first last min_rank data_frame inner_join arrange_ ungroup
 #' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames set_names extract2
 #' @importFrom tidyr spread_ gather_ gather
@@ -18,7 +18,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
 #' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif terms quantile
 #' @importFrom utils head tail relist as.relistable combn capture.output write.table
-#' @importFrom stats residuals formula model.matrix
+#' @importFrom stats residuals formula model.matrix pt qt
 #' @importFrom methods is
 #' @importFrom import from
 NULL

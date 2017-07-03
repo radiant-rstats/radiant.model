@@ -45,16 +45,16 @@ nb_pred_plot_inputs <- reactive({
 
 output$ui_nb_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-  	isFct <- "factor" == .getclass()
+    isFct <- "factor" == .getclass()
     vars <- varnames()[isFct]
   })
   selectInput(inputId = "nb_rvar", label = "Response variable:", choices = vars,
-  	selected = state_single("nb_rvar",vars), multiple = FALSE)
+    selected = state_single("nb_rvar",vars), multiple = FALSE)
 })
 
 output$ui_nb_evar <- renderUI({
   if (not_available(input$nb_rvar)) return()
-	notVar <- !.getclass() %in% c("character","date")
+  notVar <- !.getclass() %in% c("character","date")
   vars <- varnames()[notVar]
   if (length(vars) > 0)
     vars <- vars[-which(vars == input$nb_rvar)]
@@ -63,7 +63,7 @@ output$ui_nb_evar <- renderUI({
 
   selectInput(inputId = "nb_evar", label = "Explanatory variables:", choices = vars,
     selected = state_multiple("nb_evar", vars, init),
-  	multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
+    multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
 
 ## reset prediction settings when the dataset changes
@@ -72,7 +72,7 @@ observeEvent(input$dataset, {
 })
 
 output$ui_nb_predict_plot <- renderUI({
-	req(input$nb_rvar)
+  req(input$nb_rvar)
   var_colors <- ".class" %>% set_names(input$nb_rvar)
   predict_plot_controls("nb", vars_color = var_colors, init_color = ".class")
 })
@@ -115,10 +115,10 @@ output$ui_nb <- renderUI({
       uiOutput("ui_nb_evar"),
       numericInput("nb_laplace", label = "Laplace:", min = 0, value = state_init("nb_laplace",0))
     ),
-  	help_and_report(modal_title = "Naive Bayes",
-  	                fun_name = "nb",
-  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/nb.md")))
-	)
+    help_and_report(modal_title = "Naive Bayes",
+                    fun_name = "nb",
+                    help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/nb.md")))
+  )
 })
 
 nb_plot_width <- function() 650
@@ -133,34 +133,34 @@ nb_pred_plot_height <- function() if (input$nb_pred_plot) 500 else 0
 ## output is called from the main radiant ui.R
 output$nb <- renderUI({
 
-		register_print_output("summary_nb", ".summary_nb")
+    register_print_output("summary_nb", ".summary_nb")
     register_print_output("predict_nb", ".predict_print_nb")
     register_plot_output("predict_plot_nb", ".predict_plot_nb",
                           height_fun = "nb_pred_plot_height")
-		register_plot_output("plot_nb", ".plot_nb",
+    register_plot_output("plot_nb", ".plot_nb",
                           height_fun = "nb_plot_height",
                           width_fun = "nb_plot_width")
 
-		## two separate tabs
-		nb_output_panels <- tabsetPanel(
-	    id = "tabs_nb",
-	    tabPanel("Summary", verbatimTextOutput("summary_nb")),
+    ## two separate tabs
+    nb_output_panels <- tabsetPanel(
+      id = "tabs_nb",
+      tabPanel("Summary", verbatimTextOutput("summary_nb")),
       tabPanel("Predict",
         conditionalPanel("input.nb_pred_plot == true",
-          plot_downloader("nb", height = nb_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),
+          plot_downloader("nb", height = nb_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
           plotOutput("predict_plot_nb", width = "100%", height = "100%")
         ),
         downloadLink("dl_nb_pred", "", class = "fa fa-download alignright"), br(),
         verbatimTextOutput("predict_nb")
       ),
-	    tabPanel("Plot", plot_downloader("nb", height = nb_plot_height()),
+      tabPanel("Plot", plot_downloader("nb", height = nb_plot_height),
                plotOutput("plot_nb", width = "100%", height = "100%"))
-	  )
+    )
 
-		stat_tab_panel(menu = "Model > Estimate",
-		              tool = "Naive Bayes",
-		              tool_ui = "ui_nb",
-		             	output_panels = nb_output_panels)
+    stat_tab_panel(menu = "Model > Estimate",
+                  tool = "Naive Bayes",
+                  tool_ui = "ui_nb",
+                  output_panels = nb_output_panels)
 
 })
 
@@ -176,7 +176,7 @@ nb_available <- reactive({
 
 .nb <- eventReactive(input$nb_run, {
   withProgress(message = "Estimating model", value = 1,
-	  do.call(nb, nb_inputs())
+    do.call(nb, nb_inputs())
   )
 })
 

@@ -657,7 +657,10 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
     plot_list[[i]] <-
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
         geom_line() + geom_point() +
-        ggtitle(paste0("Sensitivity of decisions to changes in ",i)) + xlab(i)
+        labs(
+          title = paste0("Sensitivity of decisions to changes in ",i), 
+          x = i
+        )
   }
 
   if (custom)

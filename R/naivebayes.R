@@ -5,7 +5,7 @@
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the logit (probit) model
 #' @param evar Explanatory variables in the model
-#' @param laplace	Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
+#' @param laplace Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in nb as an object of class nb

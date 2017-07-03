@@ -35,11 +35,13 @@ output$ui_crs_pred <- renderUI({
   else
     levs <- c()
 
-  selectInput(inputId = "crs_pred", label = "Choose products to recommend:",
-              choices = levs,
-              selected = state_init("crs_pred", levs),
-              multiple = TRUE, size = min(3, length(levs)),
-              selectize = FALSE)
+  selectInput("crs_pred", "Choose products to recommend:",
+    choices = levs,
+    selected = state_init("crs_pred", levs),
+    multiple = TRUE, 
+    size = min(3, length(levs)),
+    selectize = FALSE
+  )
 })
 
 output$ui_crs_rate <- renderUI({
@@ -57,24 +59,25 @@ output$ui_crs <- renderUI({
     wellPanel(
       actionButton("crs_run", "Estimate", width = "100%")
     ),
-  	wellPanel(
+    wellPanel(
       uiOutput("ui_crs_id"),
       uiOutput("ui_crs_prod"),
       uiOutput("ui_crs_pred"),
       uiOutput("ui_crs_rate")
-  	),
+    ),
     ## to store results
     wellPanel(
       tags$table(
-        # tags$td(textInput("crs_name", "Store recommendations:", "recommendations_cf")),
         tags$td(textInput("crs_name", "Store recommendations:", paste0(input$dataset, "_cf"))),
         tags$td(actionButton("crs_store_pred", "Store"), style="padding-top:30px;")
       )
     ),
-    help_and_report(modal_title = "Collaborative Filtering",
-  	                fun_name = "crs",
-  	                help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/crs.md")))
-	)
+    help_and_report(
+      modal_title = "Collaborative Filtering", 
+      fun_name = "crs", 
+      help_file = inclMD(file.path(getOption("radiant.path.model"),"app/tools/help/crs.md"))
+    )
+  )
 })
 
 crs_plot <- reactive({
@@ -91,12 +94,13 @@ crs_plot_height <- function()
 
 # output is called from the main radiant ui.R
 output$crs <- renderUI({
-	register_print_output("summary_crs", ".summary_crs")
-	register_plot_output("plot_crs", ".plot_crs",
-                       	width_fun = "crs_plot_width",
-                       	height_fun = "crs_plot_height")
+  register_print_output("summary_crs", ".summary_crs")
+  register_plot_output("plot_crs", ".plot_crs",
+    width_fun = "crs_plot_width", 
+    height_fun = "crs_plot_height"
+  )
 
-	# one output with components stacked
+  # one output with components stacked
   crs_output_panels <- tabsetPanel(
      id = "tabs_crs",
      tabPanel("Summary",
@@ -104,15 +108,17 @@ output$crs <- renderUI({
        verbatimTextOutput("summary_crs")
      ),
      tabPanel("Plot",
-       plot_downloader("crs", height = crs_plot_height()),
+       plot_downloader("crs", height = crs_plot_height),
        plotOutput("plot_crs", height = "100%")
     )
   )
 
-	stat_tab_panel(menu = "Model > Recommend",
-	              tool = "Collaborative Filtering",
-	              tool_ui = "ui_crs",
-	             	output_panels = crs_output_panels)
+  stat_tab_panel(
+    menu = "Model > Recommend", 
+    tool = "Collaborative Filtering", 
+    tool_ui = "ui_crs", 
+    output_panels = crs_output_panels
+  )
 })
 
 .crs <- eventReactive(input$crs_run, {
@@ -128,7 +134,7 @@ output$crs <- renderUI({
   if(length(input$crs_pred) < 1) return("Please select one or more products to generate recommendations" %>% add_class("crs"))
 
   withProgress(message = "Estimating model", value = 1, {
-	  do.call(crs, crs_inputs())
+    do.call(crs, crs_inputs())
   })
 })
 
@@ -162,14 +168,16 @@ observeEvent(input$crs_report, {
   xcmd <- paste0("# store(result, name = \"", input$crs_name,"\")")
   xcmd <- paste0(xcmd, "\n# write.csv(result$recommendations, file = \"~/recommendations_crs.csv\", row.names = FALSE)")
 
-  update_report(inp_main = clean_args(crs_inputs(), crs_args),
-                fun_name = "crs",
-                inp_out = inp_out,
-                outputs = outputs,
-                figs = figs,
-                fig.width = crs_plot_width(),
-                fig.height = crs_plot_height(),
-                xcmd = xcmd)
+  update_report(
+    inp_main = clean_args(crs_inputs(), crs_args), 
+    fun_name = "crs", 
+    inp_out = inp_out, 
+    outputs = outputs, 
+    figs = figs, 
+    fig.width = crs_plot_width(), 
+    fig.height = crs_plot_height(), 
+    xcmd = xcmd
+  )
  })
 
 output$dl_crs_recommendations <- downloadHandler(
@@ -187,11 +195,21 @@ output$dl_crs_recommendations <- downloadHandler(
 ## Store results
 observeEvent(input$crs_store_pred, {
   pred <- .crs()
-  if (!is.data.frame(pred$recommendations)) return("No data selected to generate recommendations")
+  if (!is.data.frame(pred$recommendations)) 
+    return("No data selected to generate recommendations")
   store(pred, input$crs_name)
 
-  ## alert user about new dataset
-  session$sendCustomMessage(type = "message",
-    message = paste0("Dataset '", input$crs_name, "' was successfully added to the datasets dropdown. Add code to R > Report to (re)create the dataset by clicking the report icon on the bottom left of your screen.")
+  ## See https://shiny.rstudio.com/reference/shiny/latest/modalDialog.html
+  showModal(
+    modalDialog(title = "Data Stored",
+      span(
+        paste0("Dataset '", input$crs_name, "' was successfully added 
+                to the datasets dropdown. Add code to R > Report to (re)create 
+                the dataset by clicking the report icon on the bottom left of 
+                your screen.")), 
+      footer = modalButton("OK"),
+      size = "s", 
+      easyClose = TRUE
+    )
   )
 })
