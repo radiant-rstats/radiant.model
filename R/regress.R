@@ -6,7 +6,7 @@
 #' @param rvar The response variable in the regression
 #' @param evar Explanatory variables in the regression
 #' @param int Interaction terms to include in the model
-#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation
+#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list of all variables variables used in the regress function as an object of class regress
@@ -18,6 +18,8 @@
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{plot.regress}} to plot results
 #' @seealso \code{\link{predict.regress}} to generate predictions
+#'
+#' @importFrom sandwich vcovHC
 #'
 #' @export
 regress <- function(dataset, rvar, evar,
@@ -89,6 +91,15 @@ regress <- function(dataset, rvar, evar,
   attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
+  colnames(coeff) <- c("  ","coefficient","std.error","t.value","p.value")
+
+  if ("robust" %in% check) {
+    vcov <- sandwich::vcovHC(model, type = "HC1")
+    # coeff <- lmtest::coeftest(model, vcov) %>% tidy
+    coeff$std.error <- sqrt(diag(vcov))
+    coeff$t.value <- coef(model) / coeff$std.error
+    coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dat) - nrow(coeff), lower.tail = FALSE)
+  }
 
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   colnames(coeff) <- c("  ","coefficient","std.error","t.value","p.value"," ")
@@ -99,7 +110,6 @@ regress <- function(dataset, rvar, evar,
 
     rm(i, isFct)
   }
-  # coeff$`  ` %<>% format(justify = "left")
 
   rm(dat) ## dat is not needed elsewhere and is already in "model" anyway
 
@@ -128,7 +138,7 @@ regress <- function(dataset, rvar, evar,
 #' @seealso \code{\link{plot.regress}} to plot results
 #' @seealso \code{\link{predict.regress}} to generate predictions
 #'
-#' @importFrom car vif
+#' @importFrom car vif linearHypothesis
 #'
 #' @export
 summary.regress <- function(object,
@@ -155,7 +165,7 @@ summary.regress <- function(object,
   if (object$data_filter %>% gsub("\\s","",.) != "")
     cat("Filter   :", gsub("\\n","", object$data_filter), "\n")
   cat("Response variable    :", object$rvar, "\n")
-  cat("Explanatory variables:", paste0(object$evar, collapse=", "), "\n")
+  cat("Explanatory variables:", paste0(object$evar, collapse = ", "), "\n")
   expl_var <- if (length(object$evar) == 1) object$evar else "x"
   cat(paste0("Null hyp.: the effect of ", expl_var, " on ", object$rvar, " is zero\n"))
   cat(paste0("Alt. hyp.: the effect of ", expl_var, " on ", object$rvar, " is not zero\n"))
@@ -164,20 +174,22 @@ summary.regress <- function(object,
   } else if ("center" %in% object$check) {
     cat("**Centered coefficients shown (x - mean(x))**\n")
   }
+  if ("robust" %in% object$check)
+    cat("**Robust standard errors used**\n")
 
   coeff <- object$coeff
   coeff$`  ` %<>% format(justify = "left")
   cat("\n")
   if (all(object$coeff$p.value == "NaN")) {
     coeff[,2] %<>% {sprintf(paste0("%.",dec,"f"),.)}
-    print(coeff[,1:2], row.names=FALSE)
+    print(coeff[,1:2], row.names = FALSE)
     cat("\nInsufficient variation in explanatory variable(s) to report additional statistics")
     return()
   } else {
     p.small <- coeff$p.value < .001
     coeff[,2:5] %<>% formatdf(dec)
     coeff$p.value[p.small] <- "< .001"
-    print(coeff, row.names=FALSE)
+    print(coeff, row.names = FALSE)
   }
 
   if (nrow(object$model$model) <= (length(object$evar) + 1))
@@ -229,7 +241,9 @@ summary.regress <- function(object,
     if (anyNA(object$model$coeff)) {
       cat("Multicollinearity diagnostics were not calculated.")
     } else {
-      if (length(object$evar) > 1) {
+      ## needed to adjust when step-wise regression is used
+      if (length(attributes(object$model$terms)$term.labels) > 1) {
+      # if (length(object$evar) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
           {if (is.null(dim(.))) . else .[,"GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
@@ -251,7 +265,14 @@ summary.regress <- function(object,
     } else {
 
       ci_perc <- ci_label(cl = conf_lev)
-      confint(object$model, level = conf_lev) %>%
+
+      if ("robust" %in% object$check)
+        cnfint <- radiant.model::confint_robust
+      else
+        cnfint <- confint.default
+
+      # confint(object$model, level = conf_lev) %>%
+      cnfint(object$model, level = conf_lev, dist = "t") %>%
         as.data.frame %>%
         set_colnames(c("Low","High")) %>%
         { .$`+/-` <- (.$High - .$Low)/2; . } %>%
@@ -264,34 +285,66 @@ summary.regress <- function(object,
     }
   }
 
-  if (!is.null(test_var) && test_var[1] != "") {
+  if (!is_empty(test_var)) {
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
-      sub_form <- ". ~ 1"
+      sub_form <- paste(object$rvar, "~ 1")
 
       vars <- object$evar
       if (object$int != "" && length(vars) > 1) {
         ## updating test_var if needed
         test_var <- test_specs(test_var, object$int)
-        vars <- c(vars,object$int)
+        vars <- c(vars, object$int)
       }
 
-      not_selected <- setdiff(vars,test_var)
+      not_selected <- setdiff(vars, test_var)
       if (length(not_selected) > 0) sub_form <- paste(". ~", paste(not_selected, collapse = " + "))
       sub_mod <- update(object$model, sub_form, data = object$model$model) %>%
-                   anova(object$model, test='F')
+                   anova(object$model, test = "F")
 
       if (sub_mod[,"Pr(>F)"][2] %>% is.na) return(cat(""))
-      p.value <- sub_mod[,"Pr(>F)"][2] %>% { if (. < .001) "< .001" else round(.,dec) }
 
-      cat(attr(sub_mod,"heading")[2])
-        object$model$model[,1] %>%
+      matchCf <- function(clist, vlist) {
+        matcher <- function(vl, cn)
+          if (grepl(":", vl)) {
+            strsplit(vl,":") %>%
+              unlist %>%
+              sapply(function(x) gsub("var",x, "((var.*:)|(:var))")) %>%
+              paste0(collapse = "|") %>%
+              grepl(cn) %>%
+              cn[.]
+          } else {
+            mf <- grepl(paste0("^",vl,"$"),cn) %>% cn[.]
+            if (length(mf) == 0)
+              mf <- grepl(paste0("^",vl), cn) %>% cn[.]
+            mf
+          }
+
+        cn <- names(clist)
+        sapply(vlist, matcher, cn) %>% unname
+      }
+
+      test_heading <- attr(sub_mod, "heading")[2]
+
+      if ("robust" %in% object$check) {
+        ## http://stats.stackexchange.com/a/132521/61693
+        sub_mod <- car::linearHypothesis(
+          object$model,
+          matchCf(object$model$coef, test_var),
+          vcov = object$vcov
+        )
+      }
+
+      p.value <- sub_mod[,"Pr(>F)"][2] %>% { if (. < .001) "< .001" else round(., dec) }
+
+      cat(test_heading)
+        object$model$model[, 1] %>%
         { sum((. - mean(.))^2) } %>%
         {1 - (sub_mod$RSS / .)} %>%
         round(dec) %>%
         cat("\nR-squared, Model 1 vs 2:", .)
-      cat("\nF-statistic:", sub_mod$F[2] %>% round(dec), paste0("df(", sub_mod$Res.Df[1]-sub_mod$Res.Df[2], ",", sub_mod$Res.Df[2], "), p.value ", p.value))
+      cat("\nF-statistic:", sub_mod$F[2] %>% round(dec), paste0("df(", sub_mod$Res.Df[1] - sub_mod$Res.Df[2], ",", sub_mod$Res.Df[2], "), p.value ", p.value))
     }
   }
 }
@@ -345,6 +398,7 @@ plot.regress <- function(x, plots = "",
   flines <- sub("loess","",lines) %>% sub("line","",.)
   nlines <- sub("jitter","",lines)
 
+  nrCol <- 2
   plot_list <- list()
   if ("dashboard" %in% plots) {
 
@@ -415,12 +469,18 @@ plot.regress <- function(x, plots = "",
   }
 
   if ("coef" %in% plots) {
+    nrCol <- 1
 
     if (nrow(object$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
 
     yl <- if ("standardize" %in% object$check) "Coefficient (standardized)" else "Coefficient"
 
-    plot_list[["coeff"]] <- confint(object$model, level = conf_lev) %>%
+    if ("robust" %in% object$check)
+      cnfint <- radiant.model::confint_robust
+    else
+      cnfint <- confint.default
+
+    plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, dist = "t") %>%
       data.frame %>%
       na.omit %>%
       set_colnames(c("Low","High")) %>%
@@ -431,14 +491,14 @@ plot.regress <- function(x, plots = "",
         ggplot() +
           geom_pointrange(aes_string(x = "variable", y = "coefficient",
                           ymin = "Low", ymax = "High")) +
-          geom_hline(yintercept = 0, linetype = 'dotdash', color = "blue") +
-          labs(x = "", y = yl) +
+          geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
+          labs(y = yl, x = "") +
           scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
           coord_flip() + theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("correlations" %in% plots)
-    return(radiant.basics:::plot.correlation_(object$model$model))
+    return(radiant.basics:::plot.correlation(object$model$model))
 
   # if ("leverage" %in% plots) {
   #   ## no plots if aliased coefficients present
@@ -452,7 +512,7 @@ plot.regress <- function(x, plots = "",
     if (custom)
       if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
 
-    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 2)) %>%
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>%
        {if (shiny) . else print(.)}
   }
 }

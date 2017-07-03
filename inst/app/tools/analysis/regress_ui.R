@@ -4,7 +4,7 @@
 reg_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
 reg_predict <- c("None" = "none", "Data" = "data","Command" = "cmd", "Data & Command" = "datacmd")
 reg_check <- c("Standardize" = "standardize", "Center" = "center",
-               "Stepwise" = "stepwise-backward")
+               "Stepwise" = "stepwise-backward", "Robust" = "robust")
 reg_sum_check <- c("RMSE" = "rmse", "Sum of squares" = "sumsquares",
                    "VIF" = "vif", "Confidence intervals" = "confint")
 reg_lines <- c("Line" = "line", "Loess" = "loess", "Jitter" = "jitter")
@@ -69,12 +69,8 @@ reg_pred_inputs <- reactive({
   reg_pred_args
 })
 
-# reg_pred_plot_args <- as.list(if (exists("plot.regress.predict")) formals(plot.regress.predict)
-                         # else formals(radiant.model:::plot.regress.predict))
-
 reg_pred_plot_args <- as.list(if (exists("plot.model.predict")) formals(plot.model.predict)
                          else formals(radiant.model:::plot.model.predict))
-
 
 ## list of function inputs selected by user
 reg_pred_plot_inputs <- reactive({
@@ -86,11 +82,11 @@ reg_pred_plot_inputs <- reactive({
 
 output$ui_reg_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-    isNum <- "numeric" == .getclass() | "integer" == .getclass()
+    isNum <- .getclass() %in% c("numeric", "integer")
     vars <- varnames()[isNum]
   })
   selectInput(inputId = "reg_rvar", label = "Response variable:", choices = vars,
-    selected = state_single("reg_rvar",vars), multiple = FALSE)
+    selected = state_single("reg_rvar", vars), multiple = FALSE)
 })
 
 output$ui_reg_evar <- renderUI({
@@ -107,17 +103,20 @@ output$ui_reg_evar <- renderUI({
     multiple = TRUE, size = min(10, length(vars)), selectize = FALSE)
 })
 
-# adding interaction terms as needed
 output$ui_reg_test_var <- renderUI({
   req(available(input$reg_evar))
   vars <- input$reg_evar
-  if (!is.null(input$reg_int)) vars <- c(vars, input$reg_int)
-
+  if (!is.null(input$reg_int)) vars <- c(vars,input$reg_int)
   selectizeInput(inputId = "reg_test_var", label = "Variables to test:",
     choices = vars, selected = state_multiple("reg_test_var", vars),
     multiple = TRUE,
-    options = list(placeholder = 'None', plugins = list('remove_button'))
+    options = list(placeholder = "None", plugins = list("remove_button"))
   )
+})
+
+## not clear why this is needed because state_multiple should handle this
+observeEvent(is.null(input$reg_test_var), {
+  if ("reg_test_var" %in% names(input)) r_state$reg_test_var <<- NULL
 })
 
 output$ui_reg_show_interactions <- renderUI({
@@ -141,17 +140,13 @@ output$ui_reg_int <- renderUI({
     choices <- iterms(vars, input$reg_show_interactions)
   }
 
-  # req(length(input$reg_evar) > 0)
-  # req(input$reg_show_interactions)
-  # vars <- input$reg_evar
-  # if (not_available(vars) || length(vars) < 2 || is_empty(input$reg_show_interactions)) 
-  #   choices <- character(0)
-  # else
-  #   choices <- iterms(vars, input$reg_show_interactions)
-
-  selectInput("reg_int", label = NULL, choices = choices,
+  selectInput("reg_int", label = NULL,
+    choices = choices,
     selected = state_init("reg_int"),
-    multiple = TRUE, size = min(4,length(choices)), selectize = FALSE)
+    multiple = TRUE,
+    size = min(8,length(choices)),
+    selectize = FALSE
+  )
 })
 
 ## reset prediction settings when the dataset changes
@@ -218,8 +213,7 @@ output$ui_regress <- renderUI({
       uiOutput("ui_reg_rvar"),
       uiOutput("ui_reg_evar"),
 
-      conditionalPanel(condition = "input.reg_evar != null",
-        uiOutput("ui_reg_show_interactions"),
+      conditionalPanel(condition = "input.reg_evar != null", uiOutput("ui_reg_show_interactions"),
         conditionalPanel(condition = "input.reg_show_interactions != ''",
           uiOutput("ui_reg_int")
         ),
@@ -281,8 +275,6 @@ reg_plot_height <- function()
 reg_pred_plot_height <- function()
   if (input$reg_pred_plot) 500 else 0
 
-  # if (input$tabs_regress == "Predict" && is.null(r_data$reg_pred)) 0 else 500
-
 # output is called from the main radiant ui.R
 output$regress <- renderUI({
 
@@ -294,7 +286,7 @@ output$regress <- renderUI({
                          height_fun = "reg_plot_height",
                          width_fun = "reg_plot_width")
 
-    # two separate tabs
+    ## two separate tabs
     reg_output_panels <- tabsetPanel(
       id = "tabs_regress",
       tabPanel("Summary",
@@ -302,13 +294,13 @@ output$regress <- renderUI({
         verbatimTextOutput("summary_regress")),
       tabPanel("Predict",
         conditionalPanel("input.reg_pred_plot == true",
-          plot_downloader("regress", height = reg_pred_plot_height(), po = "dlp_", pre = ".predict_plot_"),
+          plot_downloader("regress", height = reg_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
           plotOutput("predict_plot_regress", width = "100%", height = "100%")
         ),
         downloadLink("dl_reg_pred", "", class = "fa fa-download alignright"), br(),
         verbatimTextOutput("predict_regress")
       ),
-      tabPanel("Plot", plot_downloader("regress", height = reg_plot_height()),
+      tabPanel("Plot", plot_downloader("regress", width = reg_plot_width, height = reg_plot_height),
         plotOutput("plot_regress", width = "100%", height = "100%"))
     )
 
@@ -319,7 +311,6 @@ output$regress <- renderUI({
 })
 
 reg_available <- reactive({
-
   if (not_available(input$reg_rvar))
     return("This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% suggest_data("diamonds"))
 
@@ -330,7 +321,7 @@ reg_available <- reactive({
 })
 
 .regress <- eventReactive(input$reg_run, {
-  req(available(input$reg_rvar), available(input$reg_evar))
+
   withProgress(message = "Estimating model", value = 1, {
     do.call(regress, reg_inputs())
   })
@@ -362,7 +353,6 @@ reg_available <- reactive({
 
 .predict_plot_regress <- reactive({
   if (reg_available() != "available") return(reg_available())
-  # req(input$reg_pred_plot, input$reg_xvar, !is_empty(input$reg_predict, "none"), pressed(input$reg_run))
   req(input$reg_pred_plot, available(input$reg_xvar))
   if (not_pressed(input$reg_run)) return(invisible())
   if (is_empty(input$reg_predict, "none")) return(invisible())
@@ -416,12 +406,14 @@ observeEvent(input$regress_report, {
       figs <- TRUE
     }
   }
-  update_report(inp_main = clean_args(reg_inputs(), reg_args),
-                fun_name = "regress", inp_out = inp_out,
-                outputs = outputs, figs = figs,
-                fig.width = reg_plot_width(),
-                fig.height = reg_plot_height(),
-                xcmd = xcmd)
+  update_report(
+    inp_main = clean_args(reg_inputs(), reg_args),
+    fun_name = "regress", inp_out = inp_out,
+    outputs = outputs, figs = figs,
+    fig.width = reg_plot_width(),
+    fig.height = reg_plot_height(),
+    xcmd = xcmd
+  )
 })
 
 observeEvent(input$reg_store_res, {

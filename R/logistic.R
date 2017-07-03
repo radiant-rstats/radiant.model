@@ -8,7 +8,7 @@
 #' @param lev The level in the response variable defined as _success_
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
-#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation
+#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
@@ -53,10 +53,13 @@ logistic <- function(dataset, rvar, evar,
     if (!is.integer(wts)) {
       ## rounding to avoid machine precision differences
       wts_int <- as.integer(round(wts,.Machine$double.rounding))
-      if (all(round(wts,.Machine$double.rounding) == wts_int)) wts <- wts_int
+      if (all(round(wts,.Machine$double.rounding) == wts_int)) {
+        wts <- wts_int
+        check <- union(check, "robust")
+      }
       rm(wts_int)
     }
-    dat <- select_(dat, .dots = paste0("-",wtsname))
+    dat <- select_(dat, .dots = paste0("-", wtsname))
   }
 
   if (any(summarise_all(dat, funs(does_vary)) == FALSE))
@@ -124,29 +127,26 @@ logistic <- function(dataset, rvar, evar,
   attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
-  coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
-  colnames(coeff) <- c("  ","coefficient","std.error","z.value","p.value"," ")
+  colnames(coeff) <- c("  ","coefficient","std.error","z.value","p.value")
 
-  isFct <- sapply(select(dat,-1), function(x) is.factor(x) || is.logical(x))
+  isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
     for (i in names(isFct[isFct]))
-      coeff$`  ` %<>% gsub(i, paste0(i,"|"), .) %>% gsub("\\|\\|","\\|",.)
+      coeff$`  ` %<>% gsub(i, paste0(i, "|"), .) %>% gsub("\\|\\|", "\\|", .)
 
     rm(i, isFct)
   }
-  # coeff$`  ` %<>% format(justify = "left")
 
-  if (!is_empty(wts, "None") && class(wts) != "integer") {
-    vcov <- sandwich::vcovHC(model, type = "HC0")
+  if ("robust" %in% check) {
+    vcov <- sandwich::vcovHC(model, type = "HC1")
     coeff$std.error <- sqrt(diag(vcov))
     coeff$z.value <- coef(model) / coeff$std.error
-    coeff$p.value <- 2 * pnorm(abs(coef(model)/coeff$std.error), lower.tail = FALSE)
-    coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
+    coeff$p.value <- 2 * pnorm(abs(coeff$z.value), lower.tail = FALSE)
   }
 
-  colnames(coeff) <- c("  ","coefficient","std.error","z.value","p.value"," ")
+  coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$OR <- exp(coeff$coefficient)
-  coeff <- coeff[,c("  ","OR", "coefficient","std.error","z.value","p.value"," ")]
+  coeff <- coeff[,c("  ","OR","coefficient","std.error","z.value","p.value"," ")]
 
   rm(dat) ## dat not needed elsewhere
 
@@ -177,7 +177,6 @@ logistic <- function(dataset, rvar, evar,
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
 #'
 #' @importFrom car vif linearHypothesis
-#' @importFrom sandwich vcovHC
 #'
 #' @export
 summary.logistic <- function(object,
@@ -211,11 +210,12 @@ summary.logistic <- function(object,
   expl_var <- if (length(object$evar) == 1) object$evar else "x"
   cat(paste0("Null hyp.: there is no effect of ", expl_var, " on ", object$rvar, "\n"))
   cat(paste0("Alt. hyp.: there is an effect of ", expl_var, " on ", object$rvar, "\n"))
-  if ("standardize" %in% object$check)
+  if ("standardize" %in% object$check) {
     cat("**Standardized odds-ratios and coefficients shown (2 X SD)**\n")
-  if ("center" %in% object$check)
+  } else if ("center" %in% object$check) {
     cat("**Centered odds-ratios and coefficients shown (x - mean(x))**\n")
-  if (!is_empty(object$wts, "None") && class(object$wts) != "integer")
+  }
+  if ("robust" %in% object$check)
     cat("**Robust standard errors used**\n")
   cat("\n")
 
@@ -255,7 +255,9 @@ summary.logistic <- function(object,
     if (anyNA(object$model$coeff)) {
       cat("Multicollinearity diagnostics were not calculated.")
     } else {
-      if (length(object$evar) > 1) {
+      ## needed to adjust when step-wise regression is used
+      if (length(attributes(object$model$terms)$term.labels) > 1) {
+      # if (length(object$evar) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
           {if (is.null(dim(.))) . else .[,"GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
@@ -278,7 +280,7 @@ summary.logistic <- function(object,
     } else {
       ci_perc <- ci_label(cl = conf_lev)
 
-      if (!is_empty(object$wts, "None") && class(object$wts) != "integer")
+      if ("robust" %in% object$check)
         cnfint <- radiant.model::confint_robust
       else
         cnfint <- confint.default
@@ -335,7 +337,7 @@ summary.logistic <- function(object,
       # logit_sub <- update(object$model, sub_form, data = object$model$model)
       logit_sub <- sshhr(glm(as.formula(sub_form), weights = object$wts, family = binomial(link = "logit"), data = object$model$model))
       logit_sub_fit <- glance(logit_sub)
-      logit_sub_test <- anova(logit_sub, object$model, test='Chi')
+      logit_sub_test <- anova(logit_sub, object$model, test = "Chi")
 
       matchCf <- function(clist, vlist) {
         matcher <- function(vl, cn)
@@ -362,18 +364,18 @@ summary.logistic <- function(object,
         # matchCf(cl, c("disp","dips:cyl365"))
       }
 
-      if (!is_empty(object$wts, "None") && class(object$wts) != "integer") {
+      if ("robust" %in% object$check) {
         ## http://stats.stackexchange.com/a/132521/61693
         logit_sub_lh <- car::linearHypothesis(object$model,
                              matchCf(object$model$coef, test_var),
                              vcov = object$vcov)
-        pval <- logit_sub_lh[2,"Pr(>Chisq)"]
-        df <- logit_sub_lh[2,"Df"]
-        chi2 <- logit_sub_lh[2,"Chisq"]
+        pval <- logit_sub_lh[2, "Pr(>Chisq)"]
+        df <- logit_sub_lh[2, "Df"]
+        chi2 <- logit_sub_lh[2, "Chisq"]
       } else {
-        pval <- logit_sub_test[2,"Pr(>Chi)"]
-        df <- logit_sub_test[2,"Df"]
-        chi2 <- logit_sub_test[2,"Deviance"]
+        pval <- logit_sub_test[2, "Pr(>Chi)"]
+        df <- logit_sub_test[2, "Df"]
+        chi2 <- logit_sub_test[2, "Deviance"]
       }
 
       ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
@@ -460,31 +462,31 @@ plot.logistic <- function(x,
       }}
 
     nrCol <- 1
-    if (!is_empty(object$wts, "None") && class(object$wts) != "integer")
+    # if ((!is_empty(object$wts, "None") && class(object$wts) != "integer") || "robust" %in% object$check)
+    if ("robust" %in% object$check)
       cnfint <- radiant.model::confint_robust
     else
       cnfint <- confint.default
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
-          exp %>%
-          data.frame %>%
-          na.omit %>%
-          set_colnames(c("Low","High")) %>%
-          cbind(select(object$coeff,2),.) %>%
-          set_rownames(object$coeff$`  `) %>%
-          { if (!intercept) .[-1,] else . } %>%
-          mutate(variable = rownames(.)) %>%
-          ggplot() +
-            geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
-            geom_hline(yintercept = 1, linetype = 'dotdash', color = "blue") +
-            ylab(yl) +
-            xlab("") +
-            ## can't use coord_trans together with coord_flip
-            # http://stackoverflow.com/a/26185278/1974918
-            scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
-            scale_y_continuous(breaks = c(0,0.1,0.2,0.5,1,2,5,10), trans = "log") +
-            coord_flip() +
-            theme(axis.text.y = element_text(hjust = 0))
+      exp %>%
+      data.frame %>%
+      na.omit %>%
+      set_colnames(c("Low","High")) %>%
+      cbind(select(object$coeff,2),.) %>%
+      set_rownames(object$coeff$`  `) %>%
+      { if (!intercept) .[-1,] else . } %>%
+      mutate(variable = rownames(.)) %>%
+      ggplot() +
+        geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
+        geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
+        labs(y = yl, x = "") +
+        ## can't use coord_trans together with coord_flip
+        # http://stackoverflow.com/a/26185278/1974918
+        scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
+        scale_y_continuous(breaks = c(0,0.1,0.2,0.5,1,2,5,10), trans = "log") +
+        coord_flip() +
+        theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("scatter" %in% plots) {
@@ -502,6 +504,7 @@ plot.logistic <- function(x,
   }
 
   if ("fit" %in% plots) {
+    nrCol <- 1
 
     if (nrow(model) < 30)
       return("Insufficient observations to generate Model fit plot")
@@ -521,11 +524,11 @@ plot.logistic <- function(x,
     plot_list[["fit"]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
       geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +
-      labs(list(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability"))
+      labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
   }
 
   if ("correlations" %in% plots)
-    return(radiant.basics:::plot.correlation_(select_(model, .dots = vars)))
+    return(radiant.basics:::plot.correlation(select_(model, .dots = vars)))
 
   if (custom)
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
@@ -633,31 +636,28 @@ store_glm <- function(object, data = object$dataset,
 #' @details Wrapper for confint.default with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
 #'
 #' @param object A fitted model object
-#' @param parm A specification of which parameters are to be given confidence intervals, either a vector of numbers or a vector of names. If missing, all parameters are considered
 #' @param level The confidence level required
+#' @param dist Distribution to use ("norm" or "t")
 #' @param vcov Covariance matrix generated by, e.g., sandwich::vcovHC
 #' @param ... Additional argument(s) for methods
 #'
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-confint_robust <- function (object, parm, level = 0.95, vcov = NULL, ...) {
-    cf <- coef(object)
-    pnames <- names(cf)
-    if (missing(parm))
-        parm <- pnames
-    else if (is.numeric(parm))
-        parm <- pnames[parm]
-    a <- (1 - level)/2
-    a <- c(a, 1 - a)
-    fac <- qnorm(a)
-    ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(parm, c("Low","High")))
+confint_robust <- function(object, level = 0.95, dist = "norm", vcov = NULL, ...) {
+  fac <- ((1 - level) / 2) %>%
+    c(., 1 - .)
 
-    if (is.null(vcov))
-      vcov <- sandwich::vcovHC(object, type = "HC0")
-    ses <- sqrt(diag(vcov))[parm]
-    ci[] <- cf[parm] + ses %o% fac
-    ci
+  cf <- coef(object)
+  if (dist == "t") {
+    fac <- qt(fac, df = nrow(object$model) - length(cf))
+  } else {
+    fac <- qnorm(fac)
+  }
+  if (is.null(vcov))
+    vcov <- sandwich::vcovHC(object, type = "HC1")
+  ses <- sqrt(diag(vcov))
+  cf + ses %o% fac
 }
 
 #' Calculate min and max before standardization
