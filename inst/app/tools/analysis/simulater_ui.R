@@ -58,8 +58,10 @@ rep_plot_inputs <- reactive({
   rep_plot_args
 })
 
-textinput_maker <- function(id = "const", lab = "Constant",
-                            rows = 3, pre = "sim_",
+textinput_maker <- function(id = "const", 
+                            lab = "Constant",
+                            rows = 3, 
+                            pre = "sim_",
                             placeholder = "Provide values in the input boxes above and then press the + symbol") {
   id <- paste0(pre, id)
   tags$textarea(state_init(id), id = id,

@@ -136,11 +136,11 @@ plot.nb <- function(x, ...) {
     # apply(x, 2, auc, y) %>% {. - min(.)} %>% {. / max(.)} %>% cbind(.,.) %>% set_colnames(levs)
     ## reporting auc for each variable
     # vimp <- apply(x, 2, auc, y) %>% round(., 3) %>% cbind(.,.) %>% set_colnames(levs)
-    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x)) %>% arrange_(.dots = "auc")
+    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x)) %>% 
+      arrange_at(.vars = "auc")
     vimp$vars <- factor(vimp$vars, levels = vimp$vars)
     p <- visualize(vimp, yvar = "auc", xvar = "vars", type = "bar", custom = TRUE) +
-      xlab("") +
-      ylab("Variable Importance (AUC)") +
+      labs(x = "", y = "Variable Importance (AUC)") +
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
       theme(axis.text.y = element_text(hjust = 0))
   } else {
@@ -287,8 +287,11 @@ plot.nb.predict <- function(x, xvar = "",
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
   if (facet_col != ".") byvar <- unique(c(byvar, facet_col))
 
-  tmp <- object %>% group_by_(.dots = byvar) %>% select_(.dots = c(byvar, "Prediction")) %>% summarise_all(funs(mean))
-  p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + geom_line()
+  tmp <- group_by_at(object, .vars = byvar) %>% 
+    select_at(.vars = c(byvar, "Prediction")) %>% 
+    summarise_all(funs(mean))
+  p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + 
+    geom_line()
 
   if (facet_row != "." || facet_col != ".") {
     facets <- ifelse (facet_row == ".", paste("~", facet_col), paste(facet_row, '~', facet_col))

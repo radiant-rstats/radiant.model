@@ -32,11 +32,11 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   dat <- spread_(dat, prod, rate)
 
-  idv <- select_(dat,id)
+  idv <- select_at(dat, .vars = id)
   uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique
   uid <- seq_len(nrow(dat))[idv[[1]] %in% uid[[1]]]
 
-  dat <- select_(dat, paste0("-",id))
+  dat <- select_at(dat, .vars = setdiff(colnames(dat), id))
 
   ## stop if insufficient overlap in ratings
   if (length(pred) >= (ncol(dat) - 1))
@@ -104,14 +104,21 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   recommendations <-
     inner_join(
-      bind_cols(gather(act, "product", "rating", -1),
-                select_(gather(ract, "product", "ranking", -1), .dots = "ranking"),
-                select_(gather(cf, "product", "cf", -1), .dots = "cf"),
-                select_(gather(rcf, "product", "cf_rank", -1), .dots = "cf_rank")),
-      data.frame(product = names(avg), average = t(avg), avg_rank = t(ravg)),
-      by = "product") %>%
-    arrange_(c(id, "product")) %>%
-    select_(.dots = c(id, "product", "rating", "average", "cf", "ranking", "avg_rank", "cf_rank"))
+      bind_cols(
+        gather(act, "product", "rating", -1),
+        select_at(gather(ract, "product", "ranking", -1), .vars = "ranking"),
+        select_at(gather(cf, "product", "cf", -1), .vars = "cf"),
+        select_at(gather(rcf, "product", "cf_rank", -1), .vars = "cf_rank")
+      ),
+      data.frame(
+        product = names(avg), 
+        average = t(avg), 
+        avg_rank = t(ravg)
+      ),
+      by = "product"
+    ) %>%
+    arrange_at(.vars = c(id, "product")) %>%
+    select_at(.vars = c(id, "product", "rating", "average", "cf", "ranking", "avg_rank", "cf_rank"))
 
   rm(dat, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
 

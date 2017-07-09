@@ -1,3 +1,7 @@
+# CHANGES IN radiant.model 0.8.7
+
+* Upgraded dplyr dependency to 0.7.1
+
 # CHANGES IN radiant.model 0.8.3
 
 * Moved coefficient formatting from summary.regress and summary.logistic to make result$coeff more easily accessible

@@ -128,7 +128,10 @@ output$ui_ann <- renderUI({
         ),
         conditionalPanel("input.ann_predict == 'cmd' | input.ann_predict == 'datacmd'",
           returnTextAreaInput("ann_pred_cmd", "Prediction command:",
-            value = state_init("ann_pred_cmd", ""))
+            value = state_init("ann_pred_cmd", ""),
+            rows = 3,
+            placeholder = "Type a formula to set values for model variables (e.g., carat = 1; cut = 'Ideal') and press return" 
+          )
         ),
         conditionalPanel(condition = "input.ann_predict != 'none'",
           checkboxInput("ann_pred_plot", "Plot predictions", state_init("ann_pred_plot", FALSE)),

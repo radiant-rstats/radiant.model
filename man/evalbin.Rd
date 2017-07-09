@@ -5,7 +5,7 @@
 \title{Model evalbin}
 \usage{
 evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
-  train = "", method = "xtile", data_filter = "")
+  train = "", data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
@@ -23,8 +23,6 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
 \item{margin}{Margin on each customer purchase}
 
 \item{train}{Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin}
-
-\item{method}{Use either ntile or xtile to split the data (default is xtile)}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 }

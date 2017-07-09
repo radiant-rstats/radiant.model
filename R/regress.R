@@ -404,25 +404,26 @@ plot.regress <- function(x, plots = "",
 
     plot_list[["dash1"]] <-
       visualize(model, xvar = ".fitted", yvar = rvar, type = "scatter", custom = TRUE) +
-      labs(list(title = "Actual vs Fitted values", x = "Fitted", y = "Actual"))
+      labs(title = "Actual vs Fitted values", x = "Fitted", y = "Actual")
 
     plot_list[["dash2"]] <-
       visualize(model, xvar = ".fitted", yvar = ".resid", type = "scatter", custom = TRUE) +
-      labs(list(title = "Residuals vs Fitted", x = "Fitted values", y = "Residuals"))
+      labs(title = "Residuals vs Fitted", x = "Fitted values", y = "Residuals")
 
     plot_list[["dash3"]] <- ggplot(model, aes(y=.resid, x=seq_along(.resid))) + geom_line() +
-      labs(list(title = "Residuals vs Row order", x = "Row order", y = "Residuals"))
+      labs(title = "Residuals vs Row order", x = "Row order", y = "Residuals")
 
     plot_list[["dash4"]] <- ggplot(model, aes_string(sample=".stdresid")) + stat_qq(alpha = .5) +
-      labs(list(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals"))
+      labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals")
 
     plot_list[["dash5"]] <-
       visualize(model, xvar = ".resid", custom = TRUE) +
-      labs(list(title = "Histogram of residuals", x = "Residuals"))
+      labs(title = "Histogram of residuals", x = "Residuals")
 
     plot_list[["dash6"]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
       stat_function(fun = dnorm, args = list(mean = mean(model[,'.resid']), sd = sd(model[,'.resid'])), color = "blue") +
-      labs(list(title = "Residuals vs Normal density", x = "Residuals", y = "")) + theme(axis.text.y = element_blank())
+      labs(title = "Residuals vs Normal density", x = "Residuals", y = "") + 
+      theme(axis.text.y = element_blank())
 
     if ("loess" %in% lines)
       for (i in paste0("dash",1:3)) plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "loess", size = .75, linetype = "dotdash") )
@@ -431,25 +432,25 @@ plot.regress <- function(x, plots = "",
       for (i in paste0("dash",c(1,4)))
         plot_list[[i]] <- plot_list[[i]] + geom_abline(linetype = 'dotdash')
       for (i in paste0("dash",2:3))
-        plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", colour = 'black') )
+        plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", colour = "black") )
     }
   }
 
   if ("dist" %in% plots) {
     for (i in vars) {
-      plot_list[[paste0("dist",i)]] <-
-        visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
+      plot_list[[paste0("dist",i)]] <- select_at(model, .vars = i) %>% 
+        visualize(xvar = i, bins = 10, custom = TRUE)
     }
   }
 
   if ("scatter" %in% plots) {
     for (i in evar) {
       if ("factor" %in% class(model[,i])) {
-        plot_list[[paste0("scatter",i)]] <-
-          visualize(select_(model, .dots = c(i,rvar)), xvar = i, yvar = rvar, type = "scatter", check = flines, alpha = .2, custom = TRUE)
+        plot_list[[paste0("scatter",i)]] <- select_at(model, .vars = c(i, rvar)) %>%
+          visualize(xvar = i, yvar = rvar, type = "scatter", check = flines, alpha = .2, custom = TRUE)
       } else {
-        plot_list[[paste0("scatter",i)]] <-
-          visualize(select_(model, .dots = c(i,rvar)), xvar = i, yvar = rvar, type = "scatter", check = nlines, custom = TRUE)
+        plot_list[[paste0("scatter",i)]] <- select_at(model, .vars = c(i, rvar)) %>%
+          visualize(xvar = i, yvar = rvar, type = "scatter", check = nlines, custom = TRUE)
       }
     }
   }
@@ -457,13 +458,13 @@ plot.regress <- function(x, plots = "",
   if ("resid_pred" %in% plots) {
     for (i in evar) {
       if ("factor" %in% class(model[,i])) {
-        plot_list[[paste0("resid_",i)]] <-
-          visualize(select_(model, .dots = c(i,".resid")), xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = .2, custom = TRUE) +
-          ylab("residuals")
+        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i,".resid")) %>% 
+          visualize(xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = .2, custom = TRUE) +
+          labs(y = "residuals")
       } else {
-        plot_list[[paste0("resid_",i)]] <-
-          visualize(select_(model, .dots = c(i,".resid")), xvar = i, yvar = ".resid", type = "scatter", check = nlines, custom = TRUE) +
-          ylab("residuals")
+        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i, ".resid")) %>% 
+          visualize(xvar = i, yvar = ".resid", type = "scatter", check = nlines, custom = TRUE) +
+          labs(y = "residuals")
       }
     }
   }
@@ -494,7 +495,8 @@ plot.regress <- function(x, plots = "",
           geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
           labs(y = yl, x = "") +
           scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
-          coord_flip() + theme(axis.text.y = element_text(hjust = 0))
+          coord_flip() + 
+          theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("correlations" %in% plots)
@@ -617,22 +619,22 @@ predict_model <- function(object, pfun, mclass,
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")
       if (!is.null(ms))
-        dat <- mutate_at(dat, .cols = names(ms), .funs = funs(. + ms$.))
+        dat <- mutate_at(dat, .vars = names(ms), .funs = funs(. + ms$.))
 
     } else if ("standardize" %in% object$check) {
       ms <- attr(object$model$model, "ms")
       sds <- attr(object$model$model,"sds")
       if (!is.null(ms) && !is.null(sds))
-        dat <- mutate_at(dat, .cols = names(ms), .funs = funs(. * 2 * sds$. + ms$.))
+        dat <- mutate_at(dat, .vars = names(ms), .funs = funs(. * 2 * sds$. + ms$.))
     }
 
     pred_cmd %<>% gsub("\"","\'",.) %>% gsub(";\\s*$","",.) %>% gsub(";",",",.)
     pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd ,"))"))), silent = TRUE)
-    if (is(pred, 'try-error'))
+    if (is(pred, "try-error"))
       return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
 
     # adding information to the prediction data.frame
-    dat <- select_(dat, .dots = vars)
+    dat <- select_at(dat, .vars = vars)
     if (!is.null(object$model$term))
       dat_classes <- attr(object$model$term, "dataClasses")[-1]
     else
@@ -652,11 +654,11 @@ predict_model <- function(object, pfun, mclass,
 
     plug_data <- data.frame(init___ = 1)
     if (sum(isNum) > 0)
-      plug_data %<>% bind_cols(., summarise_at(dat, .cols = vars[isNum], .funs = funs(mean)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = funs(mean)))
     if (sum(isFct) > 0)
-      plug_data %<>% bind_cols(., summarise_at(dat, .cols = vars[isFct], .funs = funs(max_freq)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = funs(max_freq)))
     if (sum(isLog) > 0)
-      plug_data %<>% bind_cols(., summarise_at(dat, .cols = vars[isLog], .funs = funs(max_lfreq)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isLog], .funs = funs(max_lfreq)))
 
     rm(dat)
 
@@ -675,22 +677,29 @@ predict_model <- function(object, pfun, mclass,
     ## generate predictions for all observations in the dataset
     pred <- getdata(pred_data, filt = "", na.rm = FALSE)
     pred_names <- names(pred)
-    pred <- try(select_(pred, .dots = vars), silent = TRUE)
+    pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 
-    if (is(pred, 'try-error'))
+    if (is(pred, "try-error"))
       return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
 
     if (!is_empty(pred_cmd)) {
-      pred_cmd <- pred_cmd %>% gsub("\"","\'",.) %>% gsub(" ","",.)
+      pred_cmd <- gsub("\"", "\'", pred_cmd) %>% 
+        gsub("\\s+", "", .) %>%
+        gsub("<-", "=", .)
       vars <-
-        strsplit(pred_cmd, ";")[[1]] %>% strsplit(., "=") %>%
-        sapply("[", 1) %>% gsub(" ","",.)
-      dots <- strsplit(pred_cmd, ";")[[1]] %>% gsub(" ","",.)
-      for (i in seq_along(dots))
-        dots[[i]] <- sub(paste0(vars[[i]],"="),"",dots[[i]])
+        strsplit(pred_cmd, ";")[[1]] %>% 
+        strsplit(., "=") %>%
+        sapply("[", 1) 
+      # dots <- strsplit(pred_cmd, ";")[[1]] %>% gsub(" ","",.)
+      # for (i in seq_along(dots))
+      #   dots[[i]] <- sub(paste0(vars[[i]],"="),"",dots[[i]])
 
-      pred <- try(mutate_(pred, .dots = setNames(dots, vars)), silent = TRUE)
-      if (is(pred, 'try-error')) {
+      dots <- rlang::parse_exprs(pred_cmd) %>%
+        set_names(vars)
+
+      pred <- try(mutate(pred, !!! dots), silent = TRUE)
+      # pred <- try(mutate_(pred, .dots = setNames(dots, vars)), silent = TRUE)
+      if (is(pred, "try-error")) {
         return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
       pred_type <- "datacmd"
@@ -801,12 +810,15 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   if (n == -1) {
     cat("\n")
-    formatdf(x[,vars, drop = FALSE], attr(x, "dec")) %>% print(row.names = FALSE)
+    formatdf(x[, vars, drop = FALSE], attr(x, "dec")) %>% 
+      print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
       cat("Rows shown           :", n, "of", formatnr(nrow(x), dec = 0), "\n")
     cat("\n")
-    head(x[,vars, drop = FALSE], n) %>% formatdf(attr(x, "dec")) %>% print(row.names = FALSE)
+    head(x[, vars, drop = FALSE], n) %>% 
+      formatdf(attr(x, "dec")) %>% 
+      print(row.names = FALSE)
   }
 }
 
@@ -881,7 +893,8 @@ plot.model.predict <- function(x, xvar = "",
   if ( any(!tbv %in% colnames(object)))
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
 
-  tmp <- object %>% group_by_(.dots = tbv) %>% select_(.dots = c(tbv, pvars)) %>%
+  tmp <- object %>% group_by_at(.vars = tbv) %>% 
+    select_at(.vars = c(tbv, pvars)) %>%
     summarise_all(funs(mean))
   if (color == 'none') {
     p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction"))
@@ -898,7 +911,7 @@ plot.model.predict <- function(x, xvar = "",
 
   ## needed now that geom_smooth no longer accepts ymin and ymax as arguments
   ## can't see line properly using geom_ribbon
-  if (color == 'none') {
+  if (color == "none") {
     p <- p + geom_line(aes(group = 1))
   } else {
     p <- p + geom_line()

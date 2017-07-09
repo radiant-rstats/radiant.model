@@ -125,7 +125,10 @@ output$ui_crtree <- renderUI({
         ),
         conditionalPanel("input.crtree_predict == 'cmd' | input.crtree_predict == 'datacmd'",
           returnTextAreaInput("crtree_pred_cmd", "Prediction command:",
-            value = state_init("crtree_pred_cmd", ""))
+            value = state_init("crtree_pred_cmd", ""),
+            rows = 3,
+            placeholder = "Type a formula to set values for model variables (e.g., carat = 1; cut = 'Ideal') and press return" 
+          )
         ),
         conditionalPanel(condition = "input.crtree_predict != 'none'",
           checkboxInput("crtree_pred_plot", "Plot predictions", state_init("crtree_pred_plot", FALSE)),

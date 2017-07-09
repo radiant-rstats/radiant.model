@@ -176,7 +176,10 @@ output$ui_regress <- renderUI({
         ),
         conditionalPanel("input.reg_predict == 'cmd' | input.reg_predict == 'datacmd'",
           returnTextAreaInput("reg_pred_cmd", "Prediction command:",
-            value = state_init("reg_pred_cmd", ""))
+            value = state_init("reg_pred_cmd", ""),
+            rows = 3,
+            placeholder = "Type a formula to set values for model variables (e.g., carat = 1; cut = 'Ideal') and press return" 
+          )
         ),
         conditionalPanel(condition = "input.reg_predict != 'none'",
           checkboxInput("reg_pred_plot", "Plot predictions", state_init("reg_pred_plot", FALSE)),

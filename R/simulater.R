@@ -320,10 +320,10 @@ plot.simulater <- function(x, shiny = FALSE, custom = FALSE, ...) {
 
   plot_list <- list()
   for (i in colnames(object)) {
-    dat <- select_(object, .dots = i)
+    dat <- select_at(object, .vars = i)
     if (!does_vary(object[[i]])) next
-    plot_list[[i]] <-
-      visualize(select_(object, .dots = i), xvar = i, bins = 20, custom = TRUE)
+    plot_list[[i]] <- select_at(object, .vars = i) %>%
+      visualize(xvar = i, bins = 20, custom = TRUE)
   }
 
   if (custom)
@@ -439,13 +439,11 @@ repeater <- function(nr = 12,
 
   summarize_sim <- function(object) {
     if (fun != "none") {
-      object %<>% group_by_(byvar) %>%
-        summarise_at(.cols = sum_vars, .funs = make_funs(fun)) %>%
+      object <- group_by_at(object, byvar) %>%
+        summarise_at(.vars = sum_vars, .funs = make_funs(fun)) %>%
         set_colnames(c(byvar, sum_vars))
-
-      # if (length(sum_vars) == 1 && length(fun) > 1) colnames(object) <- paste0(sum_vars, "_", colnames(object))
     } else {
-      object %<>% select_(.dots = c("rep","sim",sum_vars))
+      object <- select_at(object, .vars = c("rep","sim",sum_vars))
     }
     object
   }
@@ -657,14 +655,14 @@ plot.repeater <- function(x, shiny = FALSE, custom = FALSE, ...) {
   cfun <- sub("_rm$","",rc$fun)
   plot_list <- list()
   for (i in colnames(object)[-1]) {
-    dat <- select_(object, .dots = i)
+    dat <- select_at(object, .vars = i)
     if (!does_vary(object[[i]])) next
 
-    plot_list[[i]] <-
-      visualize(select_(object, .dots = i), xvar = i, bins = 20, custom = TRUE)
+    plot_list[[i]] <- select_at(object, .vars = i) %>%
+      visualize(xvar = i, bins = 20, custom = TRUE)
 
     if (i %in% rc$sum_vars && !is_empty(cfun, "none"))
-      plot_list[[i]] <- plot_list[[i]] + xlab(paste0(cfun, " of ", i))
+      plot_list[[i]] <- plot_list[[i]] + labs(x = paste0(cfun, " of ", i))
   }
 
   if (length(plot_list) == 0) return(invisible())
@@ -710,7 +708,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
       cat("Variables:\n")
       select(dat, which(isNum & !isConst)) %>%
         tidyr::gather_("variable", "values", cn) %>%
-        group_by_("variable") %>%
+        group_by_at(.vars = "variable") %>%
         summarise_all(funs(n = length, mean = mean_rm, sd = sd_rm, min = min_rm, `25%` = p25,
                            median = median_rm, `75%` = p75, max = max_rm)) %>%
         { if (fun == "" || fun == "none") . else {.[[1]] <- paste0(fun, " of ", .[[1]])}; . } %>%

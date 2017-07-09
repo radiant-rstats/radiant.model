@@ -89,7 +89,7 @@ crtree <- function(dataset, rvar, evar,
 
   if (!is_not(wts)) {
     wts <- dat[[wtsname]]
-    dat <- select_(dat, .dots = paste0("-",wtsname))
+    dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
 
     if (!is.integer(wts)) {
       ## rounding to avoid machine precision differences
@@ -493,7 +493,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
       if (is.null(imp)) return("Variable importance information not available for singlenode tree")
 
       df <- data.frame(vars = names(imp), imp = imp / sum(imp)) %>%
-        arrange_(.dots = "imp")
+        arrange_at(.vars = "imp")
       df$vars <- factor(df$vars, levels = df$vars)
 
       plot_list[["imp"]] <-

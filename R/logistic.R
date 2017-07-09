@@ -55,11 +55,13 @@ logistic <- function(dataset, rvar, evar,
       wts_int <- as.integer(round(wts,.Machine$double.rounding))
       if (all(round(wts,.Machine$double.rounding) == wts_int)) {
         wts <- wts_int
+      } else {
+        ## if wts is a double use robust estimation
         check <- union(check, "robust")
       }
       rm(wts_int)
     }
-    dat <- select_(dat, .dots = paste0("-", wtsname))
+    dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
   }
 
   if (any(summarise_all(dat, funs(does_vary)) == FALSE))
@@ -230,8 +232,9 @@ summary.logistic <- function(object,
   logit_fit <- glance(object$model)
 
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
-  logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>% round(dec)
-  if (!is_empty(object$wts, "None") && class(object$wts) == "integer") {
+  logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>% 
+    round(dec)
+  if ("robust" %in% object$check) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2*logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
@@ -257,7 +260,6 @@ summary.logistic <- function(object,
     } else {
       ## needed to adjust when step-wise regression is used
       if (length(attributes(object$model$terms)$term.labels) > 1) {
-      # if (length(object$evar) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
           {if (is.null(dim(.))) . else .[,"GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
@@ -421,12 +423,19 @@ plot.logistic <- function(x,
   object <- x; rm(x)
   if (is.character(object)) return(object)
 
-  if (class(object$model)[1] != 'glm') return(object)
+  if (class(object$model)[1] != "glm") return(object)
 
   if (is_empty(plots[1]))
     return("Please select a logistic regression plot from the drop-down menu")
 
-  model <- ggplot2::fortify(object$model)
+  if ("(weights)" %in% colnames(object$model$model) && 
+      min(object$model$model[["(weights)"]]) == 0) {
+    model <- object$model$model
+  } else {
+    ## fortify chokes when a weight variable has 0s
+    model <- ggplot2::fortify(object$model)
+  }
+
   model$.fitted <- predict(object$model, type = "response")
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
@@ -443,7 +452,8 @@ plot.logistic <- function(x,
 
   if ("dist" %in% plots) {
     for (i in vars)
-      plot_list[[paste("dist_", i)]] <- visualize(select_(model, .dots = i), xvar = i, bins = 10, custom = TRUE)
+      plot_list[[paste("dist_", i)]] <- select_at(model, .vars = i) %>%
+        visualize(xvar = i, bins = 10, custom = TRUE)
   }
 
   if ("coef" %in% plots) {
@@ -462,7 +472,6 @@ plot.logistic <- function(x,
       }}
 
     nrCol <- 1
-    # if ((!is_empty(object$wts, "None") && class(object$wts) != "integer") || "robust" %in% object$check)
     if ("robust" %in% object$check)
       cnfint <- radiant.model::confint_robust
     else
@@ -496,8 +505,8 @@ plot.logistic <- function(x,
                             geom_bar(position = "fill", alpha=.5) +
                             labs(y = "")
       } else {
-        plot_list[[paste0("scatter_",i)]] <-
-          visualize(select_(model, .dots = c(i,rvar)), xvar = rvar, yvar = i, check = "jitter", type = "scatter", custom = TRUE)
+        plot_list[[paste0("scatter_",i)]] <- select(model, .vars = c(i,rvar)) %>%
+          visualize(xvar = rvar, yvar = i, check = "jitter", type = "scatter", custom = TRUE)
       }
     }
     nrCol <- 1
@@ -516,19 +525,21 @@ plot.logistic <- function(x,
 
     if (prop(model$.actual[model$.fittedbin == min_bin]) < prop(model$.actual[model$.fittedbin == max_bin])) {
       model$.fittedbin <- 1 + max_bin - model$.fittedbin
-      df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(.fitted))
+      df <- group_by_at(model, .vars = ".fittedbin") %>% 
+        summarise(Probability = mean(.fitted))
     } else {
-      df <- group_by_(model, ".fittedbin") %>% summarise(Probability = mean(1 - .fitted))
+      df <- group_by_at(model, .vars = ".fittedbin") %>% 
+        summarise(Probability = mean(1 - .fitted))
     }
 
     plot_list[["fit"]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
-      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +
-      labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
+        geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +
+        labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
   }
 
   if ("correlations" %in% plots)
-    return(radiant.basics:::plot.correlation(select_(model, .dots = vars)))
+    return(radiant.basics:::plot.correlation(select_at(model, .vars = vars)))
 
   if (custom)
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
@@ -671,8 +682,8 @@ minmax <- function(dat) {
   if (sum(isNum) == 0) return(dat)
   cn <- names(isNum)[isNum]
 
-  mn <- summarise_at(dat, .cols = cn, .funs = funs(min(., na.rm = TRUE)))
-  mx <- summarise_at(dat, .cols = cn, .funs = funs(max(., na.rm = TRUE)))
+  mn <- summarise_at(dat, .vars = cn, .funs = funs(min(., na.rm = TRUE)))
+  mx <- summarise_at(dat, .vars = cn, .funs = funs(max(., na.rm = TRUE)))
 
   list(min = mn, max = mx)
 }
@@ -743,7 +754,7 @@ write.coeff <- function(object, file = "", sort = FALSE) {
   else
     object$importance <- abs(object$coeff)
 
-  if (sort) object <- arrange_(object, "desc(importance)")
+  if (sort) object <- arrange(object, desc(.data$importance))
 
   if (!is_empty(file))
     sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))

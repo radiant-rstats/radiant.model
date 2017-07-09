@@ -80,7 +80,7 @@
 
 #   # dots <- sub("^","~",dots) %>% lapply(as.formula, env = r_env)
 #   # dots <- as.formula(paste0("~",method))
-#   # nvar <- try(group_by_(dataset, .dots = byvar) %>% mutate_(.dots = setNames(dots, vars)), silent = TRUE)
+#   # nvar <- try(group_by_at(dataset, .vars = byvar) %>% mutate_(.dots = setNames(dots, vars)), silent = TRUE)
 
 #   ## tip for summarise_ from http://stackoverflow.com/a/27592077/1974918
 #   ## put summaries in list so you can print and plot

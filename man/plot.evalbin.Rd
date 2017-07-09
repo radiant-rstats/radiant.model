@@ -27,7 +27,6 @@ See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an exampl
 \examples{
 evalbin("titanic", "age", "survived") \%>\% plot
 evalbin("titanic", c("age","fare"), "survived") \%>\% plot
-evalbin("titanic", c("age","fare"), "survived", method = "xtile") \%>\% plot
 evalbin("titanic", c("age","fare"), "survived") \%>\% summary
 
 }

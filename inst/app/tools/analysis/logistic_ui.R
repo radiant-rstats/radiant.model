@@ -201,7 +201,10 @@ output$ui_logistic <- renderUI({
         ),
         conditionalPanel("input.logit_predict == 'cmd' | input.logit_predict == 'datacmd'",
           returnTextAreaInput("logit_pred_cmd", "Prediction command:",
-            value = state_init("logit_pred_cmd",""))
+            value = state_init("logit_pred_cmd",""),
+            rows = 3,
+            placeholder = "Type a formula to set values for model variables (e.g., class = '1st'; gender = 'male') and press return" 
+          )
         ),
         conditionalPanel(condition = "input.logit_predict != 'none'",
           checkboxInput("logit_pred_plot", "Plot predictions", state_init("logit_pred_plot", FALSE)),

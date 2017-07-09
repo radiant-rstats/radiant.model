@@ -84,9 +84,9 @@ output$ui_dtree_sense <- renderUI({
     HTML("<label>Add variable: <i id='dtree_sense_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
           <i id='dtree_sense_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
     with(tags, table(
-        td(numericInput("dtree_sense_min", "Min:", value = state_init("dtree_sense_min"))),
-        td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
-        td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
+      td(numericInput("dtree_sense_min", "Min:", value = state_init("dtree_sense_min"))),
+      td(numericInput("dtree_sense_max", "Max:", value = state_init("dtree_sense_max"))),
+      td(numericInput("dtree_sense_step", "Step:", value = state_init("dtree_sense_step")))
     )),
     textinput_maker(id = "sense", lab = "Add variable", rows = 3, pre = "dtree_")
   )

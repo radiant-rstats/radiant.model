@@ -61,10 +61,10 @@ ann <- function(dataset, rvar, evar,
 
   if (!is.null(wts)) {
     wts <- dat[[wtsname]]
-    dat <- select_(dat, .dots = paste0("-",wtsname))
+    dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
   }
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE))
+  if (any(summarise_all(dat, .funs = funs(does_vary)) == FALSE))
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("ann"))
 
   rv <- dat[[rvar]]
@@ -153,13 +153,13 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
 
   if (calc) {
     if (length(wts) == 0) {
-      ms <- summarise_at(dat, .cols = cn, .funs = funs(mean(., na.rm = TRUE)))
+      ms <- summarise_at(dat, .vars = cn, .funs = funs(mean(., na.rm = TRUE)))
       if (scale)
-        sds <- summarise_at(dat, .cols = cn, .funs = funs(sd(., na.rm = TRUE)))
+        sds <- summarise_at(dat, .vars = cn, .funs = funs(sd(., na.rm = TRUE)))
     } else {
-      ms <- summarise_at(dat, .cols = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE)))
+      ms <- summarise_at(dat, .vars = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE)))
       if (scale)
-        sds <- summarise_at(dat, .cols = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE)))
+        sds <- summarise_at(dat, .vars = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE)))
     }
   } else {
     ms <- attr(dat,"ms")
@@ -167,14 +167,14 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
     if (is.null(ms) && is.null(sds)) return(dat)
   }
   if (center && scale) {
-    mutate_at(dat, .cols = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
+    mutate_at(dat, .vars = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
       set_attr("ms", ms) %>%
       set_attr("sds", sds)
   } else if (center) {
-    mutate_at(dat, .cols = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
+    mutate_at(dat, .vars = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
       set_attr("ms", ms)
   } else if (scale) {
-    mutate_at(dat, .cols = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
+    mutate_at(dat, .vars = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
       set_attr("sds", sds)
   } else {
     dat

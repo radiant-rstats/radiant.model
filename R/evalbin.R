@@ -10,7 +10,6 @@
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
-#' @param method Use either ntile or xtile to split the data (default is xtile)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list of results
@@ -28,7 +27,6 @@ evalbin <- function(dataset, pred, rvar,
                     cost = 1,
                     margin = 2,
                     train = "",
-                    method = "xtile",
                     data_filter = "") {
 
   ## in case no inputs were provided
@@ -56,7 +54,6 @@ evalbin <- function(dataset, pred, rvar,
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   qnt_name <- "bins"
-  if (method == "xtile") method <- "radiant.data::xtile"
 
   auc_list <- list()
   prof_list <- c()
@@ -94,14 +91,19 @@ evalbin <- function(dataset, pred, rvar,
       auc_list[[pname]] <- auc(dat[[pred[j]]],dat[[rvar]], TRUE)
       lg_list[[pname]] <-
         dat %>%
-        select_(.dots = c(pred[j],rvar)) %>%
-        mutate_(.dots = setNames(paste0(method,"(",pred[j],",", qnt,", rev = TRUE)"), pred[j])) %>%
-        setNames(c(qnt_name,rvar)) %>%
-        group_by_(.dots = qnt_name) %>%
-        summarise_(.dots = c(
-          nr_obs = "n()",
-          nr_resp = paste0("sum(",rvar,")")
-        )) %>%
+        select_at(.vars = c(pred[j],rvar)) %>%
+        # mutate_(.dots = setNames(paste0(method,"(",pred[j],",", qnt,", rev = TRUE)"), pred[j])) %>%
+        mutate(!! pred[j] := radiant.data::xtile(.data[[pred[j]]], n = qnt, rev = TRUE)) %>%
+        setNames(c(qnt_name, rvar)) %>%
+        group_by_at(.vars = qnt_name) %>%
+        # summarise_(.dots = c(
+        #   nr_obs = "n()",
+        #   nr_resp = paste0("sum(",rvar,")")
+        # )) %>%
+        summarise(
+          nr_obs = n(),
+          nr_resp = sum(.data[[rvar]])
+        ) %>%
         mutate(
           resp_rate = nr_resp / nr_obs,
           gains = nr_resp / tot_resp
@@ -254,10 +256,10 @@ confusion <- function(dataset, pred, rvar,
 
     p_vec <- colMeans(dat[,pred, drop = FALSE]) / mean(dat[[rvar]])
 
-    dat[, pred] <- select_(dat, .dots = pred) > break_even
+    dat[, pred] <- select_at(dat, .vars = pred) > break_even
 
     if (length(pred) > 1) {
-      dat <- mutate_at(dat, .cols = c(rvar, pred), .funs = funs(factor(., levels = c("FALSE","TRUE"))))
+      dat <- mutate_at(dat, .vars = c(rvar, pred), .funs = funs(factor(., levels = c("FALSE","TRUE"))))
     } else {
       dat[,pred] %<>% apply(2, function(x) factor(x, levels = c("FALSE","TRUE")))
     }
@@ -282,9 +284,12 @@ confusion <- function(dataset, pred, rvar,
       }
       return(ret)
     }
-    ret <- lapply(select_(dat,.dots = pred), make_tab) %>% as.data.frame %>% t %>% as.data.frame
-    ret <- bind_cols(data.frame(Type = rep(i, length(pred)), Predictor = pred), ret,
-                     data.frame(AUC = auc_vec, p.ratio = p_vec))
+    ret <- lapply(select_at(dat, .vars = pred), make_tab) %>% as.data.frame %>% t %>% as.data.frame
+    ret <- bind_cols(
+      data.frame(Type = rep(i, length(pred)), Predictor = pred), 
+      ret, 
+      data.frame(AUC = auc_vec, p.ratio = p_vec)
+    )
 
     pdat[[i]] <- ret
   }
@@ -303,7 +308,8 @@ confusion <- function(dataset, pred, rvar,
       kappa = 0
     )
 
-  dat <- group_by_(dat, "Type") %>% mutate(index = profit / max(profit)) %>% ungroup
+  dat <- group_by_at(dat, .vars = "Type") %>% 
+    mutate(index = profit / max(profit)) %>% ungroup
   dat <- mutate(dat, profit = as.integer(round(profit,0)))
 
   for (i in 1:nrow(dat)) {
@@ -311,9 +317,11 @@ confusion <- function(dataset, pred, rvar,
     dat$kappa[i] <- psych::cohen.kappa(matrix(with(tmp, c(TN,FP,FN,TP)), ncol = 2))[["kappa"]]
   }
 
-  dat <- select_(dat, .dots = c("Type","Predictor", "TP", "FP", "TN", "FN",
-                                "total", "TPR", "TNR", "precision", "Fscore", "accuracy",
-                                "kappa", "profit", "index", "ROME", "contact", "AUC"))
+  dat <- select_at(dat, 
+    .vars = c("Type","Predictor", "TP", "FP", "TN", "FN", "total", 
+              "TPR", "TNR", "precision", "Fscore", "accuracy", 
+              "kappa", "profit", "index", "ROME", "contact", "AUC")
+  )
 
   rm(pdat, dat_list)
 
@@ -371,7 +379,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
   if (is.character(object) || is.null(object)) return(invisible())
 
   dat <- object$dat %>%
-    mutate_at(.cols = c("TN","FN","FP","TP"), .funs = funs(if (is.numeric(.)) . / total else .))
+    mutate_at(.vars = c("TN","FN","FP","TP"), .funs = funs(if (is.numeric(.)) . / total else .))
 
   gather_(dat, "Metric", "Value", vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
@@ -403,7 +411,6 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' @examples
 #' evalbin("titanic", "age", "survived") %>% plot
 #' evalbin("titanic", c("age","fare"), "survived") %>% plot
-#' evalbin("titanic", c("age","fare"), "survived", method = "xtile") %>% plot
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
