@@ -394,12 +394,14 @@ observeEvent(input$dtree_remove, {
   inp <- list(yl = dtree_name)
   if (input$dtree_opt == "min") inp$opt <- "min"
 
-  update_report(inp_main = inp,
-                fun_name = "dtree",
-                inp_out = inp_out,
-                outputs = outputs,
-                figs = figs,
-                fig.width = dtree_sense_width(),
-                fig.height = dtree_sense_height(),
-                xcmd = xcmd)
+  update_report(
+    inp_main = inp, 
+    fun_name = "dtree", 
+    inp_out = inp_out, 
+    outputs = outputs, 
+    figs = figs, 
+    fig.width = dtree_sense_width(), 
+    fig.height = dtree_sense_height(), 
+    xcmd = xcmd
+  )
 })
