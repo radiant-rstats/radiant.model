@@ -232,9 +232,9 @@ summary.logistic <- function(object,
   logit_fit <- glance(object$model)
 
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
-  logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>% 
+  logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>%
     round(dec)
-  if ("robust" %in% object$check) {
+  if (is.integer(object$wts)) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2*logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
@@ -428,7 +428,7 @@ plot.logistic <- function(x,
   if (is_empty(plots[1]))
     return("Please select a logistic regression plot from the drop-down menu")
 
-  if ("(weights)" %in% colnames(object$model$model) && 
+  if ("(weights)" %in% colnames(object$model$model) &&
       min(object$model$model[["(weights)"]]) == 0) {
     model <- object$model$model
   } else {
@@ -525,10 +525,10 @@ plot.logistic <- function(x,
 
     if (prop(model$.actual[model$.fittedbin == min_bin]) < prop(model$.actual[model$.fittedbin == max_bin])) {
       model$.fittedbin <- 1 + max_bin - model$.fittedbin
-      df <- group_by_at(model, .vars = ".fittedbin") %>% 
+      df <- group_by_at(model, .vars = ".fittedbin") %>%
         summarise(Probability = mean(.fitted))
     } else {
-      df <- group_by_at(model, .vars = ".fittedbin") %>% 
+      df <- group_by_at(model, .vars = ".fittedbin") %>%
         summarise(Probability = mean(1 - .fitted))
     }
 
@@ -588,7 +588,7 @@ predict.logistic <- function(object,
  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) 
+  if (!is.character(pred_data))
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
 
   pfun <- function(model, pred, se, conf_lev) {
