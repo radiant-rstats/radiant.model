@@ -422,7 +422,7 @@ plot.regress <- function(x, plots = "",
 
     plot_list[["dash6"]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
       stat_function(fun = dnorm, args = list(mean = mean(model[,'.resid']), sd = sd(model[,'.resid'])), color = "blue") +
-      labs(title = "Residuals vs Normal density", x = "Residuals", y = "") + 
+      labs(title = "Residuals vs Normal density", x = "Residuals", y = "") +
       theme(axis.text.y = element_blank())
 
     if ("loess" %in% lines)
@@ -438,7 +438,7 @@ plot.regress <- function(x, plots = "",
 
   if ("dist" %in% plots) {
     for (i in vars) {
-      plot_list[[paste0("dist",i)]] <- select_at(model, .vars = i) %>% 
+      plot_list[[paste0("dist",i)]] <- select_at(model, .vars = i) %>%
         visualize(xvar = i, bins = 10, custom = TRUE)
     }
   }
@@ -458,11 +458,11 @@ plot.regress <- function(x, plots = "",
   if ("resid_pred" %in% plots) {
     for (i in evar) {
       if ("factor" %in% class(model[,i])) {
-        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i,".resid")) %>% 
+        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i,".resid")) %>%
           visualize(xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = .2, custom = TRUE) +
           labs(y = "residuals")
       } else {
-        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i, ".resid")) %>% 
+        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
           visualize(xvar = i, yvar = ".resid", type = "scatter", check = nlines, custom = TRUE) +
           labs(y = "residuals")
       }
@@ -495,7 +495,7 @@ plot.regress <- function(x, plots = "",
           geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
           labs(y = yl, x = "") +
           scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
-          coord_flip() + 
+          coord_flip() +
           theme(axis.text.y = element_text(hjust = 0))
   }
 
@@ -553,10 +553,14 @@ predict.regress <- function(object,
                             dec = 3,
                             ...) {
 
- if (is.character(object)) return(object)
- if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
+  if (is.character(object)) return(object)
+  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
- pfun <- function(model, pred, se, conf_lev) {
+  ## ensure you have a name for the prediction dataset
+  if (!is.character(pred_data))
+    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+
+  pfun <- function(model, pred, se, conf_lev) {
 
     pred_val <-
       try(sshhr(
@@ -683,13 +687,13 @@ predict_model <- function(object, pfun, mclass,
       return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
 
     if (!is_empty(pred_cmd)) {
-      pred_cmd <- gsub("\"", "\'", pred_cmd) %>% 
+      pred_cmd <- gsub("\"", "\'", pred_cmd) %>%
         gsub("\\s+", "", .) %>%
         gsub("<-", "=", .)
       vars <-
-        strsplit(pred_cmd, ";")[[1]] %>% 
+        strsplit(pred_cmd, ";")[[1]] %>%
         strsplit(., "=") %>%
-        sapply("[", 1) 
+        sapply("[", 1)
       # dots <- strsplit(pred_cmd, ";")[[1]] %>% gsub(" ","",.)
       # for (i in seq_along(dots))
       #   dots[[i]] <- sub(paste0(vars[[i]],"="),"",dots[[i]])
@@ -726,7 +730,7 @@ predict_model <- function(object, pfun, mclass,
     pred_val <- pfun(object$model, pred, se, conf_lev)
   }
 
-  if (!is(pred_val, 'try-error')) {
+  if (!is(pred_val, "try-error")) {
     ## scale rvar
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
@@ -782,6 +786,8 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   vars <- attr(x, "vars")
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
+  if (!is.character(pred_data))
+    pred_data <- attr(pred_data, "pred_data")
 
   pred_cmd <- gsub("([\\=\\+\\*-])", " \\1 ", attr(x, "pred_cmd")) %>%
     gsub("([;,])", "\\1 ", .) %>%
@@ -798,7 +804,6 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   if (!is_empty(attr(x, "wtsname")))
     cat("Weights used         :", attr(x, "wtsname"), "\n")
 
-  if (!is.character(pred_data)) pred_data <- deparse(substitute(pred_data)) %>% set_attr("df", TRUE)
   if (pred_type == "cmd") {
     cat("Prediction command   :", pred_cmd, "\n")
   } else if (pred_type == "datacmd") {
@@ -810,14 +815,14 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   if (n == -1) {
     cat("\n")
-    formatdf(x[, vars, drop = FALSE], attr(x, "dec")) %>% 
+    formatdf(x[, vars, drop = FALSE], attr(x, "dec")) %>%
       print(row.names = FALSE)
   } else {
     if (nrow(x) > n)
       cat("Rows shown           :", n, "of", formatnr(nrow(x), dec = 0), "\n")
     cat("\n")
-    head(x[, vars, drop = FALSE], n) %>% 
-      formatdf(attr(x, "dec")) %>% 
+    head(x[, vars, drop = FALSE], n) %>%
+      formatdf(attr(x, "dec")) %>%
       print(row.names = FALSE)
   }
 }
@@ -893,7 +898,7 @@ plot.model.predict <- function(x, xvar = "",
   if ( any(!tbv %in% colnames(object)))
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
 
-  tmp <- object %>% group_by_at(.vars = tbv) %>% 
+  tmp <- object %>% group_by_at(.vars = tbv) %>%
     select_at(.vars = c(tbv, pvars)) %>%
     summarise_all(funs(mean))
   if (color == 'none') {

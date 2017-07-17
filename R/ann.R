@@ -319,6 +319,11 @@ predict.ann <- function(object,
                         ...) {
 
   if (is.character(object)) return(object)
+
+  ## ensure you have a name for the prediction dataset
+  if (!is.character(pred_data)) 
+    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 

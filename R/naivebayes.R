@@ -204,6 +204,11 @@ predict.nb <- function(object,
                        ...) {
 
   if (is.character(object)) return(object)
+
+  ## ensure you have a name for the prediction dataset
+  if (!is.character(pred_data)) 
+    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+
   pfun <- function(model, pred, se, conf_lev) {
 
     ## need to make sure levels in original data and pred are the same
@@ -241,9 +246,8 @@ predict.nb <- function(object,
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.nb.predict <- function(x, ..., n = 10) {
+print.nb.predict <- function(x, ..., n = 10) 
   print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier", lev = attr(x, "lev"))
-}
 
 #' Plot method for nb.predict function
 #'

@@ -587,6 +587,10 @@ predict.logistic <- function(object,
  if (is.character(object)) return(object)
  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
+  ## ensure you have a name for the prediction dataset
+  if (!is.character(pred_data)) 
+    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <-
       try(sshhr(
@@ -598,7 +602,7 @@ predict.logistic <- function(object,
       if (se) {
         pred_val %<>% data.frame %>% select(1:2)
         pred_val %<>% data.frame %>% select(1:2)
-        colnames(pred_val) <- c("Prediction","std.error")
+        colnames(pred_val) <- c("Prediction", "std.error")
         # object$ymin <- object$Prediction - qnorm(.5 + conf_lev/2)*object$std.error
         # object$ymax <- object$Prediction + qnorm(.5 + conf_lev/2)*object$std.error
       } else {
