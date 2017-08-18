@@ -731,7 +731,7 @@ predict_model <- function(object, pfun, mclass,
   }
 
   if (!is(pred_val, "try-error")) {
-    ## scale rvar
+    ## scale rvar for regression models
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
       if (!is.null(ms))

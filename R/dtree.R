@@ -653,7 +653,7 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
 
   plot_list <- list()
   for (i in names(ret)) {
-    dat <- gather_(ret[[i]],"decisions", "payoffs", setdiff(names(ret[[i]]),"values"))
+    dat <- gather(ret[[i]],"decisions", "payoffs", !! setdiff(names(ret[[i]]), "values"))
     plot_list[[i]] <-
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
         geom_line() + geom_point() +

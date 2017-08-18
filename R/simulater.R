@@ -707,10 +707,20 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
       cn <- names(dc)[isRnd]
       cat("Variables:\n")
       select(dat, which(isNum & !isConst)) %>%
-        tidyr::gather_("variable", "values", cn) %>%
+        gather("variable", "values", !! cn) %>%
         group_by_at(.vars = "variable") %>%
-        summarise_all(funs(n = length, mean = mean_rm, sd = sd_rm, min = min_rm, `25%` = p25,
-                           median = median_rm, `75%` = p75, max = max_rm)) %>%
+        summarise_all(
+          funs(
+            n = length, 
+            mean = mean_rm, 
+            sd = sd_rm, 
+            min = min_rm, 
+            `25%` = p25, 
+            median = median_rm, 
+            `75%` = p75, 
+            max = max_rm
+          )
+        ) %>%
         { if (fun == "" || fun == "none") . else {.[[1]] <- paste0(fun, " of ", .[[1]])}; . } %>%
         { .[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE) %>%
@@ -736,11 +746,13 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
 #' @return Cleaned string
 #'
 #' @export
-sim_cleaner <- function(x) x %>% gsub("[ ]{2,}"," ",.) %>%
-  gsub("[ ]*[\n;]+[ ]*",";",.) %>%
-  gsub("[;]{2,}",";",.) %>%
-  gsub(";$","",.) %>%
-  gsub("^;","",.)
+sim_cleaner <- function(x) {
+  gsub("[ ]{2,}", " ", x) %>%
+  gsub("[ ]*[\n;]+[ ]*",";", .) %>%
+  gsub("[;]{2,}",";", .) %>%
+  gsub(";$", "", .) %>%
+  gsub("^;", "", .)
+}
 
 #' Split input command string
 #'
@@ -750,7 +762,11 @@ sim_cleaner <- function(x) x %>% gsub("[ ]{2,}"," ",.) %>%
 #' @return Split input command string
 #'
 #' @export
-sim_splitter <- function(x, symbol = " ") x %>% strsplit(., ";") %>% extract2(1) %>% strsplit(.,symbol)
+sim_splitter <- function(x, symbol = " ") {
+  strsplit(x, ";") %>% 
+  extract2(1) %>% 
+  strsplit(., symbol)
+}
 
 #' Find maxium value of a vector
 #'
@@ -761,7 +777,8 @@ sim_splitter <- function(x, symbol = " ") x %>% strsplit(., ";") %>% extract2(1)
 #'
 #' @export
 find_max <- function(var, val = "") {
-  if (is_empty(val)) stop("Error in find_max (2 inputs required)\nSpecify the variable to evaluate at the maxium of the first input")
+  if (is_empty(val)) 
+    stop("Error in find_max (2 inputs required)\nSpecify the variable to evaluate at the maxium of the first input")
   val[which.max(var)]
 }
 
@@ -774,7 +791,8 @@ find_max <- function(var, val = "") {
 #'
 #' @export
 find_min <- function(var, val = "") {
-  if (is_empty(val)) stop("Error in find_min (2 inputs required)\nSpecify the variable to evaluate at the minimum of the first input")
+  if (is_empty(val)) 
+    stop("Error in find_min (2 inputs required)\nSpecify the variable to evaluate at the minimum of the first input")
   val[which.min(var)]
 }
 

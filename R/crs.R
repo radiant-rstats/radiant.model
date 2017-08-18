@@ -30,7 +30,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   if (nr < nrow(dat))
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
 
-  dat <- spread_(dat, prod, rate)
+  dat <- spread(dat, !! prod, !! rate)
 
   idv <- select_at(dat, .vars = id)
   uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique

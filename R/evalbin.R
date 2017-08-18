@@ -381,7 +381,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
   dat <- object$dat %>%
     mutate_at(.vars = c("TN","FN","FP","TP"), .funs = funs(if (is.numeric(.)) . / total else .))
 
-  gather_(dat, "Metric", "Value", vars, factor_key = TRUE) %>%
+  gather(dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
     {if (scale_y) {
       visualize(., xvar = "Predictor", yvar = "Value", type = "bar",
@@ -414,7 +414,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
-plot.evalbin <- function(x, plots = c("lift","gains"), shiny = FALSE, custom = FALSE, ...) {
+plot.evalbin <- function(x, plots = c("lift", "gains"), shiny = FALSE, custom = FALSE, ...) {
 
   object <- x; rm(x)
   if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||

@@ -156,13 +156,11 @@ plot.nb <- function(x, ...) {
     colnames(vimp) <- names(x)
     vimp$Predict <- apply(cmb, 2, paste0, collapse = " vs ")
     vimp$Predict <- factor(vimp$Predict, levels = unique(rev(vimp$Predict)))
-    vimp <- gather_(vimp, "vars", "auc", names(x), factor_key = TRUE)
+    vimp <- gather(vimp, "vars", "auc", !! names(x), factor_key = TRUE)
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
       guides(fill = guide_legend(title = "X-vars")) +
-      xlab("") +
-      ylab("Variable Importance (AUC)") + 
-      # scale_x_discrete(limits = rev(vimp$Predict)) +
+      labs(x = "", y = "Variable Importance (AUC)") + 
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
       theme(axis.text.y = element_text(hjust = 0)) 
   }
@@ -285,7 +283,7 @@ plot.nb.predict <- function(x, xvar = "",
 
   pvars <- setdiff(attr(object, "vars"), attr(object, "evar"))
   rvar <- attr(object, "rvar")
-  object %<>% gather_(".class", "Prediction", gather_cols = pvars)
+  object %<>% gather(".class", "Prediction", !! pvars)
 
   byvar <- c(xvar, color)
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))

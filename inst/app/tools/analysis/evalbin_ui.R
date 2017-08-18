@@ -131,10 +131,12 @@ output$evalbin <- renderUI({
     )
   )
 
-  stat_tab_panel(menu = "Model > Evaluate",
-                tool = "Evaluate classification",
-                tool_ui = "ui_evalbin",
-                output_panels = ebin_output_panels)
+  stat_tab_panel(
+    menu = "Model > Evaluate",
+    tool = "Evaluate classification",
+    tool_ui = "ui_evalbin",
+    output_panels = ebin_output_panels
+  )
 })
 
 .evalbin <- eventReactive(input$ebin_run, {
@@ -154,7 +156,10 @@ output$evalbin <- renderUI({
       is_empty(input$ebin_lev)) {
     return(" ")
   }
-  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  if (not_pressed(input$ebin_run))
+    return("** Press the Evaluate button to evaluate models **")
+  if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && is_empty(input$data_filter))))
+    return("** Filter required. To set a filter go to Data > View and click the filter checkbox **")
   if (all(is_empty(input$ebin_plots))) return("** Select a plot to display **")
   plot(.evalbin(), plots = input$ebin_plots, shiny = TRUE)
 })

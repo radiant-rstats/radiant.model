@@ -95,14 +95,21 @@ summary.evalreg <- function(object, ...) {
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #'
 #' @export
-plot.evalreg <- function(x, vars = c("Rsq","RMSE","MAE"), ...) {
+plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
 
   object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
 
-  gather_(object$dat, "Metric", "Value", vars, factor_key = TRUE) %>%
+  gather(object$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
-    visualize(xvar = "Predictor", yvar = "Value", type = "bar",
-              facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE) +
+    visualize(
+      xvar = "Predictor", 
+      yvar = "Value", 
+      type = "bar",
+      facet_row = "Metric", 
+      fill = "Type", 
+      axes = "scale_y", 
+      custom = TRUE
+    ) +
     labs(y = "", x = "Predictor")
 }

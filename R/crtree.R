@@ -419,7 +419,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     non_leafs <- which(df$var != "<leaf>")
     df$to1[non_leafs] <- df$id[non_leafs + 1]
     df$to2[non_leafs] <- df$to1[non_leafs] + 1
-    df <- gather_(df, "level", "to", c("to1", "to2"))
+    df <- gather(df, "level", "to", !! c("to1", "to2"))
 
     df$to <- as.integer(df$to)
     df$edge <- ifelse (df$level == "to1", df$split1, df$split2) %>% {paste0("--- |", ., "|")}
