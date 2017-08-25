@@ -440,6 +440,10 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     style <- paste0(
       "classDef default fill:none, bg:none, stroke-width:0px;
       classDef leaf fill:#9ACD32,stroke:#333,stroke-width:1px;
+      classDef chance fill:#FF8C00,stroke:#333,stroke-width:1px;
+      classDef chance_with_cost fill:#FF8C00,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
+      classDef decision fill:#9ACD32,stroke:#333,stroke-width:1px;
+      classDef decision_with_cost fill:#9ACD32,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
       class ", paste(leafs, collapse = ","), " leaf;")
 
     ttip <- df[1:(nrow(df)/2),] %>%  {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, "\"", collapse = "\n")}
