@@ -91,7 +91,7 @@ ann <- function(dataset, rvar, evar,
 
   vars <- evar
   ## in case : is used
-  if (length(vars) < (ncol(dat)-1)) 
+  if (length(vars) < (ncol(dat)-1))
     vars <- evar <- colnames(dat)[-1]
 
   ## use decay
@@ -102,13 +102,13 @@ ann <- function(dataset, rvar, evar,
               linout = linout, entropy = entropy, skip = skip, trace = FALSE, data = dat)
 
   ## based on http://stackoverflow.com/a/14324316/1974918
-  seed <- seed %>% gsub("[^0-9]","",.) 
+  seed <- gsub("[^0-9]", "", seed)
   if (!is_empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit({.Random.seed <<- gseed})
     }
-    set.seed(seed) 
+    set.seed(seed)
   }
 
   ## need do.call so Garson/Olden plot will work
@@ -117,7 +117,7 @@ ann <- function(dataset, rvar, evar,
   coefnames <- model$coefnames
   isFct <- sapply(select(dat,-1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct])) 
+    for (i in names(isFct[isFct]))
       coefnames <- gsub(i, paste0(i,"|"), coefnames) %>% gsub("\\|\\|","\\|", .)
     rm(i, isFct)
   }
@@ -268,14 +268,16 @@ plot.ann <- function(x, plots = "garson", shiny = FALSE, custom = FALSE, ...) {
   plot_list <- list()
 
   if ("olsen" %in% plots || "olden" %in% plots) ## legacy for typo
-    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames) + 
-      coord_flip()
+    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames) +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
 
-  if ("garson" %in% plots) 
-    plot_list[["garson"]] <- NeuralNetTools::garson(object$model, x_lab = object$coefnames) + 
-      coord_flip()
+  if ("garson" %in% plots)
+    plot_list[["garson"]] <- NeuralNetTools::garson(object$model, x_lab = object$coefnames) +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
 
-  if ("net" %in% plots) 
+  if ("net" %in% plots)
     return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model, x_names = object$coefnames)))
 
   if (length(plot_list) > 0) {
@@ -321,7 +323,7 @@ predict.ann <- function(object,
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) 
+  if (!is.character(pred_data))
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
 
   pfun <- function(model, pred, se, conf_lev) {

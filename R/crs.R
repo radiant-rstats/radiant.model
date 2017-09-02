@@ -18,7 +18,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   vars <- c(id, prod, rate)
   dat <- getdata(dataset, vars, na.rm = FALSE)
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+  if (!is_string(dataset)) 
+    dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets
@@ -30,7 +31,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   if (nr < nrow(dat))
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
 
-  dat <- spread(dat, !! prod, !! rate)
+  dat <- spread(dat, !! prod, !! rate) %>%
+    as.data.frame
 
   idv <- select_at(dat, .vars = id)
   uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique
@@ -48,7 +50,9 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ind <- (1:length(cn))[-nind]
 
   ## average scores and rankings
-  avg <- dat[uid,,drop = FALSE] %>% select(nind) %>% summarise_all(funs(mean_rm))
+  avg <- dat[uid, , drop = FALSE] %>% 
+    select(nind) %>% 
+    summarise_all(funs(mean_rm))
   ravg <- avg
   ravg[1,] <- min_rank(desc(avg))
   ravg <- mutate_all(ravg, funs(as.integer))
@@ -67,8 +71,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   act <- bind_cols(idv[-uid,, drop = FALSE],act) # %>% as.data.frame
 
   ## CF calculations per row
-  ms <- apply(select(dat,-nind), 1, function(x) mean(x, na.rm = TRUE))
-  sds <- apply(select(dat,-nind), 1, function(x) sd(x, na.rm = TRUE))
+  ms  <- apply(select(dat, -nind), 1, function(x) mean(x, na.rm = TRUE))
+  sds <- apply(select(dat, -nind), 1, function(x) sd(x, na.rm = TRUE))
 
   ## to forego standardization
   # ms <- ms * 0
@@ -76,9 +80,9 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## standardized ratings
   if (length(nind) < 2) {
-    srate <- (dat[uid,nind] - ms[uid]) / sds[uid]
+    srate <- (dat[uid, nind] - ms[uid]) / sds[uid]
   } else {
-    srate <- sweep(dat[uid,nind], 1, ms[uid], "-") %>% sweep(1, sds[uid] ,"/")
+    srate <- sweep(dat[uid, nind], 1, ms[uid], "-") %>% sweep(1, sds[uid] ,"/")
   }
   ## comfirmed to produce consistent results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
   srate[is.na(srate)] <- 0
@@ -94,7 +98,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
     (crossprod(wts, as.matrix(srate)) * sds[-uid] + ms[-uid]) %>%
     as.data.frame %>%
     bind_cols(idv[-uid,, drop = FALSE],.) %>%
-    set_colnames(c(id, pred)) # %>% as.data.frame
+    set_colnames(c(id, pred))
 
   ## Ranking based on CF
   rcf <- cf
@@ -158,7 +162,7 @@ summary.crs <- function(object, n = 36, ...) {
     ## From FZs do file output, calculate if actual ratings are available
     ## best based on highest average rating
     best <- which(object$ravg == 1)
-    ar1 <- mean(object$ract[,best + 1] == 1)
+    ar1 <- mean(object$ract[, best + 1] == 1)
     cat("\n- Average rating picks the best product", formatnr(ar1, dec = 1, perc = TRUE), "of the time")
 
     ## best based on cf
@@ -168,7 +172,7 @@ summary.crs <- function(object, n = 36, ...) {
 
     ## best based on highest average rating in top 3
     best <- which(object$ravg == 1)
-    ar3 <- mean(object$ract[,best + 1] < 4)
+    ar3 <- mean(object$ract[, best + 1] < 4)
     cat("\n- Pick based on average rating is in the top 3 products", formatnr(ar3, dec = 1, perc = TRUE), "of the time")
 
     ## best based on cf in top 3
@@ -178,7 +182,7 @@ summary.crs <- function(object, n = 36, ...) {
 
     ## best 3 based on highest average rating contains best product
     best <- which(object$ravg < 4)
-    inar3 <- mean(rowSums(object$ract[,best + 1, drop = FALSE] == 1) > 0)
+    inar3 <- mean(rowSums(object$ract[, best + 1, drop = FALSE] == 1) > 0)
     cat("\n- Top 3 based on average ratings contains the best product", formatnr(inar3, dec = 1, perc = TRUE), "of the time")
 
     ## best 3 based on cf contains best product

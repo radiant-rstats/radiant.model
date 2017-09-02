@@ -422,7 +422,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     df <- gather(df, "level", "to", !! c("to1", "to2"))
 
     df$to <- as.integer(df$to)
-    df$edge <- ifelse (df$level == "to1", df$split1, df$split2) %>% {paste0("--- |", ., "|")}
+    df$edge <- ifelse (df$level == "to1", df$split1, df$split2) %>% {paste0(" --- |", ., "|")}
     ## seems like only unicode letters are supported in mermaid at this time
     # df$edge <- ifelse (df$level == "to1", df$split1, df$split2) %>% {paste0("--- |", sub("^>", "\u2265",.), "|")}
     # df$edge <- iconv(df$edge, "UTF-8", "ASCII",sub="")

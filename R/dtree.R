@@ -583,11 +583,13 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
     class ", paste(style_chance_with_cost, collapse = ","), " chance_with_cost;")
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isNotRoot)
-  df <- data.frame(from = data.tree::Get(trv, FromLabel),
-                   edge = data.tree::Get(trv, EdgeLabel),
-                   to = data.tree::Get(trv, ToLabel),
-                   id = data.tree::Get(trv, ToLabel),
-                   tooltip = data.tree::Get(trv, ToolTip))
+  df <- data.frame(
+    from = data.tree::Get(trv, FromLabel), 
+    edge = data.tree::Get(trv, EdgeLabel), 
+    to = data.tree::Get(trv, ToLabel), 
+    id = data.tree::Get(trv, ToLabel), 
+    tooltip = data.tree::Get(trv, ToolTip)
+  )
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
   ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% na.omit %>% unique
