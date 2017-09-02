@@ -67,8 +67,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   rank <- apply(act,1, function(x) as.integer(min_rank(desc(x)))) %>%
     {if(length(pred) == 1) . else t(.)}
   ract[,pred] <- rank
-  ract <- bind_cols(idv[-uid,, drop = FALSE], ract) # %>% as_data_frame
-  act <- bind_cols(idv[-uid,, drop = FALSE],act) # %>% as.data.frame
+  ract <- bind_cols(idv[-uid,, drop = FALSE], ract)
+  act <- bind_cols(idv[-uid,, drop = FALSE],act)
 
   ## CF calculations per row
   ms  <- apply(select(dat, -nind), 1, function(x) mean(x, na.rm = TRUE))

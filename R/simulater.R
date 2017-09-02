@@ -60,7 +60,7 @@ simulater <- function(const = "",
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
       s[[i]] %>% { dat[[.[1]]] <<- seq(as.numeric(.[2]) , as.numeric(.[3]), as.numeric(.[4]))}
     }
-    dat <- as.list(expand.grid(dat) %>% as_data_frame)
+    dat <- as.list(expand.grid(dat) %>% as.data.frame)
     nr <- length(dat[[1]])
   }
 

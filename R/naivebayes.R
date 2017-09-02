@@ -342,7 +342,7 @@ store.nb.predict <- function(object, ..., data = attr(object,"pred_data"), name 
   indr <- indexr(data, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
   # indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
 
-  pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
+  pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
   pred[indr$ind, ] <- df
 
   changedata(data, vars = pred, var_names = name)

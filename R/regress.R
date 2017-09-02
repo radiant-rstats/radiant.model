@@ -983,7 +983,7 @@ store.model.predict <- function(object, ..., data = attr(object,"pred_data"), na
 
   vars <- colnames(object)[1:(ind-1)]
   indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
-  pred <- as_data_frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
+  pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
   changedata(data, vars = pred, var_names = name)
