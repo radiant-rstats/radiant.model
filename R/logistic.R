@@ -291,11 +291,11 @@ summary.logistic <- function(object,
         cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
         as.data.frame %>%
         set_colnames(c("Low","High")) %>%
-        cbind(select(object$coeff,3),.)
+        cbind(select(object$coeff,3), .)
 
       if ("confint" %in% sum_check) {
         ci_tab %T>%
-        { .$`+/-` <- (.$High - .$coefficient) } %>%
+        {.$`+/-` <- (.$High - .$coefficient)} %>%
         formatdf(dec) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
         set_rownames(object$coeff$`  `) %>%
@@ -482,7 +482,7 @@ plot.logistic <- function(x,
       data.frame %>%
       na.omit %>%
       set_colnames(c("Low","High")) %>%
-      cbind(select(object$coeff,2),.) %>%
+      cbind(select(object$coeff, 2), .) %>%
       set_rownames(object$coeff$`  `) %>%
       { if (!intercept) .[-1,] else . } %>%
       mutate(variable = rownames(.)) %>%
@@ -493,19 +493,19 @@ plot.logistic <- function(x,
         ## can't use coord_trans together with coord_flip
         # http://stackoverflow.com/a/26185278/1974918
         scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
-        scale_y_continuous(breaks = c(0,0.1,0.2,0.5,1,2,5,10), trans = "log") +
+        scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
         coord_flip() +
         theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("scatter" %in% plots) {
     for (i in evar) {
-      if ("factor" %in% class(model[,i])) {
-        plot_list[[paste0("scatter_",i)]] <- ggplot(model, aes_string(x=i, fill=rvar)) +
-                            geom_bar(position = "fill", alpha=.5) +
-                            labs(y = "")
+      if ("factor" %in% class(model[, i])) {
+        plot_list[[paste0("scatter_", i)]] <- ggplot(model, aes_string(x = i, fill = rvar)) +
+          geom_bar(position = "fill", alpha = .5) +
+          labs(y = "")
       } else {
-        plot_list[[paste0("scatter_",i)]] <- select(model, .vars = c(i,rvar)) %>%
+        plot_list[[paste0("scatter_", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
           visualize(xvar = rvar, yvar = i, check = "jitter", type = "scatter", custom = TRUE)
       }
     }
