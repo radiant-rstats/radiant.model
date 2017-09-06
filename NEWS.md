@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.8.7.3
+# CHANGES IN radiant.model 0.8.7.4
 
 * Upgraded tidyr dependency to 0.7
 * Fix in `crs` when a tibble is passed
