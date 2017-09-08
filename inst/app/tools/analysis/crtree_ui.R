@@ -247,11 +247,12 @@ output$crtree <- renderUI({
         )
       )
     )
-    stat_tab_panel(menu = "Model > Estimate",
-                  tool = "Classification and regression trees",
-                  tool_ui = "ui_crtree",
-                  output_panels = crtree_output_panels)
-
+    stat_tab_panel(
+      menu = "Model > Estimate", 
+      tool = "Classification and regression trees", 
+      tool_ui = "ui_crtree", 
+      output_panels = crtree_output_panels
+    )
 })
 
 output$crtree_plot <- DiagrammeR::renderDiagrammeR({
