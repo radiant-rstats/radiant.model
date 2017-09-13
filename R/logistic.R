@@ -420,6 +420,9 @@ plot.logistic <- function(x,
                           custom = FALSE,
                           ...) {
 
+  x <- result
+  plots <- "coef"
+
   object <- x; rm(x)
   if (is.character(object)) return(object)
 
@@ -439,7 +442,7 @@ plot.logistic <- function(x,
   model$.fitted <- predict(object$model, type = "response")
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
-  model$.actual <- as.numeric(object$rv) %>% {. - max(.) + 1}
+  model$.actual <- as_numeric(object$rv) %>% {. - max(.) + 1}
 
   rvar <- object$rvar
   evar <- object$evar

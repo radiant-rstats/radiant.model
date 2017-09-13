@@ -1,3 +1,7 @@
+# CHANGES IN radiant.model 0.8.7.5
+
+* Minor fix for coefficient plot in `plot.logistic`
+
 # CHANGES IN radiant.model 0.8.7.4
 
 * Upgraded tidyr dependency to 0.7
