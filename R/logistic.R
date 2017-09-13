@@ -420,9 +420,6 @@ plot.logistic <- function(x,
                           custom = FALSE,
                           ...) {
 
-  x <- result
-  plots <- "coef"
-
   object <- x; rm(x)
   if (is.character(object)) return(object)
 

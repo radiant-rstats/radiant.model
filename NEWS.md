@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.8.7.5
+# CHANGES IN radiant.model 0.8.7.6
 
 * Minor fix for coefficient plot in `plot.logistic`
 
