@@ -1,6 +1,8 @@
-# CHANGES IN radiant.model 0.8.7.6
+# CHANGES IN radiant.model 0.8.7.7
 
 * Minor fix for coefficient plot in `plot.logistic`
+* Default names when saving Decision Analysis input and output are now based on tree name
+* The number of repetitions in Model > Simulate was NA when grid search was used
 
 # CHANGES IN radiant.model 0.8.7.4
 

@@ -611,9 +611,9 @@ summary.repeater <- function(object,
   ## show results
   cat("Repeated simulation\n")
   cat("Simulations   :", rc$sc$nr, "\n")
-  cat("Repetitions   :", rc$nr, "\n")
+  cat("Repetitions   :", ifelse(is_empty(rc$nr), nrow(object), rc$nr), "\n")
   cat("Group by      :", ifelse (rc$byvar == "rep", "Repeat", "Simulation"), "\n")
-  cfun <- sub("_rm$","", rc$fun)
+  cfun <- sub("_rm$", "", rc$fun)
   cat("Function      :", cfun, "\n")
   cat("Random  seed  :", rc$seed, "\n")
   cat("Simulated data:", rc$sim, "\n")

@@ -290,19 +290,32 @@ output$plot_dtree_sensitivity <- renderPlot({
 
 
 output$dtree_save <- downloadHandler(
-  filename = function() {"dtree.txt"},
+  filename = function() {
+    if (is_empty(input$dtree_name)) {
+      "dtree.txt"
+    } else {
+      paste0(input$dtree_name, "_dtree.txt")
+    }
+  },
   content = function(file) {
     isolate({
-      capture.output(dtree(input$dtree_edit) %>% summary) %>% cat(.,file=file,sep="\n")
+      capture.output(dtree(input$dtree_edit) %>% summary) %>%
+        cat(., file = file, sep = "\n")
     })
   }
 )
 
 output$dtree_save_yaml <- downloadHandler(
-  filename = function() {"dtree.yaml"},
+  filename = function() {
+    if (is_empty(input$dtree_name)) {
+      "dtree.yaml"
+    } else {
+      paste0(input$dtree_name, "_dtree.yaml")
+    }
+  },
   content = function(file) {
     isolate({
-      cat(paste0(input$dtree_edit,"\n"), file = file)
+      cat(paste0(input$dtree_edit, "\n"), file = file)
     })
   }
 )
@@ -313,9 +326,9 @@ observeEvent(input$dtree_load_yaml, {
   yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
 
   ## remove characters that may cause problems in shinyAce
-  yaml_file %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r","\n",.)
+  yaml_file %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r", "\n", .)
 
-  dtree_name <- sub(paste0(".",tools::file_ext(inFile$name)),"",inFile$name)
+  dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name)
   r_data[[dtree_name]] <- yaml_file
   r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
@@ -324,8 +337,10 @@ observeEvent(input$dtree_load_yaml, {
 
 observeEvent(input$dtree_list, {
   isolate({
-    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
-    if (is_empty(dtree_name)) dtree_name <- dtree_name()
+    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>%
+      gsub("(^\\s+)|(\\s+$)", "", .)
+    if (is_empty(dtree_name))
+      dtree_name <- dtree_name()
     r_data[[dtree_name]] <- input$dtree_edit
   })
 
@@ -395,13 +410,13 @@ observeEvent(input$dtree_remove, {
   if (input$dtree_opt == "min") inp$opt <- "min"
 
   update_report(
-    inp_main = inp, 
-    fun_name = "dtree", 
-    inp_out = inp_out, 
-    outputs = outputs, 
-    figs = figs, 
-    fig.width = dtree_sense_width(), 
-    fig.height = dtree_sense_height(), 
+    inp_main = inp,
+    fun_name = "dtree",
+    inp_out = inp_out,
+    outputs = outputs,
+    figs = figs,
+    fig.width = dtree_sense_width(),
+    fig.height = dtree_sense_height(),
     xcmd = xcmd
   )
 })
