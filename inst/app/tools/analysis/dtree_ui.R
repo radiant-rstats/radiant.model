@@ -55,7 +55,7 @@ output$ui_dtree_sense_name <- renderUI({
 
   selectInput("dtree_sense_name", label = "Sensitivity to changes in:",
     choices = vars, multiple = FALSE,
-    selected = state_single("dtree_sense_name",""))
+    selected = state_single("dtree_sense_name", vars))
 })
 
 output$ui_dtree_sense_decision <- renderUI({
@@ -73,7 +73,7 @@ output$ui_dtree_sense_decision <- renderUI({
 
   selectizeInput("dtree_sense_decision", label = "Decisions to evaluate:",
     choices = decs, multiple = TRUE,
-    selected = state_multiple("dtree_sense_decision",decs, decs),
+    selected = state_multiple("dtree_sense_decision", decs, decs),
     options = list(plugins = list("remove_button")))
 })
 
