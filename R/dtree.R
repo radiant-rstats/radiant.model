@@ -14,8 +14,8 @@
 dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
-  ## remove characters that may cause problems in shinyAce
-  yl %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r","\n",.)
+  ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
+  yl <- fixMS(yl) %>% gsub("[\x80-\xFF]", "", .)
 
   ## collect errors
   err <- c()
