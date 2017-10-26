@@ -321,7 +321,8 @@ summary.crtree <- function(object, prn = TRUE, ...) {
 #'
 #' @param x Return value from \code{\link{crtree}}
 #' @param plots Plots to produce for the specified rpart tree. "tree" shows a tree diagram. "prune" shows a line graph to evaluate appropriate tree pruning. "imp" shows a variable importance plot
-#' @param orient Plot orientation: LR for vertical and TD for horizontal
+#' @param orient Plot orientation for tree: LR for vertical and TD for horizontal
+#' @param width Plot width in pixels for tree (default is "900px")
 #' @param labs Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)
 #' @param dec Decimal places to round results to
 #' @param shiny Did the function call originate inside a shiny app
@@ -344,6 +345,7 @@ summary.crtree <- function(object, prn = TRUE, ...) {
 #'
 #' @export
 plot.crtree <- function(x, plots = "tree", orient = "LR", 
+                        width = "900px",
                         labs = TRUE, dec = 2, shiny = FALSE, 
                         custom = FALSE, ...) {
 
@@ -449,7 +451,8 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     ttip <- df[1:(nrow(df)/2),] %>%  {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, "\"", collapse = "\n")}
 
     paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to_lab), collapse = "\n"), style, ttip, sep = "\n") %>%
-      DiagrammeR::mermaid(., width = "100%", height = "100%")
+      # DiagrammeR::mermaid(., width = "100%", height = "100%")
+      DiagrammeR::mermaid(., width = width, height = "100%")
   } else {
     plot_list <- list()
     if ("prune" %in% plots) {

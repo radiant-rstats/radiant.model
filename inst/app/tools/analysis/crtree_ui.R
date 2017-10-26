@@ -239,7 +239,12 @@ output$crtree <- renderUI({
       tabPanel("Plot",
         conditionalPanel("input.crtree_plots == 'tree'",
           actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
-          DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
+          # DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
+          DiagrammeR::DiagrammeROutput("crtree_plot", 
+            # width = ifelse(length(input$GetScreenWidth) == 0, "1200px", paste0(input$GetScreenWidth - 480, "px")),
+            width = ifelse(length(input$GetScreenWidth) == 0, "860px", paste0(input$GetScreenWidth - 820, "px")),
+            height = "100%"
+          )
         ),
         conditionalPanel("input.crtree_plots != 'tree'",
           plot_downloader("crtree", height = crtree_plot_height),
@@ -260,8 +265,8 @@ output$crtree_plot <- DiagrammeR::renderDiagrammeR({
   if (is.null(cr)) {
     invisible()
   } else {
-    withProgress(message = 'Generating tree diagramm', value = 1,
-      plot(cr, plots = "tree", orient = input$crtree_orient)
+    withProgress(message = "Generating tree diagramm", value = 1,
+      plot(cr, plots = "tree", orient = input$crtree_orient, width = "900px")
     )
   }
 })

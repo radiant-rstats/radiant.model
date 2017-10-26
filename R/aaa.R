@@ -2,7 +2,7 @@
 globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Predictor",
                   "total","TN","FN","FP","TP","total","profit", "precision", "ROME",
                   "TPR", "nr_resp", "nr_obs", "cum_resp", "cum_resp_rate", "pred",
-                  "cum_prop", "cum_gains", "obs", "everything", "r_data"))
+                  "cum_prop", "cum_gains", "obs", "everything", "r_data", "fixMS"))
 
 #' radiant.model
 #'
@@ -17,7 +17,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @importFrom lubridate now
 #' @importFrom pryr where
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
-#' @importFrom stats anova as.formula binomial coef confint confint.default cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif terms quantile
+#' @importFrom stats anova as.formula binomial coef confint cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif terms quantile
 #' @importFrom utils head tail relist as.relistable combn capture.output write.table
 #' @importFrom stats residuals formula model.matrix pt qt
 #' @importFrom methods is

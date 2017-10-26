@@ -21,5 +21,5 @@ confint_robust(object, level = 0.95, dist = "norm", vcov = NULL, ...)
 Confidence interval for robust estimators
 }
 \details{
-Wrapper for confint.default with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
+Wrapper for confint with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
 }

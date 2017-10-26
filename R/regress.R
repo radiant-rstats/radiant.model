@@ -269,7 +269,7 @@ summary.regress <- function(object,
       if ("robust" %in% object$check)
         cnfint <- radiant.model::confint_robust
       else
-        cnfint <- confint.default
+        cnfint <- confint
 
       # confint(object$model, level = conf_lev) %>%
       cnfint(object$model, level = conf_lev, dist = "t") %>%
@@ -479,7 +479,7 @@ plot.regress <- function(x, plots = "",
     if ("robust" %in% object$check)
       cnfint <- radiant.model::confint_robust
     else
-      cnfint <- confint.default
+      cnfint <- confint
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, dist = "t") %>%
       data.frame %>%

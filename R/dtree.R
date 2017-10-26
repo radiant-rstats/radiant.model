@@ -333,8 +333,13 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   jl_init <- data.tree::Clone(jl)
 
   chance_payoff <- function(node) {
-    if (!isNum(node$payoff) || !isNum(node$p))  0
-    else node$payoff * node$p
+    if (!isNum(node$payoff) || !isNum(node$p)) {
+      0
+    # } else if (isNum(node$cost)) {
+      # (node$payoff - node$cost) * node$p
+    } else {
+      node$payoff * node$p
+    }
   }
 
   decision_payoff <- function(node)
@@ -476,6 +481,7 @@ summary.dtree <- function(object, ...) {
 #' @param dec Decimal places to round results to
 #' @param final If TRUE plot the decision tree solution, else the initial decision tree
 #' @param orient Plot orientation: LR for vertical and TD for horizontal
+#' @param width Plot width in pixels (default is "900px")
 #' @param ... further arguments passed to or from other methods
 #'
 #' @importFrom data.tree Traverse Get isNotRoot
@@ -486,7 +492,7 @@ summary.dtree <- function(object, ...) {
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", ...) {
+plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", width = "900px", ...) {
 
   ## avoid error when dec is missing
   if (is_not(dec)) dec <- 2
@@ -584,10 +590,10 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isNotRoot)
   df <- data.frame(
-    from = data.tree::Get(trv, FromLabel), 
-    edge = data.tree::Get(trv, EdgeLabel), 
-    to = data.tree::Get(trv, ToLabel), 
-    id = data.tree::Get(trv, ToLabel), 
+    from = data.tree::Get(trv, FromLabel),
+    edge = data.tree::Get(trv, EdgeLabel),
+    to = data.tree::Get(trv, ToLabel),
+    id = data.tree::Get(trv, ToLabel),
     tooltip = data.tree::Get(trv, ToolTip)
   )
 
@@ -598,8 +604,17 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
   paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(ttip, collapse = "\n"), style, sep = "\n") %>%
     ## address image size in pdf and html
-    DiagrammeR::mermaid(., width = "100%", height = "100%")
+    # DiagrammeR::mermaid(., width = "100%", height = "100%")
+    DiagrammeR::mermaid(., width = width, height = "100%")
+    # {htmltools::html_print(tagList(tags$h1("A title"), DiagrammeR::mermaid(., width = width, height = "100%")))}
 }
+
+# html_print(tagList(
+#   tags$h1("R + mermaid.js = Something Special")
+#   ,tags$pre(diagramSpec)
+#   ,tags$div(class="mermaid",diagramSpec)
+#   ,DiagrammeR()
+# ))
 
 #' Evaluate sensitivity of the decision tree
 #'
@@ -617,7 +632,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", .
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #'
 #' @export
-sensitivity.dtree <- function(object, vars = NULL, decs = NULL, 
+sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
                               shiny = FALSE, custom = FALSE, ...) {
 
   yl <- object$yl
@@ -660,7 +675,7 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
         geom_line() + geom_point() +
         labs(
-          title = paste0("Sensitivity of decisions to changes in ",i), 
+          title = paste0("Sensitivity of decisions to changes in ",i),
           x = i
         )
   }

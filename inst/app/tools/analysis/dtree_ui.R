@@ -148,7 +148,11 @@ output$dtree <- renderUI({
          min = 0, max = 10, width = "70px")),
       td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px"))
     )),
-    DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
+    # DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
+    DiagrammeR::DiagrammeROutput("dtree_plot", 
+      width = ifelse(length(input$GetScreenWidth) == 0, "1600px", paste0(input$GetScreenWidth - 80, "px")),
+      height = "100%"
+    )
   ),
   tabPanel("Sensitivity",
     sidebarLayout(

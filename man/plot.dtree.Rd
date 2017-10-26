@@ -5,7 +5,7 @@
 \title{Plot method for the dtree function}
 \usage{
 \method{plot}{dtree}(x, symbol = "$", dec = 2, final = FALSE,
-  orient = "LR", ...)
+  orient = "LR", width = "900px", ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{dtree}}}
@@ -17,6 +17,8 @@
 \item{final}{If TRUE plot the decision tree solution, else the initial decision tree}
 
 \item{orient}{Plot orientation: LR for vertical and TD for horizontal}
+
+\item{width}{Plot width in pixels (default is "900px")}
 
 \item{...}{further arguments passed to or from other methods}
 }

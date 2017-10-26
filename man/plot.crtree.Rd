@@ -4,15 +4,17 @@
 \alias{plot.crtree}
 \title{Plot method for the crtree function}
 \usage{
-\method{plot}{crtree}(x, plots = "tree", orient = "LR", labs = TRUE,
-  dec = 2, shiny = FALSE, custom = FALSE, ...)
+\method{plot}{crtree}(x, plots = "tree", orient = "LR", width = "900px",
+  labs = TRUE, dec = 2, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{crtree}}}
 
 \item{plots}{Plots to produce for the specified rpart tree. "tree" shows a tree diagram. "prune" shows a line graph to evaluate appropriate tree pruning. "imp" shows a variable importance plot}
 
-\item{orient}{Plot orientation: LR for vertical and TD for horizontal}
+\item{orient}{Plot orientation for tree: LR for vertical and TD for horizontal}
+
+\item{width}{Plot width in pixels for tree (default is "900px")}
 
 \item{labs}{Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)}
 

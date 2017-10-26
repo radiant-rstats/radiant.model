@@ -285,7 +285,7 @@ summary.logistic <- function(object,
       if ("robust" %in% object$check)
         cnfint <- radiant.model::confint_robust
       else
-        cnfint <- confint.default
+        cnfint <- confint
 
       ci_tab <-
         cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
@@ -475,7 +475,7 @@ plot.logistic <- function(x,
     if ("robust" %in% object$check)
       cnfint <- radiant.model::confint_robust
     else
-      cnfint <- confint.default
+      cnfint <- confint
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
       exp %>%
@@ -648,7 +648,7 @@ store_glm <- function(object, data = object$dataset,
 
 #' Confidence interval for robust estimators
 #'
-#' @details Wrapper for confint.default with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
+#' @details Wrapper for confint with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
 #'
 #' @param object A fitted model object
 #' @param level The confidence level required

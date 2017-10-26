@@ -31,6 +31,7 @@
 /* print option relevant to print a decision tree to pdf */
 /* based on http://stackoverflow.com/a/2618980/1974918 */
 @media print {
+
   #dtree * {
     visibility: hidden;
   }
@@ -38,9 +39,10 @@
     visibility: visible;
   }
   #dtree_plot {
-    position: absolute;
-    left: 0;
-    top: 0;
+    display:inline; 
+    width: 100%;
+    height: 100%;
+    padding: 0;
   }
   #crtree * {
     visibility: hidden;
@@ -49,12 +51,19 @@
     visibility: visible;
   }
   #crtree_plot {
-    /* based on http://stackoverflow.com/a/7167406/1974918 */
-    height: 100%;
-    width: 100%;
     position: fixed;
     top: 0;
     left: 0;
-    margin: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+
+    /*display:inline; */
+    /*width: 100%;*/
+    /*height: 100%;*/
+    /*padding: 0;*/
+
+    /*height: 100%;*/
+    /*height: auto;*/
   }
 }
