@@ -27,7 +27,8 @@ dtree_parser <- function(yl) {
     err <- c(err, paste0("Each line must have a ':'. Add a ':' in line(s): ", paste0(which(!col_ln), collapse = ", ")))
 
   ## add a space to input after the : YAML needs this
-  yl %<>% gsub(":([^\\s$])",": \\1", .) %>% gsub("  ", " ", .)
+  # yl %<>% gsub(":([^\\s$])",": \\1", .) %>% gsub("  ", " ", .)
+  yl %<>% gsub(":([^ $])", ": \\1", .) %>% gsub(":\\s{2,}", ": ", .)
 
   ## replace .4 by 0.4
   # yl <- c(yl, "p: .4")
@@ -324,10 +325,22 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   }
 
   ## if type not set and isLeaf set to terminal
-  pt <- . %>% {if (is.null(.$type)) .$Set(type = "terminal")}
-  jl$Do(pt, filterFun = data.tree::isLeaf)
+  # pt <- . %>% {if (is.null(.$type)) .$Set(type = "terminal")}
+  # jl$Do(pt, filterFun = data.tree::isLeaf)
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
+
+  cost_check <- ""
+  cost_checker <- function(x) {
+    ## if type not set and isLeaf set to terminal
+    if (is.null(x$type)) x$Set(type = "terminal")
+
+    ## costs should not be set in terminal nodes, use payoff instead
+    if (isNum(x$cost))
+      cost_check <<- "One or more terminal nodes have been assigned a cost. Specifying a cost\nis only useful if it applies to multiple nodes in a branch. If the cost\nonly applies to a terminal node adjust the payoff instead"
+  }
+
+  jl$Do(cost_checker, filterFun = data.tree::isLeaf)
 
   ## making a copy of the initial Node object
   jl_init <- data.tree::Clone(jl)
@@ -342,8 +355,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     }
   }
 
-  decision_payoff <- function(node)
-    if(!isNum(node$payoff)) 0 else node$payoff
+  decision_payoff <- function(node) {
+    if (!isNum(node$payoff)) 0 else node$payoff
+    # if (isNum(node$cost)) node$payoff - node$cost
+  }
 
   prob_checker <- function(node)
     if (!isNum(node$p)) 0 else node$p
@@ -367,7 +382,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
         prob_check <<- "Probabilities for one or more chance nodes do not sum to 1.\nPlease correct the inputs and re-run the analysis"
       }
 
-    } else if (x$type == 'decision') {
+    } else if (x$type == "decision") {
       x$payoff <- get(opt)(sapply(x$children, decision_payoff))
     }
 
@@ -396,7 +411,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   }
 
   list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt,
-       type_none = type_none, prob_check = prob_check,
+       type_none = type_none, prob_check = prob_check, cost_check = cost_check,
        payoff = jl$Get(function(x) x$payoff)) %>%
     add_class("dtree")
 }
@@ -458,7 +473,9 @@ summary.dtree <- function(object, ...) {
 
   ## initial setup
   if (object$type_none != "") {
-    cat(paste0("\n\n**\n",object$type_none,"\n**\n\n"))
+    cat(paste0("\n\n**\n", object$type_none, "\n**\n\n"))
+  } else if (!is_empty(object$cost_check)) {
+    cat(paste0("\n\n**\n", object$cost_check, "\n**\n\n"))
   } else {
 
     if (object$prob_check != "")
