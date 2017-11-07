@@ -7,12 +7,14 @@
 #' @param norm A string listing the normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the mean and the second is the standard deviation)
 #' @param unif A string listing the uniformly distributed random variables to include in the analysis (e.g., "demand 0 1" where the first number is the minimum value and the second is the maximum value)
 #' @param discrete A string listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 8 .3 .7" where the first set of numbers are the values and the second set the probabilities
-#' @param binom A string listing the random variables with a binomail distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
+#' @param binom A string listing the random variables with a binomial distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
 #' @param sequ A string listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations.
 #' @param grid A string listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
 #' @param data Name of a dataset to be used in the calculations
 #' @param form A string with the formula to evaluate (e.g., "profit = demand * (price - cost)")
 #' @param seed To repeat a simulation with the same randomly generated values enter a number into Random seed input box.
+#' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
+#' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables to be simulated 
 #' @param name To save the simulated data for further analysis specify a name in the Sim name input box. You can then investigate the simulated data by choosing the specified name from the Datasets dropdown in any of the other Data tabs.
 #' @param nr Number of simulations
 #' @param dat Data list from previous simulation. Used by repeater function
@@ -39,6 +41,8 @@ simulater <- function(const = "",
                       data = "",
                       form = "",
                       seed = "",
+                      nexact = FALSE,
+                      ncorr = NULL,
                       name = "",
                       nr = 1000,
                       dat = NULL) {
@@ -103,13 +107,48 @@ simulater <- function(const = "",
   norm %<>% sim_cleaner
   if (norm != "") {
     s <- norm %>% sim_splitter
+    means <- sds <- nms <- c()
     for (i in 1:length(s)) {
       sdev <- as.numeric(s[[i]][3])
       if (!sdev > 0) {
         mess <- c("error",paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
-      s[[i]] %>% { dat[[.[1]]] <<- rnorm(nr, as.numeric(.[2]) , sdev)}
+      if (is_empty(ncorr)) {
+        if (nexact)
+          s[[i]] %>% { dat[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + as.numeric(.[2])}
+        else
+          s[[i]] %>% { dat[[.[1]]] <<- rnorm(nr, as.numeric(.[2]) , sdev)}
+      } else {
+        nms <- c(nms, s[[i]][1])
+        means <- c(means, as.numeric(s[[i]][2]))
+        sds <- c(sds, sdev)
+      }
+    }
+    if (!is_empty(ncorr)) {
+      ncorr <- gsub(","," ", ncorr) %>% strsplit("\\s+") %>% unlist %>% as.numeric 
+      ncorr_nms <- combn(nms, 2) %>% apply(., 2, paste, collapse = "-")
+      if (length(ncorr) == 1 && length(ncorr_nms) > 2) {
+        ncorr <- rep(ncorr, length(ncorr_nms))
+      }
+      if (length(ncorr) != length(ncorr_nms)) {
+        mess <- c("error", paste0("The number of correlations specified is not equal to\nthe number of pairs of variables to be simulated.\nPlease review the input carefully"))
+        return(add_class(mess, "simulater"))
+      }
+      names(ncorr) <- ncorr_nms
+      # corr_mat <- diag(length(nms)) %>% set_colnames(nms) %>% set_rownames(nms)
+      # corr_mat[lower.tri(corr_mat, diag = FALSE)] <- ncorr
+      # print(corr_mat)
+      df <- try(sim_cor(nr, ncorr, means, sds, exact = nexact), silent = TRUE)
+      if (is(df, "try-error")) { 
+        mess <- c("error", paste0("Data with the specified correlation structure could not be generated.\nPlease review the input and try again"))
+        return(add_class(mess, "simulater"))
+      }
+
+      colnames(df) <- nms
+      for (i in nms) {
+        dat[[i]] <- df[[i]]
+      }
     }
   }
 
@@ -190,6 +229,8 @@ simulater <- function(const = "",
   smc <- lapply(match.call()[-1], eval)
   sc[names(smc)] <- smc
   sc$nr <- nr
+  sc$ncorr <- ncorr
+  sc$nexact <- nexact
   attr(dat, "sim_call") <- sc
 
   if (nrow(dat) == 0) {
@@ -277,13 +318,19 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (!is_empty(sc$const))    cat("Constant   :", clean(sc$const))
   if (!is_empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
   if (!is_empty(sc$lnorm))    cat("Log normal :", clean(sc$lnorm))
-  if (!is_empty(sc$norm))     cat("Normal     :", clean(sc$norm))
+  if (!is_empty(sc$norm))     cat("Normal     :", clean(ifelse(sc$nexact, paste0(sc$norm, "(exact)"), sc$norm)))
   if (!is_empty(sc$unif))     cat("Uniform    :", clean(sc$unif))
   if (!is_empty(sc$sequ))     cat("Sequence   :", clean(sc$sequ))
   if (!is_empty(sc$grid))     cat("Grid search:", clean(sc$grid))
   if (!is_empty(sc$data))     cat("Data       :", clean(sc$data))
   if (!is_empty(sc$form))     cat(paste0("Formulas   :\n\t", sc$form %>% gsub(";","\n",.) %>% gsub("\n","\n\t",.), "\n"))
   cat("\n")
+
+  if (!is_empty(sc$ncorr) && is.numeric(sc$ncorr)) {
+    cat("Correlations:\n")
+    print(sc$ncorr)
+    cat("\n")
+  }
 
   sim_summary(object, dec = ifelse(is.na(dec), 4, dec))
 }
@@ -294,7 +341,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 #'
 #' @param x Return value from \code{\link{simulater}}
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -778,7 +825,7 @@ sim_splitter <- function(x, symbol = " ") {
 #' @export
 find_max <- function(var, val = "") {
   if (is_empty(val)) 
-    stop("Error in find_max (2 inputs required)\nSpecify the variable to evaluate at the maxium of the first input")
+    stop("Error in find_max (2 inputs required)\nSpecify the variable to evaluate at the maximum of the first input")
   val[which.max(var)]
 }
 
@@ -810,3 +857,33 @@ sdw <- function(...) {
   d <- data.frame(dl[(nr+1):length(dl)])
   apply(w, 1, function(w) sd(rowSums(sweep(d, 2, w, "*"))))
 }
+
+
+#' Simulate correlated normally distributed data
+#'
+#' @param n The number of values to simulate (i.e., the number of rows in the simulated data)
+#' @param rho A vector of correlations to apply to the columns of the simulated data. The number of values should be equal to one or to the number of combinations of variables to be simulated 
+#' @param means A vector of means. The number of values should be equal to the number of variables to simulate
+#' @param sds A vector of standard deviations. The number of values should be equal to the number of variables to simulate
+#' @param exact A logical that indicates if the inputs should be interpreted as population of sample characteristics
+#'
+#' @return A data.frame with the simulated data
+#'
+#' @export
+sim_cor <- function(n, rho, means, sds, exact = FALSE) {
+  nrx <- length(means)
+  C <- matrix(1, nrow = nrx, ncol = nrx)
+  C[lower.tri(C)] <- C[upper.tri(C)] <- rho
+
+  X <- matrix(rnorm(n * nrx, 0, 1), ncol = nrx)
+
+  if (exact)
+    X <- psych::principal(X, nfactors = nrx, scores = TRUE)$scores
+
+  X <- X %*% chol(C)
+
+  X <- sweep(X, 2, sds, "*")
+  X <- sweep(X, 2, means, "+")
+  as.data.frame(X)
+}
+

@@ -375,7 +375,9 @@ output$ui_simulater <- renderUI({
               td(numericInput("sim_norm_sd", "St.dev.:", value = state_init("sim_norm_sd"), min = 0))
             )
           ),
-          textinput_maker("norm","Normal")
+          textinput_maker("norm","Normal"),
+          checkboxInput("sim_nexact", "Use exact specifications", state_init("sim_nexact", FALSE)),
+          textInput("sim_ncorr", "Correlations:", value = state_init("sim_ncorr"))
         )
       ),
       conditionalPanel("input.sim_types && input.sim_types.indexOf('unif') >= 0",

@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.8.7.11
+# CHANGES IN radiant.model 0.8.7.12
 
 * Minor fix for coefficient plot in `plot.logistic`
 * Default names when saving Decision Analysis input and output are now based on tree name
@@ -8,6 +8,8 @@
 * Allow browser zoom for tree plots in Model > Decision Analysis and Model > Classification and Regression Trees
 * Check that costs are not assigned to terminal nodes in Decision Analysis Trees.  Specifying a cost is only useful if it applies to multiple nodes in a branch. If the cost only applies to a terminal node adjust the payoff instead 
 * Ensure : are followed by a space in the YAML input to Model > Decision Analysis
+* Added option to generate normally distributed correlated data in Model > Simulate
+* Added option to generate normally distributed simulated data with exact mean and standard deviation in Model > Simulate
 
 # CHANGES IN radiant.model 0.8.7.4
 
