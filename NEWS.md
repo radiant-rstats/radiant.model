@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.8.7.12
+# CHANGES IN radiant.model 0.8.7.13
 
 * Minor fix for coefficient plot in `plot.logistic`
 * Default names when saving Decision Analysis input and output are now based on tree name

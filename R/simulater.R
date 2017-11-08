@@ -114,7 +114,7 @@ simulater <- function(const = "",
         mess <- c("error",paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
-      if (is_empty(ncorr)) {
+      if (is_empty(ncorr) || length(s) == 1) {
         if (nexact)
           s[[i]] %>% { dat[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + as.numeric(.[2])}
         else
@@ -125,7 +125,7 @@ simulater <- function(const = "",
         sds <- c(sds, sdev)
       }
     }
-    if (!is_empty(ncorr)) {
+    if (!is_empty(ncorr) && length(nms) > 1) {
       ncorr <- gsub(","," ", ncorr) %>% strsplit("\\s+") %>% unlist %>% as.numeric 
       ncorr_nms <- combn(nms, 2) %>% apply(., 2, paste, collapse = "-")
       if (length(ncorr) == 1 && length(ncorr_nms) > 2) {

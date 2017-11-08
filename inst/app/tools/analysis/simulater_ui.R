@@ -634,6 +634,12 @@ observeEvent(input$simulater_report, {
   inp <- clean_args(sim_inputs(), sim_args) %>% lapply(report_cleaner)
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
+  if (!"norm" %in% names(inp)) {
+    inp$ncorr <- inp$nexact <- NULL
+  } else {
+    if (is_empty(inp$ncorr)) inp$ncorr <- NULL
+    if (!is_empty(inp$nexact)) inp$nexact <- as.logical(inp$nexact)
+  }
 
   update_report(
     inp_main = inp,
