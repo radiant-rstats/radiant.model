@@ -52,8 +52,9 @@ logistic <- function(dataset, rvar, evar,
     wts <- dat[[wtsname]]
     if (!is.integer(wts)) {
       ## rounding to avoid machine precision differences
-      wts_int <- as.integer(round(wts,.Machine$double.rounding))
-      if (all(round(wts,.Machine$double.rounding) == wts_int)) {
+      wts_int <- sshhr(as.integer(round(wts, .Machine$double.rounding)))
+      # if (all(round(wts,.Machine$double.rounding) == wts_int)) {
+      if (isTRUE(all.equal(wts, wts_int, check.attributes = FALSE))) {
         wts <- wts_int
       } else {
         ## if wts is a double use robust estimation
