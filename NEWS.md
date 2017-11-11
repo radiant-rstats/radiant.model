@@ -10,6 +10,7 @@
 * Ensure : are followed by a space in the YAML input to Model > Decision Analysis
 * Added option to generate normally distributed correlated data in Model > Simulate
 * Added option to generate normally distributed simulated data with exact mean and standard deviation in Model > Simulate
+* Fix for large weights that may cause an integer overflow
 
 # CHANGES IN radiant.model 0.8.7.4
 
