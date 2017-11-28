@@ -248,12 +248,15 @@ simulater <- function(const = "",
       return(add_class(dat, "simulater"))
     }
 
-    mess <- paste0("\n### Simulated data\n\nFormula:\n\n",
-                   gsub("*","\\*",form, fixed = TRUE) %>% gsub(";","\n\n", .), "\n\nDate: ",
-                   lubridate::now())
+    form <- gsub("*", "\\*", form, fixed = TRUE) %>% 
+      # gsub("\\#+\\s*([^\n$]+)[\n$]", "**\\1**\n", .) %>% 
+      gsub(";", "\n\n", .)
+
+    mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
+
     env$r_data[[name]] <- dat
-    env$r_data[['datasetlist']] <- c(name, env$r_data[['datasetlist']]) %>% unique
-    env$r_data[[paste0(name,"_descr")]] <- mess
+    env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique
+    env$r_data[[paste0(name, "_descr")]] <- mess
     return(add_class(name, "simulater"))
   }
 
@@ -275,7 +278,6 @@ if (getOption("radiant.testthat", default = FALSE)) {
     dat <- NULL
 
     result <- simulater(const = const, norm = normstr, discrete = discrete, form = form, seed = seed)
-    # attr(result, "sim_call")
     stopifnot(sum(round(result[1000,],5) == c(3,-141.427660,5,-282.85532)) == 4)
   }
   main__()
@@ -311,7 +313,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   clean <- function(x) paste0(gsub(";", "; ", x) %>% gsub("\\n","",.), "\n")
 
   cat("Simulation\n")
-  cat("Simulations:", nrow(object), "\n")
+  cat("Simulations:", formatnr(nrow(object), dec = 0), "\n")
   cat("Random seed:", sc$seed, "\n")
   cat("Sim data   :", sc$name, "\n")
   if (!is_empty(sc$binom))    cat("Binomial   :", clean(sc$binom))
@@ -657,8 +659,8 @@ summary.repeater <- function(object,
 
   ## show results
   cat("Repeated simulation\n")
-  cat("Simulations   :", rc$sc$nr, "\n")
-  cat("Repetitions   :", ifelse(is_empty(rc$nr), nrow(object), rc$nr), "\n")
+  cat("Simulations   :", ifelse(is_empty(rc$sc$nr), "", formatnr(rc$sc$nr, dec = 0)), "\n")
+  cat("Repetitions   :", formatnr(ifelse(is_empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
   cat("Group by      :", ifelse (rc$byvar == "rep", "Repeat", "Simulation"), "\n")
   cfun <- sub("_rm$", "", rc$fun)
   cat("Function      :", cfun, "\n")
@@ -672,7 +674,7 @@ summary.repeater <- function(object,
   }
   cat("\n")
 
-  sim_summary(select(object,-1), fun = cfun, dec = ifelse (is.na(dec), 4, dec))
+  sim_summary(select(object, -1), fun = cfun, dec = ifelse (is.na(dec), 4, dec))
 }
 
 #' Plot repeated simulation
@@ -731,8 +733,10 @@ plot.repeater <- function(x, shiny = FALSE, custom = FALSE, ...) {
 #' @export
 sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
 
+  isFct <- "factor" == dc
+  isNum <- dc %in% c("numeric", "integer", "Duration")
+  isChar <- "character" == dc
   isLogic <- "logical" == dc
-  isNum <- !isLogic
 
   dec <- ifelse(is.na(dec), 4, as_integer(dec))
 
@@ -782,6 +786,15 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
     select(dat, which(isLogic)) %>% summarise_all(funs(sum, mean)) %>% round(dec) %>%
       matrix(ncol = 2) %>% set_colnames(c("TRUE (nr)  ", "TRUE (prop)")) %>%
       set_rownames(names(dat)[isLogic]) %>% print
+    cat("\n")
+  }
+
+  if (sum(isFct) > 0 | sum(isChar) > 0) {
+    cat("Factors:\n")
+    select(dat, which(isFct | isChar)) %>% 
+    mutate_if(is.character, funs(as_factor)) %>%
+    summary %>% 
+    print
     cat("\n")
   }
 }

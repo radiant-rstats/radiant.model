@@ -4,10 +4,14 @@
 \alias{summary.dtree}
 \title{Summary method for the dtree function}
 \usage{
-\method{summary}{dtree}(object, ...)
+\method{summary}{dtree}(object, input = TRUE, output = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{simulater}}}
+
+\item{input}{Print decision tree input}
+
+\item{output}{Print decision tree output}
 
 \item{...}{further arguments passed to or from other methods}
 }

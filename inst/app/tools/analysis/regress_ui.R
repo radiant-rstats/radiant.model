@@ -395,7 +395,8 @@ observeEvent(input$regress_report, {
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }
-  xcmd <- ""
+
+  xcmd <- paste0("# store(result, name = \"", input$reg_store_res_name, "\")")
 
   if (!is_empty(input$reg_predict, "none") &&
       (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
@@ -403,9 +404,9 @@ observeEvent(input$regress_report, {
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
 
-    xcmd <- paste0("print(pred, n = 10)")
+    xcmd <- paste0(xcmd, "\nprint(pred, n = 10)")
     if (input$reg_predict %in% c("data","datacmd"))
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = \"", input$reg_store_pred_name,"\")")
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = \"", input$reg_store_pred_name, "\")")
     xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
 
     if (input$reg_pred_plot && !is_empty(input$reg_xvar)) {

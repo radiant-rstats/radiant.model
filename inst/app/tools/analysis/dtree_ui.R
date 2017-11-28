@@ -392,7 +392,7 @@ observeEvent(input$dtree_remove, {
 .dtree_report <- observeEvent(vals_dtree$dtree_report, {
   req(vals_dtree$dtree_report > 0)
   outputs <- c("summary")
-  inp_out <- list("", "")
+  inp_out <- list(list(input = TRUE, output = FALSE), "")
   figs <- FALSE
   if (!is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
     inp_out[[2]] <- list(vars = gsub("\n+", "", input$dtree_sense), decs = input$dtree_sense_decision, custom = FALSE)

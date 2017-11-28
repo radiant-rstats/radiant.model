@@ -197,7 +197,6 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     return(add_class(err, "dtree"))
   }
 
-
   ## getting variables from base if available
   if (!is.null(yl$variables) && is.character(yl$variables[1])) {
     if (exists("r_data") && !is.null(r_data$dtree_list)) {
@@ -421,6 +420,8 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{simulater}}
+#' @param input Print decision tree input
+#' @param output Print decision tree output
 #' @param ... further arguments passed to or from other methods
 #'
 #' @importFrom data.tree Traverse Get FormatPercent
@@ -430,7 +431,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-summary.dtree <- function(object, ...) {
+summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
 
   if (is.character(object)) return(cat(object))
 
@@ -465,10 +466,15 @@ summary.dtree <- function(object, ...) {
     } %>% { .[[" "]] <- format(.[[" "]], justify = "left"); .}
   }
 
-  if (all(object$vars != "")) {
+  if (input) {
+    cat("Decision tree input:\n")
+    cat(yaml::as.yaml(object$yl, indent = 4))
+    cat("\n")
+  }
+
+  if (all(object$vars != "") && output) {
     cat("Input values:\n")
     print(as.data.frame(object$vars) %>% set_names(""))
-    cat("\n")
   }
 
   ## initial setup
@@ -481,11 +487,13 @@ summary.dtree <- function(object, ...) {
     if (object$prob_check != "")
       cat(paste0("**\n",object$prob_check,"\n**\n\n"))
 
-    cat("\nInitial decision tree:\n")
-    format_dtree(object$jl_init) %>% print(row.names = FALSE)
+    if (output) {
+      cat("\nInitial decision tree:\n")
+      format_dtree(object$jl_init) %>% print(row.names = FALSE)
 
-    cat("\n\nFinal decision tree:\n")
-    format_dtree(object$jl) %>% print(row.names = FALSE)
+      cat("\nFinal decision tree:\n")
+      format_dtree(object$jl) %>% print(row.names = FALSE)
+    }
   }
 }
 
