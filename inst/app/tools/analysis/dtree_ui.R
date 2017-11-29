@@ -232,7 +232,7 @@ dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
 })
 
 output$dtree_print <- renderPrint({
-  dtree_eval() %>% {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(.)}
+  dtree_eval() %>% {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)}
 })
 
 dtree_plot_args <- as.list(if (exists("plot.dtree")) formals(plot.dtree)
@@ -303,7 +303,7 @@ output$dtree_save <- downloadHandler(
   },
   content = function(file) {
     isolate({
-      capture.output(dtree(input$dtree_edit) %>% summary) %>%
+      capture.output(dtree(input$dtree_edit) %>% summary(input = FALSE, output = TRUE)) %>%
         cat(., file = file, sep = "\n")
     })
   }
