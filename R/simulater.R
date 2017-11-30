@@ -5,8 +5,6 @@
 #' @param const A string listing the constants to include in the analysis (e.g., "cost = 3; size = 4")
 #' @param lnorm A string listing the log-normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the log-mean and the second is the log-standard deviation)
 #' @param norm A string listing the normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the mean and the second is the standard deviation)
-#' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
-#' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables to be simulated 
 #' @param unif A string listing the uniformly distributed random variables to include in the analysis (e.g., "demand 0 1" where the first number is the minimum value and the second is the maximum value)
 #' @param discrete A string listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 8 .3 .7" where the first set of numbers are the values and the second set the probabilities
 #' @param binom A string listing the random variables with a binomial distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
@@ -15,6 +13,8 @@
 #' @param data Name of a dataset to be used in the calculations
 #' @param form A string with the formula to evaluate (e.g., "profit = demand * (price - cost)")
 #' @param seed To repeat a simulation with the same randomly generated values enter a number into Random seed input box.
+#' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
+#' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables to be simulated 
 #' @param name To save the simulated data for further analysis specify a name in the Sim name input box. You can then investigate the simulated data by choosing the specified name from the Datasets dropdown in any of the other Data tabs.
 #' @param nr Number of simulations
 #' @param dat Data list from previous simulation. Used by repeater function
@@ -33,8 +33,6 @@
 simulater <- function(const = "",
                       lnorm = "",
                       norm = "",
-                      nexact = FALSE,
-                      ncorr = NULL,
                       unif = "",
                       discrete = "",
                       binom = "",
@@ -43,6 +41,8 @@ simulater <- function(const = "",
                       data = "",
                       form = "",
                       seed = "",
+                      nexact = FALSE,
+                      ncorr = NULL,
                       name = "",
                       nr = 1000,
                       dat = NULL) {
@@ -310,7 +310,11 @@ summary.simulater <- function(object, dec = 4, ...) {
   }
 
   sc <- attr(object, "sim_call")
-  clean <- function(x) paste0(gsub(";", "; ", x) %>% gsub("\\n","",.), "\n")
+  clean <- function(x) {
+    gsub(";", "; ", x) %>% 
+    gsub("\\n", "", .) %>%
+    paste0(., "\n")
+  }
 
   cat("Simulation\n")
   cat("Simulations:", formatnr(nrow(object), dec = 0), "\n")
@@ -436,9 +440,11 @@ repeater <- function(nr = 12,
   #                         profit_small = profit < 100",
   #                 seed = "1234")
 
+  if (byvar == "sim") grid <- ""
+
   if (is_empty(nr)) {
     if (is_empty(grid)) {
-      mess <- c("error",paste0("Please specify the number of repetitions in '# reps'"))
+      mess <- c("error", paste0("Please specify the number of repetitions in '# reps'"))
       return(add_class(mess, "repeater"))
     } else {
       nr = 1
@@ -479,10 +485,23 @@ repeater <- function(nr = 12,
   if (!is_empty(sc$data)) vars <- c(sc$data, vars)
 
   sc$name <- sc$seed <- "" ## cleaning up the sim call
-  sc_keep <- grep(paste(vars, collapse = "|"), sc, value = TRUE)
-  print(sc)
-  print(vars)
-  print(sc_keep)
+
+  ## using \\b based on https://stackoverflow.com/a/34074458/1974918
+  sc_keep <- grep(paste(paste0("\\b",vars,"\\b"), collapse = "|"), sc, value = TRUE)
+
+  ## ensure that only the selected variables of a specific type are resimulated
+  ## e.g., if A, B, and C are normal and A should be re-sim'd, don't also re-sim B and C
+  for (i in names(sc_keep)) {
+    if (i == "form") next
+    sc_check <- sim_cleaner(sc_keep[[i]]) %>%
+      sim_splitter(";")
+    if (length(sc_check) < 2) { 
+      next
+    } else {
+      sc_keep[[i]] <- grep(paste(paste0("\\b",vars,"\\b"), collapse = "|"), sc_check, value = TRUE) %>%
+        paste0(collapse = ";\n")
+    }
+  }
 
   ## needed in case there is no 'form' in simulate
   sc[1:(which(names(sc) == "seed")-1)] <- ""
@@ -501,8 +520,6 @@ repeater <- function(nr = 12,
   }
 
   rep_sim <- function(rep_nr, sfun = function(x) x) {
-    # print(attr(sc, "sim_call"))
-    # print(str(sc))
     bind_cols(
       data_frame(rep = rep(rep_nr, nr_sim), sim = 1:nr_sim),
       do.call(simulater, sc)
@@ -666,6 +683,8 @@ summary.repeater <- function(object,
   cat("Repeated simulation\n")
   cat("Simulations   :", ifelse(is_empty(rc$sc$nr), "", formatnr(rc$sc$nr, dec = 0)), "\n")
   cat("Repetitions   :", formatnr(ifelse(is_empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
+  if (length(rc$vars) > 0) 
+    cat("Re-simulated  :", paste0(rc$vars, collapse = ", "), "\n")
   cat("Group by      :", ifelse (rc$byvar == "rep", "Repeat", "Simulation"), "\n")
   cfun <- sub("_rm$", "", rc$fun)
   cat("Function      :", cfun, "\n")

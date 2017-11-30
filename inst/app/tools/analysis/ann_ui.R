@@ -252,7 +252,6 @@ ann_available <- reactive({
   "available"
 })
 
-# .ann <- eventReactive(input$ann_run | input$ann_pause == TRUE, {
 .ann <- eventReactive(input$ann_run, {
   withProgress(message = "Estimating model", value = 1,
     do.call(ann, ann_inputs())

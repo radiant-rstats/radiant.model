@@ -100,7 +100,8 @@ sim_vars <- reactive({
 
 output$ui_rep_vars <- renderUI({
   vars <- sim_vars()
-  if (is_empty(vars)) return()
+  # if (is_empty(vars)) return()
+  req(!is_empty(vars))
 
   form <- input$sim_form %>% sim_cleaner
   if (!is_empty(form)) {
@@ -117,7 +118,7 @@ output$ui_rep_vars <- renderUI({
   selectizeInput("rep_vars", label = "Variables to re-simulate:",
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_vars", vars),
-    options = list(placeholder = "Select variables", plugins = list('remove_button'))
+    options = list(placeholder = "Select variables", plugins = list("remove_button"))
   )
 })
 
@@ -131,7 +132,8 @@ output$ui_rep_grid_vars <- renderUI({
       vars <- c(vars, s[[i]][1])
   }
 
-  if (is_empty(vars)) return()
+  # if (is_empty(vars)) return()
+  req(!is_empty(vars))
 
   selectizeInput("rep_grid_vars", label = "Name:",
     choices = vars, multiple = FALSE,
@@ -141,7 +143,9 @@ output$ui_rep_grid_vars <- renderUI({
 
 output$ui_rep_sum_vars <- renderUI({
   vars <- sim_vars()
-  if (is_empty(vars)) return()
+  # if (is_empty(vars)) return()
+
+  req(!is_empty(vars))
 
   selectizeInput("rep_sum_vars", label = "Output variables:",
     choices = vars, multiple = TRUE,
@@ -154,7 +158,7 @@ output$ui_rep_byvar <- renderUI({
   vars <- c("Simulation" = "sim", "Repeat" = "rep")
   selectizeInput("rep_byvar", label = "Group by:", choices = vars,
     selected = state_single("rep_byvar", vars), multiple = FALSE,
-    options = list(placeholder = 'Select group-by variable')
+    options = list(placeholder = "Select group-by variable")
   )
 })
 
@@ -568,7 +572,7 @@ sim_plot_height <- function() {
   }
 }
 
-.plot_simulate <- reactive({
+.plot_simulate <- eventReactive(input$runSim, {
   req(input$sim_show_plots)
   withProgress(message = "Generating simulation plots", value = 1, {
     .simulater() %>%
@@ -585,6 +589,10 @@ sim_plot_height <- function() {
 .summary_repeat <- eventReactive(input$runRepeat, {
   if (length(input$rep_sum_vars) == 0)
     return("Select at least one Output variable")
+  if (input$rep_byvar == "sim" && is_empty(input$rep_nr))
+    return("Please specify the number of repetitions in '# reps'")
+  if (input$rep_byvar == "rep" && is_empty(input$rep_grid))
+    return("Specify one or more constants in the Grid search input")
   summary(.repeater(), dec = input$rep_dec)
 })
 
@@ -605,9 +613,13 @@ rep_plot_height <- function() {
   }
 }
 
-.plot_repeat <- reactive({
+.plot_repeat <- eventReactive(input$runRepeat, {
   req(input$rep_show_plots)
   req(length(input$rep_sum_vars) > 0)
+  if (input$rep_byvar == "sim" && is_empty(input$rep_nr))
+    return(invisible())
+  if (input$rep_byvar == "rep" && is_empty(input$rep_grid))
+    return(invisible())
   object <- .repeater()
   if (is.null(object)) return(invisible())
   withProgress(message = "Generating repeated simulation plots", value = 1, {
@@ -666,6 +678,7 @@ observeEvent(input$repeater_report, {
   inp <- clean_args(rep_inputs(), rep_args) %>% lapply(report_cleaner)
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
+  if (input$rep_byvar == "sim") inp$grid <- NULL
 
   update_report(
     inp_main = inp,

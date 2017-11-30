@@ -10,7 +10,7 @@ globalVariables(c(".","n",".resid","null.deviance","r_environment",".fitted","Pr
 #' @docType package
 #' @import radiant.data shiny ggplot2
 #' @importFrom gridExtra grid.arrange
-#' @importFrom dplyr mutate_at mutate_all summarise_at summarise_all arrange arrange_at select select_at filter mutate mutate_ funs group_by group_by_ summarise summarise_ slice bind_cols bind_rows desc first last min_rank data_frame inner_join arrange_at group_by_at ungroup
+#' @importFrom dplyr mutate_at mutate_if mutate_all summarise_at summarise_all arrange arrange_at select select_at filter mutate mutate_ funs group_by group_by_ summarise summarise_ slice bind_cols bind_rows desc first last min_rank data_frame inner_join arrange_at group_by_at ungroup
 #' @importFrom rlang .data parse_exprs :=
 #' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames set_names extract2
 #' @importFrom tidyr spread gather
