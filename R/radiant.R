@@ -1,15 +1,36 @@
-#' Launch Radiant in the default browser
+#' Launch radiant.model in default browser or Rstudio Viewer
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
-#' @importFrom shiny runApp
+#' @param run Run radiant.model in an external browser ("browser") or in the Rstudio viewer ("viewer")
+#'
+#' @importFrom rstudioapi viewer
+#'
+#' @examples
+#' \dontrun{
+#' radiant.model::radiant.model()
+#' radiant.model::radiant.model("viewer")
+#' }
 #'
 #' @export
-radiant.model <- function() {
-  if (!"package:radiant.model" %in% search())
-    if (!require(radiant.model)) stop("Calling radiant.model start function but radiant.model is not installed.")
-  runApp(system.file("app", package = "radiant.model"), launch.browser = TRUE)
+radiant.model <- function(run = "browser") {
+  if (!"package:radiant.model" %in% search()) {
+    if (!sshhr(require(radiant.model))) {
+      stop("\nCalling radiant.model start function but radiant.model is not installed.")
+    }
+  }
+  run <- if (run == "viewer") {
+    message("\nStarting radiant.model in Rstudio Viewer ...")
+    rstudioapi::viewer
+  } else {
+    message("\nStarting radiant.model in default browser ...\n\nUse radiant.model::radiant.model(\"viewer\") to open radiant.model in Rstudio Viewer")
+    TRUE
+  }
+  suppressPackageStartupMessages(
+    shiny::runApp(system.file("app", package = "radiant.model"), launch.browser = run)
+  )
 }
+
 
 #' Method to evaluate sensitivity of an analysis
 #'
@@ -27,4 +48,10 @@ sensitivity <- function(object, ...) UseMethod("sensitivity", object)
 #' @importFrom DiagrammeR renderDiagrammeR
 #'
 #' @export
-render.DiagrammeR <- function(object, ...) DiagrammeR::renderDiagrammeR(object)
+render.DiagrammeR <- function(object, ...) {
+  if (exists("r_environment")) {
+    DiagrammeR::renderDiagrammeR(object)
+  } else {
+    object
+  }
+}
