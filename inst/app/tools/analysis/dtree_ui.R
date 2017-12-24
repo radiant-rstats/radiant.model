@@ -2,7 +2,7 @@
 ## Create decision tree
 #######################################
 dtree_example <-
-"name: Sign contract
+  "name: Sign contract
 variables:
     legal fees: 5000
 type: decision
@@ -26,9 +26,11 @@ dtree_max_min <- c("Max" = "max", "Min" = "min")
 output$ui_dtree_list <- renderUI({
   dtree_list <- r_data$dtree_list
   if (length(dtree_list) == 0) return(invisible())
-  selectInput(inputId = "dtree_list", label = NULL,
+  selectInput(
+    inputId = "dtree_list", label = NULL,
     choices = dtree_list, selected = state_init("dtree_list", dtree_list[1]),
-    multiple = FALSE, selectize = FALSE, width = "110px")
+    multiple = FALSE, selectize = FALSE, width = "110px"
+  )
 })
 
 output$ui_dtree_name <- renderUI({
@@ -44,7 +46,6 @@ output$ui_dtree_remove <- renderUI({
 })
 
 output$ui_dtree_sense_name <- renderUI({
-
   dte <- dtree_eval()
   if (length(dte) < 2) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
   vars <- dte$yl$variables
@@ -53,13 +54,14 @@ output$ui_dtree_sense_name <- renderUI({
   if (length(vars) == 0) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
   vars[names(vars)] <- names(vars)
 
-  selectInput("dtree_sense_name", label = "Sensitivity to changes in:",
+  selectInput(
+    "dtree_sense_name", label = "Sensitivity to changes in:",
     choices = vars, multiple = FALSE,
-    selected = state_single("dtree_sense_name", vars))
+    selected = state_single("dtree_sense_name", vars)
+  )
 })
 
 output$ui_dtree_sense_decision <- renderUI({
-
   dte <- dtree_eval()
   if (length(dte) < 2) return(invisible())
   jl <- dte$jl
@@ -68,13 +70,15 @@ output$ui_dtree_sense_decision <- renderUI({
   ## all decisions in the tree
   decs <-
     jl$Get(function(x) if (length(x$parent$decision) > 0) x$payoff) %>%
-    na.omit %>%
-    names
+    na.omit() %>%
+    names()
 
-  selectizeInput("dtree_sense_decision", label = "Decisions to evaluate:",
+  selectizeInput(
+    "dtree_sense_decision", label = "Decisions to evaluate:",
     choices = decs, multiple = TRUE,
     selected = state_multiple("dtree_sense_decision", decs, decs),
-    options = list(plugins = list("remove_button")))
+    options = list(plugins = list("remove_button"))
+  )
 })
 
 output$ui_dtree_sense <- renderUI({
@@ -93,8 +97,10 @@ output$ui_dtree_sense <- renderUI({
 })
 
 observeEvent(input$dtree_sense_add, {
-  var_updater(input$dtree_sense_add, "dtree_sense",
-    c(input$dtree_sense_name, input$dtree_sense_min, input$dtree_sense_max, input$dtree_sense_step))
+  var_updater(
+    input$dtree_sense_add, "dtree_sense",
+    c(input$dtree_sense_name, input$dtree_sense_min, input$dtree_sense_max, input$dtree_sense_step)
+  )
 })
 
 observeEvent(input$dtree_sense_del, {
@@ -104,86 +110,105 @@ observeEvent(input$dtree_sense_del, {
 output$dtree <- renderUI({
   tabsetPanel(
     id = "tabs_dtree",
-    tabPanel("Model",
-    with(tags,
-      table(
-        td(help_modal("Decision analysis","dtree_help1", help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))),
+    tabPanel(
+      "Model",
+      with(
+        tags,
+        table(
+          td(help_modal("Decision analysis", "dtree_help1", help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/dtree.Rmd")))),
+          td(HTML("&nbsp;&nbsp;")),
+          td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report1'></i>")),
+          td(HTML("&nbsp;&nbsp;")),
+          td(HTML("&nbsp;&nbsp;")),
+          td(radioButtons(
+            inputId = "dtree_opt", label = NULL,
+            dtree_max_min, selected = state_init("dtree_opt", "max"), inline = TRUE
+          )),
+          td(actionButton("dtree_eval", "Calculate"), style = "padding-top:5px;"),
+          td(uiOutput("ui_dtree_name"), style = "padding-top:-5px"),
+          td(uiOutput("ui_dtree_list"), style = "padding-top:0px;"),
+          td(downloadButton("dtree_save_yaml", "Save input"), style = "padding-top:5px;"),
+          td(downloadButton("dtree_save", "Save output"), style = "padding-top:5px;"),
+          td(uiOutput("ui_dtree_remove"), style = "padding-top:5px;"),
+          td(HTML("<div class='form-group shiny-input-container'><input id='dtree_load_yaml' name='dtree_load_yaml' type='file' accept='.yaml'/></div>"))
+        )
+      ),
+      shinyAce::aceEditor(
+        "dtree_edit", mode = "yaml",
+        vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
+        wordWrap = TRUE, height = "auto",
+        value = state_init("dtree_edit", dtree_example),
+        hotkeys = list(dtree_run = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))
+      ),
+      verbatimTextOutput("dtree_print")
+    ),
+    tabPanel(
+      "Plot",
+      actionLink("dtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
+      with(tags, table(
+        td(help_modal("Decision analysis", "dtree_help2", help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/dtree.Rmd"))), style = "padding-top:30px;"),
         td(HTML("&nbsp;&nbsp;")),
-        td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report1'></i>")),
-        td(HTML("&nbsp;&nbsp;")),
-        td(HTML("&nbsp;&nbsp;")),
-        td(radioButtons(inputId = "dtree_opt", label = NULL,
-           dtree_max_min, selected = state_init("dtree_opt", "max"), inline = TRUE)),
-        td(actionButton("dtree_eval", "Calculate"), style="padding-top:5px;"),
-        td(uiOutput("ui_dtree_name"), style="padding-top:-5px"),
-        td(uiOutput("ui_dtree_list"), style="padding-top:0px;"),
-        td(downloadButton("dtree_save_yaml", "Save input"), style="padding-top:5px;"),
-        td(downloadButton("dtree_save", "Save output"), style="padding-top:5px;"),
-        td(uiOutput("ui_dtree_remove"), style="padding-top:5px;"),
-        td(HTML("<div class='form-group shiny-input-container'><input id='dtree_load_yaml' name='dtree_load_yaml' type='file' accept='.yaml'/></div>"))
+        td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report2'></i>"), style = "padding-top:30px;"),
+        td(HTML("&nbsp;&nbsp;&nbsp;")),
+        td(radioButtons(
+          inputId = "dtree_final", label = "Plot decision tree:",
+          c("Initial" = FALSE, "Final" = TRUE),
+          selected = state_init("dtree_final", FALSE), inline = TRUE
+        )),
+        td(HTML("&nbsp;&nbsp;&nbsp;")),
+        td(radioButtons(
+          inputId = "dtree_orient", label = "Plot direction:",
+          c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE
+        )),
+        td(actionButton("dtree_eval_plot", "Calculate"), style = "padding-top:30px;"),
+        td(numericInput(
+          "dtree_dec", "Decimals", value = state_init("dtree_dec", 2),
+          min = 0, max = 10, width = "70px"
+        )),
+        td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px"))
+      )),
+      # DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
+      DiagrammeR::DiagrammeROutput(
+        "dtree_plot",
+        width = ifelse(length(input$GetScreenWidth) == 0, "1600px", paste0(input$GetScreenWidth - 80, "px")),
+        height = "100%"
       )
     ),
-    shinyAce::aceEditor("dtree_edit", mode = "yaml",
-      vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
-      wordWrap = TRUE, height = "auto",
-      value = state_init("dtree_edit", dtree_example),
-      hotkeys = list(dtree_run = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))),
-    verbatimTextOutput("dtree_print")
-  ),
-  tabPanel("Plot",
-    actionLink("dtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
-    with(tags, table(
-      td(help_modal("Decision analysis","dtree_help2", help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd"))), style="padding-top:30px;"),
-      td(HTML("&nbsp;&nbsp;")),
-      td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report2'></i>"), style="padding-top:30px;"),
-      td(HTML("&nbsp;&nbsp;&nbsp;")),
-      td(radioButtons(inputId = "dtree_final", label = "Plot decision tree:",
-        c("Initial" = FALSE, "Final" = TRUE),
-        selected = state_init("dtree_final", FALSE), inline = TRUE)),
-      td(HTML("&nbsp;&nbsp;&nbsp;")),
-      td(radioButtons(inputId = "dtree_orient", label = "Plot direction:",
-        c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE)),
-      td(actionButton("dtree_eval_plot", "Calculate"), style="padding-top:30px;"),
-      td(numericInput("dtree_dec", "Decimals", value = state_init("dtree_dec", 2),
-         min = 0, max = 10, width = "70px")),
-      td(textInput("dtree_symbol", "Symbol", state_init("dtree_symbol", "$"), width = "70px"))
-    )),
-    # DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
-    DiagrammeR::DiagrammeROutput("dtree_plot", 
-      width = ifelse(length(input$GetScreenWidth) == 0, "1600px", paste0(input$GetScreenWidth - 80, "px")),
-      height = "100%"
-    )
-  ),
-  tabPanel("Sensitivity",
-    sidebarLayout(
-      sidebarPanel(
-
-        conditionalPanel(condition = "input.dtree_sense_name == null",
+    tabPanel(
+      "Sensitivity",
+      sidebarLayout(
+        sidebarPanel(
+          conditionalPanel(
+            condition = "input.dtree_sense_name == null",
+            wellPanel(
+              actionButton("dtree_eval_sense", "Calculate", width = "100%")
+            )
+          ),
+          conditionalPanel(
+            condition = "input.dtree_sense_name != null",
+            wellPanel(
+              actionButton("dtree_eval_sensitivity", "Evaluate sensitivity", width = "100%")
+            )
+          ),
           wellPanel(
-            actionButton("dtree_eval_sense", "Calculate", width = "100%")
+            ## vary one 'variable' value through some range
+            ## select a payoff or only the final payoff?
+            uiOutput("ui_dtree_sense_decision"),
+            uiOutput("ui_dtree_sense_name"),
+            uiOutput("ui_dtree_sense")
+          ),
+          help_and_report(
+            modal_title = "Decision analysis", fun_name = "dtree",
+            help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/dtree.Rmd"))
           )
         ),
-        conditionalPanel(condition = "input.dtree_sense_name != null",
-          wellPanel(
-            actionButton("dtree_eval_sensitivity", "Evaluate sensitivity", width = "100%")
-          )
-        ),
-        wellPanel(
-          ## vary one 'variable' value through some range
-          ## select a payoff or only the final payoff?
-          uiOutput("ui_dtree_sense_decision"),
-          uiOutput("ui_dtree_sense_name"),
-          uiOutput("ui_dtree_sense")
-        ),
-        help_and_report(modal_title = "Decision analysis", fun_name = "dtree",
-                        help_file = inclRmd(file.path(getOption("radiant.path.model"),"app/tools/help/dtree.Rmd")))
-      ),
-      mainPanel(
-        plot_downloader("dtree_sensitivity", height = dtree_sense_height),
-        plotOutput("plot_dtree_sensitivity")
+        mainPanel(
+          plot_downloader("dtree_sensitivity", height = dtree_sense_height),
+          plotOutput("plot_dtree_sensitivity")
+        )
       )
     )
-  ))
+  )
 })
 
 vals_dtree <- reactiveValues(dtree_run = 0, dtree_report = 0)
@@ -197,14 +222,16 @@ observe({
 
 dtree_name <- function() {
   isolate({
-    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
+    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)", "", .)
     if (is_empty(dtree_name)) {
       dtree_name <- stringr::str_match(input$dtree_edit, "\\s*name:\\s*(.*)\\n\\s*type:")[2]
       if (is.na(dtree_name)) {
         dtree_name <- "dtree"
       } else {
-        dtree_name %<>% tolower %>% gsub("[^[:alnum:] ]", "", .) %>%
-          gsub("\\s+","_",.) %>% gsub("^([0-9]+)",".",.)
+        dtree_name %<>% tolower %>%
+          gsub("[^[:alnum:] ]", "", .) %>%
+          gsub("\\s+", "_", .) %>%
+          gsub("^([0-9]+)", ".", .)
       }
     }
     dtree_name
@@ -232,17 +259,22 @@ dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
 })
 
 output$dtree_print <- renderPrint({
-  dtree_eval() %>% {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)}
+  dtree_eval() %>% {
+    if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)
+  }
 })
 
-dtree_plot_args <- as.list(if (exists("plot.dtree")) formals(plot.dtree)
-                         else formals(radiant:::plot.dtree))
+dtree_plot_args <- as.list(if (exists("plot.dtree")) {
+  formals(plot.dtree)
+} else {
+  formals(radiant:::plot.dtree)
+} )
 
 ## list of function inputs selected by user
 dtree_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   for (i in names(dtree_plot_args))
-    dtree_plot_args[[i]] <- input[[paste0("dtree_",i)]]
+    dtree_plot_args[[i]] <- input[[paste0("dtree_", i)]]
   dtree_plot_args
 })
 
@@ -259,13 +291,16 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
 
 ## Evaluate tree sensitivity
 .plot_dtree_sensitivity <- eventReactive(input$dtree_eval_sensitivity, {
-  if (is_not(input$dtree_sense_decision))
+  if (is_not(input$dtree_sense_decision)) {
     return("At least one decision should be selected for evaluation")
+  }
 
-  if (is_empty(input$dtree_sense))
+  if (is_empty(input$dtree_sense)) {
     return("No variables were specified for evaluation.\nClick the + icon to add variables for sensitivity evaluation")
+  }
 
-  withProgress(message = 'Conducting sensitivity analysis', value = 1,
+  withProgress(
+    message = "Conducting sensitivity analysis", value = 1,
     sensitivity(dtree_eval(), gsub("\n+", "", input$dtree_sense), input$dtree_sense_decision, shiny = TRUE)
   )
 })
@@ -281,14 +316,16 @@ dtree_sense_height <- eventReactive(input$dtree_eval_sensitivity, {
 output$plot_dtree_sensitivity <- renderPlot({
   req(input$dtree_eval_sensitivity, cancelOutput = TRUE)
   isolate({
-    .plot_dtree_sensitivity() %>%
-      { if (is.character(.)) {
-          plot(x = 1, type = 'n', main = paste0("\n\n\n\n\n\n\n\n",.) ,
-               axes = FALSE, xlab = "", ylab = "")
-        } else {
-          withProgress(message = 'Making plot', value = 1, print(.))
-        }
+    .plot_dtree_sensitivity() %>% {
+      if (is.character(.)) {
+        plot(
+          x = 1, type = "n", main = paste0("\n\n\n\n\n\n\n\n", .),
+          axes = FALSE, xlab = "", ylab = ""
+        )
+      } else {
+        withProgress(message = "Making plot", value = 1, print(.))
       }
+    }
   })
 }, width = dtree_sense_width, height = dtree_sense_height, res = 96)
 
@@ -334,13 +371,13 @@ observeEvent(input$dtree_load_yaml, {
 
   dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name)
   r_data[[dtree_name]] <- yaml_file
-  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
+  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   shinyAce::updateAceEditor(session, "dtree_edit", value = yaml_file)
 })
 
 observeEvent(input$dtree_list, {
-  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% 
+  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>%
     gsub("\\s{2,}", " ", .) %>%
     gsub("(^\\s+)|(\\s+$)", "", .)
   if (is_empty(dtree_name)) dtree_name <- dtree_name()
@@ -372,13 +409,13 @@ observeEvent(input$dtree_edit, {
 })
 
 dtree_namer <- reactive({
-  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
+  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)", "", .)
 
   if (is_empty(dtree_name)) dtree_name <- input$dtree_list[1]
   if (is_empty(dtree_name)) dtree_name <- dtree_name()
 
   r_data[[dtree_name]] <- input$dtree_edit
-  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique
+  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   dtree_name
 })
@@ -403,12 +440,17 @@ observeEvent(input$dtree_remove, {
 
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
-  id <- sample(seq_len(1000000),1)
+  id <- sample(seq_len(1000000), 1)
   xcmd <- clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
     deparse(control = c("keepNA"), width.cutoff = 500L) %>%
-    {if (. == "list()") "plot(result) %>% render"
-     else paste0(sub("list(", "plot(result, ", ., fixed = TRUE)," %>% render")} %>%
-     gsub("[\"\']TRUE[\'\"]", "TRUE", .)
+    {
+      if (. == "list()") {
+        "plot(result) %>% render"
+      } else {
+        paste0(sub("list(", "plot(result, ", ., fixed = TRUE), " %>% render")
+      }
+    } %>%
+    gsub("[\"\']TRUE[\'\"]", "TRUE", .)
 
   inp <- list(yl = dtree_name)
   if (input$dtree_opt == "min") inp$opt <- "min"

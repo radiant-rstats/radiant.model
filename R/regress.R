@@ -26,21 +26,25 @@ regress <- function(dataset, rvar, evar,
                     int = "",
                     check = "",
                     data_filter = "") {
-
-  if (rvar %in% evar)
+  if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-           add_class("regress"))
+      add_class("regress"))
+  }
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE))
+  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
-           add_class("regress"))
+      add_class("regress"))
+  }
 
   vars <- ""
-  var_check(evar, colnames(dat)[-1], int) %>%
-    { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
+  var_check(evar, colnames(dat)[-1], int) %>% {
+    vars <<- .$vars
+    evar <<- .$ev
+    int <<- .$intv
+  }
 
   ## add minmax attributes to data
   mmx <- minmax(dat)
@@ -55,8 +59,8 @@ regress <- function(dataset, rvar, evar,
     }
   }
 
-  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
-  form_lower <- paste(rvar, "~ 1") %>% as.formula
+  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
+  form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
     ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
@@ -91,7 +95,7 @@ regress <- function(dataset, rvar, evar,
   attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
-  colnames(coeff) <- c("  ","coefficient","std.error","t.value","p.value")
+  colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")
 
   if ("robust" %in% check) {
     vcov <- sandwich::vcovHC(model, type = "HC1")
@@ -102,18 +106,18 @@ regress <- function(dataset, rvar, evar,
   }
 
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
-  colnames(coeff) <- c("  ","coefficient","std.error","t.value","p.value"," ")
-  isFct <- sapply(select(dat,-1), function(x) is.factor(x) || is.logical(x))
+  colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
+  isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
     for (i in names(isFct[isFct]))
-      coeff$`  ` %<>% gsub(i, paste0(i,"|"), .) %>% gsub("\\|\\|","\\|",.)
+      coeff$`  ` %<>% gsub(i, paste0(i, "|"), .) %>% gsub("\\|\\|", "\\|", .)
 
     rm(i, isFct)
   }
 
   rm(dat) ## dat is not needed elsewhere and is already in "model" anyway
 
-  as.list(environment()) %>% add_class(c("regress","model"))
+  as.list(environment()) %>% add_class(c("regress", "model"))
 }
 
 #' Summary method for the regress function
@@ -147,14 +151,17 @@ summary.regress <- function(object,
                             test_var = "",
                             dec = 3,
                             ...) {
-
   if (is.character(object)) return(object)
-  if (class(object$model)[1] != 'lm') return(object)
+  if (class(object$model)[1] != "lm") return(object)
 
   if (any(grepl("stepwise", object$check))) {
-    step_type <- if ("stepwise-backward" %in% object$check) "Backward"
-      else if ("stepwise-forward" %in% object$check) "Forward"
-      else "Forward and Backward"
+    step_type <- if ("stepwise-backward" %in% object$check) {
+      "Backward"
+    } else if ("stepwise-forward" %in% object$check) {
+      "Forward"
+    } else {
+      "Forward and Backward"
+    }
     cat("----------------------------------------------------\n")
     cat(step_type, "stepwise selection of variables\n")
     cat("----------------------------------------------------\n")
@@ -162,8 +169,9 @@ summary.regress <- function(object,
 
   cat("Linear regression (OLS)\n")
   cat("Data     :", object$dataset, "\n")
-  if (object$data_filter %>% gsub("\\s","",.) != "")
-    cat("Filter   :", gsub("\\n","", object$data_filter), "\n")
+  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+    cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
+  }
   cat("Response variable    :", object$rvar, "\n")
   cat("Explanatory variables:", paste0(object$evar, collapse = ", "), "\n")
   expl_var <- if (length(object$evar) == 1) object$evar else "x"
@@ -174,26 +182,30 @@ summary.regress <- function(object,
   } else if ("center" %in% object$check) {
     cat("**Centered coefficients shown (x - mean(x))**\n")
   }
-  if ("robust" %in% object$check)
+  if ("robust" %in% object$check) {
     cat("**Robust standard errors used**\n")
+  }
 
   coeff <- object$coeff
   coeff$`  ` %<>% format(justify = "left")
   cat("\n")
   if (all(object$coeff$p.value == "NaN")) {
-    coeff[,2] %<>% {sprintf(paste0("%.",dec,"f"),.)}
-    print(coeff[,1:2], row.names = FALSE)
+    coeff[, 2] %<>% {
+      sprintf(paste0("%.", dec, "f"), .)
+    }
+    print(coeff[, 1:2], row.names = FALSE)
     cat("\nInsufficient variation in explanatory variable(s) to report additional statistics")
     return()
   } else {
     p.small <- coeff$p.value < .001
-    coeff[,2:5] %<>% formatdf(dec)
+    coeff[, 2:5] %<>% formatdf(dec)
     coeff$p.value[p.small] <- "< .001"
     print(coeff, row.names = FALSE)
   }
 
-  if (nrow(object$model$model) <= (length(object$evar) + 1))
+  if (nrow(object$model$model) <= (length(object$evar) + 1)) {
     return("\nInsufficient observations to estimate model")
+  }
 
   ## adjusting df for included intercept term
   df_int <- if (attr(object$model$terms, "intercept")) 1L else 0L
@@ -202,18 +214,21 @@ summary.regress <- function(object,
   if (nrow(coeff) == 1) return("\nModel contains only an intercept. No additional output shown")
 
   reg_fit <- glance(object$model) %>% round(dec)
-  if (reg_fit['p.value'] < .001) reg_fit['p.value'] <- "< .001"
+  if (reg_fit["p.value"] < .001) reg_fit["p.value"] <- "< .001"
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
   cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df - df_int, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
   cat("\nNr obs:", formatnr(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
 
-  if (anyNA(object$model$coeff))
+  if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")
+  }
 
   if ("rmse" %in% sum_check) {
-    mean(object$model$residuals^2, na.rm=TRUE) %>% sqrt %>% round(dec) %>%
-    cat("Prediction error (RMSE): ", ., "\n")
+    mean(object$model$residuals ^ 2, na.rm = TRUE) %>%
+      sqrt() %>%
+      round(dec) %>%
+      cat("Prediction error (RMSE): ", ., "\n")
     cat("Residual st.dev   (RSD): ", reg_fit$sigma, "\n\n")
   }
 
@@ -228,12 +243,12 @@ summary.regress <- function(object,
     ss_err <- sum(atab$`Sum Sq`[nr_rows])
     ss_tot <- ss_reg + ss_err
     ss_tab <- data.frame(matrix(nrow = 3, ncol = 2))
-    rownames(ss_tab) <- c("Regression","Error","Total")
-    colnames(ss_tab) <- c("df","SS")
-    ss_tab$df <- c(df_reg,df_err,df_tot)
-    ss_tab$SS <- c(ss_reg,ss_err,ss_tot)
+    rownames(ss_tab) <- c("Regression", "Error", "Total")
+    colnames(ss_tab) <- c("df", "SS")
+    ss_tab$df <- c(df_reg, df_err, df_tot)
+    ss_tab$SS <- c(ss_reg, ss_err, ss_tot)
     cat("Sum of squares:\n")
-    format(ss_tab, scientific = FALSE) %>% print
+    format(ss_tab, scientific = FALSE) %>% print()
     cat("\n")
   }
 
@@ -243,15 +258,19 @@ summary.regress <- function(object,
     } else {
       ## needed to adjust when step-wise regression is used
       if (length(attributes(object$model$terms)$term.labels) > 1) {
-      # if (length(object$evar) > 1) {
+        # if (length(object$evar) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          {if (is.null(dim(.))) . else .[,"GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
-          data.frame("VIF" = ., "Rsq" = 1 - 1/.) %>%
+          {
+            if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]
+          } %>% ## needed when factors are included
+          data.frame("VIF" = ., "Rsq" = 1 - 1 / .) %>%
           round(dec) %>%
-          .[order(.$VIF, decreasing=T),] %>%
-          { if (nrow(.) < 8) t(.) else . } %>%
-          print
+          .[order(.$VIF, decreasing = T), ] %>%
+          {
+            if (nrow(.) < 8) t(.) else .
+          } %>%
+          print()
       } else {
         cat("Insufficient number of explanatory variables to calculate\nmulticollinearity diagnostics (VIF)\n")
       }
@@ -263,21 +282,24 @@ summary.regress <- function(object,
     if (anyNA(object$model$coeff)) {
       cat("Confidence intervals were not calculated.\n")
     } else {
-
       ci_perc <- ci_label(cl = conf_lev)
 
-      if ("robust" %in% object$check)
+      if ("robust" %in% object$check) {
         cnfint <- radiant.model::confint_robust
-      else
+      } else {
         cnfint <- confint
+      }
 
       # confint(object$model, level = conf_lev) %>%
       cnfint(object$model, level = conf_lev, dist = "t") %>%
-        as.data.frame %>%
-        set_colnames(c("Low","High")) %>%
-        { .$`+/-` <- (.$High - .$Low)/2; . } %>%
-        mutate_all(funs(sprintf(paste0("%.",dec,"f"),.))) %>%
-        cbind(coeff[[2]],.) %>%
+        as.data.frame() %>%
+        set_colnames(c("Low", "High")) %>%
+        {
+          .$`+/-` <- (.$High - .$Low) / 2
+          .
+        } %>%
+        mutate_all(funs(sprintf(paste0("%.", dec, "f"), .))) %>%
+        cbind(coeff[[2]], .) %>%
         set_rownames(object$coeff$`  `) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %T>%
         print
@@ -301,28 +323,29 @@ summary.regress <- function(object,
       not_selected <- setdiff(vars, test_var)
       if (length(not_selected) > 0) sub_form <- paste(". ~", paste(not_selected, collapse = " + "))
       sub_mod <- update(object$model, sub_form, data = object$model$model) %>%
-                   anova(object$model, test = "F")
+        anova(object$model, test = "F")
 
-      if (sub_mod[,"Pr(>F)"][2] %>% is.na) return(cat(""))
+      if (sub_mod[, "Pr(>F)"][2] %>% is.na()) return(cat(""))
 
       matchCf <- function(clist, vlist) {
         matcher <- function(vl, cn)
           if (grepl(":", vl)) {
-            strsplit(vl,":") %>%
-              unlist %>%
-              sapply(function(x) gsub("var",x, "((var.*:)|(:var))")) %>%
+            strsplit(vl, ":") %>%
+              unlist() %>%
+              sapply(function(x) gsub("var", x, "((var.*:)|(:var))")) %>%
               paste0(collapse = "|") %>%
               grepl(cn) %>%
               cn[.]
           } else {
-            mf <- grepl(paste0("^",vl,"$"),cn) %>% cn[.]
-            if (length(mf) == 0)
-              mf <- grepl(paste0("^",vl), cn) %>% cn[.]
+            mf <- grepl(paste0("^", vl, "$"), cn) %>% cn[.]
+            if (length(mf) == 0) {
+              mf <- grepl(paste0("^", vl), cn) %>% cn[.]
+            }
             mf
           }
 
         cn <- names(clist)
-        sapply(vlist, matcher, cn) %>% unname
+        sapply(vlist, matcher, cn) %>% unname()
       }
 
       test_heading <- attr(sub_mod, "heading")[2]
@@ -336,12 +359,18 @@ summary.regress <- function(object,
         )
       }
 
-      p.value <- sub_mod[,"Pr(>F)"][2] %>% { if (. < .001) "< .001" else round(., dec) }
+      p.value <- sub_mod[, "Pr(>F)"][2] %>% {
+        if (. < .001) "< .001" else round(., dec)
+      }
 
       cat(test_heading)
-        object$model$model[, 1] %>%
-        { sum((. - mean(.))^2) } %>%
-        {1 - (sub_mod$RSS / .)} %>%
+      object$model$model[, 1] %>%
+        {
+          sum((. - mean(.)) ^ 2)
+        } %>%
+        {
+          1 - (sub_mod$RSS / .)
+        } %>%
         round(dec) %>%
         cat("\nR-squared, Model 1 vs 2:", .)
       cat("\nF-statistic:", sub_mod$F[2] %>% round(dec), paste0("df(", sub_mod$Res.Df[1] - sub_mod$Res.Df[2], ",", sub_mod$Res.Df[2], "), p.value ", p.value))
@@ -383,10 +412,10 @@ plot.regress <- function(x, plots = "",
                          shiny = FALSE,
                          custom = FALSE,
                          ...) {
-
-  object <- x; rm(x)
+  object <- x
+  rm(x)
   if (is.character(object)) return(object)
-  if (class(object$model)[1] != 'lm') return(object)
+  if (class(object$model)[1] != "lm") return(object)
 
   ## checking object size
   model <- ggplot2::fortify(object$model)
@@ -395,13 +424,12 @@ plot.regress <- function(x, plots = "",
   evar <- object$evar
   vars <- c(rvar, evar)
 
-  flines <- sub("loess","",lines) %>% sub("line","",.)
-  nlines <- sub("jitter","",lines)
+  flines <- sub("loess", "", lines) %>% sub("line", "", .)
+  nlines <- sub("jitter", "", lines)
 
   nrCol <- 2
   plot_list <- list()
   if ("dashboard" %in% plots) {
-
     plot_list[["dash1"]] <-
       visualize(model, xvar = ".fitted", yvar = rvar, type = "scatter", custom = TRUE) +
       labs(title = "Actual vs Fitted values", x = "Fitted", y = "Actual")
@@ -410,46 +438,47 @@ plot.regress <- function(x, plots = "",
       visualize(model, xvar = ".fitted", yvar = ".resid", type = "scatter", custom = TRUE) +
       labs(title = "Residuals vs Fitted", x = "Fitted values", y = "Residuals")
 
-    plot_list[["dash3"]] <- ggplot(model, aes(y=.resid, x=seq_along(.resid))) + geom_line() +
+    plot_list[["dash3"]] <- ggplot(model, aes(y = .resid, x = seq_along(.resid))) + geom_line() +
       labs(title = "Residuals vs Row order", x = "Row order", y = "Residuals")
 
-    plot_list[["dash4"]] <- ggplot(model, aes_string(sample=".stdresid")) + stat_qq(alpha = .5) +
+    plot_list[["dash4"]] <- ggplot(model, aes_string(sample = ".stdresid")) + stat_qq(alpha = .5) +
       labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals")
 
     plot_list[["dash5"]] <-
       visualize(model, xvar = ".resid", custom = TRUE) +
       labs(title = "Histogram of residuals", x = "Residuals")
 
-    plot_list[["dash6"]] <- ggplot(model, aes_string(x=".resid")) + geom_density(alpha=.3, fill = "green") +
-      stat_function(fun = dnorm, args = list(mean = mean(model[,'.resid']), sd = sd(model[,'.resid'])), color = "blue") +
+    plot_list[["dash6"]] <- ggplot(model, aes_string(x = ".resid")) + geom_density(alpha = .3, fill = "green") +
+      stat_function(fun = dnorm, args = list(mean = mean(model[, ".resid"]), sd = sd(model[, ".resid"])), color = "blue") +
       labs(title = "Residuals vs Normal density", x = "Residuals", y = "") +
       theme(axis.text.y = element_blank())
 
-    if ("loess" %in% lines)
-      for (i in paste0("dash",1:3)) plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "loess", size = .75, linetype = "dotdash") )
+    if ("loess" %in% lines) {
+      for (i in paste0("dash", 1:3)) plot_list[[i]] <- plot_list[[i]] + sshhr(geom_smooth(method = "loess", size = .75, linetype = "dotdash"))
+    }
 
     if ("line" %in% lines) {
-      for (i in paste0("dash",c(1,4)))
-        plot_list[[i]] <- plot_list[[i]] + geom_abline(linetype = 'dotdash')
-      for (i in paste0("dash",2:3))
-        plot_list[[i]] <- plot_list[[i]] + sshhr( geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", colour = "black") )
+      for (i in paste0("dash", c(1, 4)))
+        plot_list[[i]] <- plot_list[[i]] + geom_abline(linetype = "dotdash")
+      for (i in paste0("dash", 2:3))
+        plot_list[[i]] <- plot_list[[i]] + sshhr(geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", colour = "black"))
     }
   }
 
   if ("dist" %in% plots) {
     for (i in vars) {
-      plot_list[[paste0("dist",i)]] <- select_at(model, .vars = i) %>%
+      plot_list[[paste0("dist", i)]] <- select_at(model, .vars = i) %>%
         visualize(xvar = i, bins = 10, custom = TRUE)
     }
   }
 
   if ("scatter" %in% plots) {
     for (i in evar) {
-      if ("factor" %in% class(model[,i])) {
-        plot_list[[paste0("scatter",i)]] <- select_at(model, .vars = c(i, rvar)) %>%
+      if ("factor" %in% class(model[, i])) {
+        plot_list[[paste0("scatter", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
           visualize(xvar = i, yvar = rvar, type = "scatter", check = flines, alpha = .2, custom = TRUE)
       } else {
-        plot_list[[paste0("scatter",i)]] <- select_at(model, .vars = c(i, rvar)) %>%
+        plot_list[[paste0("scatter", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
           visualize(xvar = i, yvar = rvar, type = "scatter", check = nlines, custom = TRUE)
       }
     }
@@ -457,12 +486,12 @@ plot.regress <- function(x, plots = "",
 
   if ("resid_pred" %in% plots) {
     for (i in evar) {
-      if ("factor" %in% class(model[,i])) {
-        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i,".resid")) %>%
+      if ("factor" %in% class(model[, i])) {
+        plot_list[[paste0("resid_", i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
           visualize(xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = .2, custom = TRUE) +
           labs(y = "residuals")
       } else {
-        plot_list[[paste0("resid_",i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
+        plot_list[[paste0("resid_", i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
           visualize(xvar = i, yvar = ".resid", type = "scatter", check = nlines, custom = TRUE) +
           labs(y = "residuals")
       }
@@ -476,31 +505,39 @@ plot.regress <- function(x, plots = "",
 
     yl <- if ("standardize" %in% object$check) "Coefficient (standardized)" else "Coefficient"
 
-    if ("robust" %in% object$check)
+    if ("robust" %in% object$check) {
       cnfint <- radiant.model::confint_robust
-    else
+    } else {
       cnfint <- confint
+    }
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, dist = "t") %>%
-      data.frame %>%
-      na.omit %>%
-      set_colnames(c("Low","High")) %>%
-      cbind(select(object$coeff,2),.) %>%
+      data.frame() %>%
+      na.omit() %>%
+      set_colnames(c("Low", "High")) %>%
+      cbind(select(object$coeff, 2), .) %>%
       set_rownames(object$coeff$`  `) %>%
-      { if (!intercept) .[-1,] else . } %>%
+      {
+        if (!intercept) .[-1, ] else .
+      } %>%
       mutate(variable = rownames(.)) %>%
-        ggplot() +
-          geom_pointrange(aes_string(x = "variable", y = "coefficient",
-                          ymin = "Low", ymax = "High")) +
-          geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
-          labs(y = yl, x = "") +
-          scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
-          coord_flip() +
-          theme(axis.text.y = element_text(hjust = 0))
+      ggplot() +
+      geom_pointrange(aes_string(
+        x = "variable", y = "coefficient",
+        ymin = "Low", ymax = "High"
+      )) +
+      geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
+      labs(y = yl, x = "") +
+      scale_x_discrete(limits = {
+        if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])
+      }) +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
   }
 
-  if ("correlations" %in% plots)
+  if ("correlations" %in% plots) {
     return(radiant.basics:::plot.correlation(object$model$model))
+  }
 
   # if ("leverage" %in% plots) {
   #   ## no plots if aliased coefficients present
@@ -511,11 +548,17 @@ plot.regress <- function(x, plots = "",
   # }
 
   if (length("plot_list") > 0) {
-    if (custom)
-      if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+    if (custom) {
+      if (length(plot_list) == 1) {
+        return(plot_list[[1]]) 
+      } else {
+        return(plot_list)
+      }
+    }
 
-    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>%
-       {if (shiny) . else print(.)}
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>% {
+      if (shiny) . else print(.)
+    }
   }
 }
 
@@ -552,27 +595,28 @@ predict.regress <- function(object,
                             se = TRUE,
                             dec = 3,
                             ...) {
-
   if (is.character(object)) return(object)
   if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data))
+  if (!is.character(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+  }
 
   pfun <- function(model, pred, se, conf_lev) {
-
     pred_val <-
-      try(sshhr(
-        predict(model, pred, interval = ifelse (se, "prediction", "none"), level = conf_lev)),
+      try(
+        sshhr(
+          predict(model, pred, interval = ifelse(se, "prediction", "none"), level = conf_lev)
+        ),
         silent = TRUE
       )
 
-    if (!is(pred_val, 'try-error')) {
+    if (!is(pred_val, "try-error")) {
       if (se) {
-        pred_val %<>% data.frame %>% mutate(diff = .[,3] - .[,1])
+        pred_val %<>% data.frame %>% mutate(diff = .[, 3] - .[, 1])
         ci_perc <- ci_label(cl = conf_lev)
-        colnames(pred_val) <- c("Prediction",ci_perc[1],ci_perc[2],"+/-")
+        colnames(pred_val) <- c("Prediction", ci_perc[1], ci_perc[2], "+/-")
       } else {
         pred_val %<>% data.frame %>% select(1)
         colnames(pred_val) <- "Prediction"
@@ -609,40 +653,42 @@ predict_model <- function(object, pfun, mclass,
                           se = FALSE,
                           dec = 3,
                           ...) {
-
   if (is.character(object)) return(object)
 
-  if (is_empty(pred_data) && is_empty(pred_cmd))
+  if (is_empty(pred_data) && is_empty(pred_cmd)) {
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
+  }
 
   pred_type <- "cmd"
   vars <- object$evar
   if (is_empty(pred_data) && !is_empty(pred_cmd)) {
-
     dat <- object$model$model
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")
-      if (!is.null(ms))
+      if (!is.null(ms)) {
         dat <- mutate_at(dat, .vars = names(ms), .funs = funs(. + ms$.))
-
+      }
     } else if ("standardize" %in% object$check) {
       ms <- attr(object$model$model, "ms")
-      sds <- attr(object$model$model,"sds")
-      if (!is.null(ms) && !is.null(sds))
+      sds <- attr(object$model$model, "sds")
+      if (!is.null(ms) && !is.null(sds)) {
         dat <- mutate_at(dat, .vars = names(ms), .funs = funs(. * 2 * sds$. + ms$.))
+      }
     }
 
-    pred_cmd %<>% gsub("\"","\'",.) %>% gsub(";\\s*$","",.) %>% gsub(";",",",.)
-    pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd ,"))"))), silent = TRUE)
-    if (is(pred, "try-error"))
-      return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+    pred_cmd %<>% gsub("\"", "\'", .) %>% gsub(";\\s*$", "", .) %>% gsub(";", ",", .)
+    pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd, "))"))), silent = TRUE)
+    if (is(pred, "try-error")) {
+      return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+    }
 
     # adding information to the prediction data.frame
     dat <- select_at(dat, .vars = vars)
-    if (!is.null(object$model$term))
+    if (!is.null(object$model$term)) {
       dat_classes <- attr(object$model$term, "dataClasses")[-1]
-    else
+    } else {
       dat_classes <- getclass(dat)
+    }
 
     ## weights mess-up data manipulation below so remove from
     wid <- which(names(dat_classes) %in% "(weights)")
@@ -653,16 +699,19 @@ predict_model <- function(object, pfun, mclass,
     isNum <- dat_classes == "numeric" | dat_classes == "integer"
 
     # based on http://stackoverflow.com/questions/19982938/how-to-find-the-most-frequent-values-across-several-columns-containing-factors
-    max_freq <- function(x) names(which.max(table(x))) %>% as.factor
+    max_freq <- function(x) names(which.max(table(x))) %>% as.factor()
     max_lfreq <- function(x) ifelse(mean(x) > .5, TRUE, FALSE)
 
     plug_data <- data.frame(init___ = 1)
-    if (sum(isNum) > 0)
+    if (sum(isNum) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = funs(mean)))
-    if (sum(isFct) > 0)
+    }
+    if (sum(isFct) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = funs(max_freq)))
-    if (sum(isLog) > 0)
+    }
+    if (sum(isLog) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isLog], .funs = funs(max_lfreq)))
+    }
 
     rm(dat)
 
@@ -672,9 +721,8 @@ predict_model <- function(object, pfun, mclass,
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
         return("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n")
       } else {
-
         plug_data[names(pred)] <- list(NULL)
-        pred <- cbind(select(plug_data,-1), pred)
+        pred <- cbind(select(plug_data, -1), pred)
       }
     }
   } else {
@@ -683,8 +731,9 @@ predict_model <- function(object, pfun, mclass,
     pred_names <- names(pred)
     pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 
-    if (is(pred, "try-error"))
+    if (is(pred, "try-error")) {
       return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
+    }
 
     if (!is_empty(pred_cmd)) {
       pred_cmd <- gsub("\"", "\'", pred_cmd) %>%
@@ -704,7 +753,7 @@ predict_model <- function(object, pfun, mclass,
       pred <- try(mutate(pred, !!! dots), silent = TRUE)
       # pred <- try(mutate_(pred, .dots = setNames(dots, vars)), silent = TRUE)
       if (is(pred, "try-error")) {
-        return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+        return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
       pred_type <- "datacmd"
     } else {
@@ -734,13 +783,15 @@ predict_model <- function(object, pfun, mclass,
     ## scale rvar for regression models
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
-      if (!is.null(ms))
+      if (!is.null(ms)) {
         pred_val[["Prediction"]] <- pred_val[["Prediction"]] + ms
+      }
     } else if ("standardize" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
-      sds <- attr(object$model$model,"sds")[[object$rvar]]
-      if (!is.null(ms) && !is.null(sds))
+      sds <- attr(object$model$model, "sds")[[object$rvar]]
+      if (!is.null(ms) && !is.null(sds)) {
         pred_val[["Prediction"]] <- pred_val[["Prediction"]] * 2 * sds + ms
+      }
     }
 
     pred <- data.frame(pred, pred_val, check.names = FALSE)
@@ -748,7 +799,7 @@ predict_model <- function(object, pfun, mclass,
 
     if (any(grepl("stepwise", object$check))) {
       ## show only the selected variables when printing predictions
-      object$evar <- attr(terms(object$model), "variables") %>% as.character %>% .[-c(1,2)]
+      object$evar <- attr(terms(object$model), "variables") %>% as.character() %>% .[-c(1, 2)]
       vars <- c(object$evar, colnames(pred_val))
     }
 
@@ -767,7 +818,7 @@ predict_model <- function(object, pfun, mclass,
 
     return(add_class(pred, c(mclass, "model.predict")))
   } else {
-    return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val,"condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+    return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
   }
 }
 
@@ -780,14 +831,14 @@ predict_model <- function(object, pfun, mclass,
 #'
 #' @export
 print_predict_model <- function(x, ..., n = 10, header = "") {
-
   class(x) <- "data.frame"
   data_filter <- attr(x, "data_filter")
   vars <- attr(x, "vars")
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
-  if (!is.character(pred_data))
+  if (!is.character(pred_data)) {
     pred_data <- attr(pred_data, "pred_data")
+  }
 
   pred_cmd <- gsub("([\\=\\+\\*-])", " \\1 ", attr(x, "pred_cmd")) %>%
     gsub("([;,])", "\\1 ", .) %>%
@@ -795,22 +846,25 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   cat(header)
   cat("\nData                 :", attr(x, "dataset"), "\n")
-  if (data_filter %>% gsub("\\s","",.) != "")
-    cat("Filter               :", gsub("\\n","", data_filter), "\n")
+  if (data_filter %>% gsub("\\s", "", .) != "") {
+    cat("Filter               :", gsub("\\n", "", data_filter), "\n")
+  }
   cat("Response variable    :", attr(x, "rvar"), "\n")
-  if (!is_empty(attr(x, "lev")))
+  if (!is_empty(attr(x, "lev"))) {
     cat("Level(s)             :", paste0(attr(x, "lev"), collapse = ", "), "in", attr(x, "rvar"), "\n")
-  cat("Explanatory variables:", paste0(attr(x, "evar"), collapse=", "), "\n")
-  if (!is_empty(attr(x, "wtsname")))
+  }
+  cat("Explanatory variables:", paste0(attr(x, "evar"), collapse = ", "), "\n")
+  if (!is_empty(attr(x, "wtsname"))) {
     cat("Weights used         :", attr(x, "wtsname"), "\n")
+  }
 
   if (pred_type == "cmd") {
     cat("Prediction command   :", pred_cmd, "\n")
   } else if (pred_type == "datacmd") {
-    cat("Prediction dataset   :", pred_data,"\n")
+    cat("Prediction dataset   :", pred_data, "\n")
     cat("Customize command    :", pred_cmd, "\n")
   } else {
-    cat("Prediction dataset   :", pred_data,"\n")
+    cat("Prediction dataset   :", pred_data, "\n")
   }
 
   if (n == -1) {
@@ -818,8 +872,9 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     formatdf(x[, vars, drop = FALSE], attr(x, "dec")) %>%
       print(row.names = FALSE)
   } else {
-    if (nrow(x) > n)
+    if (nrow(x) > n) {
       cat("Rows shown           :", n, "of", formatnr(nrow(x), dec = 0), "\n")
+    }
     cat("\n")
     head(x[, vars, drop = FALSE], n) %>%
       formatdf(attr(x, "dec")) %>%
@@ -869,17 +924,19 @@ plot.model.predict <- function(x, xvar = "",
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
 
-  if (facet_col != "." && facet_row == facet_col)
+  if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
+  }
 
-  object <- x; rm(x)
+  object <- x
+  rm(x)
   if (is.character(object)) return(object)
 
   cn <- colnames(object)
   pvars <- "Prediction"
   cnpred <- which(cn == pvars)
   if (length(cn) > cnpred) {
-    pvars <- c(pvars,"ymin","ymax")
+    pvars <- c(pvars, "ymin", "ymax")
     cn[cnpred + 1] <- pvars[2]
     cn[cnpred + 2] <- pvars[3]
     colnames(object) <- cn
@@ -887,31 +944,36 @@ plot.model.predict <- function(x, xvar = "",
 
   byvar <- NULL
   if (color != "none") byvar <- color
-  if (facet_row != ".")
+  if (facet_row != ".") {
     byvar <- if (is.null(byvar)) facet_row else unique(c(byvar, facet_row))
+  }
 
-  if (facet_col != ".")
+  if (facet_col != ".") {
     byvar <- if (is.null(byvar)) facet_col else unique(c(byvar, facet_col))
+  }
 
   tbv <- if (is.null(byvar)) xvar else c(xvar, byvar)
 
-  if ( any(!tbv %in% colnames(object)))
+  if (any(!tbv %in% colnames(object))) {
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
+  }
 
-  tmp <- object %>% group_by_at(.vars = tbv) %>%
+  tmp <- object %>%
+    group_by_at(.vars = tbv) %>%
     select_at(.vars = c(tbv, pvars)) %>%
     summarise_all(funs(mean))
-  if (color == 'none') {
+  if (color == "none") {
     p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction"))
   } else {
     p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color))
   }
 
   if (length(pvars) == 3) {
-    if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11)
-      p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size=.3)
-    else
+    if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11) {
+      p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size = .3)
+    } else {
       p <- p + geom_ribbon(aes_string(ymin = "ymin", ymax = "ymax"), fill = "grey70", color = NA, alpha = .5)
+    }
   }
 
   ## needed now that geom_smooth no longer accepts ymin and ymax as arguments
@@ -923,8 +985,8 @@ plot.model.predict <- function(x, xvar = "",
   }
 
   if (facet_row != "." || facet_col != ".") {
-    facets <- ifelse (facet_row == ".", paste("~", facet_col), paste(facet_row, '~', facet_col))
-    facet_fun <- ifelse (facet_row == ".", facet_wrap, facet_grid)
+    facets <- ifelse(facet_row == ".", paste("~", facet_col), paste(facet_row, "~", facet_col))
+    facet_fun <- ifelse(facet_row == ".", facet_wrap, facet_grid)
     p <- p + facet_fun(as.formula(facets))
   }
 
@@ -943,11 +1005,11 @@ plot.model.predict <- function(x, xvar = "",
 #' @export
 store_reg <- function(object, data = object$dataset,
                       type = "residuals", name = paste0(type, "_reg")) {
-
-  if (type == "residuals")
+  if (type == "residuals") {
     store.model(object, data = data, name = name)
-  else
+  } else {
     store.model.predict(object, data = data, name = name)
+  }
 }
 
 #' Store predicted values generated in model functions
@@ -965,23 +1027,23 @@ store_reg <- function(object, data = object$dataset,
 #'   store(name = "pred, pred_low, pred_high") %>% head
 #'
 #' @export
-store.model.predict <- function(object, ..., data = attr(object,"pred_data"), name = "prediction") {
+store.model.predict <- function(object, ..., data = attr(object, "pred_data"), name = "prediction") {
   if (is_empty(name)) name <- "prediction"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
   ind <- which(colnames(object) == "Prediction")
 
   ## if se was calculated
-  name <- unlist(strsplit(name, ",")) %>% gsub("\\s","",.)
+  name <- unlist(strsplit(name, ",")) %>% gsub("\\s", "", .)
   if (length(name) > 1) {
     name <- name[1:min(3, length(name))]
     ind_mult <- ind:(ind + length(name[-1]))
-    df <- object[,ind_mult, drop = FALSE]
+    df <- object[, ind_mult, drop = FALSE]
   } else {
-    df <- object[,"Prediction", drop = FALSE]
+    df <- object[, "Prediction", drop = FALSE]
   }
 
-  vars <- colnames(object)[1:(ind-1)]
+  vars <- colnames(object)[1:(ind - 1)]
   indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
@@ -1033,9 +1095,11 @@ var_check <- function(ev, cn, intv = "") {
   if (length(vars) < length(cn)) vars <- ev <- cn
 
   if (intv != "" && length(vars) > 1) {
-    if ({intv %>% strsplit(":") %>% unlist} %in% vars %>% all) {
+    if ({
+      intv %>% strsplit(":") %>% unlist()
+    } %in% vars %>% all()) {
       vars <- c(vars, intv)
-    } else{
+    } else {
       cat("Interaction terms contain variables not selected as main effects.\nRemoving all interactions from the estimation")
       intv <- ""
     }
@@ -1058,8 +1122,9 @@ var_check <- function(ev, cn, intv = "") {
 #'
 #' @export
 test_specs <- function(test_var, int) {
-
-  if ({int %>% strsplit(":") %>% unlist} %in% test_var %>% any) {
+  if ({
+    int %>% strsplit(":") %>% unlist()
+  } %in% test_var %>% any()) {
     cat("Interaction terms contain variables specified for testing.\nRelevant interaction terms are included in the requested test.\n\n")
     for (i in test_var) test_var <- c(test_var, int[grep(i, int)])
     test_var <- unique(test_var)

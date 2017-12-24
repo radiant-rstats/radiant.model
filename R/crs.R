@@ -15,11 +15,11 @@
 #'
 #' @export
 crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
-
   vars <- c(id, prod, rate)
   dat <- getdata(dataset, vars, na.rm = FALSE)
-  if (!is_string(dataset)) 
+  if (!is_string(dataset)) {
     dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+  }
 
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets
@@ -27,22 +27,24 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## make sure spread doesn't complain
   cn <- colnames(dat)
-  nr <- distinct_(dat, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% nrow
-  if (nr < nrow(dat))
+  nr <- distinct_(dat, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% nrow()
+  if (nr < nrow(dat)) {
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
+  }
 
   dat <- spread(dat, !! prod, !! rate) %>%
-    as.data.frame
+    as.data.frame()
 
   idv <- select_at(dat, .vars = id)
-  uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique
+  uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
   uid <- seq_len(nrow(dat))[idv[[1]] %in% uid[[1]]]
 
   dat <- select_at(dat, .vars = setdiff(colnames(dat), id))
 
   ## stop if insufficient overlap in ratings
-  if (length(pred) >= (ncol(dat) - 1))
+  if (length(pred) >= (ncol(dat) - 1)) {
     return("Cannot predict for all products. Ratings must overlap on at least two products." %>% add_class("crs"))
+  }
 
   ## indices
   cn <- colnames(dat)
@@ -50,28 +52,30 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ind <- (1:length(cn))[-nind]
 
   ## average scores and rankings
-  avg <- dat[uid, , drop = FALSE] %>% 
-    select(nind) %>% 
+  avg <- dat[uid, , drop = FALSE] %>%
+    select(nind) %>%
     summarise_all(funs(mean_rm))
   ravg <- avg
-  ravg[1,] <- min_rank(desc(avg))
+  ravg[1, ] <- min_rank(desc(avg))
   ravg <- mutate_all(ravg, funs(as.integer))
 
   ## actual scores and rankings (if available, else will be NA)
-  act <- dat[-uid,, drop = FALSE] %>% select(nind)
+  act <- dat[-uid, , drop = FALSE] %>% select(nind)
   ract <- act
 
-  if (nrow(act) == 0)
+  if (nrow(act) == 0) {
     return("Invalid filter used. Users to predict for should not be in the training set." %>% add_class("crs"))
+  }
 
-  rank <- apply(act,1, function(x) as.integer(min_rank(desc(x)))) %>%
-    {if(length(pred) == 1) . else t(.)}
-  ract[,pred] <- rank
-  ract <- bind_cols(idv[-uid,, drop = FALSE], ract)
-  act <- bind_cols(idv[-uid,, drop = FALSE],act)
+  rank <- apply(act, 1, function(x) as.integer(min_rank(desc(x)))) %>% {
+    if (length(pred) == 1) . else t(.)
+  }
+  ract[, pred] <- rank
+  ract <- bind_cols(idv[-uid, , drop = FALSE], ract)
+  act <- bind_cols(idv[-uid, , drop = FALSE], act)
 
   ## CF calculations per row
-  ms  <- apply(select(dat, -nind), 1, function(x) mean(x, na.rm = TRUE))
+  ms <- apply(select(dat, -nind), 1, function(x) mean(x, na.rm = TRUE))
   sds <- apply(select(dat, -nind), 1, function(x) sd(x, na.rm = TRUE))
 
   ## to forego standardization
@@ -82,11 +86,11 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   if (length(nind) < 2) {
     srate <- (dat[uid, nind] - ms[uid]) / sds[uid]
   } else {
-    srate <- sweep(dat[uid, nind], 1, ms[uid], "-") %>% sweep(1, sds[uid] ,"/")
+    srate <- sweep(dat[uid, nind], 1, ms[uid], "-") %>% sweep(1, sds[uid], "/")
   }
   ## comfirmed to produce consistent results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
   srate[is.na(srate)] <- 0
-  srate <- mutate_all(as.data.frame(srate), funs(ifelse (is.infinite(.), 0, .)))
+  srate <- mutate_all(as.data.frame(srate), funs(ifelse(is.infinite(.), 0, .)))
 
   cors <- sshhr(cor(t(dat[uid, ind]), t(dat[-uid, ind]), use = "pairwise.complete.obs"))
 
@@ -96,15 +100,16 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   wts <- sweep(cors, 2, dnom, "/")
   cf <-
     (crossprod(wts, as.matrix(srate)) * sds[-uid] + ms[-uid]) %>%
-    as.data.frame %>%
-    bind_cols(idv[-uid,, drop = FALSE],.) %>%
+    as.data.frame() %>%
+    bind_cols(idv[-uid, , drop = FALSE], .) %>%
     set_colnames(c(id, pred))
 
   ## Ranking based on CF
   rcf <- cf
-  rank <- apply(select(cf,-1),1, function(x) as.integer(min_rank(desc(x)))) %>%
-    {if(length(pred) == 1) . else t(.)}
-  rcf[,pred] <- rank
+  rank <- apply(select(cf, -1), 1, function(x) as.integer(min_rank(desc(x)))) %>% {
+    if (length(pred) == 1) . else t(.)
+  }
+  rcf[, pred] <- rank
 
   recommendations <-
     inner_join(
@@ -115,8 +120,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
         select_at(gather(rcf, "product", "cf_rank", -1), .vars = "cf_rank")
       ),
       data.frame(
-        product = names(avg), 
-        average = t(avg), 
+        product = names(avg),
+        average = t(avg),
         avg_rank = t(ravg)
       ),
       by = "product"
@@ -142,21 +147,21 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 #'
 #' @export
 summary.crs <- function(object, n = 36, ...) {
-
   if (is.character(object)) return(cat(object))
 
   cat("Collaborative filtering")
   cat("\nData       :", object$dataset)
-  if (object$data_filter %>% gsub("\\s","",.) != "")
-    cat("\nFilter     :", gsub("\\n","", object$data_filter))
+  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+    cat("\nFilter     :", gsub("\\n", "", object$data_filter))
+  }
   cat("\nUser id    :", object$id)
   cat("\nProduct id :", object$prod)
-  cat("\nPredict for:", paste0(object$pred, collapse=", "),"\n")
-  if (nrow(object$recommendations) > n)
+  cat("\nPredict for:", paste0(object$pred, collapse = ", "), "\n")
+  if (nrow(object$recommendations) > n) {
     cat("Rows shown :", n, "out of", formatnr(nrow(object$recommendations), dec = 0), "\n")
+  }
 
   if (nrow(object$act) > 0 && !any(is.na(object$act))) {
-
     cat("\nSummary:\n")
 
     ## From FZs do file output, calculate if actual ratings are available
@@ -215,19 +220,22 @@ summary.crs <- function(object, n = 36, ...) {
 #'
 #' @export
 plot.crs <- function(x, ...) {
-
-  object <- x; rm(x)
+  object <- x
+  rm(x)
   if (is.character(object)) return(object)
 
-  if (any(is.na(object$act)))
+  if (any(is.na(object$act))) {
     return("Plotting for Collaborative Filter requires the actual ratings associated\nwith the predictions")
+  }
 
   ## use quantile to avoid plotting extreme predictions
-  lim <- quantile(object$recommendations[, c("rating", "cf")], probs = c(.025,.975), na.rm = TRUE)
+  lim <- quantile(object$recommendations[, c("rating", "cf")], probs = c(.025, .975), na.rm = TRUE)
 
-  p <- visualize(object$recommendations, xvar = "cf", yvar = "rating",
-                 type = "scatter", facet_col = "product", check = "line",
-                 custom = TRUE) +
+  p <- visualize(
+    object$recommendations, xvar = "cf", yvar = "rating",
+    type = "scatter", facet_col = "product", check = "line",
+    custom = TRUE
+  ) +
     geom_segment(aes(x = 1, y = 1, xend = 5, yend = 5), color = "blue", size = .05) +
     coord_cartesian(xlim = lim, ylim = lim) +
     labs(
@@ -253,7 +261,6 @@ plot.crs <- function(x, ...) {
 #'
 #' @export
 store.crs <- function(object, name = "predict_cf", envir = parent.frame(), ...) {
-
   object <- object$recommendations
   if (exists("r_environment")) {
     env <- r_environment
@@ -267,13 +274,12 @@ store.crs <- function(object, name = "predict_cf", envir = parent.frame(), ...) 
 
   # ## use data description from the original if available
   if (is_empty(env$r_data[[paste0(name, "_descr")]])) {
-    attr(object, "description") <- paste0("## Collaborative Filtering\n\nThis dataset contains predicted ratings and ranking based on collaborative filter applied to the ", attr(object,"dataset"), "dataset.")
+    attr(object, "description") <- paste0("## Collaborative Filtering\n\nThis dataset contains predicted ratings and ranking based on collaborative filter applied to the ", attr(object, "dataset"), "dataset.")
   } else {
     attr(object, "description") <- env$r_data[[paste0(name, "_descr")]]
   }
 
   env$r_data[[name]] <- object
-  env$r_data[[paste0(name,"_descr")]] <- attr(object, "description")
-  env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique
+  env$r_data[[paste0(name, "_descr")]] <- attr(object, "description")
+  env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
 }
-

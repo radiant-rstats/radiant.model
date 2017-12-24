@@ -21,29 +21,31 @@
 #'
 #' @export
 nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
-
-  if (rvar %in% evar)
+  if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-           add_class("nb"))
+      add_class("nb"))
+  }
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE))
+  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
+  }
 
   vars <- evar
   ## in case : is used
-  if (length(vars) < (ncol(dat)-1)) 
+  if (length(vars) < (ncol(dat) - 1)) {
     vars <- evar <- colnames(dat)[-1]
+  }
 
   ## make sure the dv is a factor
   if (!is.factor(dat[[1]])) dat <- as_factor(dat[[1]])
   lev <- levels(dat[[1]])
 
   ## estimate using e1071
-  form <- paste0(rvar, " ~ ", paste0(evar, collapse = "+")) %>% as.formula
-  model <- e1071::naiveBayes(dat[ ,-1, drop = FALSE], dat[[1]] , laplace = laplace)
+  form <- paste0(rvar, " ~ ", paste0(evar, collapse = "+")) %>% as.formula()
+  model <- e1071::naiveBayes(dat[, -1, drop = FALSE], dat[[1]], laplace = laplace)
 
   ## nb does not return residuals
   model$residuals <- NA
@@ -56,7 +58,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
   model$model <- dat
   rm(dat) ## dat not needed elsewhere
 
-  as.list(environment()) %>% add_class(c("nb","model"))
+  as.list(environment()) %>% add_class(c("nb", "model"))
 }
 
 #' Summary method for the nb function
@@ -77,13 +79,13 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
 #'
 #' @export
 summary.nb <- function(object, dec = 3, ...) {
-
   if (is.character(object)) return(object)
 
   cat("Naive Bayes Classifier")
   cat("\nData                 :", object$dataset)
-  if (object$data_filter %>% gsub("\\s","",.) != "")
-    cat("\nFilter               :", gsub("\\n","", object$data_filter))
+  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+    cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
   cat("\nResponse variable    :", object$rvar)
   cat("\nLevels               :", paste0(object$lev, collapse = ", "), "in", object$rvar)
   cat("\nExplanatory variables:", paste0(object$evar, collapse = ", "))
@@ -91,15 +93,18 @@ summary.nb <- function(object, dec = 3, ...) {
   cat("\nNr obs               :", formatnr(nrow(object$model$model), dec = 0), "\n")
 
   cat("\nA-priori probabilities:\n")
-  apriori <- object$model$apriori %>% {. / sum(.)}
+  apriori <- object$model$apriori %>% {
+    . / sum(.)
+  }
   names(dimnames(apriori))[1] <- object$rvar
   print(round(apriori, 3))
 
   cat("\nConditional probabilities (categorical) or means & st.dev (numeric):\n")
   for (i in object$model$tables) {
     names(dimnames(i))[1] <- object$rvar
-    if (is.null(dimnames(i)[2][[1]])) dimnames(i)[2][[1]] <- c("mean","st.dev")
-    print(round(i, dec)); cat("\n")
+    if (is.null(dimnames(i)[2][[1]])) dimnames(i)[2][[1]] <- c("mean", "st.dev")
+    print(round(i, dec))
+    cat("\n")
   }
 }
 
@@ -122,8 +127,8 @@ summary.nb <- function(object, dec = 3, ...) {
 #'
 #' @export
 plot.nb <- function(x, ...) {
-
-  object <- x; rm(x)
+  object <- x
+  rm(x)
   if (is.character(object)) return(object)
 
   # x <- mutate_all(object$model$model[,-1, drop = FALSE], funs(as_numeric))
@@ -136,7 +141,7 @@ plot.nb <- function(x, ...) {
     # apply(x, 2, auc, y) %>% {. - min(.)} %>% {. / max(.)} %>% cbind(.,.) %>% set_colnames(levs)
     ## reporting auc for each variable
     # vimp <- apply(x, 2, auc, y) %>% round(., 3) %>% cbind(.,.) %>% set_colnames(levs)
-    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x)) %>% 
+    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x)) %>%
       arrange_at(.vars = "auc")
     vimp$vars <- factor(vimp$vars, levels = vimp$vars)
     p <- visualize(vimp, yvar = "auc", xvar = "vars", type = "bar", custom = TRUE) +
@@ -144,13 +149,12 @@ plot.nb <- function(x, ...) {
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
       theme(axis.text.y = element_text(hjust = 0))
   } else {
-
     cmb <- combn(object$lev, 2)
     vimp <- matrix(NA, ncol(cmb), ncol(x))
 
     for (i in 1:ncol(cmb)) {
-      ind <- y %in% cmb[,i]
-      vimp[i,] <- apply(x[ind,,drop = FALSE], 2, auc, droplevels(y[ind]))
+      ind <- y %in% cmb[, i]
+      vimp[i, ] <- apply(x[ind, , drop = FALSE], 2, auc, droplevels(y[ind]))
     }
     vimp <- as.data.frame(vimp)
     colnames(vimp) <- names(x)
@@ -160,9 +164,9 @@ plot.nb <- function(x, ...) {
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
       guides(fill = guide_legend(title = "X-vars")) +
-      labs(x = "", y = "Variable Importance (AUC)") + 
+      labs(x = "", y = "Variable Importance (AUC)") +
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
-      theme(axis.text.y = element_text(hjust = 0)) 
+      theme(axis.text.y = element_text(hjust = 0))
   }
 
   sshhr(p)
@@ -200,12 +204,12 @@ predict.nb <- function(object,
                        pred_names = "",
                        dec = 3,
                        ...) {
-
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) 
+  if (!is.character(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+  }
 
   pfun <- function(model, pred, se, conf_lev) {
 
@@ -215,18 +219,19 @@ predict.nb <- function(object,
       if (!is.null(model$model[[name]]) && is.factor(model$model[[name]])) {
         levs <- levels(model$model[[name]])
         levs_pred <- levels(pred[[name]])
-        if (is.null(levs_pred) || !all(levs == levs_pred))
+        if (is.null(levs_pred) || !all(levs == levs_pred)) {
           pred[[name]] <<- factor(pred[[name]], levels = levs)
+        }
       }
     }
 
     fix <- sapply(colnames(pred), set_levels)
     pred_val <- try(sshhr(predict(model, pred, type = "raw")), silent = TRUE)
 
-    if (!is(pred_val, 'try-error')) {
+    if (!is(pred_val, "try-error")) {
       pred_val %<>% as.data.frame
       if (all(is_empty(pred_names))) pred_names <- colnames(pred_val)
-      pred_val %<>% select(1:min(ncol(pred_val),length(pred_names))) %>%
+      pred_val %<>% select(1:min(ncol(pred_val), length(pred_names))) %>%
         set_colnames(pred_names)
     }
 
@@ -244,7 +249,7 @@ predict.nb <- function(object,
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.nb.predict <- function(x, ..., n = 10) 
+print.nb.predict <- function(x, ..., n = 10)
   print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier", lev = attr(x, "lev"))
 
 #' Plot method for nb.predict function
@@ -275,10 +280,12 @@ plot.nb.predict <- function(x, xvar = "",
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
 
-  if (facet_col != "." && facet_row == facet_col)
+  if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
+  }
 
-  object <- x; rm(x)
+  object <- x
+  rm(x)
   if (is.character(object)) return(object)
 
   pvars <- setdiff(attr(object, "vars"), attr(object, "evar"))
@@ -289,19 +296,19 @@ plot.nb.predict <- function(x, xvar = "",
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
   if (facet_col != ".") byvar <- unique(c(byvar, facet_col))
 
-  tmp <- group_by_at(object, .vars = byvar) %>% 
-    select_at(.vars = c(byvar, "Prediction")) %>% 
+  tmp <- group_by_at(object, .vars = byvar) %>%
+    select_at(.vars = c(byvar, "Prediction")) %>%
     summarise_all(funs(mean))
-  p <- ggplot(tmp, aes_string(x=xvar, y="Prediction", color = color, group = color)) + 
+  p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
     geom_line()
 
   if (facet_row != "." || facet_col != ".") {
-    facets <- ifelse (facet_row == ".", paste("~", facet_col), paste(facet_row, '~', facet_col))
-    facet_fun <- ifelse (facet_row == ".", facet_wrap, facet_grid)
+    facets <- ifelse(facet_row == ".", paste("~", facet_col), paste(facet_row, "~", facet_col))
+    facet_fun <- ifelse(facet_row == ".", facet_wrap, facet_grid)
     p <- p + facet_fun(as.formula(facets))
   }
 
-  p <- p + guides(color = guide_legend(title = rvar)) 
+  p <- p + guides(color = guide_legend(title = rvar))
 
   sshhr(p)
 }
@@ -322,21 +329,22 @@ plot.nb.predict <- function(x, xvar = "",
 #' store(pred, data = titanic) %>% head
 #'
 #' @export
-store.nb.predict <- function(object, ..., data = attr(object,"pred_data"), name = "") {
+store.nb.predict <- function(object, ..., data = attr(object, "pred_data"), name = "") {
 
   ## extract the names of the variables predicted
   pvars <- setdiff(attr(object, "vars"), attr(object, "evar"))
 
   ## as.vector removes all attributes from df
-  df <- as.vector(object[,pvars])
+  df <- as.vector(object[, pvars])
 
   if (is_empty(name)) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name
-    name <- unlist(strsplit(name, ",")) %>% gsub("\\s","",.)
-    if (length(name) < length(pvars))
-      df <- df[,1:length(name), drop = FALSE] %>% set_colnames(name)
+    name <- unlist(strsplit(name, ",")) %>% gsub("\\s", "", .)
+    if (length(name) < length(pvars)) {
+      df <- df[, 1:length(name), drop = FALSE] %>% set_colnames(name)
+    }
   }
 
   indr <- indexr(data, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))

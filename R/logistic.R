@@ -31,10 +31,10 @@ logistic <- function(dataset, rvar, evar,
                      wts = "None",
                      check = "",
                      data_filter = "") {
-
-  if (rvar %in% evar)
+  if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-           add_class("logistic"))
+      add_class("logistic"))
+  }
 
   vars <- c(rvar, evar)
 
@@ -65,24 +65,29 @@ logistic <- function(dataset, rvar, evar,
     dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
   }
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE))
+  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
-           add_class("logistic"))
+      add_class("logistic"))
+  }
 
   rv <- dat[[rvar]]
   if (lev == "") {
-    if (is.factor(rv))
+    if (is.factor(rv)) {
       lev <- levels(rv)[1]
-    else
-      lev <- as.character(rv) %>% as.factor %>% levels %>% .[1]
+    } else {
+      lev <- as.character(rv) %>% as.factor() %>% levels() %>% .[1]
+    }
   }
 
   ## transformation to TRUE/FALSE depending on the selected level (lev)
   dat[[rvar]] <- dat[[rvar]] == lev
 
   vars <- ""
-  var_check(evar, colnames(dat)[-1], int) %>%
-    { vars <<- .$vars; evar <<- .$ev; int <<- .$intv }
+  var_check(evar, colnames(dat)[-1], int) %>% {
+    vars <<- .$vars
+    evar <<- .$ev
+    int <<- .$intv
+  }
 
   ## add minmax attributes to data
   mmx <- minmax(dat)
@@ -94,8 +99,8 @@ logistic <- function(dataset, rvar, evar,
     dat <- scaledf(dat, scale = FALSE, wts = wts)
   }
 
-  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula
-  form_lower <- paste(rvar, "~ 1") %>% as.formula
+  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
+  form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
     ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
@@ -130,7 +135,7 @@ logistic <- function(dataset, rvar, evar,
   attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
-  colnames(coeff) <- c("  ","coefficient","std.error","z.value","p.value")
+  colnames(coeff) <- c("  ", "coefficient", "std.error", "z.value", "p.value")
 
   isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
@@ -149,11 +154,11 @@ logistic <- function(dataset, rvar, evar,
 
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$OR <- exp(coeff$coefficient)
-  coeff <- coeff[,c("  ","OR","coefficient","std.error","z.value","p.value"," ")]
+  coeff <- coeff[, c("  ", "OR", "coefficient", "std.error", "z.value", "p.value", " ")]
 
   rm(dat) ## dat not needed elsewhere
 
-  as.list(environment()) %>% add_class(c("logistic","model"))
+  as.list(environment()) %>% add_class(c("logistic", "model"))
 }
 
 #' Summary method for the logistic function
@@ -188,14 +193,17 @@ summary.logistic <- function(object,
                              test_var = "",
                              dec = 3,
                              ...) {
-
   if (is.character(object)) return(object)
-  if (class(object$model)[1] != 'glm') return(object)
+  if (class(object$model)[1] != "glm") return(object)
 
   if (any(grepl("stepwise", object$check))) {
-    step_type <- if ("stepwise-backward" %in% object$check) "Backward"
-      else if ("stepwise-forward" %in% object$check) "Forward"
-      else "Forward and Backward"
+    step_type <- if ("stepwise-backward" %in% object$check) {
+      "Backward"
+    } else if ("stepwise-forward" %in% object$check) {
+      "Forward"
+    } else {
+      "Forward and Backward"
+    }
     cat("----------------------------------------------------\n")
     cat(step_type, "stepwise selection of variables\n")
     cat("----------------------------------------------------\n")
@@ -203,13 +211,15 @@ summary.logistic <- function(object,
 
   cat("Logistic regression (GLM)")
   cat("\nData                 :", object$dataset)
-  if (object$data_filter %>% gsub("\\s","",.) != "")
-    cat("\nFilter               :", gsub("\\n","", object$data_filter))
+  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+    cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
   cat("\nResponse variable    :", object$rvar)
   cat("\nLevel                :", object$lev, "in", object$rvar)
-  cat("\nExplanatory variables:", paste0(object$evar, collapse=", "),"\n")
-  if (length(object$wtsname) > 0)
+  cat("\nExplanatory variables:", paste0(object$evar, collapse = ", "), "\n")
+  if (length(object$wtsname) > 0) {
     cat("Weights used         :", object$wtsname, "\n")
+  }
   expl_var <- if (length(object$evar) == 1) object$evar else "x"
   cat(paste0("Null hyp.: there is no effect of ", expl_var, " on ", object$rvar, "\n"))
   cat(paste0("Alt. hyp.: there is an effect of ", expl_var, " on ", object$rvar, "\n"))
@@ -218,16 +228,20 @@ summary.logistic <- function(object,
   } else if ("center" %in% object$check) {
     cat("**Centered odds-ratios and coefficients shown (x - mean(x))**\n")
   }
-  if ("robust" %in% object$check)
+  if ("robust" %in% object$check) {
     cat("**Robust standard errors used**\n")
+  }
   cat("\n")
 
   coeff <- object$coeff
   coeff$`  ` %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
-  coeff[,2:6] %<>% formatdf(dec)
+  coeff[, 2:6] %<>% formatdf(dec)
   coeff$p.value[p.small] <- "< .001"
-  coeff %>% {.$OR[1] <- ""; .} %>% print(row.names=FALSE)
+  coeff %>% {
+    .$OR[1] <- ""
+    .
+  } %>% print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
   logit_fit <- glance(object$model)
@@ -237,23 +251,28 @@ summary.logistic <- function(object,
     round(dec)
   if (is.integer(object$wts)) {
     nobs <- sum(object$wts)
-    logit_fit$BIC <- round(-2*logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
+    logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
     nobs <- logit_fit$df.null + 1
   }
 
   ## chi-squared test of overall model fit (p-value) - http://www.ats.ucla.edu/stat/r/dae/logit.htm
   chi_pval <- with(object$model, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
-  chi_pval %<>% { if (. < .001) "< .001" else round(.,dec) }
+  chi_pval %<>% {
+    if (. < .001) "< .001" else round(., dec)
+  }
 
   cat("\nPseudo R-squared:", logit_fit$r2)
   cat(paste0("\nLog-likelihood: ", logit_fit$logLik, ", AIC: ", logit_fit$AIC, ", BIC: ", logit_fit$BIC))
-  cat(paste0("\nChi-squared: ", with(logit_fit, null.deviance - deviance) %>% round(dec), " df(",
-               with(logit_fit, df.null - df.residual), "), p.value ", chi_pval), "\n")
+  cat(paste0(
+    "\nChi-squared: ", with(logit_fit, null.deviance - deviance) %>% round(dec), " df(",
+    with(logit_fit, df.null - df.residual), "), p.value ", chi_pval
+  ), "\n")
   cat("Nr obs:", formatnr(nobs, dec = 0), "\n\n")
 
-  if (anyNA(object$model$coeff))
+  if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")
+  }
 
   if ("vif" %in% sum_check) {
     if (anyNA(object$model$coeff)) {
@@ -263,12 +282,16 @@ summary.logistic <- function(object,
       if (length(attributes(object$model$terms)$term.labels) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          {if (is.null(dim(.))) . else .[,"GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
-          data.frame(VIF = ., Rsq = 1 - 1/.) %>%
-          .[order(.$VIF, decreasing = TRUE),] %>% ## not using arrange to keep rownames
+          {
+            if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]
+          } %>% ## needed when factors are included
+          data.frame(VIF = ., Rsq = 1 - 1 / .) %>%
+          .[order(.$VIF, decreasing = TRUE), ] %>% ## not using arrange to keep rownames
           round(dec) %>%
-          { if (nrow(.) < 8) t(.) else . } %>%
-          print
+          {
+            if (nrow(.) < 8) t(.) else .
+          } %>%
+          print()
       } else {
         cat("Insufficient number of explanatory variables to calculate\nmulticollinearity diagnostics (VIF)\n")
       }
@@ -276,31 +299,33 @@ summary.logistic <- function(object,
     cat("\n")
   }
 
-  if (any(c("confint","odds") %in% sum_check)) {
+  if (any(c("confint", "odds") %in% sum_check)) {
     if (any(is.na(object$model$coeff))) {
       cat("There is perfect multicollineary in the set of explanatory variables.\nOne or more variables were dropped from the estimation.\n")
       cat("Confidence intervals were not calculated.\n")
     } else {
       ci_perc <- ci_label(cl = conf_lev)
 
-      if ("robust" %in% object$check)
+      if ("robust" %in% object$check) {
         cnfint <- radiant.model::confint_robust
-      else
+      } else {
         cnfint <- confint
+      }
 
       ci_tab <-
         cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
-        as.data.frame %>%
-        set_colnames(c("Low","High")) %>%
-        cbind(select(object$coeff,3), .)
+        as.data.frame() %>%
+        set_colnames(c("Low", "High")) %>%
+        cbind(select(object$coeff, 3), .)
 
       if ("confint" %in% sum_check) {
-        ci_tab %T>%
-        {.$`+/-` <- (.$High - .$coefficient)} %>%
-        formatdf(dec) %>%
-        set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
-        set_rownames(object$coeff$`  `) %>%
-        print
+        ci_tab %T>% {
+          .$`+/-` <- (.$High - .$coefficient)
+        } %>%
+          formatdf(dec) %>%
+          set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
+          set_rownames(object$coeff$`  `) %>%
+          print()
         cat("\n")
       }
     }
@@ -311,11 +336,11 @@ summary.logistic <- function(object,
       cat("Odds ratios were not calculated\n")
     } else {
       orlab <- if ("standardize" %in% object$check) "std odds ratio" else "odds ratio"
-      exp(ci_tab[-1,]) %>%
+      exp(ci_tab[-1, ]) %>%
         formatdf(dec) %>%
         set_colnames(c(orlab, ci_perc[1], ci_perc[2])) %>%
         set_rownames(object$coeff$`  `[-1]) %>%
-        print
+        print()
       cat("\n")
     }
   }
@@ -331,7 +356,7 @@ summary.logistic <- function(object,
       if (object$int != "" && length(vars) > 1) {
         ## updating test_var if needed
         test_var <- test_specs(test_var, object$int)
-        vars <- c(vars,object$int)
+        vars <- c(vars, object$int)
       }
 
       not_selected <- setdiff(vars, test_var)
@@ -344,22 +369,23 @@ summary.logistic <- function(object,
 
       matchCf <- function(clist, vlist) {
         matcher <- function(vl, cn)
-        if (grepl(":", vl)) {
-          strsplit(vl,":") %>%
-          unlist %>%
-          sapply(function(x) gsub("var",x, "((var.*:)|(:var))")) %>%
-          paste0(collapse = "|") %>%
-          grepl(cn) %>%
-          cn[.]
-        } else {
-          mf <- grepl(paste0("^",vl,"$"),cn) %>% cn[.]
-          if (length(mf) == 0)
-            mf <- grepl(paste0("^",vl), cn) %>% cn[.]
-          mf
-        }
+          if (grepl(":", vl)) {
+            strsplit(vl, ":") %>%
+              unlist() %>%
+              sapply(function(x) gsub("var", x, "((var.*:)|(:var))")) %>%
+              paste0(collapse = "|") %>%
+              grepl(cn) %>%
+              cn[.]
+          } else {
+            mf <- grepl(paste0("^", vl, "$"), cn) %>% cn[.]
+            if (length(mf) == 0) {
+              mf <- grepl(paste0("^", vl), cn) %>% cn[.]
+            }
+            mf
+          }
 
         cn <- names(clist)
-        sapply(vlist, matcher, cn) %>% unname
+        sapply(vlist, matcher, cn) %>% unname()
 
         ## testing
         # matchCf(cl, "disp:cyl365")
@@ -369,9 +395,11 @@ summary.logistic <- function(object,
 
       if ("robust" %in% object$check) {
         ## http://stats.stackexchange.com/a/132521/61693
-        logit_sub_lh <- car::linearHypothesis(object$model,
-                             matchCf(object$model$coef, test_var),
-                             vcov = object$vcov)
+        logit_sub_lh <- car::linearHypothesis(
+          object$model,
+          matchCf(object$model$coef, test_var),
+          vcov = object$vcov
+        )
         pval <- logit_sub_lh[2, "Pr(>Chisq)"]
         df <- logit_sub_lh[2, "Df"]
         chi2 <- logit_sub_lh[2, "Chisq"]
@@ -384,7 +412,7 @@ summary.logistic <- function(object,
       ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
       logit_sub_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>% round(dec)
       logit_sub_pval <- if (!is.na(pval) && pval < .001) "< .001" else round(pval, dec)
-      cat(attr(logit_sub_test,"heading")[2])
+      cat(attr(logit_sub_test, "heading")[2])
       cat("\nPseudo R-squared, Model 1 vs 2:", c(logit_sub_fit$r2, logit_fit$r2))
       cat(paste0("\nChi-squared: ", round(chi2, dec), " df(", df, "), p.value ", logit_sub_pval))
     }
@@ -420,17 +448,18 @@ plot.logistic <- function(x,
                           shiny = FALSE,
                           custom = FALSE,
                           ...) {
-
-  object <- x; rm(x)
+  object <- x
+  rm(x)
   if (is.character(object)) return(object)
 
   if (class(object$model)[1] != "glm") return(object)
 
-  if (is_empty(plots[1]))
+  if (is_empty(plots[1])) {
     return("Please select a logistic regression plot from the drop-down menu")
+  }
 
   if ("(weights)" %in% colnames(object$model$model) &&
-      min(object$model$model[["(weights)"]]) == 0) {
+    min(object$model$model[["(weights)"]]) == 0) {
     model <- object$model$model
   } else {
     ## fortify chokes when a weight variable has 0s
@@ -440,7 +469,9 @@ plot.logistic <- function(x,
   model$.fitted <- predict(object$model, type = "response")
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
-  model$.actual <- as_numeric(object$rv) %>% {. - max(.) + 1}
+  model$.actual <- as_numeric(object$rv) %>% {
+    . - max(.) + 1
+  }
 
   rvar <- object$rvar
   evar <- object$evar
@@ -458,11 +489,10 @@ plot.logistic <- function(x,
   }
 
   if ("coef" %in% plots) {
-
     if (nrow(object$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
 
-    yl <-
-      {if (sum(c("standardize","center") %in% object$check) == 2) {
+    yl <- {
+      if (sum(c("standardize", "center") %in% object$check) == 2) {
         "Odds-ratio (Standardized & Centered)"
       } else if ("standardize" %in% object$check) {
         "Odds-ratio (standardized)"
@@ -470,33 +500,39 @@ plot.logistic <- function(x,
         "Odds-ratio (centered)"
       } else {
         "Odds-ratio"
-      }}
+      }
+    }
 
     nrCol <- 1
-    if ("robust" %in% object$check)
+    if ("robust" %in% object$check) {
       cnfint <- radiant.model::confint_robust
-    else
+    } else {
       cnfint <- confint
+    }
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
-      exp %>%
-      data.frame %>%
-      na.omit %>%
-      set_colnames(c("Low","High")) %>%
+      exp() %>%
+      data.frame() %>%
+      na.omit() %>%
+      set_colnames(c("Low", "High")) %>%
       cbind(select(object$coeff, 2), .) %>%
       set_rownames(object$coeff$`  `) %>%
-      { if (!intercept) .[-1,] else . } %>%
+      {
+        if (!intercept) .[-1, ] else .
+      } %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
-        geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
-        geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
-        labs(y = yl, x = "") +
-        ## can't use coord_trans together with coord_flip
-        # http://stackoverflow.com/a/26185278/1974918
-        scale_x_discrete(limits = {if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])}) +
-        scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
-        coord_flip() +
-        theme(axis.text.y = element_text(hjust = 0))
+      geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
+      geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
+      labs(y = yl, x = "") +
+      ## can't use coord_trans together with coord_flip
+      # http://stackoverflow.com/a/26185278/1974918
+      scale_x_discrete(limits = {
+        if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])
+      }) +
+      scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("scatter" %in% plots) {
@@ -516,8 +552,9 @@ plot.logistic <- function(x,
   if ("fit" %in% plots) {
     nrCol <- 1
 
-    if (nrow(model) < 30)
+    if (nrow(model) < 30) {
       return("Insufficient observations to generate Model fit plot")
+    }
 
     model$.fittedbin <- radiant.data::xtile(model$.fitted, 30)
 
@@ -535,19 +572,26 @@ plot.logistic <- function(x,
 
     plot_list[["fit"]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
-        geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0,1) +
-        labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
+      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0, 1) +
+      labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
   }
 
-  if ("correlations" %in% plots)
+  if ("correlations" %in% plots) {
     return(radiant.basics:::plot.correlation(select_at(model, .vars = vars)))
+  }
 
-  if (custom)
-    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+  if (custom) {
+    if (length(plot_list) == 1) {
+      return(plot_list[[1]]) 
+    } else {
+      return(plot_list)
+    }
+  }
 
   if (length(plot_list) > 0) {
-    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>%
-      {if (shiny) . else print(.)}
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>% {
+      if (shiny) . else print(.)
+    }
   }
 }
 
@@ -584,22 +628,24 @@ predict.logistic <- function(object,
                              se = FALSE,
                              dec = 3,
                              ...) {
-
- if (is.character(object)) return(object)
- if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
+  if (is.character(object)) return(object)
+  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data))
+  if (!is.character(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+  }
 
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <-
-      try(sshhr(
-        predict(model, pred, type = 'response', se.fit = se)),
+      try(
+        sshhr(
+          predict(model, pred, type = "response", se.fit = se)
+        ),
         silent = TRUE
       )
 
-    if (!is(pred_val, 'try-error')) {
+    if (!is(pred_val, "try-error")) {
       if (se) {
         pred_val %<>% data.frame %>% select(1:2)
         pred_val %<>% data.frame %>% select(1:2)
@@ -640,11 +686,11 @@ print.logistic.predict <- function(x, ..., n = 10)
 #' @export
 store_glm <- function(object, data = object$dataset,
                       type = "residuals", name = paste0(type, "_logit")) {
-
-  if (type == "residuals")
+  if (type == "residuals") {
     store.model(object, data = data, name = name)
-  else
+  } else {
     store.model.predict(object, data = data, name = name)
+  }
 }
 
 #' Confidence interval for robust estimators
@@ -670,8 +716,9 @@ confint_robust <- function(object, level = 0.95, dist = "norm", vcov = NULL, ...
   } else {
     fac <- qnorm(fac)
   }
-  if (is.null(vcov))
+  if (is.null(vcov)) {
     vcov <- sandwich::vcovHC(object, type = "HC1")
+  }
   ses <- sqrt(diag(vcov))
   cf + ses %o% fac
 }
@@ -708,7 +755,6 @@ minmax <- function(dat) {
 #'
 #' @export
 write.coeff <- function(object, file = "", sort = FALSE) {
-
   if ("regress" %in% class(object)) {
     mod_class <- "regress"
   } else if ("logistic" %in% class(object)) {
@@ -747,22 +793,24 @@ write.coeff <- function(object, file = "", sort = FALSE) {
     cat("Standardized coefficients not selected\n\n", file = file)
   }
 
-  object <- object[["coeff"]][-1,]
+  object <- object[["coeff"]][-1, ]
   object$dummy <- dummy
-  object$mean <- cms %>% unlist
-  object$sd <- csds %>% unlist
-  object$min <- cmn %>% unlist
-  object$max <- cmx %>% unlist
+  object$mean <- cms %>% unlist()
+  object$sd <- csds %>% unlist()
+  object$min <- cmn %>% unlist()
+  object$max <- cmx %>% unlist()
 
-  if (mod_class == "logistic")
-    object$importance <- pmax(object$OR, 1/object$OR)
-  else
+  if (mod_class == "logistic") {
+    object$importance <- pmax(object$OR, 1 / object$OR)
+  } else {
     object$importance <- abs(object$coeff)
+  }
 
   if (sort) object <- arrange(object, desc(.data$importance))
 
-  if (!is_empty(file))
+  if (!is_empty(file)) {
     sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))
-  else
+  } else {
     object
+  }
 }

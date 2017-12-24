@@ -23,8 +23,9 @@ dtree_parser <- function(yl) {
   ## cheching if a : is present
   # yl <- c(yl, "something without a colon")
   col_ln <- grepl("(?=:)|(?=^\\s*$)|(?=^\\s*#)", yl, perl = TRUE)
-  if (any(!col_ln))
+  if (any(!col_ln)) {
     err <- c(err, paste0("Each line must have a ':'. Add a ':' in line(s): ", paste0(which(!col_ln), collapse = ", ")))
+  }
 
   ## add a space to input after the : YAML needs this
   # yl %<>% gsub(":([^\\s$])",": \\1", .) %>% gsub("  ", " ", .)
@@ -32,23 +33,24 @@ dtree_parser <- function(yl) {
 
   ## replace .4 by 0.4
   # yl <- c(yl, "p: .4")
-  yl %<>% gsub("(^\\s*p\\s*:)\\s*(\\.[0-9]+$)","\\1 0\\2", .,  perl = TRUE)
+  yl %<>% gsub("(^\\s*p\\s*:)\\s*(\\.[0-9]+$)", "\\1 0\\2", ., perl = TRUE)
 
   ## make sure the labels are in lower case
-  yl %<>% gsub("(^\\s*)name(\\s*:)","\\1name\\2", ., ignore.case = TRUE, perl = TRUE)
-  yl %<>% gsub("(^\\s*)variables(\\s*:)","\\1variables\\2", ., ignore.case = TRUE, perl = TRUE)
-  yl %<>% gsub("(^\\s*)type(\\s*:)","\\1type\\2", ., ignore.case = TRUE, perl = TRUE)
-  yl %<>% gsub("(^\\s*)p(\\s*:)","\\1p\\2", ., ignore.case = TRUE, perl = TRUE)
-  yl %<>% gsub("(^\\s*)payoff(\\s*:)","\\1payoff\\2", ., ignore.case = TRUE, perl = TRUE)
-  yl %<>% gsub("(^\\s*)cost(\\s*:)","\\1cost\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)name(\\s*:)", "\\1name\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)variables(\\s*:)", "\\1variables\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)type(\\s*:)", "\\1type\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)p(\\s*:)", "\\1p\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)payoff(\\s*:)", "\\1payoff\\2", ., ignore.case = TRUE, perl = TRUE)
+  yl %<>% gsub("(^\\s*)cost(\\s*:)", "\\1cost\\2", ., ignore.case = TRUE, perl = TRUE)
 
   ## check type line is followed by a name
   # yl <- c(yl, "   type   : another   ")
-  type_id <- yl %>% grepl("^\\s*type\\s*:\\s*(.*)$",., perl = TRUE) %>% which
-  type_cid <- yl %>% grepl("^\\s*type\\s*:\\s*((chance)|(decision)|())\\s*$",., perl = TRUE) %>% which
+  type_id <- yl %>% grepl("^\\s*type\\s*:\\s*(.*)$", ., perl = TRUE) %>% which()
+  type_cid <- yl %>% grepl("^\\s*type\\s*:\\s*((chance)|(decision)|())\\s*$", ., perl = TRUE) %>% which()
 
-  if (!identical(type_id, type_cid))
+  if (!identical(type_id, type_cid)) {
     err <- c(err, paste0("Node type should be 'type: chance', or 'type: decision' in line(s): ", paste0(setdiff(type_id, type_cid), collapse = ", ")))
+  }
 
   ## can't have # signs anywhere if line is not a comment
   # yl <- c(" # name # 3:")
@@ -58,11 +60,13 @@ dtree_parser <- function(yl) {
   # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
   ## incase there are 2 # signs - should be able to do that in
   # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
-  nc_id <- yl %>% grepl("^\\s*#", .,  perl = TRUE) %>% {. == FALSE} %>% which
+  nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>% {
+    . == FALSE
+  } %>% which()
 
   if (length(nc_id) > 0) {
-    yl[nc_id] %<>% gsub("#", "//", .,  perl = TRUE) %>%
-      gsub("(^\\s*)[\\!`@%&\\*-\\+]*\\s*", "\\1", .,  perl = TRUE)
+    yl[nc_id] %<>% gsub("#", "//", ., perl = TRUE) %>%
+      gsub("(^\\s*)[\\!`@%&\\*-\\+]*\\s*", "\\1", ., perl = TRUE)
   }
 
   ## Find node names
@@ -72,15 +76,18 @@ dtree_parser <- function(yl) {
   # nn_id <- yl %>% grepl("^[^:#]+:\\s*$",., perl = TRUE) %>% which
   # nn_id <- yl %>% grepl("^\\s*[^#]+[^:]+:\\s*$",., perl = TRUE) %>% which
   nn_id <-
-    yl %>% gsub("(^\\s*p\\s*:\\s*$)","\\1 0",.) %>%
-      gsub("(^\\s*type\\s*:\\s*$)","\\1 0",.) %>%
-      gsub("(^\\s*cost\\s*:\\s*$)","\\1 0",.) %>%
-      gsub("(^\\s*payoff\\s*:\\s*$)","\\1 0",.) %>%
-      grepl("^\\s*[^#]+:\\s*$",., perl = TRUE) %>% which
+    yl %>%
+    gsub("(^\\s*p\\s*:\\s*$)", "\\1 0", .) %>%
+    gsub("(^\\s*type\\s*:\\s*$)", "\\1 0", .) %>%
+    gsub("(^\\s*cost\\s*:\\s*$)", "\\1 0", .) %>%
+    gsub("(^\\s*payoff\\s*:\\s*$)", "\\1 0", .) %>%
+    grepl("^\\s*[^#]+:\\s*$", ., perl = TRUE) %>%
+    which()
 
   ## replace ( ) { } [ ]
-  if (length(nn_id) > 0)
-    yl[nn_id] %<>% gsub("[\\(\\)\\{\\}\\[\\]<>\\@;~]", "/", .,  perl = TRUE)
+  if (length(nn_id) > 0) {
+    yl[nn_id] %<>% gsub("[\\(\\)\\{\\}\\[\\]<>\\@;~]", "/", ., perl = TRUE)
+  }
 
   ## check that type is followed by a name
   # yl <- c(yl, "   type   :  decision   ")
@@ -94,11 +101,12 @@ dtree_parser <- function(yl) {
   # type_nn <- type_cid %in% (nn_id - 1)
   type_nn <- ncnl_id %in% nn_id
 
-  if (!all(type_nn))
+  if (!all(type_nn)) {
     err <- c(err, paste0("The node types defined on line(s) ", paste0(type_cid[!type_nn], collapse = ", "), " must be followed by a node name.\nA valid node name could be 'mud slide:'"))
+  }
 
   ## check indent of next line is the same for type defs
-  indent_type <- yl[type_cid] %>% gsub("^(\\s*).*","\\1", .) %>% nchar
+  indent_type <- yl[type_cid] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
 
   ## non-commented next node-name after type
   ncnn_id <- c()
@@ -106,20 +114,22 @@ dtree_parser <- function(yl) {
     ncnn_id <- c(ncnn_id, nn_id[nn_id > i][1])
   }
 
-  indent_next <- yl[ncnn_id] %>% gsub("^(\\s*).*","\\1", .) %>% nchar
+  indent_next <- yl[ncnn_id] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
   indent_issue <- indent_type == indent_next
 
-  if (any(!indent_issue))
+  if (any(!indent_issue)) {
     err <- c(err, paste0("Indent issue in line(s): ", paste0(type_cid[!indent_issue] + 1, collapse = ", "), "\nUse the tab key to ensure a node name is indented the same amount\nas the node type on the preceding line."))
+  }
 
   ## check indent for node names
-  indent_name <- yl[nn_id] %>% gsub("^(\\s*).*","\\1", .) %>% nchar
+  indent_name <- yl[nn_id] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
 
-   ## check indent of next line for node names
-  indent_next <- yl[nn_id+1] %>% gsub("^(\\s*).*","\\1", .) %>% nchar
+  ## check indent of next line for node names
+  indent_next <- yl[nn_id + 1] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
   indent_issue <- indent_name >= indent_next
-  if (any(indent_issue))
+  if (any(indent_issue)) {
     err <- c(err, paste0("Indent issue in line(s): ", paste0(nn_id[indent_issue] + 1, collapse = ", "), "\nAlways use the tab key to indent the line(s) after specifying a node name."))
+  }
 
   ## determine return value
   if (length(err) > 0) {
@@ -184,12 +194,13 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     yl <- try(yaml::yaml.load(yl), silent = TRUE)
 
     ## used when a string is provided
-    if (is(yl, 'try-error')) {
-      err_line <- stringr::str_match(attr(yl,"condition")$message, "^Scanner error:.*line\\s([0-9]*),")[2]
-      if (is.na(err_line))
-        err <- paste0("**\nError reading input:\n", attr(yl,"condition")$message, "\n\nPlease try again. Examples are shown in the help file\n**")
-      else
+    if (is(yl, "try-error")) {
+      err_line <- stringr::str_match(attr(yl, "condition")$message, "^Scanner error:.*line\\s([0-9]*),")[2]
+      if (is.na(err_line)) {
+        err <- paste0("**\nError reading input:\n", attr(yl, "condition")$message, "\n\nPlease try again. Examples are shown in the help file\n**")
+      } else {
         err <- paste0("**\nIndentation error in line ", err_line, ".\nUse tabs to separate the branches in the decision tree.\nFix the indentation error and try again. Examples are shown in the help file\n**")
+      }
       return(add_class(err, "dtree"))
     }
   }
@@ -208,8 +219,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
       }
       yl$variables <-
         getdata(yl$variables) %>%
-        dtree_parser %>%
-        {yaml::yaml.load(.)} %>%
+        dtree_parser() %>%
+        {
+          yaml::yaml.load(.)
+        } %>%
         .$variables %>%
         .[!grepl("dtree\\(.*\\)", .)]
     }
@@ -220,11 +233,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   ## can call a sub-tree that doesn't have any variables
   if (length(base) > 0) {
     base <- base[!grepl("dtree\\(.*\\)", base)]
-    if(is.null(yl$variables)) yl$variables <- base
+    if (is.null(yl$variables)) yl$variables <- base
   }
 
   if (!is.null(yl$variables)) {
-
     vars <- yl$variables
 
     ## overwrite the values in vars that are also in base
@@ -237,10 +249,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
       overlap <- colSums(ret) > 1
       if (any(overlap)) {
         cat("Some of the variable labels overlap. Each label should be unique\nand not be part of another label. An easy fix may be to use\nsomewhat longer labels (e.g., success instead of S). To use\nsearch-and-replace in the editor press CTRL-F (CMD-F on mac) twice.\n\n")
-        ret <- ret[,overlap, drop = FALSE]
+        ret <- ret[, overlap, drop = FALSE]
         for (i in 1:ncol(ret)) {
-          tmp <- names(ret[ret[,i],i])
-          cat(tmp[1], "is part of", paste0(tail(tmp,-1), collapse = ", "), "\n")
+          tmp <- names(ret[ret[, i], i])
+          cat(tmp[1], "is part of", paste0(tail(tmp, -1), collapse = ", "), "\n")
         }
         return("\nUpdate the input file and try again." %>% add_class("dtree"))
       }
@@ -249,12 +261,12 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     ## is there a subtree to evaluate?
     for (i in vn) {
       if (grepl("dtree\\(.*\\)", vars[i])) {
-        tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*","\\1",vars[i]) %>% gsub("[\"\']","",.)
+        tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*", "\\1", vars[i]) %>% gsub("[\"\']", "", .)
         if (exists("r_data") && !is.null(r_data$dtree_list) && tree %in% r_data$dtree_list) {
           cmd <- gsub("\\)\\s*$", paste0(", base = ", list(vars[!grepl("dtree\\(.*\\)", vars)]), "\\)"), vars[i])
           ret <- try(eval(parse(text = cmd)), silent = TRUE)
 
-          if (is(ret, 'try-error') || !is.list(ret)) {
+          if (is(ret, "try-error") || !is.list(ret)) {
             return("**\nThe dtree command was invalid. Please fix it and try again\n**" %>% add_class("dtree"))
           } else {
             if (!is.null(ret$jl)) {
@@ -269,15 +281,15 @@ dtree <- function(yl, opt = "max", base = character(0)) {
       }
     }
 
-    for (i in 2:max(2,length(vn))) {
-      vars <- gsub(vn[i-1], paste0("(",vars[[i-1]],")"), vars, fixed = TRUE)
-      vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+",x), x, eval(parse(text = x))))
+    for (i in 2:max(2, length(vn))) {
+      vars <- gsub(vn[i - 1], paste0("(", vars[[i - 1]], ")"), vars, fixed = TRUE)
+      vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+", x), x, eval(parse(text = x))))
     }
     names(vars) <- vn
 
     isNum <- function(x) sshhr(!is.na(as.numeric(x)))
     isNot <- vars[!sapply(vars, isNum)]
-    if (length(isNot) > 0)  {
+    if (length(isNot) > 0) {
       cat("Not all variables resolved to numeric.\n")
       print(as.data.frame(isNot) %>% set_names(""))
       return("\nUpdate the input file and try again." %>% add_class("dtree"))
@@ -285,27 +297,28 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     ## cycle through a nested list recursively
     ## based on http://stackoverflow.com/a/26163152/1974918
-    nlapply <- function(x, fun){
-      if(is.list(x)){
+    nlapply <- function(x, fun) {
+      if (is.list(x)) {
         lapply(x, nlapply, fun)
       } else {
         fun(x)
       }
     }
 
-    if (any(unlist(nlapply(yl, is.null))))
+    if (any(unlist(nlapply(yl, is.null)))) {
       return("**\nOne or more payoffs or probabilities were not specified.\nUpdate the input file and try again\n**" %>% add_class("dtree"))
+    }
 
     ## based on http://stackoverflow.com/a/14656351/1974918
-    tmp <- as.relistable(yl[setdiff(names(yl),"variables")]) %>% unlist
+    tmp <- as.relistable(yl[setdiff(names(yl), "variables")]) %>% unlist()
     for (i in seq_along(vn)) tmp <- gsub(vn[i], vars[[i]], tmp, fixed = TRUE)
 
     ## any characters left in p, payoff, or cost fields?
     isNot <- grepl("(.p$)|(.payoff$)|(.cost$)", names(tmp))
     isNot <- tmp[isNot]
     isNot <- isNot[grepl("[^0-9.-]+", isNot)]
-    if (length(isNot) > 0)  {
-      names(isNot) <- gsub(".",":",names(isNot), fixed = TRUE)
+    if (length(isNot) > 0) {
+      names(isNot) <- gsub(".", ":", names(isNot), fixed = TRUE)
       cat("Not all variables can be resolved to numeric. Note that\nformula's are only allowed in the 'variables' section\n")
       print(as.data.frame(isNot) %>% set_names(""))
       return("\nUpdate the input file and try again." %>% add_class("dtree"))
@@ -337,8 +350,9 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     if (is.null(x$type)) x$Set(type = "terminal")
 
     ## costs should not be set in terminal nodes, use payoff instead
-    if (isNum(x$cost))
+    if (isNum(x$cost)) {
       cost_check <<- "One or more terminal nodes have been assigned a cost. Specifying a cost\nis only useful if it applies to multiple nodes in a branch. If the cost\nonly applies to a terminal node adjust the payoff instead"
+    }
   }
 
   jl$Do(cost_checker, filterFun = data.tree::isLeaf)
@@ -349,7 +363,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   chance_payoff <- function(node) {
     if (!isNum(node$payoff) || !isNum(node$p)) {
       0
-    # } else if (isNum(node$cost)) {
+      # } else if (isNum(node$cost)) {
       # (node$payoff - node$cost) * node$p
     } else {
       node$payoff * node$p
@@ -371,7 +385,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
       x$payoff <- 0
       x$type <- "NONE"
       type_none <<- "One or more nodes do not have a 'type'. Check and update the input file"
-    } else if (x$type == 'chance') {
+    } else if (x$type == "chance") {
       x$payoff <- sum(sapply(x$children, chance_payoff))
 
       probs <- sapply(x$children, prob_checker)
@@ -379,10 +393,9 @@ dtree <- function(yl, opt = "max", base = character(0)) {
         prob_check <<- "One or more probabilities are less than 0.\nPlease correct the inputs and re-run the analysis"
       } else if (max(probs) > 1) {
         prob_check <<- "One or more probabilities are more than 1.\nPlease correct the inputs and re-run the analysis"
-      } else if (round(sum(probs),2) != 1) {
+      } else if (round(sum(probs), 2) != 1) {
         prob_check <<- "Probabilities for one or more chance nodes do not sum to 1.\nPlease correct the inputs and re-run the analysis"
       }
-
     } else if (x$type == "decision") {
       x$payoff <- get(opt)(sapply(x$children, decision_payoff))
     }
@@ -393,7 +406,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
   err <- try(jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf), silent = TRUE)
 
-  if (is(err, 'try-error')) {
+  if (is(err, "try-error")) {
     err <- paste0("**\nError calculating payoffs associated with a chance or decision node.\nPlease check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
     return(err %>% add_class("dtree"))
   }
@@ -404,16 +417,18 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     x$decision <- names(po[po == x$payoff])
   }
 
-  err <- try(jl$Do(decision, filterFun = function(x) !is.null(x$type) && x$type == 'decision'), silent = TRUE)
+  err <- try(jl$Do(decision, filterFun = function(x) !is.null(x$type) && x$type == "decision"), silent = TRUE)
 
-  if (is(err, 'try-error')) {
+  if (is(err, "try-error")) {
     err <- paste0("**\nError calculating payoffs associated with a decision node. Please check\nthat each terminal node has a payoff\n**")
     return(err %>% add_class("dtree"))
   }
 
-  list(jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt,
-       type_none = type_none, prob_check = prob_check, cost_check = cost_check,
-       payoff = jl$Get(function(x) x$payoff)) %>%
+  list(
+    jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt,
+    type_none = type_none, prob_check = prob_check, cost_check = cost_check,
+    payoff = jl$Get(function(x) x$payoff)
+  ) %>%
     add_class("dtree")
 }
 
@@ -434,38 +449,49 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 #'
 #' @export
 summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
-
   if (is.character(object)) return(cat(object))
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
   print_money <- function(x) {
-    x %>% {if (isNum(.)) . else ""} %>%
+    x %>%
+      {
+        if (isNum(.)) . else ""
+      } %>%
       format(digits = 10, nsmall = 2, decimal.mark = ".", big.mark = ",", scientific = FALSE)
   }
 
   print_percent <- function(x) {
-    x %>% {if (isNum(.)) . else NA} %>% data.tree::FormatPercent(.)
+    x %>% {
+      if (isNum(.)) . else NA
+    } %>% data.tree::FormatPercent(.)
   }
 
   rm_terminal <- function(x)
-    x %>% {if (is.na(.)) "" else .} %>% {if (. == "terminal") "" else .}
+    x %>% {
+      if (is.na(.)) "" else .
+    } %>% {
+      if (. == "terminal") "" else .
+    }
 
   format_dtree <- function(jl) {
     ## set parent type
     nt <- jl$Get(function(x) x$parent$type)
     jl$Set(ptype = nt)
 
-    data.tree::Traverse(jl) %>%
-      {data.frame(
-        ` ` = data.tree::Get(.,"levelName"),
+    data.tree::Traverse(jl) %>% {
+      data.frame(
+        ` ` = data.tree::Get(., "levelName"),
         Probability = data.tree::Get(., "p", format = print_percent),
         Payoff = data.tree::Get(., "payoff", format = print_money),
         Cost = data.tree::Get(., "cost", format = print_money),
         Type = data.tree::Get(., "ptype", format = rm_terminal),
         check.names = FALSE
       )
-    } %>% { .[[" "]] <- format(.[[" "]], justify = "left"); .}
+    } %>% {
+      .[[" "]] <- format(.[[" "]], justify = "left")
+      .
+    }
   }
 
   if (input) {
@@ -485,9 +511,9 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
   } else if (!is_empty(object$cost_check)) {
     cat(paste0("\n\n**\n", object$cost_check, "\n**\n\n"))
   } else {
-
-    if (object$prob_check != "")
-      cat(paste0("**\n",object$prob_check,"\n**\n\n"))
+    if (object$prob_check != "") {
+      cat(paste0("**\n", object$prob_check, "\n**\n\n"))
+    }
 
     if (output) {
       cat("\nInitial decision tree:\n")
@@ -526,10 +552,12 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
-  if ("character" %in% class(x))
+  if ("character" %in% class(x)) {
     return(paste0("graph LR\n A[Errors in the input file]") %>% DiagrammeR::DiagrammeR(.))
-  if (x$type_none != "")
+  }
+  if (x$type_none != "") {
     return(paste0("graph LR\n A[Node does not have a type. Fix the input file]") %>% DiagrammeR::DiagrammeR(.))
+  }
 
   ## based on https://gist.github.com/gluc/79ef7a0e747f217ca45e
   jl <- if (final) x$jl else x$jl_init
@@ -544,31 +572,35 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
     # if (node$isRoot) return (node$id)
     ## testing
 
-    if (node$parent$isRoot) ToLabel(node$parent)
-    else as.character(node$parent$id)
+    if (node$parent$isRoot) {
+      ToLabel(node$parent)
+    } else {
+      as.character(node$parent$id)
+    }
   }
 
   ## create arrow labels
   EdgeLabel <- function(node) {
     if (node$isRoot) {
-      return (" ")
+      return(" ")
     } else if (node$parent$type == "decision") {
       lbl <- node$name
     } else if (node$parent$type == "chance") {
-      lbl <- paste0(node$name,": ", formatnr(as.numeric(node$p), dec = dec+2))
+      lbl <- paste0(node$name, ": ", formatnr(as.numeric(node$p), dec = dec + 2))
     } else if (node$type == "terminal") {
-      lbl <- paste0(node$name,": ", formatnr(as.numeric(node$p), dec = dec+2))
+      lbl <- paste0(node$name, ": ", formatnr(as.numeric(node$p), dec = dec + 2))
     }
 
-    if (length(node$parent$decision) > 0 && length(node$name) > 0 && node$name == node$parent$decision)
+    if (length(node$parent$decision) > 0 && length(node$name) > 0 && node$name == node$parent$decision) {
       paste0(" === |", lbl, "|")
-    else
+    } else {
       paste0(" --- |", lbl, "|")
+    }
   }
 
   FormatPayoff <- function(payoff) {
     if (!isNum(payoff)) payoff <- 0
-    formatnr(payoff, paste0("\"",symbol,"\""), dec = dec)
+    formatnr(payoff, paste0("\"", symbol, "\""), dec = dec)
   }
 
   ToLabel <- function(node) {
@@ -613,7 +645,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
     class ", paste(style_decision, collapse = ","), " decision;
     class ", paste(style_decision_with_cost, collapse = ","), " decision_with_cost;
     class ", paste(style_chance, collapse = ","), " chance;
-    class ", paste(style_chance_with_cost, collapse = ","), " chance_with_cost;")
+    class ", paste(style_chance_with_cost, collapse = ","), " chance_with_cost;"
+  )
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isNotRoot)
   df <- data.frame(
@@ -625,15 +658,17 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
   )
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
-  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% na.omit %>% unique
+  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% na.omit() %>% unique()
 
   ## use LR or TD
-  paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
-    paste(ttip, collapse = "\n"), style, sep = "\n") %>%
+  paste(
+    paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
+    paste(ttip, collapse = "\n"), style, sep = "\n"
+  ) %>%
     ## address image size in pdf and html
     # DiagrammeR::mermaid(., width = "100%", height = "100%")
     DiagrammeR::mermaid(., width = width, height = "100%")
-    # {htmltools::html_print(tagList(tags$h1("A title"), DiagrammeR::mermaid(., width = width, height = "100%")))}
+  # {htmltools::html_print(tagList(tags$h1("A title"), DiagrammeR::mermaid(., width = width, height = "100%")))}
 }
 
 # html_print(tagList(
@@ -661,12 +696,11 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #' @export
 sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
                               shiny = FALSE, custom = FALSE, ...) {
-
   yl <- object$yl
 
   if (is_empty(vars)) return("** No variables were specified **")
   if (is_empty(decs)) return("** No decisions were specified **")
-  vars <- strsplit(vars, ";") %>% unlist %>% strsplit(" ")
+  vars <- strsplit(vars, ";") %>% unlist() %>% strsplit(" ")
 
   calc_payoff <- function(x, nm) {
     yl$variables[[nm]] <- x
@@ -677,18 +711,20 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
   nms <- c()
   sensitivity <- function(x) {
     tmp <- rep("", 4)
-    tmp[2:4] <- tail(x,3)
-    tmp[1] <- paste(head(x,-3), collapse = " ")
+    tmp[2:4] <- tail(x, 3)
+    tmp[1] <- paste(head(x, -3), collapse = " ")
     nms <<- c(nms, tmp[1])
     df <-
       data.frame(
-        values = tail(tmp, 3) %>% as.numeric %>% {seq(.[1],.[2],.[3])}
+        values = tail(tmp, 3) %>% as.numeric() %>% {
+          seq(.[1], .[2], .[3])
+        }
       )
 
     if (length(decs) == 1) {
       df[[decs]] <- sapply(df$values, calc_payoff, tmp[1])
     } else {
-      df <- cbind(df, sapply(df$values, calc_payoff, tmp[1]) %>% t)
+      df <- cbind(df, sapply(df$values, calc_payoff, tmp[1]) %>% t())
     }
     df
   }
@@ -697,19 +733,25 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
 
   plot_list <- list()
   for (i in names(ret)) {
-    dat <- gather(ret[[i]],"decisions", "payoffs", !! setdiff(names(ret[[i]]), "values"))
+    dat <- gather(ret[[i]], "decisions", "payoffs", !! setdiff(names(ret[[i]]), "values"))
     plot_list[[i]] <-
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
-        geom_line() + geom_point() +
-        labs(
-          title = paste0("Sensitivity of decisions to changes in ",i),
-          x = i
-        )
+      geom_line() + geom_point() +
+      labs(
+        title = paste0("Sensitivity of decisions to changes in ", i),
+        x = i
+      )
   }
 
-  if (custom)
-    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+  if (custom) {
+    if (length(plot_list) == 1) {
+      return(plot_list[[1]]) 
+    } else {
+      return(plot_list)
+    }
+  }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
-    {if (shiny) . else print(.)}
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
+    if (shiny) . else print(.)
+  }
 }
