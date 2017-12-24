@@ -1,7 +1,7 @@
 trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 
 ######### tests ########
-context("Regress")
+context("Linear regression (regress)")
 
 test_that("regress", {
   result <- regress("diamonds", "price", c("carat", "clarity"))
@@ -33,6 +33,8 @@ test_that("regress - predict", {
   expect_equal(res1,res2)
 })
 
+context("Logistic regression (logistic)")
+
 test_that("logistic", {
   result <- logistic("titanic", "survived", c("pclass","sex"))
   res1 <- capture.output(summary(result))[13] %>% trim
@@ -61,6 +63,8 @@ test_that("logistic - predict", {
   res2 <- "1st female      0.896"
   expect_equal(res1,res2)
 })
+
+context("ANN (ann)")
 
 test_that("ann - predict for classification", {
   result <- ann("titanic", "survived", c("pclass","sex"), seed = 1234)
@@ -96,23 +100,12 @@ test_that("ann - predict for regression", {
   expect_equal(res1,res2)
 })
 
+context("Linear regression (plot.regress)")
+
 test_that("regress - plots", {
   result <- regress("diamonds", "price", c("carat", "clarity"))
   grb <- plot(result, plots = "dashboard", shiny = TRUE)
-  # class(grb)
-  # library(testthat)
   expect_true(all(c("gtable","grob") %in% class(grb)))
   expect_equal(try(print(grb), silent = TRUE), NULL)
-  # expect_true(file.exists("Rplots.pdf"))  # not always created it seems
   unlink("Rplots.pdf")
-
-  # useful for interactive testing - keep plots out of build
-#   png("output/regression1.png")
-#     plot(result, reg_plots = "dashboard")
-#   dev.off()
-#   res1 <- readPNG("output/regression1.png")
-#   res2 <- readPNG("output/regression1-correct.png")
-#   expect_equal(res1,res2)
-#   unlink("output/regression1.png")
-#   rm(res1, res2)
 })
