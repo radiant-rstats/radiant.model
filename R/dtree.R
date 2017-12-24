@@ -166,15 +166,17 @@ if (getOption("radiant.testthat", default = FALSE)) {
 dtree <- function(yl, opt = "max", base = character(0)) {
 
   ## Adapted from https://github.com/gluc/useR15/blob/master/01_showcase/02_decision_tree.R
-  ## load yaml from string if list not provide
+  ## load yaml string-id if list not provide
   if (is_string(yl)) {
 
     ## get input file from r_data
-    if (!grepl("\\n", yl)) yl <- getdata(yl)
+    if (!grepl("\\n", yl)) {
+      yl <- getdata(yl)
+      if (is.list(yl)) {
+        yl <- yaml::as.yaml(yl, indent = 4)
+      }
+    }
     yl <- dtree_parser(yl)
-
-    ## cleanup the input file
-    # return(paste0(paste0("\n**\n", yl, collapse = "\n"), "\n**\n") %>% add_class("dtree")
 
     if ("dtree" %in% class(yl)) return(yl)
 

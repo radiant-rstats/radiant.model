@@ -281,14 +281,14 @@ dtree_sense_height <- eventReactive(input$dtree_eval_sensitivity, {
 output$plot_dtree_sensitivity <- renderPlot({
   req(input$dtree_eval_sensitivity, cancelOutput = TRUE)
   isolate({
-  .plot_dtree_sensitivity() %>%
-    { if (is.character(.)) {
-        plot(x = 1, type = 'n', main = paste0("\n\n\n\n\n\n\n\n",.) ,
-             axes = FALSE, xlab = "", ylab = "")
-      } else {
-        withProgress(message = 'Making plot', value = 1, print(.))
+    .plot_dtree_sensitivity() %>%
+      { if (is.character(.)) {
+          plot(x = 1, type = 'n', main = paste0("\n\n\n\n\n\n\n\n",.) ,
+               axes = FALSE, xlab = "", ylab = "")
+        } else {
+          withProgress(message = 'Making plot', value = 1, print(.))
+        }
       }
-    }
   })
 }, width = dtree_sense_width, height = dtree_sense_height, res = 96)
 
@@ -340,15 +340,23 @@ observeEvent(input$dtree_load_yaml, {
 })
 
 observeEvent(input$dtree_list, {
-  isolate({
-    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>%
-      gsub("(^\\s+)|(\\s+$)", "", .)
-    if (is_empty(dtree_name))
-      dtree_name <- dtree_name()
-    r_data[[dtree_name]] <- input$dtree_edit
-  })
+  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% 
+    gsub("\\s{2,}", " ", .) %>%
+    gsub("(^\\s+)|(\\s+$)", "", .)
+  if (is_empty(dtree_name)) dtree_name <- dtree_name()
+  r_data[[dtree_name]] <- input$dtree_edit
 
-  shinyAce::updateAceEditor(session, "dtree_edit", value = r_data[[input$dtree_list[1]]])
+  yl <- r_data[[input$dtree_list[1]]]
+
+  if (is.list(yl)) {
+    yl <- yaml::as.yaml(yl, indent = 4)
+  }
+
+  shinyAce::updateAceEditor(session, "dtree_edit", value = yl)
+})
+
+observeEvent(input$dtree_report, {
+  vals_dtree$dtree_report %<>% add(1)
 })
 
 observeEvent(input$dtree_report1, {
@@ -359,16 +367,9 @@ observeEvent(input$dtree_report2, {
   vals_dtree$dtree_report %<>% add(1)
 })
 
-observeEvent(input$dtree_report, {
-  vals_dtree$dtree_report %<>% add(1)
-})
-
-
 observeEvent(input$dtree_edit, {
-  if (!is_empty(input$dtree_edit))
-    r_state$dtree_edit <<- input$dtree_edit
+  if (!is_empty(input$dtree_edit)) r_state$dtree_edit <<- input$dtree_edit
 })
-
 
 dtree_namer <- reactive({
   dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)","",.)
@@ -403,8 +404,7 @@ observeEvent(input$dtree_remove, {
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
   id <- sample(seq_len(1000000),1)
-  xcmd <-
-    clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
+  xcmd <- clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
     deparse(control = c("keepNA"), width.cutoff = 500L) %>%
     {if (. == "list()") "plot(result) %>% render"
      else paste0(sub("list(", "plot(result, ", ., fixed = TRUE)," %>% render")} %>%
