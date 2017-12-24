@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.8.8.1
+# CHANGES IN radiant.model 0.8.9
 
 * Minor fix for coefficient plot in `plot.logistic`
 * Default names when saving Decision Analysis input and output are now based on tree name
@@ -11,7 +11,8 @@
 * Added option to generate normally distributed correlated data in Model > Simulate
 * Added option to generate normally distributed simulated data with exact mean and standard deviation in Model > Simulate
 * Fix for large weights that may cause an integer overflow
-* Grid search specs ignored when Model > Simulate > Repeat set to Simulate
+* Grid search specs ignored when _Model > Simulate > Repeat_ is set to `Simulate`
+* Applied `styler` to code
 
 # CHANGES IN radiant.model 0.8.7.4
 
