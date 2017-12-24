@@ -2,6 +2,18 @@
 ## Simulate data
 #######################################
 
+####
+####
+####
+#### Try putting all input$sim_... and input$rep_... into a list
+#### so you can have multiple simulations in the state file and
+#### can restore them in the GUI
+#### This should be similar to the dtree setup
+####
+#### Also checkout https://github.com/daattali/advanced-shiny/tree/master/update-input0
+####
+####
+
 sim_types <- c(
   "Binomial" = "binom","Constant" = "const", "Discrete" = "discrete",
   "Log normal" = "lnorm", "Normal" = "norm", "Uniform" = "unif",
