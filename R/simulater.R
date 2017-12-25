@@ -330,7 +330,8 @@ summary.simulater <- function(object, dec = 4, ...) {
 
   sc <- attr(object, "sim_call")
   clean <- function(x) {
-    gsub(";", "; ", x) %>%
+    paste0(x, collapse = ";") %>%
+    gsub(";", "; ", .) %>%
       gsub("\\n", "", .) %>%
       paste0(., "\n")
   }

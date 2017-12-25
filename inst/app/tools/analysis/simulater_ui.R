@@ -734,14 +734,22 @@ observeEvent(input$simulater_report, {
     if (is_empty(inp$ncorr)) inp$ncorr <- NULL
     if (!is_empty(inp$nexact)) inp$nexact <- as.logical(inp$nexact)
   }
-  if ("form" %in% names(inp)) {
-    inp[["form"]] <- strsplit(inp[["form"]], ";")[[1]]
+  # if ("form" %in% names(inp)) {
+    # inp[["form"]] <- strsplit(inp[["form"]], ";")[[1]]
+  # }
+  for (i in c(sim_types, "form")) {
+    if (i %in% names(inp)) {
+      tmp <- strsplit(inp[[i]], ";")[[1]]
+      if (i == "form" || length(tmp) > 2) {
+        inp[[i]] <- tmp
+      }
+    }
   }
   update_report(
     inp_main = inp,
-    fun_name = "simulater", 
+    fun_name = "simulater",
     inp_out = inp_out,
-    outputs = outputs, 
+    outputs = outputs,
     wrap = TRUE,
     figs = figs,
     fig.width = sim_plot_width(),
@@ -775,9 +783,9 @@ observeEvent(input$repeater_report, {
 
   update_report(
     inp_main = inp,
-    fun_name = "repeater", 
+    fun_name = "repeater",
     inp_out = inp_out,
-    outputs = outputs, 
+    outputs = outputs,
     wrap = TRUE,
     figs = figs,
     fig.width = rep_plot_width(),
