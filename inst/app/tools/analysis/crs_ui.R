@@ -192,6 +192,7 @@ observeEvent(input$crs_report, {
     fun_name = "crs",
     inp_out = inp_out,
     outputs = outputs,
+    wrap = TRUE,
     figs = figs,
     fig.width = crs_plot_width(),
     fig.height = crs_plot_height(),

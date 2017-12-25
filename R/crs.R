@@ -18,7 +18,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   vars <- c(id, prod, rate)
   dat <- getdata(dataset, vars, na.rm = FALSE)
   if (!is_string(dataset)) {
-    dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+    dataset <- deparse(substitute(dataset)) %>% 
+      set_attr("df", TRUE)
   }
 
   ## creating a matrix layout
@@ -27,13 +28,14 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## make sure spread doesn't complain
   cn <- colnames(dat)
-  nr <- distinct_(dat, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% nrow()
+  nr <- distinct_(dat, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% 
+    nrow()
   if (nr < nrow(dat)) {
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
   }
 
   dat <- spread(dat, !! prod, !! rate) %>%
-    as.data.frame()
+    as.data.frame(stringsAsFactors = FALSE)
 
   idv <- select_at(dat, .vars = id)
   uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
@@ -41,9 +43,21 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   dat <- select_at(dat, .vars = setdiff(colnames(dat), id))
 
+  ## can use : for long sets of products to predict for
+  if (any(grepl(":", pred))) {
+    pred <- select(
+      dat[1, , drop = FALSE], 
+      !!! rlang::parse_exprs(paste0(pred, collapse = ";"))
+    ) %>% colnames()
+  }
+
   ## stop if insufficient overlap in ratings
   if (length(pred) >= (ncol(dat) - 1)) {
     return("Cannot predict for all products. Ratings must overlap on at least two products." %>% add_class("crs"))
+  } 
+
+  if (length(vars) < (ncol(dat) - 1)) {
+    vars <- evar <- colnames(dat)[-1]
   }
 
   ## indices
@@ -98,9 +112,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   cors[is.na(cors)] <- 0
   dnom <- apply(cors, 2, function(x) sum(abs(x), na.rm = TRUE))
   wts <- sweep(cors, 2, dnom, "/")
-  cf <-
-    (crossprod(wts, as.matrix(srate)) * sds[-uid] + ms[-uid]) %>%
-    as.data.frame() %>%
+  cf <- (crossprod(wts, as.matrix(srate)) * sds[-uid] + ms[-uid]) %>%
+    as.data.frame(stringsAsFactors = FALSE) %>%
     bind_cols(idv[-uid, , drop = FALSE], .) %>%
     set_colnames(c(id, pred))
 
@@ -114,13 +127,13 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   recommendations <-
     inner_join(
       bind_cols(
-        gather(act, "product", "rating", -1),
-        select_at(gather(ract, "product", "ranking", -1), .vars = "ranking"),
-        select_at(gather(cf, "product", "cf", -1), .vars = "cf"),
-        select_at(gather(rcf, "product", "cf_rank", -1), .vars = "cf_rank")
+        gather(act, "product", "rating", -1, factor_key = TRUE),
+        select_at(gather(ract, "product", "ranking", -1, factor_key = TRUE), .vars = "ranking"),
+        select_at(gather(cf, "product", "cf", -1, factor_key = TRUE),, .vars = "cf"),
+        select_at(gather(rcf, "product", "cf_rank", -1, factor_key = TRUE), .vars = "cf_rank")
       ),
       data.frame(
-        product = names(avg),
+        product = names(avg) %>% factor(., levels = .),
         average = t(avg),
         avg_rank = t(ravg)
       ),
@@ -140,13 +153,14 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 #'
 #' @param object Return value from \code{\link{crs}}
 #' @param n Number of lines of recommendations to print. Use -1 to print all lines
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{crs}} to generate the results
 #' @seealso \code{\link{plot.crs}} to plot results
 #'
 #' @export
-summary.crs <- function(object, n = 36, ...) {
+summary.crs <- function(object, n = 36, dec = 2, ...) {
   if (is.character(object)) return(cat(object))
 
   cat("Collaborative filtering")
@@ -191,10 +205,10 @@ summary.crs <- function(object, n = 36, ...) {
     cat("\n- Top 3 based on average ratings contains the best product", formatnr(inar3, dec = 1, perc = TRUE), "of the time")
 
     ## best 3 based on cf contains best product
-    best <- which(object$rcf < 4, arr.ind = TRUE)
-    ract <- object$ract
-    ract[!object$rcf < 4] <- NA
-    incf3 <- mean(rowSums(ract == 1, na.rm = TRUE) > 0)
+    best <- which(!object$rcf[, -1, drop = FALSE] < 4, arr.ind = TRUE)
+    best[, "col"] <- best[, "col"] + 1 
+    object$ract[best] <- NA
+    incf3 <- mean(rowSums(object$ract == 1, na.rm = TRUE) > 0)
     cat("\n- Top 3 based on collaborative filtering contains the best product", formatnr(incf3, dec = 1, perc = TRUE), "of the time\n")
   }
 
@@ -202,9 +216,11 @@ summary.crs <- function(object, n = 36, ...) {
   cat("\nRecommendations:\n\n")
   if (n == -1) {
     cat("\n")
-    print(formatdf(object$recommendations, dec = 2), row.names = FALSE)
+    print(formatdf(object$recommendations, dec = dec), row.names = FALSE)
   } else {
-    head(object$recommendations, n) %>% formatdf(dec = 2) %>% print(row.names = FALSE)
+    head(object$recommendations, n) %>% 
+      formatdf(dec = dec) %>% 
+      print(row.names = FALSE)
   }
 }
 

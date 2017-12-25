@@ -17,7 +17,7 @@ ann_pred_args <- as.list(if (exists("predict.ann")) {
   formals(predict.ann)
 } else {
   formals(radiant.model:::predict.ann)
-} )
+})
 
 # list of function inputs selected by user
 ann_pred_inputs <- reactive({
@@ -463,6 +463,7 @@ observeEvent(input$ann_report, {
     fun_name = "ann",
     inp_out = inp_out,
     outputs = outputs,
+    wrap = TRUE,
     figs = figs,
     fig.width = ann_plot_width(),
     fig.height = ann_plot_height(),

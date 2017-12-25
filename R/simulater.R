@@ -217,7 +217,9 @@ simulater <- function(const = "",
 
   form %<>% sim_cleaner
   if (form != "") {
-    s <- form %>% gsub("\\s+", "", .) %>% sim_splitter("=")
+    s <- form %>% 
+      gsub("\\s+", "", .) %>% 
+      sim_splitter("=")
     for (i in 1:length(s)) {
       if (grepl("^\\s*#", s[[i]][1], perl = TRUE)) next
       obj <- s[[i]][1]
@@ -346,7 +348,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (!is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
   if (!is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
   if (!is_empty(sc$data)) cat("Data       :", clean(sc$data))
-  if (!is_empty(sc$form)) cat(paste0("Formulas   :\n\t", sc$form %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
+  if (!is_empty(sc$form)) cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
   cat("\n")
 
   if (!is_empty(sc$ncorr) && is.numeric(sc$ncorr)) {
@@ -724,7 +726,7 @@ summary.repeater <- function(object,
 
   if (rc$form != "") {
     rc$form %<>% sim_cleaner
-    cat(paste0("Formulas      :\n\t", rc$form %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
+    cat(paste0("Formulas      :\n\t", paste0(rc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
   }
   cat("\n")
 
@@ -884,7 +886,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
 #'
 #' @export
 sim_cleaner <- function(x) {
-  gsub("[ ]{2,}", " ", x) %>%
+  gsub("[ ]{2,}", " ", paste(x, collapse = ";")) %>%
     gsub("[ ]*[\n;]+[ ]*", ";", .) %>%
     gsub("[;]{2,}", ";", .) %>%
     gsub(";$", "", .) %>%

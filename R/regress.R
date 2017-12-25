@@ -32,7 +32,10 @@ regress <- function(dataset, rvar, evar,
   }
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+  if (!is_string(dataset)) {
+    dataset <- deparse(substitute(dataset)) %>% 
+      set_attr("df", TRUE)
+  }
 
   if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%

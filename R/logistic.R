@@ -46,7 +46,10 @@ logistic <- function(dataset, rvar, evar,
   }
 
   dat <- getdata(dataset, vars, filt = data_filter)
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+  if (!is_string(dataset)) {
+    dataset <- deparse(substitute(dataset)) %>% 
+      set_attr("df", TRUE)
+  }
 
   if (!is.null(wts)) {
     wts <- dat[[wtsname]]

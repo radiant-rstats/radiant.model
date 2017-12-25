@@ -502,8 +502,11 @@ observeEvent(input$regress_report, {
   }
   update_report(
     inp_main = clean_args(reg_inputs(), reg_args),
-    fun_name = "regress", inp_out = inp_out,
-    outputs = outputs, figs = figs,
+    fun_name = "regress", 
+    inp_out = inp_out,
+    outputs = outputs, 
+    wrap = TRUE,
+    figs = figs,
     fig.width = reg_plot_width(),
     fig.height = reg_plot_height(),
     xcmd = xcmd

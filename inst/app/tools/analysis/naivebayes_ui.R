@@ -335,6 +335,7 @@ observeEvent(input$nb_report, {
     fun_name = "nb",
     inp_out = inp_out,
     outputs = outputs,
+    wrap = TRUE,
     figs = figs,
     fig.width = nb_plot_width(),
     fig.height = nb_plot_height(),

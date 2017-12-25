@@ -12,6 +12,7 @@
 * Added option to generate normally distributed simulated data with exact mean and standard deviation in Model > Simulate
 * Fix for large weights that may cause an integer overflow
 * Grid search specs ignored when _Model > Simulate > Repeat_ is set to `Simulate`
+* Long lines of code generated for _R > Report_ will be wrapped to enhance readability 
 * Applied `styler` to code
 
 # CHANGES IN radiant.model 0.8.7.4

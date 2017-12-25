@@ -31,7 +31,6 @@ radiant.model <- function(run = "browser") {
   )
 }
 
-
 #' Method to evaluate sensitivity of an analysis
 #'
 #' @param object Object of relevant class for which to evaluate sensitivity

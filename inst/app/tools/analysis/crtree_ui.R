@@ -494,6 +494,7 @@ observeEvent(input$crtree_report, {
     fun_name = "crtree",
     inp_out = inp_out,
     outputs = outputs,
+    wrap = TRUE,
     figs = figs,
     fig.width = crtree_plot_width(),
     fig.height = crtree_plot_height(),

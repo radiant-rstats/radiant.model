@@ -533,6 +533,7 @@ observeEvent(input$logistic_report, {
     fun_name = "logistic",
     inp_out = inp_out,
     outputs = outputs,
+    wrap = TRUE,
     figs = figs,
     fig.width = logit_plot_width(),
     fig.height = logit_plot_height(),
