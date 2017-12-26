@@ -4,10 +4,12 @@
 \alias{plot.simulater}
 \title{Plot method for the simulater function}
 \usage{
-\method{plot}{simulater}(x, shiny = FALSE, custom = FALSE, ...)
+\method{plot}{simulater}(x, bins = 20, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{simulater}}}
+
+\item{bins}{Number of bins used for histograms (1 - 50)}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 
@@ -22,10 +24,13 @@ Plot method for the simulater function
 See \url{https://radiant-rstats.github.io/docs/model/simulater} for an example in Radiant
 }
 \examples{
-result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-                    discrete = "price 5 8 .3 .7",
-                    form = "profit = demand * (price - cost)")
-plot(result)
+result <- simulater(
+  const = "cost 3", 
+  norm = "demand 2000 1000", 
+  discrete = "price 5 8 .3 .7", 
+  form = "profit = demand * (price - cost)"
+)
+plot(result, bins = 25)
 
 }
 \seealso{

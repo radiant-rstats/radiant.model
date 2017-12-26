@@ -2,17 +2,17 @@
 % Please edit documentation in R/simulater.R
 \name{repeater}
 \alias{repeater}
-\title{Repeat simulation}
+\title{Repeated simulation}
 \usage{
 repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
-  fun = "sum_rm", form = "", seed = "", name = "", sim = "")
+  fun = "sum_rm", form = "", seed = NULL, name = "", sim = "")
 }
 \arguments{
 \item{nr}{Number times to repeat the simulation}
 
 \item{vars}{Variables to use in repeated simulation}
 
-\item{grid}{Expression to use in grid search for constants}
+\item{grid}{Character vector of expressions to use in grid search for constants}
 
 \item{sum_vars}{(Numeric) variables to summaries}
 
@@ -20,26 +20,38 @@ repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
 
 \item{fun}{Functions to use for summarizing}
 
-\item{form}{A string with the formula to apply to the summarized data}
+\item{form}{A character vector with the formula to apply to the summarized data}
 
-\item{seed}{To repeat a simulation with the same randomly generated values enter a number into Random seed input box.}
+\item{seed}{Seed for the repeated simulation}
 
-\item{name}{To save the simulated data for further analysis specify a name in the Sim name input box. You can then investigate the simulated data by choosing the specified name from the Datasets dropdown in any of the other Data tabs.}
+\item{name}{Name for data.frame with the repeated simulation data}
 
-\item{sim}{Return value from the simulater function}
+\item{sim}{Return value from the simulater function (data.frame or name)}
 }
 \description{
-Repeat simulation
+Repeated simulation
 }
 \examples{
-result <- simulater(const = "var_cost 5;fixed_cost 1000;", norm = "E 0 100;",
-                    discrete = "price 6 8 .3 .7;",
-                    form = "demand = 1000 - 50*price + E;
-                            profit = demand*(price-var_cost) - fixed_cost;
-                            profit_small = profit < 100",
-                    seed = "1234")
-repeater(nr = 12, vars = c("E","price"), sum_vars = "profit",
-         byvar = "sim", form = "profit_365 = profit < 36500",
-         seed = "1234", sim = result) \%>\% head
+result <- simulater(
+  const = c("var_cost 5","fixed_cost 1000"), 
+  norm = "E 0 100;",
+  discrete = "price 6 8 .3 .7;",
+  form = c(
+    "demand = 1000 - 50*price + E", 
+    "profit = demand*(price-var_cost) - fixed_cost",
+    "profit_small = profit < 100"
+  ), 
+  seed = "1234"
+)
+
+repeater(
+  nr = 12, 
+  vars = c("E","price"), 
+  sum_vars = "profit", 
+  byvar = "sim", 
+  form = "profit_365 = profit < 36500", 
+  seed = 1234, 
+  sim = result
+) \%>\% head
 
 }

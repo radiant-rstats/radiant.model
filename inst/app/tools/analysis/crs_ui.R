@@ -185,7 +185,10 @@ observeEvent(input$crs_report, {
     figs <- FALSE
   }
   xcmd <- paste0("# store(result, name = \"", input$crs_name, "\")")
-  xcmd <- paste0(xcmd, "\n# write.csv(result$recommendations, file = \"~/recommendations_crs.csv\", row.names = FALSE)")
+  if (getOption("radiant.local", default = FALSE)) {
+    pdir <- getOption("radiant.write_dir", default = "~/")
+    xcmd <- paste0(xcmd, "\n# readr::write_csv(result$recommendations, path = \"", pdir, "recommendations_crs.csv\")")
+  }
 
   update_report(
     inp_main = clean_args(crs_inputs(), crs_args),

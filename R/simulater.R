@@ -2,29 +2,32 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 #'
-#' @param const A string listing the constants to include in the analysis (e.g., "cost = 3; size = 4")
-#' @param lnorm A string listing the log-normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the log-mean and the second is the log-standard deviation)
-#' @param norm A string listing the normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the mean and the second is the standard deviation)
-#' @param unif A string listing the uniformly distributed random variables to include in the analysis (e.g., "demand 0 1" where the first number is the minimum value and the second is the maximum value)
-#' @param discrete A string listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 8 .3 .7" where the first set of numbers are the values and the second set the probabilities
-#' @param binom A string listing the random variables with a binomial distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
-#' @param sequ A string listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations.
-#' @param grid A string listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
+#' @param const A character vector listing the constants to include in the analysis (e.g., c("cost = 3", "size = 4"))
+#' @param lnorm A character vector listing the log-normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the log-mean and the second is the log-standard deviation)
+#' @param norm A character vector listing the normally distributed random variables to include in the analysis (e.g., "demand 2000 1000" where the first number is the mean and the second is the standard deviation)
+#' @param unif A character vector listing the uniformly distributed random variables to include in the analysis (e.g., "demand 0 1" where the first number is the minimum value and the second is the maximum value)
+#' @param discrete A character vector listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 8 .3 .7" where the first set of numbers are the values and the second set the probabilities
+#' @param binom A character vector listing the random variables with a binomial distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
+#' @param sequ A character vector listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations.
+#' @param grid A character vector listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
 #' @param data Name of a dataset to be used in the calculations
-#' @param form A string with the formula to evaluate (e.g., "profit = demand * (price - cost)")
-#' @param seed To repeat a simulation with the same randomly generated values enter a number into Random seed input box.
+#' @param form A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")
+#' @param seed Optional seed used in simulation 
 #' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
-#' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables to be simulated
-#' @param name To save the simulated data for further analysis specify a name in the Sim name input box. You can then investigate the simulated data by choosing the specified name from the Datasets dropdown in any of the other Data tabs.
+#' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables simulated
+#' @param name Name for the simulated data
 #' @param nr Number of simulations
 #' @param dat Data list from previous simulation. Used by repeater function
 #'
-#' @return A data.frame with the created variables
+#' @return A data.frame with the simulated data
 #'
 #' @examples
-#' result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-#'                    discrete = "price 5 8 .3 .7",
-#'                    form = "profit = demand * (price - cost)")
+#' result <- simulater(
+#'   const = "cost 3", 
+#'   norm = "demand 2000 1000", 
+#'   discrete = "price 5 8 .3 .7", 
+#'   form = "profit = demand * (price - cost)",
+#' )
 #'
 #' @seealso \code{\link{summary.simulater}} to summarize results
 #' @seealso \code{\link{plot.simulater}} to plot results
@@ -40,18 +43,14 @@ simulater <- function(const = "",
                       grid = "",
                       data = "",
                       form = "",
-                      seed = "",
+                      seed = NULL,
                       nexact = FALSE,
                       ncorr = NULL,
                       name = "",
                       nr = 1000,
                       dat = NULL) {
 
-  ## remove any non-numbers from seed, including spaces
-  seed %>% gsub("[^0-9]", "", .) %>% {
-    if (!is_empty(.)) set.seed(seed)
-  }
-
+  if (!is_empty(seed)) set.seed(as_numeric(seed))
   if (is.null(dat)) {
     dat <- list()
   } else {
@@ -283,26 +282,6 @@ simulater <- function(const = "",
   add_class(dat, "simulater")
 }
 
-## Test settings for simulater function, will not be run when sourced
-if (getOption("radiant.testthat", default = FALSE)) {
-  main__ <- function() {
-    options(radiant.testthat = TRUE)
-    library(radiant.model)
-    const <- "cost 3"
-    normstr <- "demand 2000 1000"
-    discrete <- "price 5 8 .3 .7"
-    form <- "profit = demand * (price - cost)"
-    lnorm <- unif <- binom <- sequ <- grid <- data <- name <- ""
-    seed <- 100
-    nr <- 1000
-    dat <- NULL
-
-    result <- simulater(const = const, norm = normstr, discrete = discrete, form = form, seed = seed)
-    stopifnot(sum(round(result[1000, ], 5) == c(3, -141.427660, 5, -282.85532)) == 4)
-  }
-  main__()
-}
-
 #' Summary method for the simulater function
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
@@ -366,21 +345,25 @@ summary.simulater <- function(object, dec = 4, ...) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/simulater} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{simulater}}
+#' @param bins Number of bins used for histograms (1 - 50)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- simulater(const = "cost 3", norm = "demand 2000 1000",
-#'                     discrete = "price 5 8 .3 .7",
-#'                     form = "profit = demand * (price - cost)")
-#' plot(result)
+#' result <- simulater(
+#'   const = "cost 3", 
+#'   norm = "demand 2000 1000", 
+#'   discrete = "price 5 8 .3 .7", 
+#'   form = "profit = demand * (price - cost)"
+#' )
+#' plot(result, bins = 25)
 #'
 #' @seealso \code{\link{simulater}} to generate the result
 #' @seealso \code{\link{summary.simulater}} to summarize results
 #'
 #' @export
-plot.simulater <- function(x, shiny = FALSE, custom = FALSE, ...) {
+plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     if (x[1] == "error") return(invisible())
     object <- getdata(x)
@@ -395,7 +378,7 @@ plot.simulater <- function(x, shiny = FALSE, custom = FALSE, ...) {
     dat <- select_at(object, .vars = i)
     if (!does_vary(object[[i]])) next
     plot_list[[i]] <- select_at(object, .vars = i) %>%
-      visualize(xvar = i, bins = 20, custom = TRUE)
+      visualize(xvar = i, bins = bins, custom = TRUE)
   }
 
   if (custom) {
@@ -411,31 +394,41 @@ plot.simulater <- function(x, shiny = FALSE, custom = FALSE, ...) {
   }
 }
 
-#' Repeat simulation
+#' Repeated simulation
 #'
 #' @param nr Number times to repeat the simulation
 #' @param vars Variables to use in repeated simulation
-#' @param grid Expression to use in grid search for constants
-
+#' @param grid Character vector of expressions to use in grid search for constants
 #' @param sum_vars (Numeric) variables to summaries
 #' @param byvar Variable(s) to group data by before summarizing
 #' @param fun Functions to use for summarizing
-#' @param form A string with the formula to apply to the summarized data
-
-#' @param seed To repeat a simulation with the same randomly generated values enter a number into Random seed input box.
-#' @param name To save the simulated data for further analysis specify a name in the Sim name input box. You can then investigate the simulated data by choosing the specified name from the Datasets dropdown in any of the other Data tabs.
-#' @param sim Return value from the simulater function
+#' @param form A character vector with the formula to apply to the summarized data
+#' @param seed Seed for the repeated simulation
+#' @param name Name for data.frame with the repeated simulation data
+#' @param sim Return value from the simulater function (data.frame or name)
 #'
 #' @examples
-#' result <- simulater(const = "var_cost 5;fixed_cost 1000;", norm = "E 0 100;",
-#'                     discrete = "price 6 8 .3 .7;",
-#'                     form = "demand = 1000 - 50*price + E;
-#'                             profit = demand*(price-var_cost) - fixed_cost;
-#'                             profit_small = profit < 100",
-#'                     seed = "1234")
-#' repeater(nr = 12, vars = c("E","price"), sum_vars = "profit",
-#'          byvar = "sim", form = "profit_365 = profit < 36500",
-#'          seed = "1234", sim = result) %>% head
+#' result <- simulater(
+#'   const = c("var_cost 5","fixed_cost 1000"), 
+#'   norm = "E 0 100;",
+#'   discrete = "price 6 8 .3 .7;",
+#'   form = c(
+#'     "demand = 1000 - 50*price + E", 
+#'     "profit = demand*(price-var_cost) - fixed_cost",
+#'     "profit_small = profit < 100"
+#'   ), 
+#'   seed = "1234"
+#' )
+#'
+#' repeater(
+#'   nr = 12, 
+#'   vars = c("E","price"), 
+#'   sum_vars = "profit", 
+#'   byvar = "sim", 
+#'   form = "profit_365 = profit < 36500", 
+#'   seed = 1234, 
+#'   sim = result
+#' ) %>% head
 #'
 #' @export
 repeater <- function(nr = 12,
@@ -445,16 +438,16 @@ repeater <- function(nr = 12,
                      byvar = "sim",
                      fun = "sum_rm",
                      form = "",
-                     seed = "",
+                     seed = NULL,
                      name = "",
                      sim = "") {
 
   # nr = 12
-  # vars = c("E","price")
   # grid = ""
-  # sum_vars = c("profit","E")
   # byvar = "sim"
   # fun = "sum_rm"
+  # vars = c("E","price")
+  # sum_vars = c("profit","E")
   # form = "profit_365 = profit < 36500"
   # seed = "1234"
   # name = ""
@@ -464,6 +457,24 @@ repeater <- function(nr = 12,
   #                         profit = demand*(price-var_cost) - fixed_cost;
   #                         profit_small = profit < 100",
   #                 seed = "1234")
+
+  # nr = 5 
+  # vars = c("incidental", "A3403", "A3402", "B757") 
+  # sum_vars = c(
+  #   "total", "RCNC1", "RCNC1_prof", "RCNC2", "CTC", "HIC", 
+  #   "HIC_prof"
+  # ) 
+  # form = c(
+  #   "## RCNC1_net = RCNC1 - .2 * pmax(RCNC1 - .1*total - .9*total, 0)", 
+  #   "RCNC1_net = RCNC1 - 0.2 * pmax(RCNC1_prof, 0)", 
+  #   "## HIC_net = HIC - .035 * pmax(HIC - total, 0)", 
+  #   "HIC_net = HIC - .035 * pmax(HIC_prof, 0)", 
+  #   "HIC_MIN_CTC = HIC_net - CTC", 
+  #   "HIC_LT_CTC = HIC_net < CTC"
+  # ) 
+  # seed = 1234 
+  # name = "repdat" 
+  # sim = sim
 
   if (byvar == "sim") grid <- ""
 
@@ -480,9 +491,7 @@ repeater <- function(nr = 12,
   rm(sim)
   if (is.character(dat)) dat <- getdata(dat)
 
-  seed %>% gsub("[^0-9]", "", .) %>% {
-    if (!is_empty(.)) set.seed(seed)
-  }
+  if (!is_empty(seed)) set.seed(as_numeric(seed))
 
   if (identical(vars, "") && identical(grid, "")) {
     mess <- c("error", paste0("Select variables to re-simulate and/or a specify a constant\nto change using 'Grid search' when Group by is set to Repeat"))
@@ -511,6 +520,9 @@ repeater <- function(nr = 12,
   ## keep those list elements that, e.g., q is in
   nr_sim <- nrow(dat)
   sc <- attr(dat, "sim_call")
+
+  ## needed if inputs are provided as vectors
+  sc[1:(which(names(sc) == "seed") - 1)] %<>% lapply(paste, collapse = ";")
 
   if (!is_empty(sc$data)) vars <- c(sc$data, vars)
 
@@ -551,7 +563,7 @@ repeater <- function(nr = 12,
 
   rep_sim <- function(rep_nr, sfun = function(x) x) {
     bind_cols(
-      data_frame(rep = rep(rep_nr, nr_sim), sim = 1:nr_sim),
+      data.frame(rep = rep(rep_nr, nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
     ) %>% na.omit() %>% sfun()
   }
@@ -573,32 +585,30 @@ repeater <- function(nr = 12,
 
     sc[names(sc_grid)] <- sc_grid
     bind_cols(
-      data_frame(rep = rep(paste(gval, collapse = "|"), nr_sim), sim = 1:nr_sim),
+      data.frame(rep = rep(paste(gval, collapse = "|"), nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
-    ) %>% na.omit() %>% sfun()
+    ) %>% 
+    na.omit() %>% 
+    sfun()
   }
 
   if (length(grid_list) == 0) {
     if (byvar == "sim") {
-      ret <-
-        bind_rows(lapply(1:nr, rep_sim)) %>%
+      ret <- bind_rows(lapply(1:nr, rep_sim)) %>%
         summarize_sim() %>%
         add_class("repeater")
     } else {
-      ret <-
-        bind_rows(lapply(1:nr, function(x) rep_sim(x, summarize_sim))) %>%
+      ret <- bind_rows(lapply(1:nr, function(x) rep_sim(x, summarize_sim))) %>%
         add_class("repeater")
     }
   } else {
     grid <- expand.grid(grid_list)
     if (byvar == "sim") {
-      ret <-
-        bind_rows(apply(grid, 1, rep_grid_sim)) %>%
+      ret <- bind_rows(apply(grid, 1, rep_grid_sim)) %>%
         summarize_sim() %>%
         add_class("repeater")
     } else {
-      ret <-
-        bind_rows(apply(grid, 1, function(x) rep_grid_sim(x, summarize_sim))) %>%
+      ret <- bind_rows(apply(grid, 1, function(x) rep_grid_sim(x, summarize_sim))) %>%
         add_class("repeater")
     }
   }
@@ -633,6 +643,9 @@ repeater <- function(nr = 12,
   rc$sc <- sc[setdiff(names(sc), "dat")]
   attr(ret, "rep_call") <- rc
 
+  ## allow methods to work on repeater data.frame
+  ret <- add_class(ret, "repeater")
+
   name %<>% gsub(" ", "", .)
   if (name != "") {
     if (exists("r_environment")) {
@@ -661,28 +674,6 @@ repeater <- function(nr = 12,
   ret
 }
 
-## Test settings for repeater function, will not be run when sourced
-if (getOption("radiant.testthat", default = FALSE)) {
-  main__ <- function() {
-    # options(radiant.testthat = TRUE)
-    library(radiant.model)
-    rm(list = ls())
-    # result <- simulater(const = "cost 3", norm = "demand 2000 1000", discrete = "price 5 8 .3 .7", form = "profit = demand * (price - cost)")
-    result <- simulater(const = "C 11;U 3995;", norm = "M 3000 1000;", unif = "L 5040 6860;", discrete = "P 20 18.5 16.5 15 0.25 0.35 0.3 0.1;", form = "## Earnings formula;E=(P-C)*M-L-U;## Probability of higher earnings compared to consulting;GL_gt_C=E > 6667;## Probability of low earnings (related to student loans);GL_2low = E < 5000;## Partnership;EP = ifelse(E<3500, 3500, ifelse(E>9000,9000+.1*(E-9000), E));EPvsE = EP > E", seed = "1234", name = "simdat")
-    sim <- result
-    vars <- "M"
-    nr <- 12
-    grid <- ""
-    seed <- 1234
-    name <- ""
-    sum_vars <- c("E", "EP")
-    byvar <- "sim"
-    fun <- "sum_rm"
-    res <- repeater(vars = "profit", sim = result)
-  }
-  main__()
-}
-
 #' Summarize repeated simulation
 #'
 #' @param object Return value from \code{\link{repeater}}
@@ -690,9 +681,8 @@ if (getOption("radiant.testthat", default = FALSE)) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @export
-summary.repeater <- function(object,
-                             dec = 4,
-                             ...) {
+summary.repeater <- function(object, dec = 4, ...) {
+
   if (is.character(object)) {
     if (length(object) == 2 && object[1] == "error") {
       return(cat(object[2]))
@@ -711,6 +701,13 @@ summary.repeater <- function(object,
     rc$sc <- list(nr = "")
   }
 
+  clean <- function(x) {
+    paste0(x, collapse = ";") %>%
+    gsub(";", "; ", .) %>%
+      gsub("\\n", "", .) %>%
+      paste0(., "\n")
+  }
+
   ## show results
   cat("Repeated simulation\n")
   cat("Simulations   :", ifelse(is_empty(rc$sc$nr), "", formatnr(rc$sc$nr, dec = 0)), "\n")
@@ -722,10 +719,17 @@ summary.repeater <- function(object,
   cfun <- sub("_rm$", "", rc$fun)
   cat("Function      :", cfun, "\n")
   cat("Random  seed  :", rc$seed, "\n")
+  if (is.data.frame(rc$sim)) {
+    rc$sim <- attr(rc$sim, "sim_call")$name
+  }
   cat("Simulated data:", rc$sim, "\n")
   cat("Repeat  data  :", rc$name, "\n")
 
-  if (rc$form != "") {
+  if (rc$byvar == "rep" && !is_empty(rc$grid)) {
+    cat("Grid search.  :", clean(rc$grid))
+  }
+
+  if (!is_empty(rc$form)) {
     rc$form %<>% sim_cleaner
     cat(paste0("Formulas      :\n\t", paste0(rc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
   }
@@ -737,12 +741,13 @@ summary.repeater <- function(object,
 #' Plot repeated simulation
 #'
 #' @param x Return value from \code{\link{repeater}}
+#' @param bins Number of bins used for histograms (1 - 50)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @export
-plot.repeater <- function(x, shiny = FALSE, custom = FALSE, ...) {
+plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     if (x[1] == "error") return(invisible())
     object <- getdata(x)
@@ -753,7 +758,7 @@ plot.repeater <- function(x, shiny = FALSE, custom = FALSE, ...) {
   ## getting the repeater call
   rc <- attr(object, "rep_call")
 
-  ## legacy for version that are radiant split
+  ## legacy 
   if (is.null(rc)) rc <- formals("repeater")
   if (identical(rc$sum_vars, "")) return(invisible())
 
@@ -764,7 +769,7 @@ plot.repeater <- function(x, shiny = FALSE, custom = FALSE, ...) {
     if (!does_vary(object[[i]])) next
 
     plot_list[[i]] <- select_at(object, .vars = i) %>%
-      visualize(xvar = i, bins = 20, custom = TRUE)
+      visualize(xvar = i, bins = bins, custom = TRUE)
 
     if (i %in% rc$sum_vars && !is_empty(cfun, "none")) {
       plot_list[[i]] <- plot_list[[i]] + labs(x = paste0(cfun, " of ", i))
@@ -838,8 +843,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
             max = max_rm
           )
         ) %>%
-        {
-          if (fun == "" || fun == "none") {
+        {if (fun == "" || fun == "none") {
             .
           } else {
             .[[1]] <- paste0(fun, " of ", .[[1]])
@@ -850,7 +854,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
           .[[1]] <- format(.[[1]], justify = "left")
           .
         } %>%
-        data.frame(check.names = FALSE) %>%
+        data.frame(check.names = FALSE, stringsAsFactors = FALSE) %>%
         formatdf(., dec = dec, mark = ",") %>%
         print(row.names = FALSE)
       cat("\n")

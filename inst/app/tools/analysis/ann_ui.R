@@ -431,7 +431,6 @@ observeEvent(input$ann_report, {
   figs <- FALSE
 
   if (!is_empty(input$ann_plots)) {
-    # inp_out[[2]] <- clean_args(ann_plot_inputs(), ann_plot_args[-1])
     inp_out[[2]] <- list(plots = input$ann_plots, custom = FALSE)
     outputs <- c(outputs, "plot")
     figs <- TRUE
@@ -448,7 +447,11 @@ observeEvent(input$ann_report, {
     if (input$ann_predict %in% c("data", "datacmd")) {
       xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$ann_pred_data, "\", name = \"", input$ann_store_pred_name, "\")")
     }
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/ann_predictions.csv\", row.names = FALSE)")
+
+    if (getOption("radiant.local", default = FALSE)) {
+      pdir <- getOption("radiant.write_dir", default = "~/")
+      xcmd <- paste0(xcmd, "\n# readr::write_csv(pred, path = \"", pdir, "ann_predictions.csv\")")
+    }
 
     if (input$ann_pred_plot && !is_empty(input$ann_xvar)) {
       inp_out[[3 + figs]] <- clean_args(ann_pred_plot_inputs(), ann_pred_plot_args[-1])
