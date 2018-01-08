@@ -24,9 +24,9 @@ repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
 
 \item{seed}{Seed for the repeated simulation}
 
-\item{name}{Name for data.frame with the repeated simulation data}
+\item{name}{Name for data.frame with the repeated simulation data (optional)}
 
-\item{sim}{Return value from the simulater function (data.frame or name)}
+\item{sim}{Return value from the simulater function (data.frame or data.frame name)}
 }
 \description{
 Repeated simulation
@@ -41,7 +41,7 @@ result <- simulater(
     "profit = demand*(price-var_cost) - fixed_cost",
     "profit_small = profit < 100"
   ), 
-  seed = "1234"
+  seed = 1234
 )
 
 repeater(

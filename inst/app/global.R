@@ -14,6 +14,3 @@ addResourcePath("www_model", file.path(getOption("radiant.path.model"), "app/www
 ## loading urls and ui
 source("init.R", encoding = getOption("radiant.encoding"), local = TRUE)
 options(radiant.url.patterns = make_url_patterns())
-
-## print options
-# options(max.print = max(getOption("max.print"), 5000))

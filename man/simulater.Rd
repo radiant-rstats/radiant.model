@@ -36,7 +36,7 @@ simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
 
 \item{ncorr}{A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables simulated}
 
-\item{name}{Name for the simulated data}
+\item{name}{Name used to store the simulated data (optional)}
 
 \item{nr}{Number of simulations}
 
