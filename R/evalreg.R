@@ -49,11 +49,12 @@ evalreg <- function(dataset, pred, rvar,
         Predictor = pred,
         Rsq = cor(rv, dat[pred]) ^ 2 %>% .[1, ],
         RMSE = summarise_at(dat, .vars = pred, .funs = funs(mean((rv - .) ^ 2, na.rm = TRUE) %>% sqrt())) %>% unlist(),
-        MAE = summarise_at(dat, .vars = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist()
+        MAE = summarise_at(dat, .vars = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist(),
+        stringsAsFactors = FALSE
       )
   }
 
-  dat <- bind_rows(pdat) %>% as.data.frame()
+  dat <- bind_rows(pdat) %>% as.data.frame(stringsAsFactors = FALSE)
   rm(pdat, dat_list)
 
   as.list(environment()) %>% add_class("evalreg")

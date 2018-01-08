@@ -104,7 +104,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   }
   ## comfirmed to produce consistent results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
   srate[is.na(srate)] <- 0
-  srate <- mutate_all(as.data.frame(srate), funs(ifelse(is.infinite(.), 0, .)))
+  srate <- mutate_all(as.data.frame(srate, stringsAsFactors = FALSE), funs(ifelse(is.infinite(.), 0, .)))
 
   cors <- sshhr(cor(t(dat[uid, ind]), t(dat[-uid, ind]), use = "pairwise.complete.obs"))
 

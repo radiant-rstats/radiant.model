@@ -15,7 +15,7 @@
 #' @param seed Optional seed used in simulation 
 #' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
 #' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables simulated
-#' @param name Name for the simulated data
+#' @param name Name used to store the simulated data (optional)
 #' @param nr Number of simulations
 #' @param dat Data list from previous simulation. Used by repeater function
 #'
@@ -67,7 +67,7 @@ simulater <- function(const = "",
         dat[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))
       }
     }
-    dat <- as.list(expand.grid(dat) %>% as.data.frame())
+    dat <- as.list(expand.grid(dat) %>% as.data.frame(stringsAsFactors = FALSE))
     nr <- length(dat[[1]])
   }
 
@@ -241,7 +241,7 @@ simulater <- function(const = "",
   }
 
   ## convert list to a data.frame
-  dat <- as.data.frame(dat) %>% na.omit()
+  dat <- as.data.frame(dat, stringsAsFactors = FALSE) %>% na.omit()
 
   ## capturing the function call for use in repeat
   sc <- formals()
@@ -268,7 +268,6 @@ simulater <- function(const = "",
     }
 
     form <- gsub("*", "\\*", form, fixed = TRUE) %>%
-      # gsub("\\#+\\s*([^\n$]+)[\n$]", "**\\1**\n", .) %>%
       gsub(";", "\n\n", .)
 
     mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
@@ -404,8 +403,8 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @param fun Functions to use for summarizing
 #' @param form A character vector with the formula to apply to the summarized data
 #' @param seed Seed for the repeated simulation
-#' @param name Name for data.frame with the repeated simulation data
-#' @param sim Return value from the simulater function (data.frame or name)
+#' @param name Name for data.frame with the repeated simulation data (optional)
+#' @param sim Return value from the simulater function (data.frame or data.frame name)
 #'
 #' @examples
 #' result <- simulater(
@@ -417,7 +416,7 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'     "profit = demand*(price-var_cost) - fixed_cost",
 #'     "profit_small = profit < 100"
 #'   ), 
-#'   seed = "1234"
+#'   seed = 1234
 #' )
 #'
 #' repeater(
@@ -489,7 +488,7 @@ repeater <- function(nr = 12,
 
   dat <- sim
   rm(sim)
-  if (is.character(dat)) dat <- getdata(dat)
+  if (is_string(dat)) dat <- getdata(dat)
 
   if (!is_empty(seed)) set.seed(as_numeric(seed))
 
@@ -633,11 +632,13 @@ repeater <- function(nr = 12,
   }
 
   ## tbl_df seems to remove attributes
-  ret <- as.data.frame(ret)
+  ret <- as.data.frame(ret, stringsAsFactors = FALSE)
 
   ## capturing the function call for use in summary and plot
   rc <- formals()
-  rmc <- lapply(match.call()[-1], eval)
+
+  # rmc <- lapply(match.call()[-1], eval)
+  rmc <- lapply(match.call()[-1], eval, envir = parent.frame())
   rc[names(rmc)] <- rmc
 
   rc$sc <- sc[setdiff(names(sc), "dat")]
@@ -815,7 +816,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
       select(dat, which(isConst)) %>%
         na.omit() %>%
         .[1, ] %>%
-        as.data.frame() %>%
+        as.data.frame(stringsAsFactors = FALSE) %>%
         round(dec) %>%
         mutate_all(funs(formatC(., big.mark = ",", digits = dec, format = "f"))) %>%
         set_rownames("") %>%
@@ -952,11 +953,10 @@ find_min <- function(var, val = "") {
 sdw <- function(...) {
   dl <- list(...)
   nr <- length(dl) / 2
-  w <- data.frame(dl[1:nr])
-  d <- data.frame(dl[(nr + 1):length(dl)])
+  w <- data.frame(dl[1:nr], stringsAsFactors = FALSE)
+  d <- data.frame(dl[(nr + 1):length(dl)], stringsAsFactors = FALSE)
   apply(w, 1, function(w) sd(rowSums(sweep(d, 2, w, "*"))))
 }
-
 
 #' Simulate correlated normally distributed data
 #'
@@ -984,5 +984,5 @@ sim_cor <- function(n, rho, means, sds, exact = FALSE) {
 
   X <- sweep(X, 2, sds, "*")
   X <- sweep(X, 2, means, "+")
-  as.data.frame(X)
+  as.data.frame(X, stringsAsFactors = FALSE)
 }

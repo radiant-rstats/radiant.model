@@ -179,7 +179,7 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
   # cat("AUC         :", paste0(names(auc), " (", round(auc,3), ")", collapse=", "), "\n\n")
 
   if (prn) {
-    print(formatdf(as.data.frame(object$dat), 3), row.names = FALSE)
+    print(formatdf(as.data.frame(object$dat, stringsAsFactors = FALSE), 3), row.names = FALSE)
   }
 }
 
@@ -273,7 +273,7 @@ confusion <- function(dataset, pred, rvar,
 
     make_tab <- function(x) {
       ret <- rep(0L, 4) %>% set_names(c("TN", "FN", "FP", "TP"))
-      tab <- table(dat[[rvar]], x) %>% as.data.frame()
+      tab <- table(dat[[rvar]], x) %>% as.data.frame(stringsAsFactors = FALSE)
       ## ensure a value is availble for all four options
       for (i in 1:nrow(tab)) {
         if (tab[i, 1] == "TRUE") {
@@ -292,18 +292,29 @@ confusion <- function(dataset, pred, rvar,
       }
       return(ret)
     }
-    ret <- lapply(select_at(dat, .vars = pred), make_tab) %>% as.data.frame() %>% t() %>% as.data.frame()
+    ret <- lapply(select_at(dat, .vars = pred), make_tab) %>% 
+      as.data.frame(stringsAsFactors = FALSE) %>% 
+      t() %>% 
+      as.data.frame(stringsAsFactors = FALSE)
     ret <- bind_cols(
-      data.frame(Type = rep(i, length(pred)), Predictor = pred),
+      data.frame(
+        Type = rep(i, length(pred)), 
+        Predictor = pred,
+        stringsAsFactors = FALSE
+      ),
       ret,
-      data.frame(AUC = auc_vec, p.ratio = p_vec)
+      data.frame(
+        AUC = auc_vec, 
+        p.ratio = p_vec,
+        stringsAsFactors = FALSE
+      )
     )
 
     pdat[[i]] <- ret
   }
 
   dat <- bind_rows(pdat) %>%
-    as.data.frame() %>%
+    as.data.frame(stringsAsFactors = FALSE) %>%
     mutate(
       total = TN + FN + FP + TP,
       TPR = TP / (TP + FN),
@@ -367,9 +378,10 @@ summary.confusion <- function(object, ...) {
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
   cat("\n")
 
-  print(formatdf(as.data.frame(object$dat[, 1:11]), 3), row.names = FALSE)
+  print(formatdf(as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE), 3), row.names = FALSE)
   cat("\n")
-  print(formatdf(as.data.frame(object$dat[, c(1, 2, 12:18)]), 3, mark = ","), row.names = FALSE)
+  print(formatdf(as.data.frame(object$dat[, c(1, 2, 12:18)], stringsAsFactors = FALSE), 3, mark = ","), row.names = FALSE)
+        
 }
 
 #' Plot method for the confusion matrix

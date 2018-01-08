@@ -141,7 +141,7 @@ plot.nb <- function(x, ...) {
     # apply(x, 2, auc, y) %>% {. - min(.)} %>% {. / max(.)} %>% cbind(.,.) %>% set_colnames(levs)
     ## reporting auc for each variable
     # vimp <- apply(x, 2, auc, y) %>% round(., 3) %>% cbind(.,.) %>% set_colnames(levs)
-    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x)) %>%
+    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x), stringsAsFactors = FALSE) %>%
       arrange_at(.vars = "auc")
     vimp$vars <- factor(vimp$vars, levels = vimp$vars)
     p <- visualize(vimp, yvar = "auc", xvar = "vars", type = "bar", custom = TRUE) +
@@ -156,7 +156,7 @@ plot.nb <- function(x, ...) {
       ind <- y %in% cmb[, i]
       vimp[i, ] <- apply(x[ind, , drop = FALSE], 2, auc, droplevels(y[ind]))
     }
-    vimp <- as.data.frame(vimp)
+    vimp <- as.data.frame(vimp, stringsAsFactors = FALSE)
     colnames(vimp) <- names(x)
     vimp$Predict <- apply(cmb, 2, paste0, collapse = " vs ")
     vimp$Predict <- factor(vimp$Predict, levels = unique(rev(vimp$Predict)))
@@ -229,7 +229,7 @@ predict.nb <- function(object,
     pred_val <- try(sshhr(predict(model, pred, type = "raw")), silent = TRUE)
 
     if (!is(pred_val, "try-error")) {
-      pred_val %<>% as.data.frame
+      pred_val %<>% as.data.frame(stringsAsFactors = FALSE)
       if (all(is_empty(pred_names))) pred_names <- colnames(pred_val)
       pred_val %<>% select(1:min(ncol(pred_val), length(pred_names))) %>%
         set_colnames(pred_names)
@@ -350,7 +350,7 @@ store.nb.predict <- function(object, ..., data = attr(object, "pred_data"), name
   indr <- indexr(data, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
   # indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
 
-  pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
+  pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- df
 
   changedata(data, vars = pred, var_names = name)

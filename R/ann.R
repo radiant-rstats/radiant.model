@@ -358,7 +358,9 @@ predict.ann <- function(object,
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
     if (!is(pred_val, "try-error")) {
-      pred_val %<>% as.data.frame %>% select(1) %>% set_colnames("Prediction")
+      pred_val %<>% as.data.frame(stringsAsFactors = FALSE) %>% 
+        select(1) %>% 
+        set_colnames("Prediction")
     }
 
     pred_val

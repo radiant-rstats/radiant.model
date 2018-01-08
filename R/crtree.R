@@ -203,7 +203,7 @@ crtree <- function(dataset, rvar, evar,
   if (!is_not(nodes)) {
     unpruned <- model
     if (nrow(model$frame) > 1) {
-      cptab <- as.data.frame(model$cptable)
+      cptab <- as.data.frame(model$cptable, stringsAsFactors = FALSE)
       cptab$nodes <- cptab$nsplit + 1
       ind <- max(which(cptab$nodes <= nodes))
       model <- sshhr(rpart::prune.rpart(model, cp = cptab$CP[ind]))
@@ -396,7 +396,8 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
         ind <- which(df$var %in% i)
         splits <- data.frame(
           split1 = df[ind, "split1"],
-          split2 = df[ind, "split2"]
+          split2 = df[ind, "split2"], 
+          stringsAsFactors = FALSE
         )
 
         ## in case an explanatory variables was not used
@@ -404,7 +405,8 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
 
         lind <- data.frame(
           split1 = match(splits[["split1"]], letters),
-          split2 = match(splits[["split2"]], letters)
+          split2 = match(splits[["split2"]], letters),
+          stringsAsFactors = FALSE
         )
         for (j in 1:nrow(lind)) {
           if (is.na(lind[j, 1]) && is.na(lind[j, 2])) {
@@ -472,14 +474,15 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
 
     paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to_lab), collapse = "\n"), style, ttip, sep = "\n") %>%
       # DiagrammeR::mermaid(., width = "100%", height = "100%")
+      ## have to use width = width if you want to be able to zoom in on plots
       DiagrammeR::mermaid(., width = width, height = "100%")
   } else {
     plot_list <- list()
     if ("prune" %in% plots) {
       if (!is.null(x$unpruned)) {
-        df <- data.frame(x$unpruned$cptable)
+        df <- data.frame(x$unpruned$cptable, stringsAsFactors = FALSE)
       } else {
-        df <- data.frame(x$model$cptable)
+        df <- data.frame(x$model$cptable, stringsAsFactors = FALSE)
       }
 
       # df$CP <- sqrt(df$CP * c(Inf, head(df$CP, -1))) # %>% round(5)
@@ -519,7 +522,11 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
       imp <- x$model$variable.importance
       if (is.null(imp)) return("Variable importance information not available for singlenode tree")
 
-      df <- data.frame(vars = names(imp), imp = imp / sum(imp)) %>%
+      df <- data.frame(
+          vars = names(imp), 
+          imp = imp / sum(imp), 
+          stringsAsFactors = FALSE
+        ) %>%
         arrange_at(.vars = "imp")
       df$vars <- factor(df$vars, levels = df$vars)
 
@@ -590,7 +597,10 @@ predict.crtree <- function(object,
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
     if (!is(pred_val, "try-error")) {
-      pred_val %<>% as.data.frame %>% select(1) %>% set_colnames("Prediction")
+      pred_val %<>% 
+        as.data.frame(stringsAsFactors = FALSE) %>% 
+        select(1) %>% 
+        set_colnames("Prediction")
     }
 
     pred_val

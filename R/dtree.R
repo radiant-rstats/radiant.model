@@ -10,6 +10,8 @@
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{plot.dtree}} to plot results
 #'
+#' @importFrom radiant.data fixMS
+#'
 #' @export
 dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
@@ -291,7 +293,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     isNot <- vars[!sapply(vars, isNum)]
     if (length(isNot) > 0) {
       cat("Not all variables resolved to numeric.\n")
-      print(as.data.frame(isNot) %>% set_names(""))
+      print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
       return("\nUpdate the input file and try again." %>% add_class("dtree"))
     }
 
@@ -320,7 +322,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     if (length(isNot) > 0) {
       names(isNot) <- gsub(".", ":", names(isNot), fixed = TRUE)
       cat("Not all variables can be resolved to numeric. Note that\nformula's are only allowed in the 'variables' section\n")
-      print(as.data.frame(isNot) %>% set_names(""))
+      print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
       return("\nUpdate the input file and try again." %>% add_class("dtree"))
     }
 
@@ -486,12 +488,10 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
         Payoff = data.tree::Get(., "payoff", format = print_money),
         Cost = data.tree::Get(., "cost", format = print_money),
         Type = data.tree::Get(., "ptype", format = rm_terminal),
-        check.names = FALSE
+        check.names = FALSE,
+        stringsAsFactors = FALSE
       )
-    } %>% {
-      .[[" "]] <- format(.[[" "]], justify = "left")
-      .
-    }
+    } %>% {.[[" "]] <- format(.[[" "]], justify = "left"); .}
   }
 
   if (input) {
@@ -502,7 +502,7 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
 
   if (all(object$vars != "") && output) {
     cat("Input values:\n")
-    print(as.data.frame(object$vars) %>% set_names(""))
+    print(as.data.frame(object$vars, stringsAsFactors = FALSE) %>% set_names(""))
   }
 
   ## initial setup
@@ -654,7 +654,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
     edge = data.tree::Get(trv, EdgeLabel),
     to = data.tree::Get(trv, ToLabel),
     id = data.tree::Get(trv, ToLabel),
-    tooltip = data.tree::Get(trv, ToolTip)
+    tooltip = data.tree::Get(trv, ToolTip),
+    stringsAsFactors = FALSE
   )
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
@@ -664,7 +665,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
   paste(
     paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(ttip, collapse = "\n"), style, sep = "\n"
-  ) %>%
+  ) %T>%
+    cat(.) %>%
     ## address image size in pdf and html
     # DiagrammeR::mermaid(., width = "100%", height = "100%")
     DiagrammeR::mermaid(., width = width, height = "100%")
@@ -714,11 +716,9 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
     tmp[2:4] <- tail(x, 3)
     tmp[1] <- paste(head(x, -3), collapse = " ")
     nms <<- c(nms, tmp[1])
-    df <-
-      data.frame(
-        values = tail(tmp, 3) %>% as.numeric() %>% {
-          seq(.[1], .[2], .[3])
-        }
+    df <- data.frame(
+        values = tail(tmp, 3) %>% as.numeric() %>% {seq(.[1], .[2], .[3])},
+        stringsAsFactors = FALSE
       )
 
     if (length(decs) == 1) {

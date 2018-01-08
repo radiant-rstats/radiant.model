@@ -245,7 +245,7 @@ summary.regress <- function(object,
     ss_reg <- sum(atab$`Sum Sq`[-nr_rows])
     ss_err <- sum(atab$`Sum Sq`[nr_rows])
     ss_tot <- ss_reg + ss_err
-    ss_tab <- data.frame(matrix(nrow = 3, ncol = 2))
+    ss_tab <- data.frame(matrix(nrow = 3, ncol = 2), stringsAsFactors = FALSE)
     rownames(ss_tab) <- c("Regression", "Error", "Total")
     colnames(ss_tab) <- c("df", "SS")
     ss_tab$df <- c(df_reg, df_err, df_tot)
@@ -261,18 +261,13 @@ summary.regress <- function(object,
     } else {
       ## needed to adjust when step-wise regression is used
       if (length(attributes(object$model$terms)$term.labels) > 1) {
-        # if (length(object$evar) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          {
-            if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]
-          } %>% ## needed when factors are included
-          data.frame("VIF" = ., "Rsq" = 1 - 1 / .) %>%
+          {if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
+          data.frame("VIF" = ., "Rsq" = 1 - 1 / ., stringsAsFactors = FALSE) %>%
           round(dec) %>%
           .[order(.$VIF, decreasing = T), ] %>%
-          {
-            if (nrow(.) < 8) t(.) else .
-          } %>%
+          {if (nrow(.) < 8) t(.) else .} %>%
           print()
       } else {
         cat("Insufficient number of explanatory variables to calculate\nmulticollinearity diagnostics (VIF)\n")
@@ -295,12 +290,9 @@ summary.regress <- function(object,
 
       # confint(object$model, level = conf_lev) %>%
       cnfint(object$model, level = conf_lev, dist = "t") %>%
-        as.data.frame() %>%
+        as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
-        {
-          .$`+/-` <- (.$High - .$Low) / 2
-          .
-        } %>%
+        {.$`+/-` <- (.$High - .$Low) / 2; .} %>%
         mutate_all(funs(sprintf(paste0("%.", dec, "f"), .))) %>%
         cbind(coeff[[2]], .) %>%
         set_rownames(object$coeff$`  `) %>%
@@ -515,14 +507,12 @@ plot.regress <- function(x, plots = "",
     }
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, dist = "t") %>%
-      data.frame() %>%
+      data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(object$coeff, 2), .) %>%
       set_rownames(object$coeff$`  `) %>%
-      {
-        if (!intercept) .[-1, ] else .
-      } %>%
+      {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
       geom_pointrange(aes_string(
@@ -617,11 +607,11 @@ predict.regress <- function(object,
 
     if (!is(pred_val, "try-error")) {
       if (se) {
-        pred_val %<>% data.frame %>% mutate(diff = .[, 3] - .[, 1])
+        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% mutate(diff = .[, 3] - .[, 1])
         ci_perc <- ci_label(cl = conf_lev)
         colnames(pred_val) <- c("Prediction", ci_perc[1], ci_perc[2], "+/-")
       } else {
-        pred_val %<>% data.frame %>% select(1)
+        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1)
         colnames(pred_val) <- "Prediction"
       }
     }
@@ -705,7 +695,7 @@ predict_model <- function(object, pfun, mclass,
     max_freq <- function(x) names(which.max(table(x))) %>% as.factor()
     max_lfreq <- function(x) ifelse(mean(x) > .5, TRUE, FALSE)
 
-    plug_data <- data.frame(init___ = 1)
+    plug_data <- data.frame(init___ = 1, stringsAsFactors = FALSE)
     if (sum(isNum) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = funs(mean)))
     }
@@ -797,7 +787,7 @@ predict_model <- function(object, pfun, mclass,
       }
     }
 
-    pred <- data.frame(pred, pred_val, check.names = FALSE)
+    pred <- data.frame(pred, pred_val, check.names = FALSE, stringsAsFactors = FALSE)
     vars <- colnames(pred)
 
     if (any(grepl("stepwise", object$check))) {
@@ -1048,7 +1038,7 @@ store.model.predict <- function(object, ..., data = attr(object, "pred_data"), n
 
   vars <- colnames(object)[1:(ind - 1)]
   indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
-  pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)))
+  pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
   changedata(data, vars = pred, var_names = name)

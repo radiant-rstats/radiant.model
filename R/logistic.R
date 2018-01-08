@@ -288,7 +288,7 @@ summary.logistic <- function(object,
           {
             if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]
           } %>% ## needed when factors are included
-          data.frame(VIF = ., Rsq = 1 - 1 / .) %>%
+          data.frame(VIF = ., Rsq = 1 - 1 / ., stringsAsFactors = FALSE) %>%
           .[order(.$VIF, decreasing = TRUE), ] %>% ## not using arrange to keep rownames
           round(dec) %>%
           {
@@ -317,14 +317,13 @@ summary.logistic <- function(object,
 
       ci_tab <-
         cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
-        as.data.frame() %>%
+        as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
         cbind(select(object$coeff, 3), .)
 
       if ("confint" %in% sum_check) {
-        ci_tab %T>% {
-          .$`+/-` <- (.$High - .$coefficient)
-        } %>%
+        ci_tab %T>% 
+          {.$`+/-` <- (.$High - .$coefficient)} %>%
           formatdf(dec) %>%
           set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
           set_rownames(object$coeff$`  `) %>%
@@ -515,14 +514,12 @@ plot.logistic <- function(x,
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
       exp() %>%
-      data.frame() %>%
+      data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(object$coeff, 2), .) %>%
       set_rownames(object$coeff$`  `) %>%
-      {
-        if (!intercept) .[-1, ] else .
-      } %>%
+      {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
       geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
@@ -650,13 +647,13 @@ predict.logistic <- function(object,
 
     if (!is(pred_val, "try-error")) {
       if (se) {
-        pred_val %<>% data.frame %>% select(1:2)
-        pred_val %<>% data.frame %>% select(1:2)
+        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1:2)
+        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1:2)
         colnames(pred_val) <- c("Prediction", "std.error")
         # object$ymin <- object$Prediction - qnorm(.5 + conf_lev/2)*object$std.error
         # object$ymax <- object$Prediction + qnorm(.5 + conf_lev/2)*object$std.error
       } else {
-        pred_val %<>% data.frame %>% select(1)
+        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1)
         colnames(pred_val) <- "Prediction"
       }
     }
