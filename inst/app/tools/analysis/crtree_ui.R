@@ -130,7 +130,7 @@ output$ui_crtree_predict_plot <- renderUI({
 output$ui_crtree <- renderUI({
   tagList(
     wellPanel(
-      actionButton("crtree_run", "Estimate", width = "100%")
+      actionButton("crtree_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
     conditionalPanel(
       condition = "input.tabs_crtree == 'Predict'",
@@ -302,8 +302,8 @@ output$crtree <- renderUI({
         # DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
         DiagrammeR::DiagrammeROutput(
           "crtree_plot",
-          # width = ifelse(length(input$GetScreenWidth) == 0, "1200px", paste0(input$GetScreenWidth - 480, "px")),
-          width = ifelse(length(input$GetScreenWidth) == 0, "860px", paste0(input$GetScreenWidth - 820, "px")),
+          # width = ifelse(length(input$get_screen_width) == 0, "1200px", paste0(input$get_screen_width - 480, "px")),
+          width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
           height = "100%"
         )
       ),
@@ -473,15 +473,15 @@ observeEvent(input$crtree_report, {
 
   if (input$crtree_plots == "tree") {
     xcmd <- paste0(xcmd, "#plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\nplot(result, orient = \"", input$crtree_orient, "\") %>% render")
+    xcmd <- paste0(xcmd, "\nplot(result, orient = \"", input$crtree_orient, "\") %>% render()")
   } else if (input$crtree_plots == "prune") {
     figs <- TRUE
     xcmd <- paste0(xcmd, "plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render")
+    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render()")
   } else {
     figs <- TRUE
     xcmd <- paste0(xcmd, "plot(result, plots = \"imp\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render")
+    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render()")
   }
 
   ci <- crtree_inputs()
@@ -494,7 +494,6 @@ observeEvent(input$crtree_report, {
     fun_name = "crtree",
     inp_out = inp_out,
     outputs = outputs,
-    wrap = TRUE,
     figs = figs,
     fig.width = crtree_plot_width(),
     fig.height = crtree_plot_height(),

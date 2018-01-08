@@ -189,7 +189,7 @@ output$ui_regress <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
-      actionButton("reg_run", "Estimate", width = "100%")
+      actionButton("reg_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
     conditionalPanel(
       condition = "input.tabs_regress == 'Predict'",
@@ -505,7 +505,6 @@ observeEvent(input$regress_report, {
     fun_name = "regress", 
     inp_out = inp_out,
     outputs = outputs, 
-    wrap = TRUE,
     figs = figs,
     fig.width = reg_plot_width(),
     fig.height = reg_plot_height(),

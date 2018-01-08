@@ -55,7 +55,7 @@ output$ui_evalreg <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
-      actionButton("ereg_run", "Evaluate", width = "100%")
+      actionButton("ereg_run", "Evaluate models", width = "100%", icon = icon("play"), class = "btn-success")
     ),
     wellPanel(
       uiOutput("ui_ereg_rvar"),

@@ -81,12 +81,19 @@ textinput_maker <- function(id = "const",
                             rows = 3,
                             pre = "sim_",
                             placeholder = "Provide values in the input boxes above and then press the + symbol") {
+
+  ## avoid all sorts of 'helpful' behavior from your browser
+  ## based on https://stackoverflow.com/a/35514029/1974918
   id <- paste0(pre, id)
   tags$textarea(
     state_init(id), id = id,
     type = "text",
     rows = rows,
     placeholder = placeholder,
+    autocomplete = "off",
+    autocorrect = "off", 
+    autocapitalize = "off", 
+    spellcheck = "false",
     class = "form-control"
   )
 }
@@ -356,7 +363,7 @@ output$ui_simulater <- renderUI({
     conditionalPanel(
       condition = "input.tabs_simulate == 'Simulate'",
       wellPanel(
-        actionButton("runSim", "Simulate", width = "100%")
+        actionButton("sim_run", "Run simulation", width = "100%", icon = icon("play"), class = "btn-success")
       ),
       wellPanel(
         uiOutput("ui_sim_types")
@@ -499,7 +506,7 @@ output$ui_simulater <- renderUI({
     conditionalPanel(
       condition = "input.tabs_simulate == 'Repeat'",
       wellPanel(
-        actionButton("runRepeat", "Repeat", width = "100%")
+        actionButton("rep_run", "Repeat simulation", width = "100%", icon = icon("play"), class = "btn-success")
       ),
       wellPanel(
         uiOutput("ui_rep_vars"),
@@ -610,7 +617,7 @@ output$simulater <- renderUI({
   )
 })
 
-.simulater <- eventReactive(input$runSim, {
+.simulater <- eventReactive(input$sim_run, {
   validate(
     need(
       !is_empty(input$sim_types) || !is_empty(input$sim_form),
@@ -622,7 +629,7 @@ output$simulater <- renderUI({
   })
 })
 
-.summary_simulate <- eventReactive(input$runSim, {
+.summary_simulate <- eventReactive(input$sim_run, {
   summary(.simulater(), dec = input$sim_dec)
 })
 
@@ -642,7 +649,7 @@ sim_plot_height <- function() {
   }
 }
 
-.plot_simulate <- eventReactive(input$runSim, {
+.plot_simulate <- eventReactive(input$sim_run, {
   req(input$sim_show_plots)
   withProgress(message = "Generating simulation plots", value = 1, {
     .simulater() %>% {
@@ -651,13 +658,13 @@ sim_plot_height <- function() {
   })
 })
 
-.repeater <- eventReactive(input$runRepeat, {
+.repeater <- eventReactive(input$rep_run, {
   withProgress(message = "Running repeated simulation", value = 1, {
     do.call(repeater, rep_inputs())
   })
 })
 
-.summary_repeat <- eventReactive(input$runRepeat, {
+.summary_repeat <- eventReactive(input$rep_run, {
   if (length(input$rep_sum_vars) == 0) {
     return("Select at least one Output variable")
   }
@@ -687,7 +694,7 @@ rep_plot_height <- function() {
   }
 }
 
-.plot_repeat <- eventReactive(input$runRepeat, {
+.plot_repeat <- eventReactive(input$rep_run, {
   req(input$rep_show_plots)
   req(length(input$rep_sum_vars) > 0)
   if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
@@ -711,9 +718,7 @@ rep_plot_height <- function() {
 report_cleaner <- function(x) x %>% gsub("\n", ";", .) %>% gsub("[;]{2,}", ";", .)
 
 observeEvent(input$simulater_report, {
-  sim_dec <- input$sim_dec %>% {
-    ifelse(is_not(.), 3, .)
-  }
+  sim_dec <- input$sim_dec %>% ifelse(is_empty(.), 3, .)
   outputs <- "summary"
   inp_out <- list(list(dec = sim_dec), "")
   figs <- FALSE
@@ -737,10 +742,6 @@ observeEvent(input$simulater_report, {
   for (i in c(sim_types, "form")) {
     if (i %in% names(inp)) {
       inp[[i]] <- strsplit(inp[[i]], ";")[[1]]
-      # tmp <- strsplit(inp[[i]], ";")[[1]]
-      # if (i == "form" || length(tmp) > 2) {
-      #   inp[[i]] <- tmp
-      # }
     }
   }
   update_report(
@@ -748,7 +749,6 @@ observeEvent(input$simulater_report, {
     fun_name = "simulater",
     inp_out = inp_out,
     outputs = outputs,
-    wrap = TRUE,
     figs = figs,
     fig.width = sim_plot_width(),
     fig.height = sim_plot_height()
@@ -756,9 +756,7 @@ observeEvent(input$simulater_report, {
 })
 
 observeEvent(input$repeater_report, {
-  rep_dec <- input$rep_dec %>% {
-    ifelse(is_not(.), 3, .)
-  }
+  rep_dec <- input$rep_dec %>% ifelse(is_empty(.), 3, .)
   outputs <- "summary"
   inp_out <- list(list(dec = rep_dec), "")
   figs <- FALSE
@@ -787,7 +785,6 @@ observeEvent(input$repeater_report, {
     fun_name = "repeater",
     inp_out = inp_out,
     outputs = outputs,
-    wrap = TRUE,
     figs = figs,
     fig.width = rep_plot_width(),
     fig.height = rep_plot_height()

@@ -46,7 +46,7 @@ output$ui_dtree_remove <- renderUI({
 })
 
 output$ui_dtree_sense_name <- renderUI({
-  dte <- dtree_eval()
+  dte <- dtree_run()
   if (length(dte) < 2) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
   vars <- dte$yl$variables
   if (is_empty(vars)) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
@@ -62,7 +62,7 @@ output$ui_dtree_sense_name <- renderUI({
 })
 
 output$ui_dtree_sense_decision <- renderUI({
-  dte <- dtree_eval()
+  dte <- dtree_run()
   if (length(dte) < 2) return(invisible())
   jl <- dte$jl
   if (is.null(jl)) return(invisible())
@@ -124,7 +124,7 @@ output$dtree <- renderUI({
             inputId = "dtree_opt", label = NULL,
             dtree_max_min, selected = state_init("dtree_opt", "max"), inline = TRUE
           )),
-          td(actionButton("dtree_eval", "Calculate"), style = "padding-top:5px;"),
+          td(actionButton("dtree_run", "Calculate tree"), style = "padding-top:5px;", icon = icon("play"), class = "btn-success"),
           td(uiOutput("ui_dtree_name"), style = "padding-top:-5px"),
           td(uiOutput("ui_dtree_list"), style = "padding-top:0px;"),
           td(downloadButton("dtree_save_yaml", "Save input"), style = "padding-top:5px;"),
@@ -138,7 +138,7 @@ output$dtree <- renderUI({
         vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
         wordWrap = TRUE, height = "auto",
         value = state_init("dtree_edit", dtree_example),
-        hotkeys = list(dtree_run = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))
+        hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))
       ),
       verbatimTextOutput("dtree_print")
     ),
@@ -160,7 +160,7 @@ output$dtree <- renderUI({
           inputId = "dtree_orient", label = "Plot direction:",
           c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE
         )),
-        td(actionButton("dtree_eval_plot", "Calculate"), style = "padding-top:30px;"),
+        td(actionButton("dtree_run_plot", "Calculate"), style = "padding-top:30px;", icon = icon("play"), class = "btn-success"),
         td(numericInput(
           "dtree_dec", "Decimals", value = state_init("dtree_dec", 2),
           min = 0, max = 10, width = "70px"
@@ -170,7 +170,7 @@ output$dtree <- renderUI({
       # DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
       DiagrammeR::DiagrammeROutput(
         "dtree_plot",
-        width = ifelse(length(input$GetScreenWidth) == 0, "1600px", paste0(input$GetScreenWidth - 80, "px")),
+        width = ifelse(length(input$get_screen_width) == 0, "1600px", paste0(input$get_screen_width - 80, "px")),
         height = "100%"
       )
     ),
@@ -181,13 +181,13 @@ output$dtree <- renderUI({
           conditionalPanel(
             condition = "input.dtree_sense_name == null",
             wellPanel(
-              actionButton("dtree_eval_sense", "Calculate", width = "100%")
+              actionButton("dtree_run_sense", "Calculate", width = "100%", icon = icon("play"), class = "btn-success")
             )
           ),
           conditionalPanel(
             condition = "input.dtree_sense_name != null",
             wellPanel(
-              actionButton("dtree_eval_sensitivity", "Evaluate sensitivity", width = "100%")
+              actionButton("dtree_run_sensitivity", "Evaluate sensitivity", width = "100%", icon = icon("play"), class = "btn-success")
             )
           ),
           wellPanel(
@@ -211,13 +211,13 @@ output$dtree <- renderUI({
   )
 })
 
-vals_dtree <- reactiveValues(dtree_run = 0, dtree_report = 0)
+vals_dtree <- reactiveValues(dtree_hotkey = 0, dtree_report = 0)
 
 observe({
-  input$dtree_run
-  input$dtree_eval_plot
-  input$dtree_eval_sense
-  if (!is.null(input$dtree_eval)) isolate(vals_dtree$dtree_run %<>% add(1))
+  input$dtree_hotkey
+  input$dtree_run_plot
+  input$dtree_run_sense
+  if (!is.null(input$dtree_run)) isolate(vals_dtree$dtree_hotkey %<>% add(1))
 })
 
 dtree_name <- function() {
@@ -238,8 +238,8 @@ dtree_name <- function() {
   })
 }
 
-dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
-  req(vals_dtree$dtree_run != 1)
+dtree_run <- eventReactive(vals_dtree$dtree_hotkey > 1, {
+  req(vals_dtree$dtree_hotkey != 1)
 
   validate(
     need(
@@ -259,7 +259,7 @@ dtree_eval <- eventReactive(vals_dtree$dtree_run > 1, {
 })
 
 output$dtree_print <- renderPrint({
-  dtree_eval() %>% {
+  dtree_run() %>% {
     if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)
   }
 })
@@ -280,7 +280,7 @@ dtree_plot_inputs <- reactive({
 
 output$dtree_plot <- DiagrammeR::renderDiagrammeR({
   if (is_empty(input$dtree_final)) return(invisible())
-  dt <- dtree_eval()
+  dt <- dtree_run()
   if (is.null(dt)) {
     invisible()
   } else {
@@ -290,7 +290,7 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
 })
 
 ## Evaluate tree sensitivity
-.plot_dtree_sensitivity <- eventReactive(input$dtree_eval_sensitivity, {
+.plot_dtree_sensitivity <- eventReactive(input$dtree_run_sensitivity, {
   if (is_not(input$dtree_sense_decision)) {
     return("At least one decision should be selected for evaluation")
   }
@@ -301,7 +301,7 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
 
   withProgress(
     message = "Conducting sensitivity analysis", value = 1,
-    sensitivity(dtree_eval(), gsub("\n+", "", input$dtree_sense), input$dtree_sense_decision, shiny = TRUE)
+    sensitivity(dtree_run(), gsub("\n+", "", input$dtree_sense), input$dtree_sense_decision, shiny = TRUE)
   )
 })
 
@@ -309,12 +309,12 @@ dtree_sense_width <- reactive({
   650
 })
 
-dtree_sense_height <- eventReactive(input$dtree_eval_sensitivity, {
+dtree_sense_height <- eventReactive(input$dtree_run_sensitivity, {
   if (is_empty(input$dtree_sense, "")) 650 else length(strsplit(input$dtree_sense, ";")[[1]]) * 400
 })
 
 output$plot_dtree_sensitivity <- renderPlot({
-  req(input$dtree_eval_sensitivity, cancelOutput = TRUE)
+  req(input$dtree_run_sensitivity, cancelOutput = TRUE)
   isolate({
     .plot_dtree_sensitivity() %>% {
       if (is.character(.)) {
@@ -445,9 +445,9 @@ observeEvent(input$dtree_remove, {
     deparse(control = c("keepNA"), width.cutoff = 500L) %>%
     {
       if (. == "list()") {
-        "plot(result) %>% render"
+        "plot(result) %>% render()"
       } else {
-        paste0(sub("list(", "plot(result, ", ., fixed = TRUE), " %>% render")
+        paste0(sub("list(", "plot(result, ", ., fixed = TRUE), " %>% render()")
       }
     } %>%
     gsub("[\"\']TRUE[\'\"]", "TRUE", .)

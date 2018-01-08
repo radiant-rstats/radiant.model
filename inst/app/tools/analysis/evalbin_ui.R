@@ -62,7 +62,7 @@ output$ui_evalbin <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
-      actionButton("ebin_run", "Evaluate", width = "100%")
+      actionButton("ebin_run", "Evaluate models", width = "100%", icon = icon("play"), class = "btn-success")
     ),
     wellPanel(
       uiOutput("ui_ebin_rvar"),

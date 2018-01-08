@@ -133,7 +133,7 @@ output$ui_ann_predict_plot <- renderUI({
 output$ui_ann <- renderUI({
   tagList(
     wellPanel(
-      actionButton("ann_run", "Estimate", width = "100%")
+      actionButton("ann_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
     conditionalPanel(
       condition = "input.tabs_ann == 'Predict'",
@@ -466,7 +466,6 @@ observeEvent(input$ann_report, {
     fun_name = "ann",
     inp_out = inp_out,
     outputs = outputs,
-    wrap = TRUE,
     figs = figs,
     fig.width = ann_plot_width(),
     fig.height = ann_plot_height(),

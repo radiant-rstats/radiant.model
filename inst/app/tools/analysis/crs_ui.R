@@ -65,7 +65,7 @@ output$ui_crs <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
-      actionButton("crs_run", "Estimate", width = "100%")
+      actionButton("crs_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
     wellPanel(
       uiOutput("ui_crs_id"),
@@ -195,7 +195,6 @@ observeEvent(input$crs_report, {
     fun_name = "crs",
     inp_out = inp_out,
     outputs = outputs,
-    wrap = TRUE,
     figs = figs,
     fig.width = crs_plot_width(),
     fig.height = crs_plot_height(),
