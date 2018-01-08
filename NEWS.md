@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.8.9
+# CHANGES IN radiant.model 0.9.0
 
 * Minor fix for coefficient plot in `plot.logistic`
 * Default names when saving Decision Analysis input and output are now based on tree name
@@ -14,6 +14,7 @@
 * Grid search specs ignored when _Model > Simulate > Repeat_ is set to `Simulate`
 * Long lines of code generated for _R > Report_ will be wrapped to enhance readability 
 * Applied `styler` to code
+* Enhanced keyboard shortcuts for estimation and reporting
 
 # CHANGES IN radiant.model 0.8.7.4
 
