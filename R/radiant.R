@@ -41,8 +41,8 @@ sensitivity <- function(object, ...) UseMethod("sensitivity", object)
 #'
 #' @export
 render.DiagrammeR <- function(object, ...) {
-  ## hack for rmarkdown from R > Report and R > Code
-  if (exists("r_environment") && !getOption("radiant.radiant_render", FALSE)) {
+  ## hack for rmarkdown from Report > Rmd and Report > R
+  if (exists("r_environment") && !getOption("radiant.rmarkdown", FALSE)) {
     DiagrammeR::renderDiagrammeR(object)
   } else {
     object
