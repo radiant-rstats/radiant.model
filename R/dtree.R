@@ -456,17 +456,21 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
   print_money <- function(x) {
-    x %>%
-      {
-        if (isNum(.)) . else ""
-      } %>%
-      format(digits = 10, nsmall = 2, decimal.mark = ".", big.mark = ",", scientific = FALSE)
+    x %>% 
+      {if (isNum(.)) . else ""} %>%
+      format(
+        digits = 10, 
+        nsmall = 2, 
+        decimal.mark = ".", 
+        big.mark = ",", 
+        scientific = FALSE
+      )
   }
 
   print_percent <- function(x) {
-    x %>% {
-      if (isNum(.)) . else NA
-    } %>% data.tree::FormatPercent(.)
+    x %>% 
+      {if (isNum(.)) . else NA} %>% 
+      data.tree::FormatPercent()
   }
 
   rm_terminal <- function(x)
@@ -491,7 +495,8 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
         check.names = FALSE,
         stringsAsFactors = FALSE
       )
-    } %>% {.[[" "]] <- format(.[[" "]], justify = "left"); .}
+    } %>% 
+    {.[[" "]] <- format(.[[" "]], justify = "left"); .}
   }
 
   if (input) {
@@ -659,20 +664,22 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
   )
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
-  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% na.omit() %>% unique()
+  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% 
+    na.omit() %>% 
+    unique()
 
   ## use LR or TD
   paste(
     paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
     paste(ttip, collapse = "\n"), style, sep = "\n"
-  ) %T>%
-    cat(.) %>%
-    ## address image size in pdf and html
+  ) %>%
+    ## address image size in pdf and html and allow zooming
     # DiagrammeR::mermaid(., width = "100%", height = "100%")
-    DiagrammeR::mermaid(., width = width, height = "100%")
-  # {htmltools::html_print(tagList(tags$h1("A title"), DiagrammeR::mermaid(., width = width, height = "100%")))}
+    DiagrammeR::mermaid(width = width, height = "100%")
 }
 
+## add a plot title?
+# {htmltools::html_print(tagList(tags$h1("A title"), DiagrammeR::mermaid(., width = width, height = "100%")))}
 # html_print(tagList(
 #   tags$h1("R + mermaid.js = Something Special")
 #   ,tags$pre(diagramSpec)
@@ -751,7 +758,6 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
     }
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
-    if (shiny) . else print(.)
-  }
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% 
+    {if (shiny) . else print(.)}
 }
