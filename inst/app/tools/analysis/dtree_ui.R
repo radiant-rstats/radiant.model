@@ -1,8 +1,7 @@
 #######################################
 ## Create decision tree
 #######################################
-dtree_example <-
-  "name: Sign contract
+dtree_example <- "name: Sign contract
 variables:
     legal fees: 5000
 type: decision
@@ -124,7 +123,7 @@ output$dtree <- renderUI({
             inputId = "dtree_opt", label = NULL,
             dtree_max_min, selected = state_init("dtree_opt", "max"), inline = TRUE
           )),
-          td(actionButton("dtree_run", "Calculate tree"), style = "padding-top:5px;", icon = icon("play"), class = "btn-success"),
+          td(actionButton("dtree_run", "Calculate tree", icon = icon("play"), class = "btn-success"), style = "padding-top:5px;"),
           td(uiOutput("ui_dtree_name"), style = "padding-top:-5px"),
           td(uiOutput("ui_dtree_list"), style = "padding-top:0px;"),
           td(downloadButton("dtree_save_yaml", "Save input"), style = "padding-top:5px;"),
@@ -134,11 +133,20 @@ output$dtree <- renderUI({
         )
       ),
       shinyAce::aceEditor(
-        "dtree_edit", mode = "yaml",
-        vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
-        wordWrap = TRUE, height = "auto",
+        "dtree_edit", 
+        mode = "yaml",
+        theme = getOption("radiant.ace_theme", default = "tomorrow"),
+        wordWrap = TRUE, 
+        height = "auto", 
         value = state_init("dtree_edit", dtree_example),
-        hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER"))
+        vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
+        hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
+        autoComplete = "live"
+        ## autoCompleteList of suggestions for 'dtree' is never shown 
+        ## suggestion: build a minimal shiny app based on the autocomplete example
+        ## in shinyAce that does what you want and then figure out how to get it 
+        ## to work in radiant.model::dtree_edit
+        # autoCompleteList = list(dtree = c("variables:", "type:", "decision", "chance", "cost:", "payoff:"))
       ),
       verbatimTextOutput("dtree_print")
     ),
@@ -160,7 +168,7 @@ output$dtree <- renderUI({
           inputId = "dtree_orient", label = "Plot direction:",
           c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE
         )),
-        td(actionButton("dtree_run_plot", "Calculate"), style = "padding-top:30px;", icon = icon("play"), class = "btn-success"),
+        td(actionButton("dtree_run_plot", "Calculate", icon = icon("play"), class = "btn-success"), style = "padding-top:30px;"),
         td(numericInput(
           "dtree_dec", "Decimals", value = state_init("dtree_dec", 2),
           min = 0, max = 10, width = "70px"
@@ -210,6 +218,52 @@ output$dtree <- renderUI({
     )
   )
 })
+
+#Update static autocomplete list according to dataset
+# observe({
+#   comps <- list(dtree = c("variables", "type", "decision", "choice", "cost", "payoff"), R = NULL)
+#   shinyAce::updateAceEditor(session, "dtree_edit", autoCompleteList = comps)
+# })
+
+## consider building your own auto-completer (see ?aceAutocomplete)
+## it could list the labels of entries in the `variables` section
+## and the key inputs as listed in comps
+# observe({
+  # print(input$shinyAce_dtree_edit_hint)
+  # comps <- list(dtree = c("variables", "type", "decision", "choice", "cost", "payoff"), R = NULL)
+  # comps <- structure(list(colnames(dataset())), names = input$dataset)
+# comps <- structure(list(colnames(mtcars)), names = "mtcars")
+#   print(comps)
+# shinyAce::updateAceEditor(
+#   session, "dtree_edit", 
+#   autoCompleteList = comps
+# )
+# })
+
+## not needed for basic autocompletion ... but if you want to
+## augment it, you do
+# dtree_edit_auto <- shinyAce::aceAutocomplete("dtree_edit")
+# observe({
+#   dtree_edit_auto$suspend()
+# })
+
+# observe({
+#   inputId <- "dtree_edit"
+#   value <- session$input[[paste0("shinyAce_", inputId, "_hint")]]
+#   if(is.null(value)) return(NULL)
+  
+#   utilEnv <- environment(utils::alarm)
+#   w32 <- get(".win32consoleCompletion", utilEnv)
+#   w32
+  
+#   comps <- list(
+#     id = inputId,
+#     codeCompletions = w32(value$linebuffer, value$cursorPosition)$comps
+#   )
+#   print(str(comps))
+
+#   session$sendCustomMessage('shinyAce', comps)
+# })
 
 vals_dtree <- reactiveValues(dtree_hotkey = 0, dtree_report = 0)
 
