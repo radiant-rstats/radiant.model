@@ -230,9 +230,9 @@ observeEvent(input$crs_store_pred, {
       title = "Data Stored",
       span(
         paste0("Dataset '", input$crs_name, "' was successfully added 
-                to the datasets dropdown. Add code to R > Report to (re)create 
-                the dataset by clicking the report icon on the bottom left of 
-                your screen.")
+                to the datasets dropdown. Add code to Report > Rmd or 
+                Report > R to (re)create the dataset by clicking the 
+                report icon on the bottom left of your screen.")
       ),
       footer = modalButton("OK"),
       size = "s",
