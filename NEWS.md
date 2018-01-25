@@ -1,4 +1,10 @@
-# CHANGES IN radiant.model 0.9.0
+# CHANGES IN radiant.model 0.9.0.2
+
+* Left align tooltip in DiagrammeR plots (i.e., _Model >Decision Analysis_ and _Model > Classification and regression trees_)
+* Add information about levels in tree splits to tooltips (_Model > Classification and regression trees_)
+* Fix to ensure DiagrammeR plots are shown in Rmarkdown report generate in _Report > Rmd_ or _Report > R_
+
+# CHANGES IN radiant.model 0.9.0.1
 
 * Minor fix for coefficient plot in `plot.logistic`
 * Default names when saving Decision Analysis input and output are now based on tree name
@@ -12,7 +18,7 @@
 * Added option to generate normally distributed simulated data with exact mean and standard deviation in Model > Simulate
 * Fix for large weights that may cause an integer overflow
 * Grid search specs ignored when _Model > Simulate > Repeat_ is set to `Simulate`
-* Long lines of code generated for _R > Report_ will be wrapped to enhance readability 
+* Long lines of code generated for _Report > Rmd_ will be wrapped to enhance readability 
 * Applied `styler` to code
 * Enhanced keyboard shortcuts for estimation and reporting
 
@@ -50,8 +56,8 @@
 - Expanded coefficient csv file for linear and logistic regression
 - Show dataset name in output if dataframe passed directly to analysis function 
 - As an alternative to using the Estimate button to run a model you can now also use CTRL-enter (CMD-enter on mac)
-- Use ALT-enter as a keyboard short-cut to generate code and sent to R > Report
-- Improved documentation on how to customize plots in R > Report
+- Use ALT-enter as a keyboard short-cut to generate code and sent to _Report > Rmd_ or _Report > R_
+- Improved documentation on how to customize plots in _Report > Rmd_ or _Report > R_
 
 ## BUG FIXES
 

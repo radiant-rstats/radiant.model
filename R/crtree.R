@@ -363,6 +363,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
                         width = "900px",
                         labs = TRUE, dec = 2, shiny = FALSE,
                         custom = FALSE, ...) {
+  
   if (is_empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
       return(paste0("graph LR\n A[\"", x, "\"]") %>% DiagrammeR::DiagrammeR(.))
@@ -387,21 +388,25 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
 
     df$split1 <- nlabs[, 1]
     df$split2 <- nlabs[, 2]
+    df$split1_full <- ""
+    df$split2_full <- ""
 
     xlevs <- attr(x$model, "xlevels")
+    # print(xlevs)
+    # print("----------------")
     if (length(xlevs) > 0 && labs) {
       for (i in names(xlevs)) {
         if (length(xlevs[[i]]) == 0) next
 
         ind <- which(df$var %in% i)
+        if (length(ind) == 0) next
         splits <- data.frame(
           split1 = df[ind, "split1"],
-          split2 = df[ind, "split2"], 
+          split2 = df[ind, "split2"],
+          split1_full = "",
+          split2_full = "",
           stringsAsFactors = FALSE
         )
-
-        ## in case an explanatory variables was not used
-        if (nrow(splits) == 0) next
 
         lind <- data.frame(
           split1 = match(splits[["split1"]], letters),
@@ -410,16 +415,31 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
         )
         for (j in 1:nrow(lind)) {
           if (is.na(lind[j, 1]) && is.na(lind[j, 2])) {
-            splits[j, ] <- paste0(":", splits[j, ])
+            splits[j, 3] <- match(strsplit(splits[j, 1], split = "")[[1]], letters) %>% 
+              xlevs[[i]][.] %>%
+              paste0(collapse = ", ")
+            splits[j, 4] <- match(strsplit(splits[j, 2], split = "")[[1]], letters) %>% 
+              xlevs[[i]][.] %>%
+              paste0(collapse = ", ")
+            # splits[j, 1:2] <- paste0(":", splits[j, 1:2])
           } else if (is.na(lind[j, 1])) {
-            splits[j, ] <- xlevs[[i]][lind[j, 2]] %>% c(paste0("!", .), .)
+            splits[j, 3] <- match(strsplit(splits[j, 1], split = "")[[1]], letters) %>% 
+              xlevs[[i]][.] %>%
+              paste0(collapse = ", ")
+            splits[j, c(1,2,4)] <- xlevs[[i]][lind[j, 2]] %>% c(paste0("!", .), ., .)
+            # splits[j, c(1,2)] <- xlevs[[i]][lind[j, 2]] %>% c(paste0("!", .), .)
           } else if (is.na(lind[j, 2])) {
-            splits[j, ] <- xlevs[[i]][lind[j, 1]] %>% c(., paste0("!", .))
+            splits[j, 4] <- match(strsplit(splits[j, 2], split = "")[[1]], letters) %>% 
+              xlevs[[i]][.] %>%
+              paste0(collapse = ", ")
+            splits[j, 1:3] <- xlevs[[i]][lind[j, 1]] %>% c(., paste0("!", .), .)
+            # splits[j, 1:2] <- xlevs[[i]][lind[j, 1]] %>% c(., paste0("!", .))
           } else {
             splits[j, ] <- xlevs[[i]][unlist(lind[j, ])]
           }
         }
-        df[ind, c("split1", "split2")] <- splits
+        df[ind, c("split1", "split2", "split1_full", "split2_full")] <- splits[, 1:4]
+        # df[ind, c("split1", "split2")] <- splits[, 1:2]
       }
     }
 
@@ -468,9 +488,30 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
       class ", paste(leafs, collapse = ","), " leaf;"
     )
 
-    ttip <- df[1:(nrow(df) / 2), ] %>% {
-      paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, "\"", collapse = "\n")
-    }
+    ## check orientation for branch labels
+    brn <- if (orient == "LR") c("top", "bottom") else c("left", "right") 
+
+    ## don't print full labels that don't add information
+    df[df$split1_full == df$split1 & df$split2_full == df$split2, c("split1_full", "split2_full")] <- ""
+
+    df$split1_full <- ifelse(df$split1_full == "", "", paste0("<br>", brn[1], ": ", df$split1_full)) %>%
+      ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
+    df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], ": ", df$split2_full)) %>%
+      ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
+
+    ttip_ind <- 1:(nrow(df) / 2)
+    ttip <- df[ttip_ind, , drop = FALSE] %>% 
+      {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
+      # {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, "<br>split1: ", .$split1_full, "<br>split2: ", .$split2_full, "\"", collapse = "\n")}
+
+    ## not sure if it is possible to link a tooltip to an edge using mermaid
+    # ttip_lev <- filter(df[-ttip_ind,], split1_full != "") 
+    # if (nrow(ttip_lev) == 0) {
+    #   ttip_lev <- ""
+    # } else {
+    #   ttip_lev <- paste0("click id", ttip_lev$id, " callback \"", ttip_lev$split1_full, "\"", collapse = "\n")
+    # }
+    # print(ttip_lev)
 
     paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to_lab), collapse = "\n"), style, ttip, sep = "\n") %>%
       # DiagrammeR::mermaid(., width = "100%", height = "100%")
