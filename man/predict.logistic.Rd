@@ -5,7 +5,7 @@
 \title{Predict method for the logistic function}
 \usage{
 \method{predict}{logistic}(object, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3, ...)
+  conf_lev = 0.95, se = TRUE, dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{logistic}}}

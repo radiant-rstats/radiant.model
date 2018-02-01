@@ -33,7 +33,7 @@ regress <- function(dataset, rvar, evar,
 
   dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
   if (!is_string(dataset)) {
-    dataset <- deparse(substitute(dataset)) %>% 
+    dataset <- deparse(substitute(dataset)) %>%
       set_attr("df", TRUE)
   }
 
@@ -543,7 +543,7 @@ plot.regress <- function(x, plots = "",
   if (length("plot_list") > 0) {
     if (custom) {
       if (length(plot_list) == 1) {
-        return(plot_list[[1]]) 
+        return(plot_list[[1]])
       } else {
         return(plot_list)
       }
@@ -646,8 +646,8 @@ predict_model <- function(object, pfun, mclass,
                           se = FALSE,
                           dec = 3,
                           ...) {
-  if (is.character(object)) return(object)
 
+  if (is.character(object)) return(object)
   if (is_empty(pred_data) && is_empty(pred_cmd)) {
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
   }
@@ -921,8 +921,7 @@ plot.model.predict <- function(x, xvar = "",
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
-  object <- x
-  rm(x)
+  object <- x; rm(x)
   if (is.character(object)) return(object)
 
   cn <- colnames(object)

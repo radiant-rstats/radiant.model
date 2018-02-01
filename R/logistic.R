@@ -9,6 +9,7 @@
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitely set
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
@@ -30,7 +31,9 @@ logistic <- function(dataset, rvar, evar,
                      int = "",
                      wts = "None",
                      check = "",
+                     ci_type,
                      data_filter = "") {
+
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("logistic"))
@@ -47,8 +50,17 @@ logistic <- function(dataset, rvar, evar,
 
   dat <- getdata(dataset, vars, filt = data_filter)
   if (!is_string(dataset)) {
-    dataset <- deparse(substitute(dataset)) %>% 
+    dataset <- deparse(substitute(dataset)) %>%
       set_attr("df", TRUE)
+  }
+
+  if (missing(ci_type)) {
+    ## Use profiling for smaller datasets
+    if (nrow(na.omit(dat)) < 5000) {
+      ci_type <- "profile"
+    } else {
+      ci_type <- "default"
+    }
   }
 
   if (!is.null(wts)) {
@@ -285,15 +297,11 @@ summary.logistic <- function(object,
       if (length(attributes(object$model$terms)$term.labels) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          {
-            if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]
-          } %>% ## needed when factors are included
+          {if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
           data.frame(VIF = ., Rsq = 1 - 1 / ., stringsAsFactors = FALSE) %>%
           .[order(.$VIF, decreasing = TRUE), ] %>% ## not using arrange to keep rownames
           round(dec) %>%
-          {
-            if (nrow(.) < 8) t(.) else .
-          } %>%
+          {if (nrow(.) < 8) t(.) else .} %>%
           print()
       } else {
         cat("Insufficient number of explanatory variables to calculate\nmulticollinearity diagnostics (VIF)\n")
@@ -311,18 +319,19 @@ summary.logistic <- function(object,
 
       if ("robust" %in% object$check) {
         cnfint <- radiant.model::confint_robust
-      } else {
+      } else if (object$ci_type == "profile") {
         cnfint <- confint
+      } else {
+        cnfint <- confint.default
       }
 
-      ci_tab <-
-        cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
+      ci_tab <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
         cbind(select(object$coeff, 3), .)
 
       if ("confint" %in% sum_check) {
-        ci_tab %T>% 
+        ci_tab %T>%
           {.$`+/-` <- (.$High - .$coefficient)} %>%
           formatdf(dec) %>%
           set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
@@ -508,8 +517,10 @@ plot.logistic <- function(x,
     nrCol <- 1
     if ("robust" %in% object$check) {
       cnfint <- radiant.model::confint_robust
-    } else {
+    } else if (object$ci_type == "profile") {
       cnfint <- confint
+    } else {
+      cnfint <- confint.default
     }
 
     plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
@@ -582,7 +593,7 @@ plot.logistic <- function(x,
 
   if (custom) {
     if (length(plot_list) == 1) {
-      return(plot_list[[1]]) 
+      return(plot_list[[1]])
     } else {
       return(plot_list)
     }
@@ -625,11 +636,14 @@ predict.logistic <- function(object,
                              pred_data = "",
                              pred_cmd = "",
                              conf_lev = 0.95,
-                             se = FALSE,
+                             se = TRUE,
                              dec = 3,
                              ...) {
   if (is.character(object)) return(object)
-  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
+  if ("center" %in% object$check || "standardize" %in% object$check) {
+    message("Standard error calculations not supported when coefficients are centered or standardized")
+    se <- FALSE
+  }
 
   ## ensure you have a name for the prediction dataset
   if (!is.character(pred_data)) {
@@ -640,21 +654,35 @@ predict.logistic <- function(object,
     pred_val <-
       try(
         sshhr(
-          predict(model, pred, type = "response", se.fit = se)
+          if (se) {
+            predict(model, pred, type = "link", se.fit = TRUE)
+          } else {
+            predict(model, pred, type = "response", se.fit = FALSE)
+          }
         ),
         silent = TRUE
       )
 
     if (!is(pred_val, "try-error")) {
+
       if (se) {
-        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1:2)
-        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1:2)
-        colnames(pred_val) <- c("Prediction", "std.error")
-        # object$ymin <- object$Prediction - qnorm(.5 + conf_lev/2)*object$std.error
-        # object$ymax <- object$Prediction + qnorm(.5 + conf_lev/2)*object$std.error
+        # based on https://www.fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/
+        ilink <- family(model)$linkinv
+        ci_perc <- ci_label(cl = conf_lev)
+        pred_val <- data.frame(
+          Prediction = ilink(pred_val[["fit"]]),
+          ymax = ilink(pred_val[["fit"]] - qnorm(.5 + conf_lev/2) * pred_val[["se.fit"]]),
+          ymin = ilink(pred_val[["fit"]] + qnorm(.5 + conf_lev/2) * pred_val[["se.fit"]]),
+          stringsAsFactors = FALSE
+        ) %>%
+          set_colnames(c("Prediction", ci_perc[1], ci_perc[2]))
+
+        # pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1:2)
+        # colnames(pred_val) <- c("Prediction", "std.error")
       } else {
-        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1)
-        colnames(pred_val) <- "Prediction"
+        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>%
+          select(1) %>%
+          set_colnames("Prediction")
       }
     }
 

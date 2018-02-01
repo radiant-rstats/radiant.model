@@ -1,3 +1,8 @@
+# CHANGES IN radiant.model 0.9.0.3
+
+* Prediction confidence interval provided for logistic regression based on blog post by [Gavin Simpson] (https://www.fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/)
+* Argument added to `logistic` to specify if profiling or the Wald method should be used for confidence intervals. Profiling will be used by default for datasets with fewer than 5,000 rows
+
 # CHANGES IN radiant.model 0.9.0.2
 
 * Left align tooltip in DiagrammeR plots (i.e., _Model >Decision Analysis_ and _Model > Classification and regression trees_)
