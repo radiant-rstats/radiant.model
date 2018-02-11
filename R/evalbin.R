@@ -55,7 +55,6 @@ evalbin <- function(dataset, pred, rvar,
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   qnt_name <- "bins"
-
   auc_list <- list()
   prof_list <- c()
   pdat <- list()
@@ -138,9 +137,11 @@ evalbin <- function(dataset, pred, rvar,
   dat$pred <- factor(dat$pred, levels = unique(dat$pred))
 
   names(prof_list) <- names(auc_list)
-  rm(lg_list, pdat)
 
-  as.list(environment()) %>% add_class("evalbin")
+  list(
+    dat = dat, dataset = dataset, data_filter = data_filter, train = train,
+    pred = pred, rvar = rvar, lev = lev, qnt = qnt, cost = cost, margin = margin
+  ) %>% add_class("evalbin")
 }
 
 #' Summary method for the evalbin function
@@ -173,14 +174,9 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
   cat("Level       :", object$lev, "in", object$rvar, "\n")
   cat("Bins        :", object$qnt, "\n")
   cat("Cost:Margin :", object$cost, ":", object$margin, "\n")
-  # prof <- object$prof_list
-  # cat("Profit index:", paste0(names(prof), " (", round(prof,3), ")", collapse=", "), "\n")
-  # auc <- unlist(object$auc_list)
-  # cat("AUC         :", paste0(names(auc), " (", round(auc,3), ")", collapse=", "), "\n\n")
 
-  if (prn) {
+  if (prn)
     print(formatdf(as.data.frame(object$dat, stringsAsFactors = FALSE), 3), row.names = FALSE)
-  }
 }
 
 #' Confusion matrix
@@ -212,6 +208,7 @@ confusion <- function(dataset, pred, rvar,
                       train = "",
                       data_filter = "",
                       ...) {
+
   if (!train %in% c("", "All") && is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
   }
@@ -292,19 +289,19 @@ confusion <- function(dataset, pred, rvar,
       }
       return(ret)
     }
-    ret <- lapply(select_at(dat, .vars = pred), make_tab) %>% 
-      as.data.frame(stringsAsFactors = FALSE) %>% 
-      t() %>% 
+    ret <- lapply(select_at(dat, .vars = pred), make_tab) %>%
+      as.data.frame(stringsAsFactors = FALSE) %>%
+      t() %>%
       as.data.frame(stringsAsFactors = FALSE)
     ret <- bind_cols(
       data.frame(
-        Type = rep(i, length(pred)), 
+        Type = rep(i, length(pred)),
         Predictor = pred,
         stringsAsFactors = FALSE
       ),
       ret,
       data.frame(
-        AUC = auc_vec, 
+        AUC = auc_vec,
         p.ratio = p_vec,
         stringsAsFactors = FALSE
       )
@@ -347,9 +344,10 @@ confusion <- function(dataset, pred, rvar,
     )
   )
 
-  rm(pdat, dat_list)
-
-  as.list(environment()) %>% add_class("confusion")
+  list(
+    dat = dat, dataset = dataset, data_filter = data_filter, train = train,
+    pred = pred, rvar = rvar, lev = lev, cost = cost, margin = margin
+  ) %>% add_class("confusion")
 }
 
 #' Summary method for the confusion matrix
@@ -381,7 +379,6 @@ summary.confusion <- function(object, ...) {
   print(formatdf(as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE), 3), row.names = FALSE)
   cat("\n")
   print(formatdf(as.data.frame(object$dat[, c(1, 2, 12:18)], stringsAsFactors = FALSE), 3, mark = ","), row.names = FALSE)
-        
 }
 
 #' Plot method for the confusion matrix
@@ -391,38 +388,53 @@ summary.confusion <- function(object, ...) {
 #' @param x Return value from \code{\link{confusion}}
 #' @param vars Measures to plot, i.e., one or more of "TP", "FP", "TN", "FN", "total", "TPR", "TNR", "precision", "accuracy", "kappa", "profit", "index", "ROME", "contact", "AUC"
 #' @param scale_y Free scale in faceted plot of the confusion matrix (TRUE or FALSE)
+#' @param size Font size used
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{confusion}} to generate results
 #' @seealso \code{\link{summary.confusion}} to summarize results
 #'
 #' @export
-plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
-                           scale_y = TRUE, ...) {
-  object <- x
-  rm(x)
+plot.confusion <- function(x,
+                           vars = c("kappa", "index", "ROME", "AUC"),
+                           scale_y = TRUE,
+                           size = 13,
+                           ...) {
+  object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
 
   dat <- object$dat %>%
-    mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = funs(if (is.numeric(.)) . / total else .))
+    mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = funs(if (is.numeric(.)) . / total else .)) %>%
+    gather("Metric", "Value", !! vars, factor_key = TRUE) %>%
+    mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
-  gather(dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
-    mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
-    {
-      if (scale_y) {
-        visualize(
-          ., xvar = "Predictor", yvar = "Value", type = "bar",
-          facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE
-        ) +
-          labs(y = "", x = "Predictor")
-      } else {
-        visualize(
-          ., xvar = "Predictor", yvar = "Value", type = "bar",
-          facet_row = "Metric", fill = "Type", custom = TRUE
-        ) +
-          labs(y = "", x = "Predictor")
-      }
-    }
+  ## what data was used in evaluation? All, Training, Validation, or Both
+  type <- unique(dat$Type)
+
+  if (scale_y) {
+    p <- visualize(
+      dat, xvar = "Predictor", yvar = "Value", type = "bar",
+      facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE
+    )
+  } else {
+    p <- visualize(
+      dat, xvar = "Predictor", yvar = "Value", type = "bar",
+      facet_row = "Metric", fill = "Type", custom = TRUE
+    )
+  }
+
+  p <- p + labs(
+    title = paste0("Classification performance plots (", paste0(type, collapse = ", "), ")"),
+    y = "",
+    x = "Predictor",
+    fill = ""
+  ) + theme_set(theme_gray(base_size = size))
+
+  if (length(type) < 2) {
+    p <- p + theme(legend.position = "none")
+  }
+
+  p
 }
 
 #' Plot method for the evalbin function
@@ -431,6 +443,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #'
 #' @param x Return value from \code{\link{evalbin}}
 #' @param plots Plots to return
+#' @param size Font size used
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
@@ -444,9 +457,9 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
-plot.evalbin <- function(x, plots = c("lift", "gains"), shiny = FALSE, custom = FALSE, ...) {
-  object <- x
-  rm(x)
+plot.evalbin <- function(x, plots = c("lift", "gains"), size = 13, shiny = FALSE, custom = FALSE, ...) {
+
+  object <- x; rm(x)
   if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||
     is.null(plots)) {
     return(invisible())
@@ -506,6 +519,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"), shiny = FALSE, custom = 
   }
 
   for (i in names(plot_list)) {
+    plot_list[[i]] <- plot_list[[i]] + theme_set(theme_gray(base_size = size))
     if (length(object$pred) < 2 && object$train != "Both") {
       plot_list[[i]] <- plot_list[[i]] + theme(legend.position = "none")
     } else {

@@ -96,21 +96,38 @@ summary.evalreg <- function(object, ...) {
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #'
 #' @export
-plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
-  object <- x
-  rm(x)
+plot.evalreg <- function(x, 
+                         vars = c("Rsq", "RMSE", "MAE"), 
+                         ...) {
+  object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
 
-  gather(object$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
-    mutate(Predictor = factor(Predictor, levels = unique(Predictor))) %>%
-    visualize(
-      xvar = "Predictor",
-      yvar = "Value",
-      type = "bar",
-      facet_row = "Metric",
-      fill = "Type",
-      axes = "scale_y",
-      custom = TRUE
-    ) +
-    labs(y = "", x = "Predictor")
+  dat <- gather(object$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
+    mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
+
+  ## what data was used in evaluation? All, Training, Validation, or Both
+  type <- unique(dat$Type)
+
+  p <- visualize(
+    dat,
+    xvar = "Predictor",
+    yvar = "Value",
+    type = "bar",
+    facet_row = "Metric",
+    fill = "Type",
+    axes = "scale_y",
+    custom = TRUE
+  ) + 
+    labs(
+      title = paste0("Regression performance plots (", paste0(type, collapse = ", "), ")"),
+      y = "", 
+      x = "Predictor",
+      fill = ""
+    )
+
+  if (length(type) < 2) {
+    p <- p + theme(legend.position = "none")
+  }
+
+  p 
 }

@@ -96,7 +96,11 @@ output$ui_evalbin <- renderUI({
       ),
       conditionalPanel(
         "input.tabs_evalbin == 'Confusion'",
-        checkboxInput("ebin_scale_y", "Scale free Y-axis", state_init("ebin_scale_y", TRUE))
+        checkboxInput("ebin_show_plots", "Show plots", state_init("ebin_show_plots", FALSE)),
+        conditionalPanel(
+          "input.ebin_show_plots == true",
+          checkboxInput("ebin_scale_y", "Scale free Y-axis", state_init("ebin_scale_y", TRUE))
+        )
       )
     ),
     conditionalPanel(
@@ -159,8 +163,11 @@ output$evalbin <- renderUI({
       "Confusion",
       downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
       verbatimTextOutput("summary_confusion"),
-      plot_downloader("confusion", height = confusion_plot_height),
-      plotOutput("plot_confusion", height = "100%")
+      conditionalPanel(
+        condition = "input.ebin_show_plots == true",
+        plot_downloader("confusion", height = confusion_plot_height),
+        plotOutput("plot_confusion", height = "100%")
+      )
     )
   )
 
@@ -252,16 +259,25 @@ observeEvent(input$confusion_report, {
   if (is_empty(input$ebin_rvar) || is_empty(input$ebin_pred)) return(invisible())
 
   inp_out <- list("", "")
-  if (!input$ebin_scale_y) {
-    inp_out[[2]] <- list(scale_y = input$ebin_scale_y)
+  outputs <- "summary"
+  figs <- FALSE
+
+  if (isTRUE(input$ebin_show_plots)) {
+    if (!input$ebin_scale_y) {
+      inp_out[[2]] <- list(scale_y = input$ebin_scale_y, custom = FALSE)
+    } else {
+      inp_out[[2]] <- list(custom = FALSE)
+    }
+    outputs <- c("summary", "plot")
+    figs <- TRUE
   }
-  outputs <- c("summary", "plot")
+
   update_report(
     inp_main = clean_args(ebin_inputs(), ebin_args),
     fun_name = "confusion",
     inp_out = inp_out,
     outputs = outputs,
-    figs = TRUE,
+    figs = figs,
     fig.width = confusion_plot_width(),
     fig.height = 1.5 * confusion_plot_height()
   )

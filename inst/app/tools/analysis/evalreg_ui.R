@@ -60,7 +60,8 @@ output$ui_evalreg <- renderUI({
     wellPanel(
       uiOutput("ui_ereg_rvar"),
       uiOutput("ui_ereg_pred"),
-      uiOutput("ui_ereg_train")
+      uiOutput("ui_ereg_train"),
+      checkboxInput("ereg_show_plots", "Show plots", state_init("ereg_show_plots", FALSE))
     ),
     help_and_report(
       modal_title = "Evaluate regressions",
@@ -86,8 +87,11 @@ output$evalreg <- renderUI({
   ereg_output_panels <- tagList(
     downloadLink("dl_ereg_tab", "", class = "fa fa-download alignright"), br(),
     verbatimTextOutput("summary_evalreg"),
-    plot_downloader("evalreg", height = ereg_plot_height),
-    plotOutput("plot_evalreg", height = "100%")
+    conditionalPanel(
+      condition = "input.ereg_show_plots == true",
+      plot_downloader("evalreg", height = ereg_plot_height),
+      plotOutput("plot_evalreg", height = "100%")
+    )
   )
 
   stat_tab_panel(
@@ -120,13 +124,21 @@ output$evalreg <- renderUI({
 observeEvent(input$evalreg_report, {
   if (is_empty(input$ereg_pred)) return(invisible())
 
-  outputs <- c("summary", "plot")
+  inp_out <- list("", "")
+  outputs <- "summary"
+  figs <- FALSE
+  if (isTRUE(input$ereg_show_plots)) {
+    inp_out[[2]] <- list(custom = FALSE)
+    outputs <- c("summary", "plot")
+    figs <- TRUE
+  }
+
   update_report(
     inp_main = clean_args(ereg_inputs(), ereg_args),
     fun_name = "evalreg",
-    inp_out = list("", ""),
+    inp_out = inp_out,
     outputs = outputs,
-    figs = TRUE,
+    figs = figs,
     fig.width = ereg_plot_width(),
     fig.height = ereg_plot_height()
   )
