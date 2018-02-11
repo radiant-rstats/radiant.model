@@ -141,7 +141,8 @@ output$dtree <- renderUI({
         value = state_init("dtree_edit", dtree_example),
         vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
         hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
-        autoComplete = "live"
+        autoComplete = "live",
+        showInvisibles = TRUE
         ## autoCompleteList of suggestions for 'dtree' is never shown 
         ## suggestion: build a minimal shiny app based on the autocomplete example
         ## in shinyAce that does what you want and then figure out how to get it 
@@ -168,7 +169,7 @@ output$dtree <- renderUI({
           inputId = "dtree_orient", label = "Plot direction:",
           c("Left-right" = "LR", "Top-down" = "TD"), inline = TRUE
         )),
-        td(actionButton("dtree_run_plot", "Calculate", icon = icon("play"), class = "btn-success"), style = "padding-top:30px;"),
+        td(actionButton("dtree_run_plot", "Calculate tree", icon = icon("play"), class = "btn-success"), style = "padding-top:30px;"),
         td(numericInput(
           "dtree_dec", "Decimals", value = state_init("dtree_dec", 2),
           min = 0, max = 10, width = "70px"
@@ -178,7 +179,7 @@ output$dtree <- renderUI({
       # DiagrammeR::DiagrammeROutput("dtree_plot", width = "100%", height = "100%")
       DiagrammeR::DiagrammeROutput(
         "dtree_plot",
-        width = ifelse(length(input$get_screen_width) == 0, "1600px", paste0(input$get_screen_width - 80, "px")),
+        width = isolate(ifelse(length(input$get_screen_width) == 0, "1600px", paste0(input$get_screen_width - 80, "px"))),
         height = "100%"
       )
     ),
@@ -189,7 +190,7 @@ output$dtree <- renderUI({
           conditionalPanel(
             condition = "input.dtree_sense_name == null",
             wellPanel(
-              actionButton("dtree_run_sense", "Calculate", width = "100%", icon = icon("play"), class = "btn-success")
+              actionButton("dtree_run_sense", "Calculate tree", width = "100%", icon = icon("play"), class = "btn-success")
             )
           ),
           conditionalPanel(
