@@ -1,5 +1,5 @@
 # library(radiant.model)
-#library(testthat)
+# library(testthat)
 
 trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 
@@ -67,16 +67,16 @@ test_that("logistic - predict", {
   expect_equal(res1, res2)
 })
 
-context("ANN (ann)")
+context("Neural Network (nn)")
 
-test_that("ann - predict for classification", {
-  result <- ann("titanic", "survived", c("pclass", "sex"), seed = 1234)
+test_that("Neural Network - predict for classification", {
+  result <- nn("titanic", "survived", c("pclass", "sex"), seed = 1234)
   res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'", dec = 1))[10] %>% trim()
   # cat(paste0(res1, "\n"))
   res2 <- "2nd female        0.8"
   expect_equal(res1, res2)
 
-  result <- ann("titanic", "survived", "pclass:sex", seed = 1234)
+  result <- nn("titanic", "survived", "pclass:sex", seed = 1234)
   res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'", dec = 1))[10] %>% trim()
   expect_equal(res1, res2)
 
@@ -86,14 +86,14 @@ test_that("ann - predict for classification", {
   expect_equal(res1, res2)
 })
 
-test_that("ann - predict for regression", {
-  result <- ann("diamonds", "price", c("carat", "clarity"), type = "regression", seed = 1234)
+test_that("Neural Network - predict for regression", {
+  result <- nn("diamonds", "price", c("carat", "clarity"), type = "regression", seed = 1234)
   res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10", dec = 1))[16] %>% trim()
   # cat(paste0(res1, "\n"))
   res2 <- "SI1     9    18466.7"
   expect_equal(res1, res2)
 
-  result <- ann("diamonds", "price", "carat:clarity", type = "regression", seed = 1234)
+  result <- nn("diamonds", "price", "carat:clarity", type = "regression", seed = 1234)
   res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10", dec = 1))[16] %>% trim()
   expect_equal(res1, res2)
 

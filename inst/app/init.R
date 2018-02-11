@@ -18,11 +18,11 @@ r_url_list[["Naive Bayes"]] <-
     "Predict" = "model/nb/predict/",
     "Plot" = "model/nb/plot/"
   ))
-r_url_list[["Neural Network (ANN)"]] <-
-  list("tabs_ann" = list(
-    "Summary" = "model/ann/",
-    "Predict" = "model/ann/predict/",
-    "Plot" = "model/ann/plot/"
+r_url_list[["Neural Network"]] <-
+  list("tabs_nn" = list(
+    "Summary" = "model/nn/",
+    "Predict" = "model/nn/predict/",
+    "Plot" = "model/nn/plot/"
   ))
 r_url_list[["Classification and regression trees"]] <-
   list("tabs_crtree" = list(
@@ -60,7 +60,7 @@ options(
         tabPanel("Linear regression (OLS)", uiOutput("regress")),
         tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
         tabPanel("Naive Bayes", uiOutput("nb")),
-        tabPanel("Neural Network (ANN)", uiOutput("ann")),
+        tabPanel("Neural Network", uiOutput("nn")),
         tabPanel("Classification and regression trees", uiOutput("crtree")),
         "----", "Evaluate",
         tabPanel("Evaluate regression", uiOutput("evalreg")),

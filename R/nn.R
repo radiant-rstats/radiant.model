@@ -1,6 +1,6 @@
-#' Artificial Neural Networks
+#' Neural Networks
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
 #' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
 #' @param rvar The response variable in the model
@@ -14,40 +14,41 @@
 #' @param check Optional estimation parameters ("standardize" is the default)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
-#' @return A list with all variables defined in ann as an object of class ann
+#' @return A list with all variables defined in nn as an object of class nn
 #'
 #' @examples
-#' result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
-#' result <- ann("titanic", "survived", c("pclass","sex"))
-#' result <- ann("diamonds", "price", c("carat","clarity"), type = "regression")
+#' result <- nn("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- nn("titanic", "survived", c("pclass","sex"))
+#' result <- nn("diamonds", "price", c("carat","clarity"), type = "regression")
 #'
-#' @seealso \code{\link{summary.ann}} to summarize results
-#' @seealso \code{\link{plot.ann}} to plot results
-#' @seealso \code{\link{predict.ann}} for prediction
+#' @seealso \code{\link{summary.nn}} to summarize results
+#' @seealso \code{\link{plot.nn}} to plot results
+#' @seealso \code{\link{predict.nn}} for prediction
 #'
 #' @importFrom nnet nnet
 #'
 #' @export
-ann <- function(dataset, rvar, evar,
-                type = "classification",
-                lev = "",
-                size = 1,
-                decay = .5,
-                wts = "None",
-                seed = NA,
-                check = "standardize",
-                data_filter = "") {
+nn <- function(dataset, rvar, evar,
+               type = "classification",
+               lev = "",
+               size = 1,
+               decay = .5,
+               wts = "None",
+               seed = NA,
+               check = "standardize",
+               data_filter = "") {
+
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
-      add_class("ann"))
+      add_class("nn"))
   }
 
   if (is_empty(size) || size < 1) {
-    return("Size should be larger than or equal to 1." %>% add_class("ann"))
+    return("Size should be larger than or equal to 1." %>% add_class("nn"))
   }
 
   if (is_empty(decay) || decay < 0) {
-    return("Decay should be larger than or equal to 0." %>% add_class("ann"))
+    return("Decay should be larger than or equal to 0." %>% add_class("nn"))
   }
 
   if (!is.null(wts) && wts == "None") {
@@ -67,29 +68,28 @@ ann <- function(dataset, rvar, evar,
   }
 
   if (any(summarise_all(dat, .funs = funs(does_vary)) == FALSE)) {
-    return("One or more selected variables show no variation. Please select other variables." %>% add_class("ann"))
+    return("One or more selected variables show no variation. Please select other variables." %>% add_class("nn"))
   }
 
   rv <- dat[[rvar]]
 
   if (type == "classification") {
-    linout <- FALSE
-    entropy <- TRUE
-    skip <- FALSE
+    linout <- FALSE; entropy <- TRUE
     if (lev == "") {
       if (is.factor(rv)) {
         lev <- levels(rv)[1]
       } else {
-        lev <- rv %>% as.character() %>% as.factor() %>% levels() %>% .[1]
+        lev <- as.character(rv) %>%
+          as.factor() %>%
+          levels() %>%
+          .[1]
       }
     }
 
     ## transformation to TRUE/FALSE depending on the selected level (lev)
     dat[[rvar]] <- dat[[rvar]] == lev
   } else {
-    linout <- TRUE
-    entropy <- FALSE
-    skip <- FALSE
+    linout <- TRUE; entropy <- FALSE
   }
 
   ## standardize data to limit stability issues ...
@@ -102,13 +102,12 @@ ann <- function(dataset, rvar, evar,
     vars <- evar <- colnames(dat)[-1]
   }
 
-  ## use decay
-  # http://stats.stackexchange.com/a/70146/61693
-  form <- paste(rvar, "~ . ")
+  ## use decay http://stats.stackexchange.com/a/70146/61693
   nninput <- list(
-    formula = as.formula(form),
-    rang = .1, size = size, decay = decay, weights = wts, maxit = 10000,
-    linout = linout, entropy = entropy, skip = skip, trace = FALSE, data = dat
+    formula = as.formula(paste(rvar, "~ . ")),
+    rang = .1, size = size, decay = decay, weights = wts,
+    maxit = 10000, linout = linout, entropy = entropy,
+    skip = FALSE, trace = FALSE, data = dat
   )
 
   ## based on http://stackoverflow.com/a/14324316/1974918
@@ -116,9 +115,7 @@ ann <- function(dataset, rvar, evar,
   if (!is_empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
-      on.exit({
-        .Random.seed <<- gseed
-      })
+      on.exit(.Random.seed <<- gseed)
     }
     set.seed(seed)
   }
@@ -134,14 +131,14 @@ ann <- function(dataset, rvar, evar,
     rm(i, isFct)
   }
 
-  ## ann returns residuals as a matrix
+  ## nn returns residuals as a matrix
   model$residuals <- model$residuals[, 1]
 
-  ## ann model object does not include the data by default
+  ## nn model object does not include the data by default
   model$model <- dat
   rm(dat) ## dat not needed elsewhere
 
-  as.list(environment()) %>% add_class(c("ann", "model"))
+  as.list(environment()) %>% add_class(c("nn", "model"))
 }
 
 #' Center or standardize variables in a data frame
@@ -195,27 +192,27 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
   }
 }
 
-#' Summary method for the ann function
+#' Summary method for the nn function
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
-#' @param object Return value from \code{\link{ann}}
+#' @param object Return value from \code{\link{nn}}
 #' @param prn Print list of weights
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- ann("titanic", "survived", "pclass", lev = "Yes")
+#' result <- nn("titanic", "survived", "pclass", lev = "Yes")
 #' summary(result)
 #'
-#' @seealso \code{\link{ann}} to generate results
-#' @seealso \code{\link{plot.ann}} to plot results
-#' @seealso \code{\link{predict.ann}} for prediction
+#' @seealso \code{\link{nn}} to generate results
+#' @seealso \code{\link{plot.nn}} to plot results
+#' @seealso \code{\link{predict.nn}} for prediction
 #'
 #' @export
-summary.ann <- function(object, prn = TRUE, ...) {
+summary.nn <- function(object, prn = TRUE, ...) {
   if (is.character(object)) return(object)
 
-  cat("Artificial Neural Network (ANN)\n")
+  cat("Neural Network\n")
   if (object$type == "classification") {
     cat("Activation function  : Logistic (classification)")
   } else {
@@ -259,53 +256,58 @@ summary.ann <- function(object, prn = TRUE, ...) {
   }
 }
 
-#' Plot method for the ann function
+#' Plot method for the nn function
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
-#' @param x Return value from \code{\link{ann}}
+#' @param x Return value from \code{\link{nn}}
 #' @param shiny Did the function call originate inside a shiny app
-#' @param plots Plots to produce for the specified ANN model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
+#' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
+#' @param size Font size used
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- nn("titanic", "survived", c("pclass","sex"), lev = "Yes")
 #' plot(result, plots = c("olden","net"))
 #'
-#' @seealso \code{\link{ann}} to generate results
-#' @seealso \code{\link{summary.ann}} to summarize results
-#' @seealso \code{\link{predict.ann}} for prediction
+#' @seealso \code{\link{nn}} to generate results
+#' @seealso \code{\link{summary.nn}} to summarize results
+#' @seealso \code{\link{predict.nn}} for prediction
 #'
 #' @importFrom NeuralNetTools plotnet olden garson
+#' @importFrom graphics par
 #'
 #' @export
-plot.ann <- function(x, plots = "garson", shiny = FALSE, custom = FALSE, ...) {
+plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALSE, ...) {
   object <- x
   rm(x)
   if (is.character(object)) return(object)
   plot_list <- list()
 
-  if ("olsen" %in% plots || "olden" %in% plots) { ## legacy for typo
-    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames) +
+  if ("olden" %in% plots || "olsen" %in% plots) { ## legacy for typo
+    plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames, cex_val = 4) +
       coord_flip() +
-      theme(axis.text.y = element_text(hjust = 0))
+      theme_set(theme_gray(base_size = size))
   }
 
   if ("garson" %in% plots) {
     plot_list[["garson"]] <- NeuralNetTools::garson(object$model, x_lab = object$coefnames) +
       coord_flip() +
-      theme(axis.text.y = element_text(hjust = 0))
+      theme_set(theme_gray(base_size = size))
   }
 
   if ("net" %in% plots) {
-    return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model, x_names = object$coefnames)))
+    ## don't need as much spacing at the top and bottom
+    mar <- par(mar = c(0, 4.1, 0, 2.1))
+    on.exit(par(mar = mar$mar))
+    return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model, x_names = object$coefnames, cex_val = size / 16)))
   }
 
   if (length(plot_list) > 0) {
     if (custom) {
       if (length(plot_list) == 1) {
-        return(plot_list[[1]]) 
+        return(plot_list[[1]])
       } else {
         return(plot_list)
       }
@@ -317,11 +319,11 @@ plot.ann <- function(x, plots = "garson", shiny = FALSE, custom = FALSE, ...) {
   }
 }
 
-#' Predict method for the ann function
+#' Predict method for the nn function
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/ann.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
-#' @param object Return value from \code{\link{ann}}
+#' @param object Return value from \code{\link{nn}}
 #' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
@@ -330,17 +332,17 @@ plot.ann <- function(x, plots = "garson", shiny = FALSE, custom = FALSE, ...) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- ann("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- nn("titanic", "survived", c("pclass","sex"), lev = "Yes")
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
-#' result <- ann("diamonds", "price", "carat:color", type = "regression")
+#' result <- nn("diamonds", "price", "carat:color", type = "regression")
 #' predict(result, pred_cmd = "carat = 1:3")
 #' predict(result, pred_data = "diamonds") %>% head
 #'
-#' @seealso \code{\link{ann}} to generate the result
-#' @seealso \code{\link{summary.ann}} to summarize results
+#' @seealso \code{\link{nn}} to generate the result
+#' @seealso \code{\link{summary.nn}} to summarize results
 #'
 #' @export
-predict.ann <- function(object,
+predict.nn <- function(object,
                         pred_data = "",
                         pred_cmd = "",
                         conf_lev = 0.95,
@@ -358,35 +360,23 @@ predict.ann <- function(object,
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
     if (!is(pred_val, "try-error")) {
-      pred_val %<>% as.data.frame(stringsAsFactors = FALSE) %>% 
-        select(1) %>% 
+      pred_val %<>% as.data.frame(stringsAsFactors = FALSE) %>%
+        select(1) %>%
         set_colnames("Prediction")
     }
 
     pred_val
   }
 
-  predict_model(object, pfun, "ann.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "nn.predict", pred_data, pred_cmd, conf_lev, se, dec)
 }
 
-#' Print method for predict.ann
+#' Print method for predict.nn
 #'
 #' @param x Return value from prediction method
 #' @param ... further arguments passed to or from other methods
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.ann.predict <- function(x, ..., n = 10)
-  print_predict_model(x, ..., n = n, header = "Artificial Neural Network (ANN)")
-
-#' Deprecated function to store predictions from an ANN
-#'
-#' @details Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
-#'
-#' @param object Return value from \code{\link{predict.ann}}
-#' @param data Dataset name
-#' @param name Variable name assigned to the residuals or predicted values
-#'
-#' @export
-store_ann <- function(object, data = object$dataset, name = paste0("predict_ann"))
-  store.model.predict(object, data = data, name = name)
+print.nn.predict <- function(x, ..., n = 10)
+  print_predict_model(x, ..., n = n, header = "Neural Network")
