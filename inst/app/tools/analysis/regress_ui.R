@@ -111,9 +111,7 @@ output$ui_reg_rvar <- renderUI({
 
 output$ui_reg_evar <- renderUI({
   req(available(input$reg_rvar))
-  notChar <- "character" != .getclass()
-  vars <- varnames()[notChar]
-
+  vars <- varnames()
   ## don't use setdiff, removes names
   if (length(vars) > 0 && input$reg_rvar %in% vars) {
     vars <- vars[-which(vars == input$reg_rvar)]
@@ -482,14 +480,20 @@ observeEvent(input$regress_report, {
   xcmd <- paste0("# store(result, name = \"", input$reg_store_res_name, "\")")
 
   if (!is_empty(input$reg_predict, "none") &&
-    (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
+     (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
 
     xcmd <- paste0(xcmd, "\nprint(pred, n = 10)")
     if (input$reg_predict %in% c("data", "datacmd")) {
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = \"", input$reg_store_pred_name, "\")")
+      name <- input$reg_store_pred_name
+      if (!is_empty(name)) {
+        name <- unlist(strsplit(input$reg_store_pred_name, ",")) %>%
+          gsub("\\s", "", .) %>%
+          deparse(., control = "keepNA", width.cutoff = 500L)
+      }
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = ", name, ")")
     }
     xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
 
@@ -502,9 +506,9 @@ observeEvent(input$regress_report, {
   }
   update_report(
     inp_main = clean_args(reg_inputs(), reg_args),
-    fun_name = "regress", 
+    fun_name = "regress",
     inp_out = inp_out,
-    outputs = outputs, 
+    outputs = outputs,
     figs = figs,
     fig.width = reg_plot_width(),
     fig.height = reg_plot_height(),

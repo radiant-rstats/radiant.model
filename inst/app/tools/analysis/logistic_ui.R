@@ -124,8 +124,7 @@ output$ui_logit_lev <- renderUI({
 
 output$ui_logit_evar <- renderUI({
   req(available(input$logit_rvar))
-  notChar <- "character" != .getclass()
-  vars <- varnames()[notChar]
+  vars <- varnames()
   if (length(vars) > 0 && input$logit_rvar %in% vars) {
     vars <- vars[-which(vars == input$logit_rvar)]
   }
@@ -516,7 +515,13 @@ observeEvent(input$logistic_report, {
 
     xcmd <- paste0("print(pred, n = 10)")
     if (input$logit_predict %in% c("data", "datacmd")) {
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = \"", input$logit_store_pred_name, "\")")
+      name <- input$logit_store_pred_name
+      if (!is_empty(name)) {
+        name <- unlist(strsplit(input$logit_store_pred_name, ",")) %>%
+          gsub("\\s", "", .) %>%
+          deparse(., control = "keepNA", width.cutoff = 500L)
+      }
+      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = ", name, ")")
     }
     xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
 

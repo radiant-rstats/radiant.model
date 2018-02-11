@@ -62,7 +62,7 @@ output$ui_nb_rvar <- renderUI({
 
 output$ui_nb_evar <- renderUI({
   if (not_available(input$nb_rvar)) return()
-  notVar <- !.getclass() %in% c("character", "date")
+  notVar <- .getclass() != "date"
   vars <- varnames()[notVar]
   if (length(vars) > 0) {
     vars <- vars[-which(vars == input$nb_rvar)]
@@ -89,6 +89,7 @@ output$ui_nb_predict_plot <- renderUI({
 })
 
 output$ui_nb <- renderUI({
+  req(input$dataset)
   tagList(
     wellPanel(
       actionButton("nb_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
