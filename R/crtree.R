@@ -78,7 +78,6 @@ crtree <- function(dataset, rvar, evar,
     return("The (maximum) number of nodes in the tree should be larger than or equal to 2." %>% add_class("crtree"))
   }
 
-
   if (!is.null(wts) && wts == "None") {
     wts <- NULL
     vars <- c(rvar, evar)
@@ -131,6 +130,11 @@ crtree <- function(dataset, rvar, evar,
   } else {
     type <- "regression"
   }
+
+  ## logicals would get < 0.5 and >= 0.5 otherwise
+  ## also need to update data in predict_model
+  ## so the correct type is used in prediction
+  dat <- mutate_if(dat, is.logical, as.factor)
 
   ## standardize data ...
   if ("standardize" %in% check) dat <- scaledf(dat, wts = wts)
@@ -359,11 +363,12 @@ summary.crtree <- function(object, prn = TRUE, ...) {
 #' @seealso \code{\link{predict.crtree}} for prediction
 #'
 #' @export
-plot.crtree <- function(x, plots = "tree", orient = "LR",
-                        width = "900px",
-                        labs = TRUE, dec = 2, shiny = FALSE,
-                        custom = FALSE, ...) {
-  
+plot.crtree <- function(
+  x, plots = "tree", orient = "LR",
+  width = "900px", labs = TRUE, dec = 2,
+  shiny = FALSE, custom = FALSE, ...
+) {
+
   if (is_empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
       return(paste0("graph LR\n A[\"", x, "\"]") %>% DiagrammeR::DiagrammeR(.))
@@ -376,9 +381,9 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     if (is.null(df)) {
       df <- x$model$frame ## make it easier to call from code
       type <- x$model$method
-      nlabs <- labels(x$model, collapse = FALSE)
+      nlabs <- labels(x$model, minlength = 0, collapse = FALSE)
     } else {
-      nlabs <- labels(x, collapse = FALSE)
+      nlabs <- labels(x, minlength = 0, collapse = FALSE)
       type <- x$method
     }
 
@@ -386,69 +391,12 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
       return(paste0("graph LR\n A[Cannot graph singlenode tree]") %>% DiagrammeR::DiagrammeR(.))
     }
 
-    df$split1 <- nlabs[, 1]
-    df$split2 <- nlabs[, 2]
-    df$split1_full <- ""
-    df$split2_full <- ""
-
-    xlevs <- attr(x$model, "xlevels")
-    # print(xlevs)
-    # print("----------------")
-    if (length(xlevs) > 0 && labs) {
-      for (i in names(xlevs)) {
-        if (length(xlevs[[i]]) == 0) next
-
-        ind <- which(df$var %in% i)
-        if (length(ind) == 0) next
-        splits <- data.frame(
-          split1 = df[ind, "split1"],
-          split2 = df[ind, "split2"],
-          split1_full = "",
-          split2_full = "",
-          stringsAsFactors = FALSE
-        )
-
-        lind <- data.frame(
-          split1 = match(splits[["split1"]], letters),
-          split2 = match(splits[["split2"]], letters),
-          stringsAsFactors = FALSE
-        )
-        for (j in 1:nrow(lind)) {
-          if (is.na(lind[j, 1]) && is.na(lind[j, 2])) {
-            splits[j, 3] <- match(strsplit(splits[j, 1], split = "")[[1]], letters) %>% 
-              xlevs[[i]][.] %>%
-              paste0(collapse = ", ")
-            splits[j, 4] <- match(strsplit(splits[j, 2], split = "")[[1]], letters) %>% 
-              xlevs[[i]][.] %>%
-              paste0(collapse = ", ")
-            # splits[j, 1:2] <- paste0(":", splits[j, 1:2])
-          } else if (is.na(lind[j, 1])) {
-            splits[j, 3] <- match(strsplit(splits[j, 1], split = "")[[1]], letters) %>% 
-              xlevs[[i]][.] %>%
-              paste0(collapse = ", ")
-            splits[j, c(1,2,4)] <- xlevs[[i]][lind[j, 2]] %>% c(paste0("!", .), ., .)
-            # splits[j, c(1,2)] <- xlevs[[i]][lind[j, 2]] %>% c(paste0("!", .), .)
-          } else if (is.na(lind[j, 2])) {
-            splits[j, 4] <- match(strsplit(splits[j, 2], split = "")[[1]], letters) %>% 
-              xlevs[[i]][.] %>%
-              paste0(collapse = ", ")
-            splits[j, 1:3] <- xlevs[[i]][lind[j, 1]] %>% c(., paste0("!", .), .)
-            # splits[j, 1:2] <- xlevs[[i]][lind[j, 1]] %>% c(., paste0("!", .))
-          } else {
-            splits[j, ] <- xlevs[[i]][unlist(lind[j, ])]
-          }
-        }
-        df[ind, c("split1", "split2", "split1_full", "split2_full")] <- splits[, 1:4]
-        # df[ind, c("split1", "split2")] <- splits[, 1:2]
-      }
-    }
-
     if (type == "class") {
       df$yval <- formatnr(df$yval2[, 4], dec = dec, perc = TRUE)
-      pre <- "p: "
+      pre <- "<b>p:</b> "
     } else {
       df$yval <- round(df$yval, dec)
-      pre <- "b: "
+      pre <- "<b>b:</b> "
     }
     df$yval2 <- NULL
 
@@ -459,6 +407,15 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     df$to1[non_leafs] <- df$id[non_leafs + 1]
     df$to2[non_leafs] <- df$to1[non_leafs] + 1
     df <- gather(df, "level", "to", !! c("to1", "to2"))
+
+    df$split1 <- nlabs[, 1]
+    df$split2 <- nlabs[, 2]
+    df$split1_full <- nlabs[, 1]
+    df$split2_full <- nlabs[, 2]
+
+    bnr <- 20
+    df$split1 <- df$split1 %>% ifelse(nchar(.) > bnr, paste0(strtrim(., bnr), " ..."), .)
+    df$split2 <- df$split2 %>% ifelse(nchar(.) > bnr, paste0(strtrim(., bnr), " ..."), .)
 
     df$to <- as.integer(df$to)
     df$edge <- ifelse(df$level == "to1", df$split1, df$split2) %>% {
@@ -473,7 +430,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
 
     df$to_lab <- NA
     to_lab <- sapply(df$to[non_leafs], function(x) which(x == df$id))[1, ]
-    df$to_lab[non_leafs] <- paste0("id", df$to[non_leafs], "[", ifelse(df$var[to_lab] == "<leaf>", "", paste0(df$var[to_lab], "<br>")), "n: ", formatnr(df$n[to_lab], dec = 0), "<br>", pre, df$yval[to_lab], "]")
+    df$to_lab[non_leafs] <- paste0("id", df$to[non_leafs], "[", ifelse(df$var[to_lab] == "<leaf>", "", paste0(df$var[to_lab], "<br>")), "<b>n:</b> ", formatnr(df$n[to_lab], dec = 0), "<br>", pre, df$yval[to_lab], "]")
     df <- na.omit(df)
 
     leafs <- paste0("id", setdiff(df$to, df$id))
@@ -481,31 +438,44 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     style <- paste0(
       "classDef default fill:none, bg:none, stroke-width:0px;
       classDef leaf fill:#9ACD32,stroke:#333,stroke-width:1px;
-      classDef chance fill:#FF8C00,stroke:#333,stroke-width:1px;
-      classDef chance_with_cost fill:#FF8C00,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
-      classDef decision fill:#9ACD32,stroke:#333,stroke-width:1px;
-      classDef decision_with_cost fill:#9ACD32,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
       class ", paste(leafs, collapse = ","), " leaf;"
     )
 
+    ## may still need to keep the "chance" info around as it used to
+    ## affect other (decision analysis) in the report
+    # style <- paste0(
+    #   "classDef default fill:none, bg:none, stroke-width:0px;
+    #   classDef leaf fill:#9ACD32,stroke:#333,stroke-width:1px;
+    #   classDef chance fill:#FF8C00,stroke:#333,stroke-width:1px;
+    #   classDef chance_with_cost fill:#FF8C00,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
+    #   classDef decision fill:#9ACD32,stroke:#333,stroke-width:1px;
+    #   classDef decision_with_cost fill:#9ACD32,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
+    #   class ", paste(leafs, collapse = ","), " leaf;"
+    # )
+
     ## check orientation for branch labels
-    brn <- if (orient == "LR") c("top", "bottom") else c("left", "right") 
+    brn <- if (orient == "LR") c("top", "bottom") else c("left", "right")
+    brn <- paste0("<b>", brn, ":</b> ")
 
     ## don't print full labels that don't add information
     df[df$split1_full == df$split1 & df$split2_full == df$split2, c("split1_full", "split2_full")] <- ""
 
-    df$split1_full <- ifelse(df$split1_full == "", "", paste0("<br>", brn[1], ": ", df$split1_full)) %>%
-      ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
-    df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], ": ", df$split2_full)) %>%
-      ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
+    # df$split1_full <- ifelse(df$split1_full == "", "", paste0("<br>", brn[1], ": ", df$split1_full)) %>%
+    #   ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
+    # df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], ": ", df$split2_full)) %>%
+    #   ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
+
+    df$split1_full <- ifelse(df$split1_full == "", "", paste0("<br>", brn[1], gsub(",", ", ", df$split1_full)))
+    df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], gsub(",", ", ", df$split2_full)))
 
     ttip_ind <- 1:(nrow(df) / 2)
-    ttip <- df[ttip_ind, , drop = FALSE] %>% 
-      {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
+    ttip <- df[ttip_ind, , drop = FALSE] %>%
+      {paste0("click id", .$id, " callback \"<b>n:</b> ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
       # {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, "<br>split1: ", .$split1_full, "<br>split2: ", .$split2_full, "\"", collapse = "\n")}
 
     ## not sure if it is possible to link a tooltip to an edge using mermaid
-    # ttip_lev <- filter(df[-ttip_ind,], split1_full != "") 
+    ## see https://github.com/rich-iannone/DiagrammeR/issues/267
+    # ttip_lev <- filter(df[-ttip_ind,], split1_full != "")
     # if (nrow(ttip_lev) == 0) {
     #   ttip_lev <- ""
     # } else {
@@ -564,8 +534,8 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
       if (is.null(imp)) return("Variable importance information not available for singlenode tree")
 
       df <- data.frame(
-          vars = names(imp), 
-          imp = imp / sum(imp), 
+          vars = names(imp),
+          imp = imp / sum(imp),
           stringsAsFactors = FALSE
         ) %>%
         arrange_at(.vars = "imp")
@@ -585,7 +555,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     if (length(plot_list) > 0) {
       if (custom) {
         if (length(plot_list) == 1) {
-          return(plot_list[[1]]) 
+          return(plot_list[[1]])
         } else {
           return(plot_list)
         }
@@ -638,9 +608,9 @@ predict.crtree <- function(object,
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
     if (!is(pred_val, "try-error")) {
-      pred_val %<>% 
-        as.data.frame(stringsAsFactors = FALSE) %>% 
-        select(1) %>% 
+      pred_val %<>%
+        as.data.frame(stringsAsFactors = FALSE) %>%
+        select(1) %>%
         set_colnames("Prediction")
     }
 

@@ -26,6 +26,7 @@ regress <- function(dataset, rvar, evar,
                     int = "",
                     check = "",
                     data_filter = "") {
+
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("regress"))
@@ -677,6 +678,7 @@ predict_model <- function(object, pfun, mclass,
 
     # adding information to the prediction data.frame
     dat <- select_at(dat, .vars = vars)
+
     if (!is.null(object$model$term)) {
       dat_classes <- attr(object$model$term, "dataClasses")[-1]
     } else {
@@ -754,6 +756,12 @@ predict_model <- function(object, pfun, mclass,
     }
 
     pred %<>% na.omit()
+  }
+
+  if ("crtree" %in% class(object)) {
+    ## also need to update data in crtree because
+    ## logicals would get < 0.5 and >= 0.5 otherwise
+    pred <- mutate_if(pred, is.logical, as.factor)
   }
 
   ## scale predictors if needed
@@ -1026,7 +1034,10 @@ store.model.predict <- function(object, ..., data = attr(object, "pred_data"), n
   ind <- which(colnames(object) == "Prediction")
 
   ## if se was calculated
-  name <- unlist(strsplit(name, ",")) %>% gsub("\\s", "", .)
+  if (length(name) == 1) {
+    name <- unlist(strsplit(name, ",")) %>%
+      gsub("\\s", "", .)
+  }
   if (length(name) > 1) {
     name <- name[1:min(3, length(name))]
     ind_mult <- ind:(ind + length(name[-1]))

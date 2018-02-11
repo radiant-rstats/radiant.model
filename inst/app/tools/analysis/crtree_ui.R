@@ -85,8 +85,7 @@ output$ui_crtree_lev <- renderUI({
 
 output$ui_crtree_evar <- renderUI({
   if (not_available(input$crtree_rvar)) return()
-  notChar <- "character" != .getclass()
-  vars <- varnames()[notChar]
+  vars <- varnames()
   if (length(vars) > 0) {
     vars <- vars[-which(vars == input$crtree_rvar)]
   }
@@ -128,6 +127,7 @@ output$ui_crtree_predict_plot <- renderUI({
 })
 
 output$ui_crtree <- renderUI({
+  req(input$dataset)
   tagList(
     wellPanel(
       actionButton("crtree_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
@@ -303,7 +303,8 @@ output$crtree <- renderUI({
         DiagrammeR::DiagrammeROutput(
           "crtree_plot",
           # width = ifelse(length(input$get_screen_width) == 0, "1200px", paste0(input$get_screen_width - 480, "px")),
-          width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
+          # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
+          width = isolate(ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px"))),
           height = "100%"
         )
       ),
@@ -446,17 +447,16 @@ output$dl_crtree_pred <- downloadHandler(
 
 observeEvent(input$crtree_report, {
   if (is_empty(input$crtree_evar)) return(invisible())
+
   outputs <- c("summary")
-  inp_out <- list("", "")
+  inp_out <- list(list(prn = TRUE), "")
   xcmd <- ""
   figs <- FALSE
   if (!is_empty(input$crtree_predict, "none") &&
     (!is_empty(input$crtree_pred_data) || !is_empty(input$crtree_pred_cmd))) {
     pred_args <- clean_args(crtree_pred_inputs(), crtree_pred_args[-1])
     inp_out[[2 + figs]] <- pred_args
-
     outputs <- c(outputs, "pred <- predict")
-
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$crtree_predict %in% c("data", "datacmd")) {
       xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$crtree_pred_data, "\", name = \"", input$crtree_store_pred_name, "\")")
@@ -484,13 +484,13 @@ observeEvent(input$crtree_report, {
     xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render()")
   }
 
-  ci <- crtree_inputs()
+  crtree_inp <- crtree_inputs()
   if (input$crtree_type == "regression") {
-    ci$prior <- ci$cost <- ci$margin <- NULL
+    crtree_inp$prior <- crtree_inp$cost <- crtree_inp$margin <- crtree_inp$lev <- NULL
   }
 
   update_report(
-    inp_main = clean_args(ci, crtree_args),
+    inp_main = clean_args(crtree_inp, crtree_args),
     fun_name = "crtree",
     inp_out = inp_out,
     outputs = outputs,
