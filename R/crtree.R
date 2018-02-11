@@ -487,6 +487,16 @@ plot.crtree <- function(
       # DiagrammeR::mermaid(., width = "100%", height = "100%")
       ## have to use width = width if you want to be able to zoom in on plots
       DiagrammeR::mermaid(., width = width, height = "100%")
+
+    # htmlwidgets::browsable(
+    #   tagList(
+    #     list(
+    #       tags$head(tags$style("div.mermaidTooltip { text-align: left !important; max-width: 300px !important; }")),
+    #       dgraph
+    #     )
+    #   )
+    # )
+
   } else {
     plot_list <- list()
     if ("prune" %in% plots) {

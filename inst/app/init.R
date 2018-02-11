@@ -53,7 +53,6 @@ options(
       navbarMenu(
         "Model",
         tags$head(
-          tags$script(src = "www_model/js/run_return.js"),
           tags$link(rel = "stylesheet", type = "text/css", href = "www_model/style.css")
         ),
         "Estimate",

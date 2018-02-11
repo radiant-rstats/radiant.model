@@ -259,8 +259,6 @@ output$ui_crtree <- renderUI({
 
 crtree_plot_width <- function() 650
 
-crtree_plot_height <- function() 500
-
 crtree_plot_height <- function() {
   if (crtree_available() != "available") return(500)
   300 + 20 * length(.crtree()$vars)
@@ -299,12 +297,10 @@ output$crtree <- renderUI({
       conditionalPanel(
         "input.crtree_plots == 'tree'",
         actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
-        # DiagrammeR::DiagrammeROutput("crtree_plot", width = "100%", height = "100%")
         DiagrammeR::DiagrammeROutput(
           "crtree_plot",
-          # width = ifelse(length(input$get_screen_width) == 0, "1200px", paste0(input$get_screen_width - 480, "px")),
           # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
-          width = isolate(ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px"))),
+          width = isolate(ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 480, "px"))),
           height = "100%"
         )
       ),

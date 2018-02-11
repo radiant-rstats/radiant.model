@@ -1,3 +1,15 @@
+# CHANGES IN radiant.model 0.9.0.8
+
+* Cleanup of lists returned by `evalbin` and `confusion`
+* Add intercept in coefficient tables that can be downloaded for linear and logistic regression or using `write.coeff`
+* Fix input reset when screen size or zoom level is changed
+* Convert logicals to factors in `crtree` to avoid labels < 0.5 and >= 0.5
+* Improved labeling of decision tree splits in `crtree`. The tooltip (aka hover-over) will contain all levels used, but the tree label may be truncated as needed
+
+# CHANGES IN radiant.model 0.9.0.4
+
+* Renamed `ann` to `nn`. The `ann` function is now deprecated
+
 # CHANGES IN radiant.model 0.9.0.3
 
 * Prediction confidence interval provided for logistic regression based on blog post by [Gavin Simpson] (https://www.fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/)
