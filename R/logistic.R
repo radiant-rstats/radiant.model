@@ -397,11 +397,6 @@ summary.logistic <- function(object,
 
         cn <- names(clist)
         sapply(vlist, matcher, cn) %>% unname()
-
-        ## testing
-        # matchCf(cl, "disp:cyl365")
-        # matchCf(cl, "disp")
-        # matchCf(cl, c("disp","dips:cyl365"))
       }
 
       if ("robust" %in% object$check) {
@@ -459,39 +454,36 @@ plot.logistic <- function(x,
                           shiny = FALSE,
                           custom = FALSE,
                           ...) {
-  object <- x
-  rm(x)
-  if (is.character(object)) return(object)
 
-  if (class(object$model)[1] != "glm") return(object)
-
+  if (is.character(x)) return(x)
+  if (class(x$model)[1] != "glm") return(x)
   if (is_empty(plots[1])) {
     return("Please select a logistic regression plot from the drop-down menu")
   }
 
-  if ("(weights)" %in% colnames(object$model$model) &&
-    min(object$model$model[["(weights)"]]) == 0) {
-    model <- object$model$model
+  if ("(weights)" %in% colnames(x$model$model) &&
+    min(x$model$model[["(weights)"]]) == 0) {
+    model <- x$model$model
   } else {
     ## fortify chokes when a weight variable has 0s
-    model <- ggplot2::fortify(object$model)
+    model <- ggplot2::fortify(x$model)
   }
 
-  model$.fitted <- predict(object$model, type = "response")
+  model$.fitted <- predict(x$model, type = "response")
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
-  model$.actual <- as_numeric(object$rv) %>% {
+  model$.actual <- as_numeric(x$rv) %>% {
     . - max(.) + 1
   }
 
-  rvar <- object$rvar
-  evar <- object$evar
-  vars <- c(object$rvar, object$evar)
+  rvar <- x$rvar
+  evar <- x$evar
+  vars <- c(x$rvar, x$evar)
   nrCol <- 2
   plot_list <- list()
 
   ## use orginal data rather than the logical used for estimation
-  model[[rvar]] <- object$rv
+  model[[rvar]] <- x$rv
 
   if ("dist" %in% plots) {
     for (i in vars)
@@ -500,14 +492,14 @@ plot.logistic <- function(x,
   }
 
   if ("coef" %in% plots) {
-    if (nrow(object$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
+    if (nrow(x$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
 
     yl <- {
-      if (sum(c("standardize", "center") %in% object$check) == 2) {
+      if (sum(c("standardize", "center") %in% x$check) == 2) {
         "Odds-ratio (Standardized & Centered)"
-      } else if ("standardize" %in% object$check) {
+      } else if ("standardize" %in% x$check) {
         "Odds-ratio (standardized)"
-      } else if ("center" %in% object$check) {
+      } else if ("center" %in% x$check) {
         "Odds-ratio (centered)"
       } else {
         "Odds-ratio"
@@ -515,21 +507,21 @@ plot.logistic <- function(x,
     }
 
     nrCol <- 1
-    if ("robust" %in% object$check) {
+    if ("robust" %in% x$check) {
       cnfint <- radiant.model::confint_robust
-    } else if (object$ci_type == "profile") {
+    } else if (x$ci_type == "profile") {
       cnfint <- confint
     } else {
       cnfint <- confint.default
     }
 
-    plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
+    plot_list[["coef"]] <- cnfint(x$model, level = conf_lev, vcov = x$vcov) %>%
       exp() %>%
       data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
-      cbind(select(object$coeff, 2), .) %>%
-      set_rownames(object$coeff$`  `) %>%
+      cbind(select(x$coeff, 2), .) %>%
+      set_rownames(x$coeff$`  `) %>%
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
@@ -537,9 +529,9 @@ plot.logistic <- function(x,
       geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
       labs(y = yl, x = "") +
       ## can't use coord_trans together with coord_flip
-      # http://stackoverflow.com/a/26185278/1974918
+      ## http://stackoverflow.com/a/26185278/1974918
       scale_x_discrete(limits = {
-        if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])
+        if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])
       }) +
       scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
       coord_flip() +
@@ -666,7 +658,7 @@ predict.logistic <- function(object,
     if (!is(pred_val, "try-error")) {
 
       if (se) {
-        # based on https://www.fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/
+        ## based on https://www.fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/
         ilink <- family(model)$linkinv
         ci_perc <- ci_label(cl = conf_lev)
         pred_val <- data.frame(
@@ -676,9 +668,6 @@ predict.logistic <- function(object,
           stringsAsFactors = FALSE
         ) %>%
           set_colnames(c("Prediction", ci_perc[1], ci_perc[2]))
-
-        # pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% select(1:2)
-        # colnames(pred_val) <- c("Prediction", "std.error")
       } else {
         pred_val %<>% data.frame(stringsAsFactors = FALSE) %>%
           select(1) %>%
@@ -775,6 +764,7 @@ minmax <- function(dat) {
 #' @param object A fitted model object of class regress or logistic
 #' @param file A character string naming a file. "" indicates output to the console
 #' @param sort Sort table by variable importance
+#' @param intercept Include the intercept in the output (TRUE or FALSE). TRUE is the default
 #'
 #' @examples
 #' regress(diamonds, rvar = "price", evar = "carat:x", check = "standardize") %>%
@@ -782,7 +772,7 @@ minmax <- function(dat) {
 #'   formatdf(dec = 3)
 #'
 #' @export
-write.coeff <- function(object, file = "", sort = FALSE) {
+write.coeff <- function(object, file = "", sort = FALSE, intercept = TRUE) {
   if ("regress" %in% class(object)) {
     mod_class <- "regress"
   } else if ("logistic" %in% class(object)) {
@@ -821,20 +811,28 @@ write.coeff <- function(object, file = "", sort = FALSE) {
     cat("Standardized coefficients not selected\n\n", file = file)
   }
 
-  object <- object[["coeff"]][-1, ]
-  object$dummy <- dummy
-  object$mean <- cms %>% unlist()
-  object$sd <- csds %>% unlist()
-  object$min <- cmn %>% unlist()
-  object$max <- cmx %>% unlist()
+  object <- object[["coeff"]]
+  object$OR[1] <- 0
+  object$dummy <- c(0L, dummy)
+  object$mean <- cms %>% unlist() %>% c(1L, .)
+  object$sd <- csds %>% unlist() %>% c(0L, .)
+  object$min <- cmn %>% unlist() %>% c(1L, .)
+  object$max <- cmx %>% unlist() %>% c(1L, .)
 
   if (mod_class == "logistic") {
     object$importance <- pmax(object$OR, 1 / object$OR)
+    object$OR[1] <- 0
   } else {
     object$importance <- abs(object$coeff)
   }
 
-  if (sort) object <- arrange(object, desc(.data$importance))
+  object$importance[1] <- 0
+
+  if (sort)
+    object[-1, ] <- arrange(object[-1, ], desc(.data$importance))
+
+  if (!intercept)
+    object <- slice(object, -1)   ## slice will ensure a tibble / data.frame is returned
 
   if (!is_empty(file)) {
     sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))
