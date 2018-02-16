@@ -271,7 +271,7 @@ nn_plot <- reactive({
   req(input$nn_plots)
   res <- .nn()
   if (is.character(res)) return()
-  mlt <- if ("net" %in% input$nn_plots) 45 else 15
+  mlt <- if ("net" %in% input$nn_plots) 45 else 30
   plot_height <- max(500, length(res$model$coefnames) * mlt)
   list(plot_width = 650, plot_height = plot_height)
 })

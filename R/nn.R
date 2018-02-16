@@ -156,7 +156,8 @@ nn <- function(dataset, rvar, evar,
 #'
 #' @export
 scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc = TRUE) {
-  isNum <- sapply(dat, is.numeric)
+  # isNum <- sapply(dat, function(x) is.numeric(x) || is.logical(x))
+  isNum <- sapply(dat, function(x) is.numeric(x))
   if (sum(isNum) == 0) return(dat)
   cn <- names(isNum)[isNum]
 
@@ -251,7 +252,12 @@ summary.nn <- function(object, prn = TRUE, ...) {
   } else {
     if (prn) {
       cat("Weights              :\n")
-      cat(paste0(capture.output(print(summary(object$model)))[c(-1, -2)], collapse = "\n"))
+      oop <- base::options(width = 100)
+      on.exit(base::options(oop), add = TRUE)
+      capture.output(summary(object$model))[-1:-2] %>%
+        gsub("^", "  ", .) %>%
+        paste0(collapse = "\n") %>%
+        cat()
     }
   }
 }
@@ -288,13 +294,17 @@ plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALS
   if ("olden" %in% plots || "olsen" %in% plots) { ## legacy for typo
     plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames, cex_val = 4) +
       coord_flip() +
-      theme_set(theme_gray(base_size = size))
+      theme_set(theme_gray(base_size = size)) +
+      theme(legend.position = "none") +
+      labs(title = "Olden plot of variable importance")
   }
 
   if ("garson" %in% plots) {
     plot_list[["garson"]] <- NeuralNetTools::garson(object$model, x_lab = object$coefnames) +
       coord_flip() +
-      theme_set(theme_gray(base_size = size))
+      theme_set(theme_gray(base_size = size)) +
+      theme(legend.position = "none") +
+      labs(title = "Garson plot of variable importance")
   }
 
   if ("net" %in% plots) {
