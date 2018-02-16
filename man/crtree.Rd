@@ -2,11 +2,12 @@
 % Please edit documentation in R/crtree.R
 \name{crtree}
 \alias{crtree}
-\title{Classification and regression trees}
+\title{Classification and regression trees based on the rpart package}
 \usage{
 crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
-  cp = 0.001, nodes = NA, K = 10, seed = 1234, split = "gini",
-  prior = NA, cost = NA, margin = NA, check = "", data_filter = "")
+  minsplit = 2, minbucket = round(minsplit/3), cp = 0.001, nodes = NA,
+  K = 10, seed = 1234, split = "gini", prior = NA, adjprob = TRUE,
+  cost = NA, margin = NA, check = "", data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
@@ -21,23 +22,29 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
 
 \item{wts}{Weights to use in estimation}
 
+\item{minsplit}{The minimum number of observations that must exist in a node in order for a split to be attempted.}
+
+\item{minbucket}{the minimum number of observations in any terminal <leaf> node. If only one of minbucket or minsplit is specified, the code either sets minsplit to minbucket*3 or minbucket to minsplit/3, as appropriate.}
+
 \item{cp}{Minimum proportion of root node deviance required for split (default = 0.00001)}
 
-\item{nodes}{Maxiumum size of tree in number of nodes to return. If equal to NA no pruning is done}
+\item{nodes}{Maximum size of tree in number of nodes to return. If equal to NA no pruning is done}
 
 \item{K}{Number of folds use in cross-validation}
 
 \item{seed}{Random seed used for cross-validation}
 
-\item{split}{Splitting criterium to use (i.e., "gini" or "information")}
+\item{split}{Splitting criterion to use (i.e., "gini" or "information")}
 
-\item{prior}{Adjust the initial probabily for the selected level (e.g., set to .5 in unbalanced samples)}
+\item{prior}{Adjust the initial probability for the selected level (e.g., set to .5 in unbalanced samples)}
+
+\item{adjprob}{Setting a prior will rescale the predicted probabilities. Set adjprob to TRUE to adjust the probabilities back to their original scale after estimation}
 
 \item{cost}{Cost for each connection (e.g., email or mailing)}
 
 \item{margin}{Margin on each customer purchase}
 
-\item{check}{Optional estimation parameters ("standardize" is the default)}
+\item{check}{Optional estimation parameters (e.g., "standardize")}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 }
@@ -45,7 +52,7 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
 A list with all variables defined in crtree as an object of class tree
 }
 \description{
-Classification and regression trees
+Classification and regression trees based on the rpart package
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant

@@ -1,3 +1,12 @@
+# CHANGES IN radiant.model 0.9.0.9
+
+* Added options to customize tree generated using `crtree` (based on `rpart`)
+* Removed option to set cost and margin in `crtree`
+* Better control of tree plot size in `plot.crtree`
+* Cleanup of `crtree` code
+* Improved printing of NN weights
+* Option to change font size in NN plots 
+
 # CHANGES IN radiant.model 0.9.0.8
 
 * Cleanup of lists returned by `evalbin` and `confusion`

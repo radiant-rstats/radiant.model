@@ -126,6 +126,16 @@ output$ui_crtree_predict_plot <- renderUI({
   predict_plot_controls("crtree")
 })
 
+output$ui_crtree_width <- renderUI({
+  init <- ifelse(is_empty(input$get_screen_width), 900, (input$get_screen_width - 400))
+  init <- init - init %% 100
+  numericInput(
+    "crtree_width", label = "Width:",
+    value = state_init("crtree_width", init),
+    step = 100, min = 600, max = 3000
+  )
+})
+
 output$ui_crtree <- renderUI({
   req(input$dataset)
   tagList(
@@ -183,15 +193,19 @@ output$ui_crtree <- renderUI({
         ),
         conditionalPanel(
           condition = "input.crtree_plots == 'tree'",
-          radioButtons(
-            inputId = "crtree_orient", label = "Plot direction:",
-            c("Left-right" = "LR", "Top-down" = "TD"),
-            state_init("crtree_orient", "LR"), inline = TRUE
+          tags$table(
+            tags$td(
+              selectInput(
+                "crtree_orient", label = "Plot direction:",
+                c("Left-right" = "LR", "Top-down" = "TD", "Right-left" = "RL", "Bottom-Top" = "BT"),
+                state_init("crtree_orient", "LR"), width = "116px"
+              ), style = "padding-top:15px;"
+            ),
+            tags$td(uiOutput("ui_crtree_width"), width = "100%")
           )
         )
       )
     ),
-
     wellPanel(
       radioButtons(
         "crtree_type", label = NULL, c("classification", "regression"),
@@ -207,16 +221,21 @@ output$ui_crtree <- renderUI({
         tags$table(
           tags$td(numericInput(
             "crtree_prior", label = "Prior:",
-            value = state_init("crtree_prior", .5, na.rm = FALSE)
+            value = state_init("crtree_prior", .5, na.rm = FALSE),
+            width = "116px"
           )),
           tags$td(numericInput(
-            "crtree_cost", label = "Cost:",
-            value = state_init("crtree_cost", NA)
-          )),
-          tags$td(numericInput(
-            "crtree_margin", label = "Margin:",
-            value = state_init("crtree_margin", NA)
+            "crtree_minsplit", label = "Min obs.:",
+            value = state_init("crtree_minsplit", 2)
           ))
+          # tags$td(numericInput(
+          #   "crtree_cost", label = "Cost:",
+          #   value = state_init("crtree_cost", NA)
+          # )),
+          # tags$td(numericInput(
+          #   "crtree_margin", label = "Margin:",
+          #   value = state_init("crtree_margin", NA)
+          # ))
         )
       ),
       tags$table(
@@ -267,6 +286,16 @@ crtree_plot_height <- function() {
 crtree_pred_plot_height <- function()
   if (input$crtree_pred_plot) 500 else 0
 
+output$diagrammer_crtree <- renderUI({
+  DiagrammeR::DiagrammeROutput(
+    "crtree_plot",
+    # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
+    # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 480, "px")),
+    width = input$crtree_width,
+    height = "100%"
+  )
+})
+
 ## output is called from the main radiant ui.R
 output$crtree <- renderUI({
   register_print_output("summary_crtree", ".summary_crtree")
@@ -297,12 +326,7 @@ output$crtree <- renderUI({
       conditionalPanel(
         "input.crtree_plots == 'tree'",
         actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
-        DiagrammeR::DiagrammeROutput(
-          "crtree_plot",
-          # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
-          width = isolate(ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 480, "px"))),
-          height = "100%"
-        )
+        uiOutput("diagrammer_crtree")
       ),
       conditionalPanel(
         "input.crtree_plots != 'tree'",
@@ -326,7 +350,7 @@ output$crtree_plot <- DiagrammeR::renderDiagrammeR({
   } else {
     withProgress(
       message = "Generating tree diagramm", value = 1,
-      plot(cr, plots = "tree", orient = input$crtree_orient, width = "900px")
+      plot(cr, plots = "tree", orient = input$crtree_orient, width = paste0(input$crtree_width, "px"))
     )
   }
 })
@@ -356,6 +380,7 @@ crtree_available <- reactive({
 })
 
 .crtree <- eventReactive(input$crtree_run, {
+  req(input$crtree_evar)
   withProgress(
     message = "Estimating model", value = 1,
     do.call(crtree, crtree_inputs())
@@ -467,17 +492,19 @@ observeEvent(input$crtree_report, {
     }
   }
 
+  width <- ifelse(is_empty(input$crtree_width), "\"900px\"", paste0("\"", input$crtree_width, "px\""))
+  orient <- ifelse(is_empty(input$crtree_orient), "\"TD\"", paste0("\"", input$crtree_orient, "\""))
   if (input$crtree_plots == "tree") {
     xcmd <- paste0(xcmd, "#plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\nplot(result, orient = \"", input$crtree_orient, "\") %>% render()")
+    xcmd <- paste0(xcmd, "\nplot(result, orient = ", orient, ", width = ", width, ") %>% render()")
   } else if (input$crtree_plots == "prune") {
     figs <- TRUE
     xcmd <- paste0(xcmd, "plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render()")
+    xcmd <- paste0(xcmd, "\n#plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
   } else {
     figs <- TRUE
     xcmd <- paste0(xcmd, "plot(result, plots = \"imp\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#plot(result, orient = \"", input$crtree_orient, "\") %>% render()")
+    xcmd <- paste0(xcmd, "\n#plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
   }
 
   crtree_inp <- crtree_inputs()

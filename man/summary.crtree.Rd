@@ -4,12 +4,17 @@
 \alias{summary.crtree}
 \title{Summary method for the crtree function}
 \usage{
-\method{summary}{crtree}(object, prn = TRUE, ...)
+\method{summary}{crtree}(object, prn = TRUE, cptab = FALSE,
+  modsum = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{crtree}}}
 
 \item{prn}{Print tree in text form}
+
+\item{cptab}{Print the cp table}
+
+\item{modsum}{Print the model summary}
 
 \item{...}{further arguments passed to or from other methods}
 }

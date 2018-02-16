@@ -1,4 +1,4 @@
-#' Classification and regression trees
+#' Classification and regression trees based on the rpart package
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 #'
@@ -8,15 +8,18 @@
 #' @param type Model type (i.e., "classification" or "regression")
 #' @param lev The level in the response variable defined as _success_
 #' @param wts Weights to use in estimation
+#' @param minsplit The minimum number of observations that must exist in a node in order for a split to be attempted.
+#' @param minbucket the minimum number of observations in any terminal <leaf> node. If only one of minbucket or minsplit is specified, the code either sets minsplit to minbucket*3 or minbucket to minsplit/3, as appropriate.
 #' @param cp Minimum proportion of root node deviance required for split (default = 0.00001)
-#' @param nodes Maxiumum size of tree in number of nodes to return. If equal to NA no pruning is done
+#' @param nodes Maximum size of tree in number of nodes to return. If equal to NA no pruning is done
 #' @param K Number of folds use in cross-validation
 #' @param seed Random seed used for cross-validation
-#' @param split Splitting criterium to use (i.e., "gini" or "information")
-#' @param prior Adjust the initial probabily for the selected level (e.g., set to .5 in unbalanced samples)
+#' @param split Splitting criterion to use (i.e., "gini" or "information")
+#' @param prior Adjust the initial probability for the selected level (e.g., set to .5 in unbalanced samples)
+#' @param adjprob Setting a prior will rescale the predicted probabilities. Set adjprob to TRUE to adjust the probabilities back to their original scale after estimation
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
-#' @param check Optional estimation parameters ("standardize" is the default)
+#' @param check Optional estimation parameters (e.g., "standardize")
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in crtree as an object of class tree
@@ -37,32 +40,19 @@ crtree <- function(dataset, rvar, evar,
                    type = "",
                    lev = "",
                    wts = "None",
+                   minsplit = 2,
+                   minbucket = round(minsplit/3),
                    cp = 0.001,
                    nodes = NA,
                    K = 10,
                    seed = 1234,
                    split = "gini",
                    prior = NA,
+                   adjprob = TRUE,
                    cost = NA,
                    margin = NA,
                    check = "",
                    data_filter = "") {
-
-  # library(rpart)
-  # library(radiant.model)
-  # dataset <- "titanic"
-  # rvar <- "survived"
-  # evar <- c("pclass","sex")
-  # type <- "classification"
-  # lev <- "Yes"
-  # mindev <- 0.0001
-  # cp <- mindev
-  # nodes <- NA
-  # K <- 5
-  # split = "gini"
-  # wts <- "None"
-  # check <- ""
-  # data_filter <- ""
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -137,7 +127,9 @@ crtree <- function(dataset, rvar, evar,
   dat <- mutate_if(dat, is.logical, as.factor)
 
   ## standardize data ...
-  if ("standardize" %in% check) dat <- scaledf(dat, wts = wts)
+  if ("standardize" %in% check) {
+    dat <- scaledf(dat, wts = wts)
+  }
 
   vars <- evar
   ## in case : is used
@@ -145,21 +137,20 @@ crtree <- function(dataset, rvar, evar,
 
   form <- paste(rvar, "~ . ")
 
-  seed %>% gsub("[^0-9]", "", .) %>% {
-    if (!is_empty(.)) set.seed(seed)
-  }
+  seed %>% gsub("[^0-9]", "", .) %>% 
+    {if (!is_empty(.)) set.seed(seed)}
 
   ## make max tree
   # http://stackoverflow.com/questions/24150058/rpart-doesnt-build-a-full-tree-problems-with-cp
-  # if (cp == 0) cp <- -1
-  control <- rpart::rpart.control(cp = cp, xval = K, minsplit = 2, minbucket = 1)
+  control <- rpart::rpart.control(
+    cp = cp, 
+    xval = K, 
+    minsplit = ifelse(is_empty(minsplit), 2, minsplit), 
+    minbucket = ifelse(is_empty(minbucket), round(minsplit/3), minbucket), 
+  )
 
   parms <- list(split = split)
-  # prior <- NULL
-  # prior <- .5
-  # loss <- c(6,.5)
-  # cost <- .5
-  # margin <- 6
+  # loss <- c(6,.5); cost <- .5, margin <- 6
   if (type == "classification") {
     ind <- if (which(lev %in% levels(dat[[rvar]])) == 1) c(1, 2) else c(2, 1)
 
@@ -167,41 +158,22 @@ crtree <- function(dataset, rvar, evar,
       parms[["loss"]] <- c(as_numeric(margin), as_numeric(cost)) %>% .[ind] %>% {
         matrix(c(0, .[1], .[2], 0), byrow = TRUE, nrow = 2)
       }
-      # print(parms)
-      # parms[["loss"]] <- NULL
-      # if (which(lev %in% levels(dat[[rvar]])) == 1) {
-      #   parms[["loss"]] <- matrix(c(0,cost,margin,0), byrow = TRUE, nrow = 2)
-      # } else {
-      #   parms[["loss"]] <- matrix(c(0,margin,cost,0), byrow = TRUE, nrow = 2)
-      # }
-      # parms[["loss"]] <- matrix(c(0,loss[1],loss[2],0), byrow = TRUE, nrow = 2)
     } else if (!is_empty(prior)) {
-      # prior <- gsub(","," ", prior) %>% strsplit("\\s+") %>% unlist
-      # asNum <- function(x) ifelse(length(x) > 1, as.numeric(x[1])/as.numeric(x[2]), as.numeric(x[1]))
-      # prior <- sshhr( strsplit(prior, "/") %>% sapply(asNum) )
-
       if (!is.numeric(prior)) {
         return("Prior did not resolve to a numeric factor" %>% add_class("crtree"))
       } else if (prior > 1 || prior < 0) {
         return("Prior is not a valid probability" %>% add_class("crtree"))
       } else {
-        parms[["prior"]] <- c(prior, 1 - prior) %>% .[ind]
+        ## prior is applied to the selected level
+        parms[["prior"]] <- c(prior, 1 - prior) %>% 
+          .[ind]
       }
-
-      # return("Prior did not resolve to a numeric factor" %>% add_class("crtree"))
-      # else if (length(prior) == 2 && sum(prior) == 1)
-      # parms[["prior"]] <- prior
-      # else if (length(prior) > 2)
-      # return("Priors only supported for bivariate classification" %>% add_class("crtree"))
-      # else
-      # return("Priors must sum to 1. Use fractions if needed" %>% add_class("crtree"))
     }
   }
 
   model <- rpart::rpart(
     as.formula(form), data = dat,
-    parms = parms,
-    weights = wts, control = control
+    parms = parms, weights = wts, control = control
   )
 
   if (!is_not(nodes)) {
@@ -217,49 +189,16 @@ crtree <- function(dataset, rvar, evar,
   ## rpart::rpart does not return residuals by default
   model$residuals <- residuals(model, type = "pearson")
 
-  ## adjusting predicted probabilities
-  # if (!is_empty(prior) && length(prior) == 2) {
-  # if (!is_empty(prior)) {
+  if (is_not(cost) && is_not(margin) && 
+      !is_empty(prior) && !is_empty(adjprob)) {
 
-  if (is_not(cost) && is_not(margin) && !is_empty(prior)) {
-
-    ## note that this adjust will reset the prior in the print out
-    ## to the original prior
-
-    ## predicting using rpart
-    # pred <- data.frame(rvar = dat[[rvar]] == lev, pred = predict(model, dat)[,lev])
-
-    ## generating scaled predictions using logistic regression
-    # pred <- sshhr(glm(rvar ~ pred + I(pred^2) + I(pred^3) + I(pred^4) + I(pred^5), data = pred) %>%
-    #   predict(data.frame(pred = model$frame$yval2[,4])))
-
-    ## mean adjustment
-    # pred <- model$frame$yval2[,4] %>% {. / mean(.)} * mean(dat[[rvar]] == lev)
-
-    ## storing adjusted prediction in the 'frame'
-    # model$frame$yval2[,4] <- pred
-    # model$frame$yval2[,5] <- 1 - pred
-
-    ## using the SAS approach
+    ## note that this adjustment will reset the prior in the print out
+    ## to the original prior using the 'SAS approach'
     org_frac <- mean(dat[[rvar]] == lev)
-    # over_frac <- prior[which(lev %in% levels(dat[[rvar]]))]
     over_frac <- prior
     model$frame$yval2[, 4] <- 1 / (1 + (1 / org_frac - 1) / (1 / over_frac - 1) * (1 / model$frame$yval2[, 4] - 1))
     model$frame$yval2[, 5] <- 1 - model$frame$yval2[, 4]
   }
-
-  ## rpart::rpart does not return residuals by default
-  # model$residuals <- residuals(model, type = "pearson")
-
-  # pred <- predict(model, dat)[,1]
-  # #   ## based on https://stat.ethz.ch/R-manual/R-devel/library/rpart/html/residuals.rpart.html
-  # if (is.factor(dat[[rvar]])) {
-  #   ## based on https://stat.ethz.ch/R-manual/R-devel/library/rpart/html/residuals.rpart.html
-  #   model$residuals <- (1 - pred) / sqrt(pred * (1 - pred))
-  # } else {
-  #   model$residuals <- rv - pred
-  # }
-  # rm(pred)
 
   ## tree model object does not include the data by default
   model$model <- dat
@@ -274,6 +213,8 @@ crtree <- function(dataset, rvar, evar,
 #'
 #' @param object Return value from \code{\link{crtree}}
 #' @param prn Print tree in text form
+#' @param cptab Print the cp table
+#' @param modsum Print the model summary
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -287,7 +228,7 @@ crtree <- function(dataset, rvar, evar,
 #' @seealso \code{\link{predict.crtree}} for prediction
 #'
 #' @export
-summary.crtree <- function(object, prn = TRUE, ...) {
+summary.crtree <- function(object, prn = TRUE, cptab = FALSE, modsum = FALSE, ...) {
   if (is.character(object)) return(object)
 
   if (object$type == "classification") {
@@ -308,6 +249,7 @@ summary.crtree <- function(object, prn = TRUE, ...) {
     cat("Weights used         :", object$wtsname, "\n")
   }
   cat("Complexity parameter :", object$cp, "\n")
+  cat("Minimum observations :", object$minsplit, "\n")
   if (!is_not(object$nodes)) {
     max_nodes <- sum(object$unpruned$frame$var == "<leaf>")
     cat("Maximum nr. nodes    :", object$nodes, "out of", max_nodes, "\n")
@@ -317,7 +259,8 @@ summary.crtree <- function(object, prn = TRUE, ...) {
     if (!is_empty(object$prior)) object$prior <- "Prior ignored when cost and margin set"
   }
   if (!is_empty(object$prior) && object$type == "classification") {
-    cat("Priors               :", paste0(object$prior, collapse = ", "), "\n")
+    cat("Priors               :", object$prior, "\n")
+    cat("Adjusted prob.       :", object$adjprob, "\n")
   }
   if (!is_empty(object$wts, "None") && class(object$wts) == "integer") {
     cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n\n")
@@ -326,8 +269,11 @@ summary.crtree <- function(object, prn = TRUE, ...) {
   }
 
   ## extra output
-  # print(object$model$cptable)
-  # print(summary(object$model))
+  if (cptab)
+    print(object$model$cptable)
+
+  if (modsum) 
+    print(summary(object$model))
 
   if (prn) {
     cat(paste0(capture.output(print(object$model, digits = 4))[c(-1, -2)], collapse = "\n"))
@@ -454,26 +400,23 @@ plot.crtree <- function(
     # )
 
     ## check orientation for branch labels
-    brn <- if (orient == "LR") c("top", "bottom") else c("left", "right")
+    brn <- if (orient %in% c("LR", "RL")) {
+      c("top", "bottom") 
+    } else {
+      c("left", "right")
+    }
     brn <- paste0("<b>", brn, ":</b> ")
 
     ## don't print full labels that don't add information
     df[df$split1_full == df$split1 & df$split2_full == df$split2, c("split1_full", "split2_full")] <- ""
-
-    # df$split1_full <- ifelse(df$split1_full == "", "", paste0("<br>", brn[1], ": ", df$split1_full)) %>%
-    #   ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
-    # df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], ": ", df$split2_full)) %>%
-    #   ifelse(nchar(.) > 45, paste0(strtrim(., 45), " ..."), .)
-
     df$split1_full <- ifelse(df$split1_full == "", "", paste0("<br>", brn[1], gsub(",", ", ", df$split1_full)))
     df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], gsub(",", ", ", df$split2_full)))
 
     ttip_ind <- 1:(nrow(df) / 2)
     ttip <- df[ttip_ind, , drop = FALSE] %>%
       {paste0("click id", .$id, " callback \"<b>n:</b> ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
-      # {paste0("click id", .$id, " callback \"n: ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, "<br>split1: ", .$split1_full, "<br>split2: ", .$split2_full, "\"", collapse = "\n")}
 
-    ## not sure if it is possible to link a tooltip to an edge using mermaid
+    ## try to link a tooltip directly to an edge using mermaid
     ## see https://github.com/rich-iannone/DiagrammeR/issues/267
     # ttip_lev <- filter(df[-ttip_ind,], split1_full != "")
     # if (nrow(ttip_lev) == 0) {
@@ -481,22 +424,11 @@ plot.crtree <- function(
     # } else {
     #   ttip_lev <- paste0("click id", ttip_lev$id, " callback \"", ttip_lev$split1_full, "\"", collapse = "\n")
     # }
-    # print(ttip_lev)
 
     paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to_lab), collapse = "\n"), style, ttip, sep = "\n") %>%
       # DiagrammeR::mermaid(., width = "100%", height = "100%")
-      ## have to use width = width if you want to be able to zoom in on plots
+      # DiagrammeR::mermaid(., width = width, height = "100%")
       DiagrammeR::mermaid(., width = width, height = "100%")
-
-    # htmlwidgets::browsable(
-    #   tagList(
-    #     list(
-    #       tags$head(tags$style("div.mermaidTooltip { text-align: left !important; max-width: 300px !important; }")),
-    #       dgraph
-    #     )
-    #   )
-    # )
-
   } else {
     plot_list <- list()
     if ("prune" %in% plots) {
