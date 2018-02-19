@@ -485,16 +485,17 @@ output$ui_simulater <- renderUI({
         with(tags, table(
           td(numericInput(
             "sim_seed", "Set random seed:",
-            value = state_init("sim_seed", 1234)
+            value = state_init("sim_seed", 1234),
           )),
           td(numericInput(
             "sim_nr", "# sims:", min = 1, max = 10 ^ 6,
-            value = state_init("sim_nr", 1000)
+            value = state_init("sim_nr", 1000),
+            width = "95px"
           ))
         )),
         with(tags, table(
           td(textInput("sim_name", "Simulated data:", state_init("sim_name", "simdat"))),
-          td(numericInput("sim_dec", label = "Decimals:", value = state_init("sim_dec", 4), min = 0, width = "80px"))
+          td(numericInput("sim_dec", label = "Decimals:", value = state_init("sim_dec", 4), min = 0, width = "95px"))
         )),
         checkboxInput("sim_show_plots", "Show plots", state_init("sim_show_plots", FALSE))
       ),
@@ -536,12 +537,13 @@ output$ui_simulater <- renderUI({
           )),
           td(numericInput(
             "rep_nr", "# reps:", min = 1, max = 10 ^ 6,
-            value = state_init("rep_nr", 12)
+            value = state_init("rep_nr", 12),
+            width = "95px"
           ))
         )),
         with(tags, table(
           td(textInput("rep_name", "Repeat data:", state_init("rep_name", "repdat"))),
-          td(numericInput("rep_dec", label = "Decimals:", value = state_init("rep_dec", 4), min = 0, max = 10, width = "80px"))
+          td(numericInput("rep_dec", label = "Decimals:", value = state_init("rep_dec", 4), min = 0, max = 10, width = "95px"))
         )),
         checkboxInput("rep_show_plots", "Show plots", state_init("rep_show_plots", FALSE))
       ),
@@ -706,12 +708,9 @@ rep_plot_height <- function() {
   object <- .repeater()
   if (is.null(object)) return(invisible())
   withProgress(message = "Generating repeated simulation plots", value = 1, {
-    rep_plot_inputs() %>% {
-      .$shiny <- TRUE
-      .
-    } %>% {
-      do.call(plot, c(list(x = object), .))
-    }
+    rep_plot_inputs() %>% 
+      {.$shiny <- TRUE; .} %>% 
+      {do.call(plot, c(list(x = object), .))}
   })
 })
 
