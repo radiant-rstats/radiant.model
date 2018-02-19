@@ -53,7 +53,8 @@ options(
       navbarMenu(
         "Model",
         tags$head(
-          tags$link(rel = "stylesheet", type = "text/css", href = "www_model/style.css")
+          tags$link(rel = "stylesheet", type = "text/css", href = "www_model/style.css"),
+          tags$script(src = "www_model/js/store.js")
         ),
         "Estimate",
         tabPanel("Linear regression (OLS)", uiOutput("regress")),
