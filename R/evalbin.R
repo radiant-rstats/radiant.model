@@ -331,8 +331,12 @@ confusion <- function(dataset, pred, rvar,
   dat <- mutate(dat, profit = as.integer(round(profit, 0)))
 
   for (i in 1:nrow(dat)) {
-    tmp <- dat[i, ]
-    dat$kappa[i] <- psych::cohen.kappa(matrix(with(tmp, c(TN, FP, FN, TP)), ncol = 2))[["kappa"]]
+    tmp <- slice(dat, i)
+    ## sent prof. Revelle an email about warning message on 2/18/2018
+    ## will be fixed in next psych release
+    dat$kappa[i] <- sshhr(
+      psych::cohen.kappa(matrix(with(tmp, c(TN, FP, FN, TP)), ncol = 2))[["kappa"]]
+    )
   }
 
   dat <- select_at(
