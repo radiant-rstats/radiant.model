@@ -161,16 +161,23 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
   if (sum(isNum) == 0) return(dat)
   cn <- names(isNum)[isNum]
 
+  ## remove set_attr calls when dplyr removes and keep attributes appropriately
+  desc <- attr(dat, "description")
+
   if (calc) {
     if (length(wts) == 0) {
-      ms <- summarise_at(dat, .vars = cn, .funs = funs(mean(., na.rm = TRUE)))
+      ms <- summarise_at(dat, .vars = cn, .funs = funs(mean(., na.rm = TRUE))) %>%
+        set_attr("description", NULL)
       if (scale) {
-        sds <- summarise_at(dat, .vars = cn, .funs = funs(sd(., na.rm = TRUE)))
+        sds <- summarise_at(dat, .vars = cn, .funs = funs(sd(., na.rm = TRUE))) %>%
+          set_attr("description", NULL)
       }
     } else {
-      ms <- summarise_at(dat, .vars = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE)))
+      ms <- summarise_at(dat, .vars = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE))) %>%
+        set_attr("description", NULL)
       if (scale) {
-        sds <- summarise_at(dat, .vars = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE)))
+        sds <- summarise_at(dat, .vars = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE))) %>%
+          set_attr("description", NULL)
       }
     }
   } else {
@@ -181,13 +188,16 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
   if (center && scale) {
     mutate_at(dat, .vars = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
       set_attr("ms", ms) %>%
-      set_attr("sds", sds)
+      set_attr("sds", sds) %>%
+      set_attr("description", desc)
   } else if (center) {
     mutate_at(dat, .vars = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
-      set_attr("ms", ms)
+      set_attr("ms", ms) %>%
+      set_attr("description", desc)
   } else if (scale) {
     mutate_at(dat, .vars = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
-      set_attr("sds", sds)
+      set_attr("sds", sds) %>%
+      set_attr("description", desc)
   } else {
     dat
   }
@@ -252,12 +262,14 @@ summary.nn <- function(object, prn = TRUE, ...) {
   } else {
     if (prn) {
       cat("Weights              :\n")
-      oop <- base::options(width = 100)
-      on.exit(base::options(oop), add = TRUE)
-      capture.output(summary(object$model))[-1:-2] %>%
-        gsub("^", "  ", .) %>%
-        paste0(collapse = "\n") %>%
-        cat()
+      out <- capture.output(summary(object$model))[-1:-2]
+      if (nchar(out[1]) > 150) {
+        oop <- base::options(width = 100)
+        on.exit(base::options(oop), add = TRUE)
+      }
+      gsub("^", "  ", out) %>%
+      paste0(collapse = "\n") %>%
+      cat("\n")
     }
   }
 }
