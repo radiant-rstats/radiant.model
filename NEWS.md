@@ -1,4 +1,4 @@
-# CHANGES IN radiant.model 0.9.0.9
+# CHANGES IN radiant.model 0.9.0.10
 
 * Added options to customize tree generated using `crtree` (based on `rpart`)
 * Removed option to set cost and margin in `crtree`
@@ -6,6 +6,7 @@
 * Cleanup of `crtree` code
 * Improved printing of NN weights
 * Option to change font size in NN plots 
+* Keyboard shortcut: Press return when cursor is in textInput to store residuals or predictions
 
 # CHANGES IN radiant.model 0.9.0.8
 
