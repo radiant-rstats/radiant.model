@@ -76,7 +76,7 @@ output$ui_crs <- renderUI({
     ## to store results
     wellPanel(
       tags$table(
-        tags$td(textInput("crs_name", "Store recommendations:", paste0(input$dataset, "_cf"))),
+        tags$td(textInput("crs_store_pred_name", "Store recommendations:", paste0(input$dataset, "_cf"))),
         tags$td(actionButton("crs_store_pred", "Store"), style = "padding-top:30px;")
       )
     ),
@@ -174,7 +174,6 @@ output$crs <- renderUI({
 ## Add reporting option
 observeEvent(input$crs_report, {
   crs <- .crs()
-  inp_out <- list(list(n = 36), "")
   if (is.character(crs)) {
     return(invisible())
   } else if (!any(is.na(crs$act))) {
@@ -184,7 +183,12 @@ observeEvent(input$crs_report, {
     outputs <- "summary"
     figs <- FALSE
   }
-  xcmd <- paste0("# store(result, name = \"", input$crs_name, "\")")
+  if (nrow(crs$recommendations) > 36) {
+    inp_out <- list(list(n = 36), "")
+  } else {
+    inp_out <- list("", "")
+  }
+  xcmd <- paste0("# store(result, name = \"", input$crs_store_pred_name, "\")")
   if (getOption("radiant.local", default = FALSE)) {
     pdir <- getOption("radiant.write_dir", default = "~/")
     xcmd <- paste0(xcmd, "\n# readr::write_csv(result$recommendations, path = \"", pdir, "recommendations_crs.csv\")")
@@ -222,14 +226,14 @@ observeEvent(input$crs_store_pred, {
   if (!is.data.frame(pred$recommendations)) {
     return("No data selected to generate recommendations")
   }
-  store(pred, input$crs_name)
+  store(pred, input$crs_store_pred_name)
 
   ## See https://shiny.rstudio.com/reference/shiny/latest/modalDialog.html
   showModal(
     modalDialog(
       title = "Data Stored",
       span(
-        paste0("Dataset '", input$crs_name, "' was successfully added 
+        paste0("Dataset '", input$crs_store_pred_name, "' was successfully added 
                 to the datasets dropdown. Add code to Report > Rmd or 
                 Report > R to (re)create the dataset by clicking the 
                 report icon on the bottom left of your screen.")

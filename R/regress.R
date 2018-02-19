@@ -361,12 +361,8 @@ summary.regress <- function(object,
 
       cat(test_heading)
       object$model$model[, 1] %>%
-        {
-          sum((. - mean(.)) ^ 2)
-        } %>%
-        {
-          1 - (sub_mod$RSS / .)
-        } %>%
+        {sum((. - mean(.)) ^ 2)} %>%
+        {1 - (sub_mod$RSS / .)} %>%
         round(dec) %>%
         cat("\nR-squared, Model 1 vs 2:", .)
       cat("\nF-statistic:", sub_mod$F[2] %>% round(dec), paste0("df(", sub_mod$Res.Df[1] - sub_mod$Res.Df[2], ",", sub_mod$Res.Df[2], "), p.value ", p.value))
@@ -408,8 +404,7 @@ plot.regress <- function(x, plots = "",
                          shiny = FALSE,
                          custom = FALSE,
                          ...) {
-  object <- x
-  rm(x)
+  object <- x; rm(x)
   if (is.character(object)) return(object)
   if (class(object$model)[1] != "lm") return(object)
 
