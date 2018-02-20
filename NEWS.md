@@ -1,7 +1,7 @@
 # CHANGES IN radiant.model 0.9.0.10
 
 * Added options to customize tree generated using `crtree` (based on `rpart`)
-* Removed option to set cost and margin in `crtree`
+* Fix for tree labels when integers are used
 * Better control of tree plot size in `plot.crtree`
 * Cleanup of `crtree` code
 * Improved printing of NN weights

@@ -117,8 +117,10 @@ crtree <- function(dataset, rvar, evar,
     }
 
     type <- "classification"
+    method <- "class"
   } else {
     type <- "regression"
+    method <- "anova"
   }
 
   ## logicals would get < 0.5 and >= 0.5 otherwise
@@ -137,16 +139,19 @@ crtree <- function(dataset, rvar, evar,
 
   form <- paste(rvar, "~ . ")
 
-  seed %>% gsub("[^0-9]", "", .) %>% 
+  seed %>% gsub("[^0-9]", "", .) %>%
     {if (!is_empty(.)) set.seed(seed)}
+
+  minsplit = ifelse(is_empty(minsplit), 2, minsplit)
+  minbucket = ifelse(is_empty(minbucket), round(minsplit/3), minbucket)
 
   ## make max tree
   # http://stackoverflow.com/questions/24150058/rpart-doesnt-build-a-full-tree-problems-with-cp
   control <- rpart::rpart.control(
-    cp = cp, 
-    xval = K, 
-    minsplit = ifelse(is_empty(minsplit), 2, minsplit), 
-    minbucket = ifelse(is_empty(minbucket), round(minsplit/3), minbucket), 
+    cp = cp,
+    xval = K,
+    minsplit = minsplit,
+    minbucket = minbucket,
   )
 
   parms <- list(split = split)
@@ -165,15 +170,19 @@ crtree <- function(dataset, rvar, evar,
         return("Prior is not a valid probability" %>% add_class("crtree"))
       } else {
         ## prior is applied to the selected level
-        parms[["prior"]] <- c(prior, 1 - prior) %>% 
+        parms[["prior"]] <- c(prior, 1 - prior) %>%
           .[ind]
       }
     }
   }
 
   model <- rpart::rpart(
-    as.formula(form), data = dat,
-    parms = parms, weights = wts, control = control
+    as.formula(form),
+    data = dat,
+    method = method,
+    parms = parms,
+    weights = wts,
+    control = control
   )
 
   if (!is_not(nodes)) {
@@ -189,7 +198,7 @@ crtree <- function(dataset, rvar, evar,
   ## rpart::rpart does not return residuals by default
   model$residuals <- residuals(model, type = "pearson")
 
-  if (is_not(cost) && is_not(margin) && 
+  if (is_not(cost) && is_not(margin) &&
       !is_empty(prior) && !is_empty(adjprob)) {
 
     ## note that this adjustment will reset the prior in the print out
@@ -202,6 +211,10 @@ crtree <- function(dataset, rvar, evar,
 
   ## tree model object does not include the data by default
   model$model <- dat
+
+  ## passing on variable classes for plotting
+  model$var_types <- sapply(dat, class)
+
   rm(dat) ## dat not needed elsewhere
 
   as.list(environment()) %>% add_class(c("crtree", "model"))
@@ -272,7 +285,7 @@ summary.crtree <- function(object, prn = TRUE, cptab = FALSE, modsum = FALSE, ..
   if (cptab)
     print(object$model$cptable)
 
-  if (modsum) 
+  if (modsum)
     print(summary(object$model))
 
   if (prn) {
@@ -356,8 +369,25 @@ plot.crtree <- function(
 
     df$split1 <- nlabs[, 1]
     df$split2 <- nlabs[, 2]
-    df$split1_full <- nlabs[, 1]
-    df$split2_full <- nlabs[, 2]
+
+    isInt <- x$model$var_types %>% {names(.)[. == "integer"]}
+    if (length(isInt) > 0) {
+      # inspired by https://stackoverflow.com/a/35556288/1974918
+      int_labs <- function(x) {
+        paste(
+          gsub("(>=|<)\\s*([0-9]+.*)", "\\1", x), 
+          gsub("(>=|<)\\s*([0-9]+.*)", "\\2", x) %>% 
+          as.numeric() %>%
+          ceiling()
+        )
+      }
+      int_ind <- df$var %in% isInt
+      df[int_ind, "split1"] %<>% int_labs()
+      df[int_ind, "split2"] %<>% int_labs()
+    }
+
+    df$split1_full <- df$split1
+    df$split2_full <- df$split2
 
     bnr <- 20
     df$split1 <- df$split1 %>% ifelse(nchar(.) > bnr, paste0(strtrim(., bnr), " ..."), .)
@@ -401,7 +431,7 @@ plot.crtree <- function(
 
     ## check orientation for branch labels
     brn <- if (orient %in% c("LR", "RL")) {
-      c("top", "bottom") 
+      c("top", "bottom")
     } else {
       c("left", "right")
     }

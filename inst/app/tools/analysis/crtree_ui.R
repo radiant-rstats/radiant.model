@@ -228,14 +228,16 @@ output$ui_crtree <- renderUI({
             "crtree_minsplit", label = "Min obs.:",
             value = state_init("crtree_minsplit", 2)
           ))
-          # tags$td(numericInput(
-          #   "crtree_cost", label = "Cost:",
-          #   value = state_init("crtree_cost", NA)
-          # )),
-          # tags$td(numericInput(
-          #   "crtree_margin", label = "Margin:",
-          #   value = state_init("crtree_margin", NA)
-          # ))
+        ),
+        tags$table(
+          tags$td(numericInput(
+            "crtree_cost", label = "Cost:",
+            value = state_init("crtree_cost", NA)
+          )),
+          tags$td(numericInput(
+            "crtree_margin", label = "Margin:",
+            value = state_init("crtree_margin", NA)
+          ))
         )
       ),
       tags$table(

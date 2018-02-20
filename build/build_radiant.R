@@ -54,7 +54,7 @@ if (grepl("[yY]", win)) {
   # commit to repo
   setwd("~/gh/minicran")
   system("git add --all .")
-  mess <- paste0("radiant package update: ", format(Sys.Date(), format = "%m-%d-%Y"))
+  mess <- paste0("radiant.model package update: ", format(Sys.Date(), format = "%m-%d-%Y"))
   system(paste0("git commit -m '", mess, "'"))
   system("git push")
   setwd("~/gh/radiant.model")
