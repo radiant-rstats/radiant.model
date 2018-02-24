@@ -222,6 +222,7 @@ output$ui_crtree <- renderUI({
           tags$td(numericInput(
             "crtree_prior", label = "Prior:",
             value = state_init("crtree_prior", .5, na.rm = FALSE),
+            min = 0, max = 1, step = 0.1,
             width = "116px"
           )),
           tags$td(numericInput(
