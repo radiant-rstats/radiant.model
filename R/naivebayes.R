@@ -93,9 +93,7 @@ summary.nb <- function(object, dec = 3, ...) {
   cat("\nNr obs               :", formatnr(nrow(object$model$model), dec = 0), "\n")
 
   cat("\nA-priori probabilities:\n")
-  apriori <- object$model$apriori %>% {
-    . / sum(.)
-  }
+  apriori <- object$model$apriori %>% {. / sum(.)}
   names(dimnames(apriori))[1] <- object$rvar
   print(round(apriori, 3))
 
@@ -127,8 +125,7 @@ summary.nb <- function(object, dec = 3, ...) {
 #'
 #' @export
 plot.nb <- function(x, ...) {
-  object <- x
-  rm(x)
+  object <- x; rm(x)
   if (is.character(object)) return(object)
 
   # x <- mutate_all(object$model$model[,-1, drop = FALSE], funs(as_numeric))
@@ -140,7 +137,6 @@ plot.nb <- function(x, ...) {
     ## with two variables one of them would be set to 0 by caret::varImp
     # apply(x, 2, auc, y) %>% {. - min(.)} %>% {. / max(.)} %>% cbind(.,.) %>% set_colnames(levs)
     ## reporting auc for each variable
-    # vimp <- apply(x, 2, auc, y) %>% round(., 3) %>% cbind(.,.) %>% set_colnames(levs)
     vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x), stringsAsFactors = FALSE) %>%
       arrange_at(.vars = "auc")
     vimp$vars <- factor(vimp$vars, levels = vimp$vars)
@@ -238,7 +234,6 @@ predict.nb <- function(object,
     pred_val
   }
 
-  # radiant.model:::predict_model(object, pfun, "nb.predict", pred_data, pred_cmd, conf_lev, se, dec)
   predict_model(object, pfun, "nb.predict", pred_data, pred_cmd, dec = dec)
 }
 

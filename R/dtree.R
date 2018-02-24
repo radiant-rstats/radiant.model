@@ -141,21 +141,6 @@ dtree_parser <- function(yl) {
   }
 }
 
-## Test settings for simulater function, will not be run when sourced
-if (getOption("radiant.testthat", default = FALSE)) {
-  main__ <- function() {
-    # options(radiant.testthat = TRUE)
-    # library(radiant.model)
-    # yl <- readLines("~/gh/radiant.model/tests/dtree/jennylind-variables.yaml") %>% paste0(collapse = "\n")
-    # yl <- readLines("~/gh/radiant.model/tests/dtree/san-carlos-input-vars.yaml") %>% paste0(collapse = "\n")
-    ## would be r_data[[input$dtree_name]]
-    # yl <- dtree_parser(yl)
-    # yl <- yaml::yaml.load(yl)
-    # vars <- yl$variables
-  }
-  main__()
-}
-
 #' Create a decision tree
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
