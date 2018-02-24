@@ -201,11 +201,21 @@ crtree <- function(dataset, rvar, evar,
   if (is_not(cost) && is_not(margin) &&
       !is_empty(prior) && !is_empty(adjprob)) {
 
+    # org_frac <- mean(dat[[rvar]] == lev)
+    # over_frac <- prior
+    p <- model$frame$yval2[, 4]
+    bp <- mean(dat[[rvar]] == lev)
+    
     ## note that this adjustment will reset the prior in the print out
     ## to the original prior using the 'SAS approach'
-    org_frac <- mean(dat[[rvar]] == lev)
-    over_frac <- prior
-    model$frame$yval2[, 4] <- 1 / (1 + (1 / org_frac - 1) / (1 / over_frac - 1) * (1 / model$frame$yval2[, 4] - 1))
+    # model$frame$yval2[, 4] <- 1 / (1 + (1 / bp - 1) / (1 / prior - 1) * (1 / p - 1))
+    # model$frame$yval2[, 5] <- 1 - model$frame$yval2[, 4]
+
+    ## when prior = 0.5 can use pp <- p / (p + (1 - p) * (1 - bp) / bp)
+    ## more generally, use Theorem 2 from "The Foundations of Cost-Sensitive Learning" by Charles Elkan
+    ## in the equation below prior equivalent of b 
+    # model$frame$yval2[, 4] <- bp * (p - p * b) / (b - p * b + bp * p - b * bp)
+    model$frame$yval2[, 4] <- bp * (p - p * prior) / (prior - p * prior + bp * p - prior * bp)
     model$frame$yval2[, 5] <- 1 - model$frame$yval2[, 4]
   }
 

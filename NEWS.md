@@ -1,5 +1,6 @@
-# CHANGES IN radiant.model 0.9.0.10
+# CHANGES IN radiant.model 0.9.0.12
 
+* Use Elkan's formula to adjust probabilities when using `priors` in `crtree` (`rpart`)
 * Added options to customize tree generated using `crtree` (based on `rpart`)
 * Fix for tree labels when integers are used
 * Better control of tree plot size in `plot.crtree`
