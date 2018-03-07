@@ -36,23 +36,12 @@
 #' @importFrom rpart rpart rpart.control prune.rpart
 #'
 #' @export
-crtree <- function(dataset, rvar, evar,
-                   type = "",
-                   lev = "",
-                   wts = "None",
-                   minsplit = 2,
-                   minbucket = round(minsplit/3),
-                   cp = 0.001,
-                   nodes = NA,
-                   K = 10,
-                   seed = 1234,
-                   split = "gini",
-                   prior = NA,
-                   adjprob = TRUE,
-                   cost = NA,
-                   margin = NA,
-                   check = "",
-                   data_filter = "") {
+crtree <- function(
+  dataset, rvar, evar, type = "", lev = "", wts = "None",
+  minsplit = 2, minbucket = round(minsplit/3), cp = 0.001,
+  nodes = NA, K = 10, seed = 1234, split = "gini", prior = NA,
+  adjprob = TRUE, cost = NA, margin = NA, check = "", data_filter = ""
+) {
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -62,16 +51,15 @@ crtree <- function(dataset, rvar, evar,
   ## allow cp to be negative so full tree is built http://stackoverflow.com/q/24150058/1974918
   if (is_empty(cp)) {
     return("Please provide a complexity parameter to split the data." %>% add_class("crtree"))
-  }
-
-  if (!is_empty(nodes) && nodes < 2) {
+  } else if (!is_empty(nodes) && nodes < 2) {
     return("The (maximum) number of nodes in the tree should be larger than or equal to 2." %>% add_class("crtree"))
   }
 
-  if (!is.null(wts) && wts == "None") {
+  vars <- c(rvar, evar)
+
+  if (is_empty(wts, "None")) {
     wts <- NULL
-    vars <- c(rvar, evar)
-  } else {
+  } else if (is_string(wts)) {
     wtsname <- wts
     vars <- c(rvar, evar, wtsname)
   }
@@ -79,15 +67,16 @@ crtree <- function(dataset, rvar, evar,
   dat <- getdata(dataset, vars, filt = data_filter)
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
-  if (!is_not(wts)) {
-    wts <- dat[[wtsname]]
-    dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
-
-    if (!is.integer(wts)) {
-      ## rounding to avoid machine precision differences
-      wts_int <- as.integer(round(wts, .Machine$double.rounding))
-      if (all(round(wts, .Machine$double.rounding) == wts_int)) wts <- wts_int
-      rm(wts_int)
+  if (!is_empty(wts)) {
+    if (exists("wtsname")) {
+      wts <- dat[[wtsname]]
+      dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
+    }
+    if (length(wts) != nrow(dat)) {
+      return(
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dat), dec = 0), ")") %>%
+          add_class("crtree")
+      )
     }
   }
 
@@ -357,7 +346,7 @@ plot.crtree <- function(
     }
 
     if (nrow(df) == 1) {
-      return(paste0("graph LR\n A[Cannot graph singlenode tree]") %>% DiagrammeR::DiagrammeR(.))
+      return(paste0("graph LR\n A[Graph unavailable for single node tree]") %>% DiagrammeR::DiagrammeR(.))
     }
 
     if (type == "class") {
@@ -385,10 +374,10 @@ plot.crtree <- function(
       # inspired by https://stackoverflow.com/a/35556288/1974918
       int_labs <- function(x) {
         paste(
-          gsub("(>=|<)\\s*([0-9]+.*)", "\\1", x), 
-          gsub("(>=|<)\\s*([0-9]+.*)", "\\2", x) %>% 
-          as.numeric() %>%
-          ceiling()
+          gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\1", x), 
+          gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\2", x) %>% 
+            as.numeric() %>%
+            ceiling()
         )
       }
       int_ind <- df$var %in% isInt
@@ -476,6 +465,10 @@ plot.crtree <- function(
         df <- data.frame(x$unpruned$cptable, stringsAsFactors = FALSE)
       } else {
         df <- data.frame(x$model$cptable, stringsAsFactors = FALSE)
+      }
+
+      if (nrow(df) < 2) {
+        return("Evaluation of tree pruning not available for single node tree")
       }
 
       # df$CP <- sqrt(df$CP * c(Inf, head(df$CP, -1))) # %>% round(5)
