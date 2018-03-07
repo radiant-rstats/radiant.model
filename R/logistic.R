@@ -41,9 +41,9 @@ logistic <- function(dataset, rvar, evar,
 
   vars <- c(rvar, evar)
 
-  if (!is.null(wts) && wts == "None") {
+  if (is_empty(wts, "None")) {
     wts <- NULL
-  } else {
+  } else if (is_string(wts)) {
     wtsname <- wts
     vars <- c(rvar, evar, wtsname)
   }
@@ -63,21 +63,22 @@ logistic <- function(dataset, rvar, evar,
     }
   }
 
-  if (!is.null(wts)) {
-    wts <- dat[[wtsname]]
+  if (!is_empty(wts)) {
+    if (exists("wtsname")) {
+      wts <- dat[[wtsname]]
+      dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
+    }
+    if (length(wts) != nrow(dat)) {
+      return(
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dat), dec = 0), ")") %>%
+          add_class("logistic")
+      )
+    }
     if (!is.integer(wts)) {
-      ## rounding to avoid machine precision differences
-      wts_int <- sshhr(as.integer(round(wts, .Machine$double.rounding)))
-      # if (all(round(wts,.Machine$double.rounding) == wts_int)) {
-      if (isTRUE(all.equal(wts, wts_int, check.attributes = FALSE))) {
-        wts <- wts_int
-      } else {
-        ## if wts is a double use robust estimation
+      if (min(wts) < 1) {
         check <- union(check, "robust")
       }
-      rm(wts_int)
     }
-    dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
   }
 
   if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
@@ -154,9 +155,11 @@ logistic <- function(dataset, rvar, evar,
 
   isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct]))
-      coeff$`  ` %<>% gsub(i, paste0(i, "|"), .) %>% gsub("\\|\\|", "\\|", .)
-
+    for (i in names(isFct[isFct])) {
+      coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+        gsub(paste0(":", i), paste0(":", i, "|"), .) %>% 
+        gsub("\\|\\|", "\\|", .)
+    }
     rm(i, isFct)
   }
 
@@ -253,10 +256,7 @@ summary.logistic <- function(object,
   p.small <- coeff$p.value < .001
   coeff[, 2:6] %<>% formatdf(dec)
   coeff$p.value[p.small] <- "< .001"
-  coeff %>% {
-    .$OR[1] <- ""
-    .
-  } %>% print(row.names = FALSE)
+  coeff %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
   logit_fit <- glance(object$model)
@@ -264,7 +264,8 @@ summary.logistic <- function(object,
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
   logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>%
     round(dec)
-  if (is.integer(object$wts)) {
+  # if (is.integer(object$wts)) {
+  if (!is_empty(object$wts) && min(object$wts) >= 1) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
@@ -273,9 +274,7 @@ summary.logistic <- function(object,
 
   ## chi-squared test of overall model fit (p-value) - http://www.ats.ucla.edu/stat/r/dae/logit.htm
   chi_pval <- with(object$model, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
-  chi_pval %<>% {
-    if (. < .001) "< .001" else round(., dec)
-  }
+  chi_pval %<>% {if (. < .001) "< .001" else round(., dec)}
 
   cat("\nPseudo R-squared:", logit_fit$r2)
   cat(paste0("\nLog-likelihood: ", logit_fit$logLik, ", AIC: ", logit_fit$AIC, ", BIC: ", logit_fit$BIC))
@@ -472,9 +471,8 @@ plot.logistic <- function(x,
   model$.fitted <- predict(x$model, type = "response")
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
-  model$.actual <- as_numeric(x$rv) %>% {
-    . - max(.) + 1
-  }
+  model$.actual <- as_numeric(x$rv) %>%
+    {. - max(.) + 1}
 
   rvar <- x$rvar
   evar <- x$evar
