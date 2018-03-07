@@ -264,7 +264,6 @@ summary.logistic <- function(object,
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
   logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>%
     round(dec)
-  # if (is.integer(object$wts)) {
   if (!is_empty(object$wts) && min(object$wts) >= 1) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)

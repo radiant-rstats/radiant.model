@@ -10,7 +10,7 @@ logit_sum_check <- c(
   "Odds" = "odds"
 )
 logit_plots <- c(
-  "None" = "", "Distribution" = "dist",
+  "None" = "none", "Distribution" = "dist",
   "Correlations" = "correlations", "Scatter" = "scatter",
   "Model fit" = "fit", "Coefficient plot" = "coef"
 )
@@ -210,6 +210,7 @@ output$ui_logit_int <- renderUI({
 ## reset prediction settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "logit_predict", selected = "none")
+  updateSelectInput(session = session, inputId = "logit_plots", selected = "none")
 })
 
 output$ui_logit_predict_plot <- renderUI({
@@ -305,9 +306,9 @@ output$ui_logistic <- renderUI({
         ## Using && to check that input.logit_sum_check is not null (must be &&)
         conditionalPanel(
           condition = "(input.logit_sum_check && (input.logit_sum_check.indexOf('odds') >= 0 |
-                         input.logit_sum_check.indexOf('confint') >= 0)) |
-                         input.logit_plots == 'coef' |
-                         input.tabs_logistic == 'Predict'",
+                        input.logit_sum_check.indexOf('confint') >= 0)) |
+                        input.logit_plots == 'coef' |
+                        input.tabs_logistic == 'Predict'",
           sliderInput(
             "logit_conf_lev", "Confidence level:", min = 0.80,
             max = 0.99, value = state_init("logit_conf_lev", .95),
@@ -332,7 +333,7 @@ output$ui_logistic <- renderUI({
 
 logit_plot <- reactive({
   if (logit_available() != "available") return()
-  if (is_empty(input$logit_plots)) return()
+  if (is_empty(input$logit_plots, "none")) return()
 
   plot_height <- 500
   plot_width <- 650
@@ -441,20 +442,19 @@ logit_available <- reactive({
   if (logit_available() != "available") {
     return(logit_available())
   }
-  if (is_empty(input$logit_plots)) {
+  if (is_empty(input$logit_plots, "none")) {
     return("Please select a logistic regression plot from the drop-down menu")
   }
   if (not_pressed(input$logit_run)) {
     return("** Press the Estimate button to estimate the model **")
   }
 
-  pinp <- logit_plot_inputs()
-  pinp$shiny <- TRUE
-
   if (input$logit_plots == "correlations") {
-    capture_plot(do.call(plot, c(list(x = .logistic()), pinp)))
+    capture_plot(do.call(plot, c(list(x = .logistic()), logit_plot_inputs())))
   } else {
-    do.call(plot, c(list(x = .logistic()), pinp))
+    withProgress(message = "Generating plots", value = 1, {
+      do.call(plot, c(list(x = .logistic()), logit_plot_inputs(), shiny = TRUE))
+    })
   }
 })
 
@@ -499,7 +499,7 @@ observeEvent(input$logistic_report, {
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(logit_sum_inputs(), logit_sum_args[-1])
   figs <- FALSE
-  if (!is_empty(input$logit_plots)) {
+  if (!is_empty(input$logit_plots, "none")) {
     inp_out[[2]] <- clean_args(logit_plot_inputs(), logit_plot_args[-1])
     inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
@@ -523,7 +523,7 @@ observeEvent(input$logistic_report, {
       }
       xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = ", name, ")")
     }
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
+    # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
 
     if (input$logit_pred_plot && !is_empty(input$logit_xvar)) {
       inp_out[[3 + figs]] <- clean_args(logit_pred_plot_inputs(), logit_pred_plot_args[-1])
