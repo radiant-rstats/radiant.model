@@ -17,9 +17,12 @@
 evalreg <- function(dataset, pred, rvar,
                     train = "",
                     data_filter = "") {
+
   if (!train %in% c("", "All") && is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("confusion"))
   }
+
+  # Add an option to exponentiate predictions in case of log regression
 
   dat_list <- list()
   vars <- c(pred, rvar)
@@ -47,6 +50,7 @@ evalreg <- function(dataset, pred, rvar,
       data.frame(
         Type = rep(i, length(pred)),
         Predictor = pred,
+        n = formatnr(nrow(dat[pred]), dec = 0),
         Rsq = cor(rv, dat[pred]) ^ 2 %>% .[1, ],
         RMSE = summarise_at(dat, .vars = pred, .funs = funs(mean((rv - .) ^ 2, na.rm = TRUE) %>% sqrt())) %>% unlist(),
         MAE = summarise_at(dat, .vars = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist(),
