@@ -4,4 +4,4 @@
 ^build$
 ^\.travis\.yml$
 cran-comments.md
-radiant.sublime-project
+^.*\.sublime-project
