@@ -21,13 +21,11 @@
 #' result <- evalbin("titanic", c("age","fare"), "survived")
 #'
 #' @export
-evalbin <- function(dataset, pred, rvar,
-                    lev = "",
-                    qnt = 10,
-                    cost = 1,
-                    margin = 2,
-                    train = "",
-                    data_filter = "") {
+evalbin <- function(
+  dataset, pred, rvar, lev = "",
+  qnt = 10, cost = 1, margin = 2,
+  train = "", data_filter = ""
+) {
 
   ## in case no inputs were provided
   if (is.na(cost)) cost <- 0
@@ -96,10 +94,6 @@ evalbin <- function(dataset, pred, rvar,
         mutate(!! pred[j] := radiant.data::xtile(.data[[pred[j]]], n = qnt, rev = TRUE)) %>%
         setNames(c(qnt_name, rvar)) %>%
         group_by_at(.vars = qnt_name) %>%
-        # summarise_(.dots = c(
-        #   nr_obs = "n()",
-        #   nr_resp = paste0("sum(",rvar,")")
-        # )) %>%
         summarise(
           nr_obs = n(),
           nr_resp = sum(.data[[rvar]])
@@ -108,12 +102,11 @@ evalbin <- function(dataset, pred, rvar,
           resp_rate = nr_resp / nr_obs,
           gains = nr_resp / tot_resp
         ) %>%
-        {
-          if (first(.$resp_rate) < last(.$resp_rate)) {
-            mutate_all(., funs(rev))
-          } else {
-            .
-          }
+        {if (first(.$resp_rate) < last(.$resp_rate)) {
+           mutate_all(., funs(rev))
+         } else {
+           .
+         }
         } %>%
         mutate(
           profit = margin * cumsum(nr_resp) - cost * cumsum(nr_obs),
@@ -139,8 +132,9 @@ evalbin <- function(dataset, pred, rvar,
   names(prof_list) <- names(auc_list)
 
   list(
-    dat = dat, dataset = dataset, data_filter = data_filter, train = train,
-    pred = pred, rvar = rvar, lev = lev, qnt = qnt, cost = cost, margin = margin
+    dat = dat, dataset = dataset, data_filter = data_filter, 
+    train = train, pred = pred, rvar = rvar, lev = lev, 
+    qnt = qnt, cost = cost, margin = margin
   ) %>% add_class("evalbin")
 }
 
@@ -201,13 +195,12 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 #' @importFrom psych cohen.kappa
 #'
 #' @export
-confusion <- function(dataset, pred, rvar,
-                      lev = "",
-                      cost = 1,
-                      margin = 2,
-                      train = "",
-                      data_filter = "",
-                      ...) {
+confusion <- function(
+  dataset, pred, rvar, lev = "",
+  cost = 1, margin = 2, 
+  train = "", data_filter = "",
+  ...
+) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
@@ -380,7 +373,7 @@ summary.confusion <- function(object, ...) {
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
   cat("\n")
 
-  print(formatdf(as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE), 3), row.names = FALSE)
+  print(formatdf(as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE), 3, mark = ","), row.names = FALSE)
   cat("\n")
   print(formatdf(as.data.frame(object$dat[, c(1, 2, 12:18)], stringsAsFactors = FALSE), 3, mark = ","), row.names = FALSE)
 }
@@ -399,11 +392,11 @@ summary.confusion <- function(object, ...) {
 #' @seealso \code{\link{summary.confusion}} to summarize results
 #'
 #' @export
-plot.confusion <- function(x,
-                           vars = c("kappa", "index", "ROME", "AUC"),
-                           scale_y = TRUE,
-                           size = 13,
-                           ...) {
+plot.confusion <- function(
+  x, vars = c("kappa", "index", "ROME", "AUC"),
+  scale_y = TRUE, size = 13, ...
+) {
+
   object <- x; rm(x)
   if (is.character(object) || is.null(object)) return(invisible())
 
@@ -461,7 +454,11 @@ plot.confusion <- function(x,
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
-plot.evalbin <- function(x, plots = c("lift", "gains"), size = 13, shiny = FALSE, custom = FALSE, ...) {
+plot.evalbin <- function(
+  x, plots = c("lift", "gains"), 
+  size = 13, shiny = FALSE, 
+  custom = FALSE, ...
+) {
 
   object <- x; rm(x)
   if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||

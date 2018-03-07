@@ -14,9 +14,10 @@
 #' @seealso \code{\link{plot.evalreg}} to plot results
 #'
 #' @export
-evalreg <- function(dataset, pred, rvar,
-                    train = "",
-                    data_filter = "") {
+evalreg <- function(
+  dataset, pred, rvar,
+  train = "", data_filter = ""
+) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("confusion"))
@@ -46,16 +47,16 @@ evalreg <- function(dataset, pred, rvar,
 
     ## see http://stackoverflow.com/a/35617817/1974918 about extracting a row
     ## from a tbl_df
-    pdat[[i]] <-
-      data.frame(
-        Type = rep(i, length(pred)),
-        Predictor = pred,
-        n = formatnr(nrow(dat[pred]), dec = 0),
-        Rsq = cor(rv, dat[pred]) ^ 2 %>% .[1, ],
-        RMSE = summarise_at(dat, .vars = pred, .funs = funs(mean((rv - .) ^ 2, na.rm = TRUE) %>% sqrt())) %>% unlist(),
-        MAE = summarise_at(dat, .vars = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist(),
-        stringsAsFactors = FALSE
-      )
+    pdat[[i]] <- data.frame(
+      Type = rep(i, length(pred)),
+      Predictor = pred,
+      n = nrow(dat[pred]),
+      # Rsq = cor(rv, dat[pred])^2 %>% .[1, ],
+      Rsq = cor(rv, select_at(dat, pred))^2 %>% .[1, ],
+      RMSE = summarise_at(dat, .vars = pred, .funs = funs(mean((rv - .) ^ 2, na.rm = TRUE) %>% sqrt())) %>% unlist(),
+      MAE = summarise_at(dat, .vars = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist(),
+      stringsAsFactors = FALSE
+    )
   }
 
   dat <- bind_rows(pdat) %>% as.data.frame(stringsAsFactors = FALSE)
@@ -85,7 +86,7 @@ summary.evalreg <- function(object, ...) {
   cat("Results for :", object$train, "\n")
   cat("Predictors  :", paste0(object$pred, collapse = ", "), "\n")
   cat("Response    :", object$rvar, "\n\n")
-  print(formatdf(object$dat), row.names = FALSE)
+  print(formatdf(object$dat, mark = ","), row.names = FALSE)
 }
 
 #' Plot method for the evalreg function
