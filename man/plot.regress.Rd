@@ -5,7 +5,7 @@
 \title{Plot method for the regress function}
 \usage{
 \method{plot}{regress}(x, plots = "", lines = "", conf_lev = 0.95,
-  intercept = FALSE, shiny = FALSE, custom = FALSE, ...)
+  intercept = FALSE, nrobs = -1, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{regress}}}
@@ -17,6 +17,8 @@
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 
 \item{intercept}{Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default}
+
+\item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

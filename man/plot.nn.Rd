@@ -4,8 +4,8 @@
 \alias{plot.nn}
 \title{Plot method for the nn function}
 \usage{
-\method{plot}{nn}(x, plots = "garson", size = 12, shiny = FALSE,
-  custom = FALSE, ...)
+\method{plot}{nn}(x, plots = "garson", size = 12, nrobs = -1,
+  shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{nn}}}
@@ -13,6 +13,8 @@
 \item{plots}{Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure}
 
 \item{size}{Font size used}
+
+\item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

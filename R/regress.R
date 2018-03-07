@@ -22,10 +22,10 @@
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-regress <- function(dataset, rvar, evar,
-                    int = "",
-                    check = "",
-                    data_filter = "") {
+regress <- function(
+  dataset, rvar, evar, int = "",
+  check = "", data_filter = ""
+) {
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -103,7 +103,6 @@ regress <- function(dataset, rvar, evar,
 
   if ("robust" %in% check) {
     vcov <- sandwich::vcovHC(model, type = "HC1")
-    # coeff <- lmtest::coeftest(model, vcov) %>% tidy
     coeff$std.error <- sqrt(diag(vcov))
     coeff$t.value <- coef(model) / coeff$std.error
     coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dat) - nrow(coeff), lower.tail = FALSE)
@@ -113,9 +112,11 @@ regress <- function(dataset, rvar, evar,
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
   isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct]))
-      coeff$`  ` %<>% gsub(i, paste0(i, "|"), .) %>% gsub("\\|\\|", "\\|", .)
-
+    for (i in names(isFct[isFct])) {
+      coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+        gsub(paste0(":", i), paste0(":", i, "|"), .) %>% 
+        gsub("\\|\\|", "\\|", .)
+    }
     rm(i, isFct)
   }
 
@@ -149,12 +150,11 @@ regress <- function(dataset, rvar, evar,
 #' @importFrom car vif linearHypothesis
 #'
 #' @export
-summary.regress <- function(object,
-                            sum_check = "",
-                            conf_lev = .95,
-                            test_var = "",
-                            dec = 3,
-                            ...) {
+summary.regress <- function(
+  object, sum_check = "", conf_lev = .95,
+  test_var = "", dec = 3, ...
+) {
+  
   if (is.character(object)) return(object)
   if (class(object$model)[1] != "lm") return(object)
 
@@ -289,7 +289,6 @@ summary.regress <- function(object,
         cnfint <- confint
       }
 
-      # confint(object$model, level = conf_lev) %>%
       cnfint(object$model, level = conf_lev, dist = "t") %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
@@ -379,6 +378,7 @@ summary.regress <- function(object,
 #' @param lines Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line","loess")
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
+#' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
@@ -396,20 +396,30 @@ summary.regress <- function(object,
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{predict.regress}} to generate predictions
 #'
+#' @importFrom dplyr sample_n
+#'
 #' @export
-plot.regress <- function(x, plots = "",
-                         lines = "",
-                         conf_lev = .95,
-                         intercept = FALSE,
-                         shiny = FALSE,
-                         custom = FALSE,
-                         ...) {
+plot.regress <- function(
+  x, plots = "", lines = "", 
+  conf_lev = .95, intercept = FALSE,
+  nrobs = -1, shiny = FALSE, 
+  custom = FALSE, ...
+) {
+
   object <- x; rm(x)
   if (is.character(object)) return(object)
-  if (class(object$model)[1] != "lm") return(object)
 
   ## checking object size
-  model <- ggplot2::fortify(object$model)
+  if (inherits(object$model, "lm")) {
+    model <- ggplot2::fortify(object$model)
+  } else if (inherits(object, "nn")) {
+    model <- object$model$model
+    model$pred <- predict(object, object$model$model)$Prediction
+    model <- lm(formula(paste0(object$rvar, " ~ ", "pred")), data = model) %>%
+      ggplot2::fortify()
+  } else {
+    return(object)
+  }
 
   rvar <- object$rvar
   evar <- object$evar
@@ -417,6 +427,13 @@ plot.regress <- function(x, plots = "",
 
   flines <- sub("loess", "", lines) %>% sub("line", "", .)
   nlines <- sub("jitter", "", lines)
+
+  if (any(plots %in% c("dashboard", "scatter", "resid_pred")) && !is_empty(nrobs)) {
+    nrobs <- as.integer(nrobs)
+    if (nrobs > 0 && nrobs < nrow(model)) {
+      model <- sample_n(model, nrobs, replace = FALSE)
+    }
+  }
 
   nrCol <- 2
   plot_list <- list()
@@ -577,13 +594,12 @@ plot.regress <- function(x, plots = "",
 #' @seealso \code{\link{plot.regress}} to plot results
 #'
 #' @export
-predict.regress <- function(object,
-                            pred_data = "",
-                            pred_cmd = "",
-                            conf_lev = 0.95,
-                            se = TRUE,
-                            dec = 3,
-                            ...) {
+predict.regress <- function(
+  object, pred_data = "", pred_cmd = "",
+  conf_lev = 0.95, se = TRUE, dec = 3,
+  ...
+) {
+
   if (is.character(object)) return(object)
   if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
 
@@ -635,13 +651,12 @@ predict.regress <- function(object,
 #' @importFrom radiant.data set_attr
 #'
 #' @export
-predict_model <- function(object, pfun, mclass,
-                          pred_data = "",
-                          pred_cmd = "",
-                          conf_lev = 0.95,
-                          se = FALSE,
-                          dec = 3,
-                          ...) {
+predict_model <- function(
+  object, pfun, mclass,
+  pred_data = "", pred_cmd = "",
+  conf_lev = 0.95, se = FALSE,
+  dec = 3, ...
+) {
 
   if (is.character(object)) return(object)
   if (is_empty(pred_data) && is_empty(pred_cmd)) {
@@ -729,19 +744,14 @@ predict_model <- function(object, pfun, mclass,
       pred_cmd <- gsub("\"", "\'", pred_cmd) %>%
         gsub("\\s+", "", .) %>%
         gsub("<-", "=", .)
-      vars <-
-        strsplit(pred_cmd, ";")[[1]] %>%
+      vars <- strsplit(pred_cmd, ";")[[1]] %>%
         strsplit(., "=") %>%
         sapply("[", 1)
-      # dots <- strsplit(pred_cmd, ";")[[1]] %>% gsub(" ","",.)
-      # for (i in seq_along(dots))
-      #   dots[[i]] <- sub(paste0(vars[[i]],"="),"",dots[[i]])
 
       dots <- rlang::parse_exprs(pred_cmd) %>%
         set_names(vars)
 
       pred <- try(mutate(pred, !!! dots), silent = TRUE)
-      # pred <- try(mutate_(pred, .dots = setNames(dots, vars)), silent = TRUE)
       if (is(pred, "try-error")) {
         return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
@@ -750,7 +760,7 @@ predict_model <- function(object, pfun, mclass,
       pred_type <- "data"
     }
 
-    pred %<>% na.omit()
+    na.omit(pred)
   }
 
   if ("crtree" %in% class(object)) {
@@ -827,6 +837,7 @@ predict_model <- function(object, pfun, mclass,
 #'
 #' @export
 print_predict_model <- function(x, ..., n = 10, header = "") {
+
   class(x) <- "data.frame"
   data_filter <- attr(x, "data_filter")
   vars <- attr(x, "vars")
@@ -910,12 +921,11 @@ print.regress.predict <- function(x, ..., n = 10)
 #' @seealso \code{\link{predict.logistic}} to generate predictions
 #'
 #' @export
-plot.model.predict <- function(x, xvar = "",
-                               facet_row = ".",
-                               facet_col = ".",
-                               color = "none",
-                               conf_lev = .95,
-                               ...) {
+plot.model.predict <- function(
+  x, xvar = "", facet_row = ".",
+  facet_col = ".", color = "none",
+  conf_lev = .95, ...
+) {
 
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
@@ -998,8 +1008,11 @@ plot.model.predict <- function(x, xvar = "",
 #' @param name Variable name assigned to the residuals or predicted values
 #'
 #' @export
-store_reg <- function(object, data = object$dataset,
-                      type = "residuals", name = paste0(type, "_reg")) {
+store_reg <- function(
+  object, data = object$dataset,
+  type = "residuals", name = paste0(type, "_reg")
+) {
+
   if (type == "residuals") {
     store.model(object, data = data, name = name)
   } else {
@@ -1022,7 +1035,12 @@ store_reg <- function(object, data = object$dataset,
 #'   store(name = "pred, pred_low, pred_high") %>% head
 #'
 #' @export
-store.model.predict <- function(object, ..., data = attr(object, "pred_data"), name = "prediction") {
+store.model.predict <- function(
+  object, ..., 
+  data = attr(object, "pred_data"), 
+  name = "prediction"
+) {
+
   if (is_empty(name)) name <- "prediction"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
@@ -1120,12 +1138,13 @@ var_check <- function(ev, cn, intv = "") {
 #'
 #' @export
 test_specs <- function(test_var, int) {
-  if ({
-    int %>% strsplit(":") %>% unlist()
-  } %in% test_var %>% any()) {
+  if (unlist(strsplit(int, ":")) %in% test_var %>% any()) {
     cat("Interaction terms contain variables specified for testing.\nRelevant interaction terms are included in the requested test.\n\n")
-    for (i in test_var) test_var <- c(test_var, int[grep(i, int)])
-    test_var <- unique(test_var)
+    for (tv in test_var) {
+      test_var <- c(test_var, int[grep(tv, int)])
+    }
+    unique(test_var)
+  } else {
+    test_var
   }
-  test_var
 }

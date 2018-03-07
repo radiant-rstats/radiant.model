@@ -28,33 +28,28 @@
 #' @importFrom nnet nnet
 #'
 #' @export
-nn <- function(dataset, rvar, evar,
-               type = "classification",
-               lev = "",
-               size = 1,
-               decay = .5,
-               wts = "None",
-               seed = NA,
-               check = "standardize",
-               data_filter = "") {
+nn <- function(
+  dataset, rvar, evar,
+  type = "classification", lev = "",
+  size = 1, decay = .5, wts = "None",
+  seed = NA, check = "standardize", 
+  data_filter = ""
+) {
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("nn"))
-  }
-
-  if (is_empty(size) || size < 1) {
+  } else if (is_empty(size) || size < 1) {
     return("Size should be larger than or equal to 1." %>% add_class("nn"))
-  }
-
-  if (is_empty(decay) || decay < 0) {
+  } else if (is_empty(decay) || decay < 0) {
     return("Decay should be larger than or equal to 0." %>% add_class("nn"))
   }
 
-  if (!is.null(wts) && wts == "None") {
+  vars <- c(rvar, evar)
+
+  if (is_empty(wts, "None")) {
     wts <- NULL
-    vars <- c(rvar, evar)
-  } else {
+  } else if (is_string(wts)) {
     wtsname <- wts
     vars <- c(rvar, evar, wtsname)
   }
@@ -62,9 +57,17 @@ nn <- function(dataset, rvar, evar,
   dat <- getdata(dataset, vars, filt = data_filter)
   if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
-  if (!is.null(wts)) {
-    wts <- dat[[wtsname]]
-    dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
+  if (!is_empty(wts)) {
+    if (exists("wtsname")) {
+      wts <- dat[[wtsname]]
+      dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
+    }
+    if (length(wts) != nrow(dat)) {
+      return(
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dat), dec = 0), ")") %>%
+          add_class("nn")
+      )
+    }
   }
 
   if (any(summarise_all(dat, .funs = funs(does_vary)) == FALSE)) {
@@ -94,7 +97,9 @@ nn <- function(dataset, rvar, evar,
 
   ## standardize data to limit stability issues ...
   # http://stats.stackexchange.com/questions/23235/how-do-i-improve-my-neural-network-stability
-  if ("standardize" %in% check) dat <- scaledf(dat, wts = wts)
+  if ("standardize" %in% check) {
+    dat <- scaledf(dat, wts = wts)
+  }
 
   vars <- evar
   ## in case : is used
@@ -126,8 +131,11 @@ nn <- function(dataset, rvar, evar,
   coefnames <- model$coefnames
   isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
   if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct]))
-      coefnames <- gsub(i, paste0(i, "|"), coefnames) %>% gsub("\\|\\|", "\\|", .)
+    for (i in names(isFct[isFct])) {
+      coefnames <- gsub(paste0("^", i), paste0(i, "|"), coefnames) %>% 
+        gsub(paste0(":", i), paste0(":", i, "|"), .) %>% 
+        gsub("\\|\\|", "\\|", .)
+    }
     rm(i, isFct)
   }
 
@@ -155,15 +163,17 @@ nn <- function(dataset, rvar, evar,
 #' @seealso \code{\link{copy_attr}} to copy attributes from a traning to a validation dataset
 #'
 #' @export
-scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc = TRUE) {
-  # isNum <- sapply(dat, function(x) is.numeric(x) || is.logical(x))
+scaledf <- function(
+  dat, center = TRUE, scale = TRUE, 
+  sf = 2, wts = NULL, calc = TRUE
+) {
+
   isNum <- sapply(dat, function(x) is.numeric(x))
   if (sum(isNum) == 0) return(dat)
   cn <- names(isNum)[isNum]
 
   ## remove set_attr calls when dplyr removes and keep attributes appropriately
   desc <- attr(dat, "description")
-
   if (calc) {
     if (length(wts) == 0) {
       ms <- summarise_at(dat, .vars = cn, .funs = funs(mean(., na.rm = TRUE))) %>%
@@ -221,8 +231,8 @@ scaledf <- function(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc =
 #'
 #' @export
 summary.nn <- function(object, prn = TRUE, ...) {
-  if (is.character(object)) return(object)
 
+  if (is.character(object)) return(object)
   cat("Neural Network\n")
   if (object$type == "classification") {
     cat("Activation function  : Logistic (classification)")
@@ -251,7 +261,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
   nweights <- length(object$model$wts)
   cat("Network              :", network, "with", nweights, "weights\n")
 
-  if (!is_empty(object$wts, "None") && class(object$wts) == "integer") {
+  if (!is_empty(object$wts, "None") && min(object$wts) >= 1) {
     cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n")
@@ -282,6 +292,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
 #' @param size Font size used
+#' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
@@ -297,18 +308,22 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @importFrom graphics par
 #'
 #' @export
-plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALSE, ...) {
-  object <- x
-  rm(x)
+plot.nn <- function(
+  x, plots = "garson", size = 12, nrobs = -1,
+  shiny = FALSE, custom = FALSE, ...
+) {
+
+  object <- x; rm(x)
   if (is.character(object)) return(object)
   plot_list <- list()
+  ncol <- 1
 
   if ("olden" %in% plots || "olsen" %in% plots) { ## legacy for typo
     plot_list[["olsen"]] <- NeuralNetTools::olden(object$model, x_lab = object$coefnames, cex_val = 4) +
       coord_flip() +
       theme_set(theme_gray(base_size = size)) +
       theme(legend.position = "none") +
-      labs(title = "Olden plot of variable importance")
+      labs(title = paste0("Olden plot of variable importance (size = ", object$size, ", decay = ", object$decay, ")"))
   }
 
   if ("garson" %in% plots) {
@@ -316,7 +331,7 @@ plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALS
       coord_flip() +
       theme_set(theme_gray(base_size = size)) +
       theme(legend.position = "none") +
-      labs(title = "Garson plot of variable importance")
+      labs(title = paste0("Garson plot of variable importance (size = ", object$size, ", decay = ", object$decay, ")"))
   }
 
   if ("net" %in% plots) {
@@ -324,6 +339,11 @@ plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALS
     mar <- par(mar = c(0, 4.1, 0, 2.1))
     on.exit(par(mar = mar$mar))
     return(do.call(NeuralNetTools::plotnet, list(mod_in = object$model, x_names = object$coefnames, cex_val = size / 16)))
+  }
+
+  if (object$type == "regression" && "dashboard" %in% plots) {
+    plot_list <- plot.regress(object, plots = "dashboard", lines = "line", nrobs = nrobs, custom = TRUE)
+    ncol <- 2
   }
 
   if (length(plot_list) > 0) {
@@ -335,7 +355,7 @@ plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALS
       }
     }
 
-    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
+    sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = ncol)) %>% {
       if (shiny) . else print(.)
     }
   }
@@ -346,10 +366,8 @@ plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALS
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{nn}}
-#' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
+#' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)
-#' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
-#' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
@@ -358,19 +376,18 @@ plot.nn <- function(x, plots = "garson", size = 12, shiny = FALSE, custom = FALS
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' result <- nn("diamonds", "price", "carat:color", type = "regression")
 #' predict(result, pred_cmd = "carat = 1:3")
-#' predict(result, pred_data = "diamonds") %>% head
+#' predict(result, pred_data = "diamonds") %>% head()
 #'
 #' @seealso \code{\link{nn}} to generate the result
 #' @seealso \code{\link{summary.nn}} to summarize results
 #'
 #' @export
-predict.nn <- function(object,
-                        pred_data = "",
-                        pred_cmd = "",
-                        conf_lev = 0.95,
-                        se = FALSE,
-                        dec = 3,
-                        ...) {
+predict.nn <- function(
+  object, pred_data = "",
+  pred_cmd = "", dec = 3, 
+  ...
+) {
+
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
@@ -390,7 +407,7 @@ predict.nn <- function(object,
     pred_val
   }
 
-  predict_model(object, pfun, "nn.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "nn.predict", pred_data, pred_cmd, conf_lev = 0.95, se = FALSE, dec)
 }
 
 #' Print method for predict.nn

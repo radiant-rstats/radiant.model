@@ -1,4 +1,10 @@
-nn_plots <- c("None" = "", "Network" = "net", "Olden" = "olden", "Garson" = "garson")
+nn_plots <- c(
+  "None" = "none", 
+  "Network" = "net", 
+  "Olden" = "olden", 
+  "Garson" = "garson",
+  "Dashboard" = "dashboard"
+)
 
 ## list of function arguments
 nn_args <- as.list(formals(nn))
@@ -158,13 +164,43 @@ output$ui_nn_store_res_name <- renderUI({
   )
 })
 
-## reset prediction settings when the dataset changes
+## reset prediction and plot settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "nn_predict", selected = "none")
+  updateSelectInput(session = session, inputId = "nn_plots", selected = "none")
+})
+
+## reset prediction settings when the model type changes
+observeEvent(input$nn_type, {
+  updateSelectInput(session = session, inputId = "nn_predict", selected = "none")
+  updateSelectInput(session = session, inputId = "nn_plots", selected = "none")
 })
 
 output$ui_nn_predict_plot <- renderUI({
   predict_plot_controls("nn")
+})
+
+output$ui_nn_plots <- renderUI({
+  req(input$nn_type)
+  if (input$nn_type != "regression") {
+    nn_plots <- nn_plots[-5]
+  }
+  selectInput(
+    "nn_plots", "Plots:", choices = nn_plots,
+    selected = state_single("nn_plots", nn_plots)
+  )
+})
+
+output$ui_nn_nrobs <- renderUI({
+  nrobs <- nrow(.getdata())
+  req(nrobs > 1000)
+  choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
+    .[. < nrobs]
+  selectInput(
+    "nn_nrobs", "Number of data points plotted:", 
+    choices = choices,
+    selected = state_single("nn_nrobs", choices, 1000)
+  )
 })
 
 output$ui_nn <- renderUI({
@@ -219,9 +255,14 @@ output$ui_nn <- renderUI({
     conditionalPanel(
       condition = "input.tabs_nn == 'Plot'",
       wellPanel(
-        selectInput(
-          "nn_plots", "Plots:", choices = nn_plots,
-          selected = state_single("nn_plots", nn_plots)
+        # selectInput(
+        #   "nn_plots", "Plots:", choices = nn_plots,
+        #   selected = state_single("nn_plots", nn_plots)
+        # ),
+        uiOutput("ui_nn_plots"),
+        conditionalPanel(
+          condition = "input.nn_plots == 'dashboard'",
+          uiOutput("ui_nn_nrobs")
         )
       )
     ),
@@ -268,27 +309,27 @@ output$ui_nn <- renderUI({
 
 nn_plot <- reactive({
   if (nn_available() != "available") return()
-  req(input$nn_plots)
+  # req(input$nn_plots)
+  if (is_empty(input$nn_plots, "none")) return()
   res <- .nn()
   if (is.character(res)) return()
-  mlt <- if ("net" %in% input$nn_plots) 45 else 30
-  plot_height <- max(500, length(res$model$coefnames) * mlt)
+  if ("dashboard" %in% input$nn_plots) {
+    plot_height <- 750
+  } else {
+    mlt <- if ("net" %in% input$nn_plots) 45 else 30
+    plot_height <- max(500, length(res$model$coefnames) * mlt)
+  }
   list(plot_width = 650, plot_height = plot_height)
 })
 
 nn_plot_width <- function()
-  nn_plot() %>% {
-    if (is.list(.)) .$plot_width else 650
-  }
+  nn_plot() %>% {if (is.list(.)) .$plot_width else 650}
 
 nn_plot_height <- function()
-  nn_plot() %>% {
-    if (is.list(.)) .$plot_height else 500
-  }
+  nn_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
 nn_pred_plot_height <- function()
   if (input$nn_pred_plot) 500 else 0
-
 
 ## output is called from the main radiant ui.R
 output$nn <- renderUI({
@@ -341,15 +382,26 @@ output$nn <- renderUI({
 })
 
 nn_available <- reactive({
+  req(input$nn_type)
   if (not_available(input$nn_rvar)) {
-    return("This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>% suggest_data("titanic"))
+    if (input$nn_type == "classification") {
+      "This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>% 
+        suggest_data("titanic")
+    } else {
+      "This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% 
+        suggest_data("diamonds")
+    }
+  } else if (not_available(input$nn_evar)) {
+    if (input$nn_type == "classification") {
+      "Please select one or more explanatory variables.\n\n" %>% 
+        suggest_data("titanic")
+    } else {
+      "Please select one or more explanatory variables.\n\n" %>% 
+        suggest_data("diamonds")
+    }
+  } else {
+    "available"
   }
-
-  if (not_available(input$nn_evar)) {
-    return("Please select one or more explanatory variables.\n\n" %>% suggest_data("titanic"))
-  }
-
-  "available"
 })
 
 .nn <- eventReactive(input$nn_run, {
@@ -411,7 +463,7 @@ nn_available <- reactive({
 
   req(input$nn_size)
 
-  if (is_empty(input$nn_plots)) {
+  if (is_empty(input$nn_plots, "none")) {
     return("Please select a neural network plot from the drop-down menu")
   }
   if (not_pressed(input$nn_run)) {
@@ -420,12 +472,17 @@ nn_available <- reactive({
 
   pinp <- list(plots = input$nn_plots, shiny = TRUE)
 
+  if (input$nn_plots == "dashboard") {
+    req(input$nn_nrobs)
+    pinp <- c(pinp, nrobs = as_integer(input$nn_nrobs))
+  }
+
   if (input$nn_plots == "net") {
-    .nn() %>% {
-      if (is.character(.)) invisible() else capture_plot(do.call(plot, c(list(x = .), pinp)))
-    }
+    .nn() %>% {if (is.character(.)) invisible() else capture_plot(do.call(plot, c(list(x = .), pinp)))}
   } else {
-    do.call(plot, c(list(x = .nn()), pinp))
+    withProgress(message = "Generating plots", value = 1, {
+      do.call(plot, c(list(x = .nn()), pinp))
+    })
   }
 })
 
@@ -470,8 +527,12 @@ observeEvent(input$nn_report, {
   xcmd <- ""
   figs <- FALSE
 
-  if (!is_empty(input$nn_plots)) {
-    inp_out[[2]] <- list(plots = input$nn_plots, custom = FALSE)
+  if (!is_empty(input$nn_plots, "none")) {
+    if (input$nn_type == "regression" && input$nn_plots == "dashboard") {
+      inp_out[[2]] <- list(plots = input$nn_plots, nrobs = as_integer(input$nn_nrobs), custom = FALSE)
+    } else {
+      inp_out[[2]] <- list(plots = input$nn_plots, custom = FALSE)
+    }
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }

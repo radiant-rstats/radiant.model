@@ -13,7 +13,7 @@ reg_sum_check <- c(
 )
 reg_lines <- c("Line" = "line", "Loess" = "loess", "Jitter" = "jitter")
 reg_plots <- c(
-  "None" = "", "Distribution" = "dist",
+  "None" = "none", "Distribution" = "dist",
   "Correlations" = "correlations", "Scatter" = "scatter",
   "Dashboard" = "dashboard",
   "Residual vs explanatory" = "resid_pred",
@@ -176,10 +176,23 @@ output$ui_reg_int <- renderUI({
 ## reset prediction settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "reg_predict", selected = "none")
+  updateSelectInput(session = session, inputId = "reg_plots", selected = "none")
 })
 
 output$ui_reg_predict_plot <- renderUI({
   predict_plot_controls("reg")
+})
+
+output$ui_reg_nrobs <- renderUI({
+  nrobs <- nrow(.getdata())
+  req(nrobs > 1000)
+  choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
+    .[. < nrobs]
+  selectInput(
+    "reg_nrobs", "Number of data points plotted:", 
+    choices = choices,
+    selected = state_single("reg_nrobs", choices, 1000)
+  )
 })
 
 ## data ui and tabs
@@ -243,17 +256,22 @@ output$ui_regress <- renderUI({
           checkboxInput("reg_intercept", "Include intercept", state_init("reg_intercept", FALSE))
         ),
         conditionalPanel(
-          condition = "input.reg_plots == 'scatter' |
-                                      input.reg_plots == 'dashboard' |
-                                      input.reg_plots == 'resid_pred'",
-          checkboxGroupInput(
-            "reg_lines", NULL, reg_lines,
-            selected = state_group("reg_lines"), inline = TRUE
+          condition = "input.reg_plots == 'correlations' |
+                       input.reg_plots == 'scatter' |
+                       input.reg_plots == 'dashboard' |
+                       input.reg_plots == 'resid_pred'",
+
+          uiOutput("ui_reg_nrobs"),
+          conditionalPanel(
+            condition = "input.reg_plots != 'correlations'", 
+            checkboxGroupInput(
+              "reg_lines", NULL, reg_lines,
+              selected = state_group("reg_lines"), inline = TRUE
+            )
           )
         )
       )
     ),
-
     wellPanel(
       uiOutput("ui_reg_rvar"),
       uiOutput("ui_reg_evar"),
@@ -306,7 +324,7 @@ output$ui_regress <- renderUI({
 
 reg_plot <- reactive({
   if (reg_available() != "available") return()
-  if (is_empty(input$reg_plots)) return()
+  if (is_empty(input$reg_plots, "none")) return()
 
   # specifying plot heights
   plot_height <- 500
@@ -389,14 +407,14 @@ output$regress <- renderUI({
 
 reg_available <- reactive({
   if (not_available(input$reg_rvar)) {
-    return("This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% suggest_data("diamonds"))
+    "This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% 
+      suggest_data("diamonds")
+  } else if (not_available(input$reg_evar)) {
+    "Please select one or more explanatory variables.\n\n" %>% 
+      suggest_data("diamonds")
+  } else {
+    "available"
   }
-
-  if (not_available(input$reg_evar)) {
-    return("Please select one or more explanatory variables.\n\n" %>% suggest_data("diamonds"))
-  }
-
-  "available"
 })
 
 .regress <- eventReactive(input$reg_run, {
@@ -449,18 +467,16 @@ reg_available <- reactive({
 
 .plot_regress <- reactive({
   if (reg_available() != "available") return(reg_available())
-  if (is_empty(input$reg_plots)) return("Please select a regression plot from the drop-down menu")
+  if (is_empty(input$reg_plots, "none")) return("Please select a regression plot from the drop-down menu")
   if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
 
   if (input$reg_plots %in% c("correlations", "leverage")) {
     capture_plot(do.call(plot, c(list(x = .regress()), reg_plot_inputs())))
   } else {
-    reg_plot_inputs() %>% {
-      .$shiny <- TRUE
-      .
-    } %>% {
-      do.call(plot, c(list(x = .regress()), .))
-    }
+    if (!input$reg_plots %in% c("coef", "dist")) req(input$reg_nrobs)
+    withProgress(message = "Generating plots", value = 1, {
+      do.call(plot, c(list(x = .regress()), reg_plot_inputs(), shiny = TRUE))
+    })
   }
 })
 
@@ -470,8 +486,16 @@ observeEvent(input$regress_report, {
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(reg_sum_inputs(), reg_sum_args[-1])
   figs <- FALSE
-  if (!is_empty(input$reg_plots)) {
-    inp_out[[2]] <- clean_args(reg_plot_inputs(), reg_plot_args[-1])
+  if (!is_empty(input$reg_plots, "none")) {
+
+    rpi <- reg_plot_inputs()
+    if (!input$reg_plots %in% c("correlations", "scatter", "dashboard", "resid_pred")) {
+      rpi$nrobs <- NULL
+    } else {
+      rpi$nrobs <- as_integer(rpi$nrobs)
+    }
+
+    inp_out[[2]] <- clean_args(rpi, reg_plot_args[-1])
     inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
@@ -495,7 +519,7 @@ observeEvent(input$regress_report, {
       }
       xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = ", name, ")")
     }
-    xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
+    # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
 
     if (input$reg_pred_plot && !is_empty(input$reg_xvar)) {
       inp_out[[3 + figs]] <- clean_args(reg_pred_plot_inputs(), reg_pred_plot_args[-1])

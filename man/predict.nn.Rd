@@ -4,19 +4,14 @@
 \alias{predict.nn}
 \title{Predict method for the nn function}
 \usage{
-\method{predict}{nn}(object, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3, ...)
+\method{predict}{nn}(object, pred_data = "", pred_cmd = "", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{nn}}}
 
-\item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation}
+\item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in estimation}
 
 \item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable use a `,` (e.g., `pclass = levels(pclass), age = seq(0,100,20)`)}
-
-\item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
-
-\item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 
 \item{dec}{Number of decimals to show}
 
@@ -33,7 +28,7 @@ result <- nn("titanic", "survived", c("pclass","sex"), lev = "Yes")
 predict(result, pred_cmd = "pclass = levels(pclass)")
 result <- nn("diamonds", "price", "carat:color", type = "regression")
 predict(result, pred_cmd = "carat = 1:3")
-predict(result, pred_data = "diamonds") \%>\% head
+predict(result, pred_data = "diamonds") \%>\% head()
 
 }
 \seealso{
