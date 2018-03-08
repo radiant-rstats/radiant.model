@@ -1,6 +1,6 @@
 # CHANGES IN radiant.model 0.9.0.13
 
-* Show number of observtions used in traning and validation in _Model > Evaluate classification_
+* Show number of observations used in training and validation in _Model > Evaluate classification_
 * Residual diagnostic plot for Neural Network regression
 * Improved handling of case weights for logistic regression and neural networks 
 * Use Elkan's formula to adjust probabilities when using `priors` in `crtree` (`rpart`)
