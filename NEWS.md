@@ -1,8 +1,11 @@
-# CHANGES IN radiant.model 0.9.0.12
+# CHANGES IN radiant.model 0.9.0.13
 
+* Show number of observtions used in traning and validation in _Model > Evaluate classification_
+* Residual diagnostic plot for Neural Network regression
+* Improved handling of case weights for logistic regression and neural networks 
 * Use Elkan's formula to adjust probabilities when using `priors` in `crtree` (`rpart`)
 * Added options to customize tree generated using `crtree` (based on `rpart`)
-* Fix for tree labels when integers are used
+* Fix for tree labels when (negative) integers are used
 * Better control of tree plot size in `plot.crtree`
 * Cleanup of `crtree` code
 * Improved printing of NN weights
