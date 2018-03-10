@@ -1,3 +1,7 @@
+# CHANGES IN radiant.model 0.9.0.14
+
+* Allow character variables in estimation and prediction
+
 # CHANGES IN radiant.model 0.9.0.13
 
 * Show number of observations used in training and validation in _Model > Evaluate classification_

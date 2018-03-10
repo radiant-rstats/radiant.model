@@ -26,13 +26,11 @@
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-logistic <- function(dataset, rvar, evar,
-                     lev = "",
-                     int = "",
-                     wts = "None",
-                     check = "",
-                     ci_type,
-                     data_filter = "") {
+logistic <- function(
+  dataset, rvar, evar, lev = "",
+  int = "", wts = "None", check = "",
+  ci_type, data_filter = ""
+) {
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -152,15 +150,13 @@ logistic <- function(dataset, rvar, evar,
 
   coeff <- tidy(model)
   colnames(coeff) <- c("  ", "coefficient", "std.error", "z.value", "p.value")
-
-  isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
-  if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct])) {
+  hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
+  if (sum(hasLevs) > 0) {
+    for (i in names(hasLevs[hasLevs])) {
       coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
-        gsub(paste0(":", i), paste0(":", i, "|"), .) %>% 
-        gsub("\\|\\|", "\\|", .)
+        gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
-    rm(i, isFct)
+    rm(i, hasLevs)
   }
 
   if ("robust" %in% check) {
@@ -205,12 +201,11 @@ logistic <- function(dataset, rvar, evar,
 #' @importFrom car vif linearHypothesis
 #'
 #' @export
-summary.logistic <- function(object,
-                             sum_check = "",
-                             conf_lev = .95,
-                             test_var = "",
-                             dec = 3,
-                             ...) {
+summary.logistic <- function(
+  object, sum_check = "", conf_lev = .95,
+  test_var = "", dec = 3, ...
+) {
+
   if (is.character(object)) return(object)
   if (class(object$model)[1] != "glm") return(object)
 
@@ -445,13 +440,11 @@ summary.logistic <- function(object,
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
 #'
 #' @export
-plot.logistic <- function(x,
-                          plots = "",
-                          conf_lev = .95,
-                          intercept = FALSE,
-                          shiny = FALSE,
-                          custom = FALSE,
-                          ...) {
+plot.logistic <- function(
+  x, plots = "", conf_lev = .95,
+  intercept = FALSE, shiny = FALSE,
+  custom = FALSE, ...
+) {
 
   if (is.character(x)) return(x)
   if (class(x$model)[1] != "glm") return(x)
@@ -527,9 +520,7 @@ plot.logistic <- function(x,
       labs(y = yl, x = "") +
       ## can't use coord_trans together with coord_flip
       ## http://stackoverflow.com/a/26185278/1974918
-      scale_x_discrete(limits = {
-        if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])
-      }) +
+      scale_x_discrete(limits = {if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])}) +
       scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
       coord_flip() +
       theme(axis.text.y = element_text(hjust = 0))
@@ -621,13 +612,12 @@ plot.logistic <- function(x,
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
 #'
 #' @export
-predict.logistic <- function(object,
-                             pred_data = "",
-                             pred_cmd = "",
-                             conf_lev = 0.95,
-                             se = TRUE,
-                             dec = 3,
-                             ...) {
+predict.logistic <- function(
+  object, pred_data = "", pred_cmd = "",
+  conf_lev = 0.95, se = TRUE, dec = 3,
+  ...
+) {
+
   if (is.character(object)) return(object)
   if ("center" %in% object$check || "standardize" %in% object$check) {
     message("Standard error calculations not supported when coefficients are centered or standardized")
@@ -671,7 +661,6 @@ predict.logistic <- function(object,
           set_colnames("Prediction")
       }
     }
-
     pred_val
   }
 
@@ -720,7 +709,9 @@ store_glm <- function(object, data = object$dataset,
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-confint_robust <- function(object, level = 0.95, dist = "norm", vcov = NULL, ...) {
+confint_robust <- function(
+  object, level = 0.95, dist = "norm", vcov = NULL, ...
+) {
   fac <- ((1 - level) / 2) %>%
     c(., 1 - .)
 
@@ -769,7 +760,9 @@ minmax <- function(dat) {
 #'   formatdf(dec = 3)
 #'
 #' @export
-write.coeff <- function(object, file = "", sort = FALSE, intercept = TRUE) {
+write.coeff <- function(
+  object, file = "", sort = FALSE, intercept = TRUE
+) {
   if ("regress" %in% class(object)) {
     mod_class <- "regress"
   } else if ("logistic" %in% class(object)) {

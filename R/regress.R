@@ -110,14 +110,13 @@ regress <- function(
 
   coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
-  isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
-  if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct])) {
+  hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
+  if (sum(hasLevs) > 0) {
+    for (i in names(hasLevs[hasLevs])) {
       coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
-        gsub(paste0(":", i), paste0(":", i, "|"), .) %>% 
-        gsub("\\|\\|", "\\|", .)
+        gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
-    rm(i, isFct)
+    rm(i, hasLevs)
   }
 
   rm(dat) ## dat is not needed elsewhere and is already in "model" anyway
@@ -680,7 +679,9 @@ predict_model <- function(
       }
     }
 
-    pred_cmd %<>% gsub("\"", "\'", .) %>% gsub(";\\s*$", "", .) %>% gsub(";", ",", .)
+    pred_cmd %<>% gsub("\"", "\'", .) %>% 
+      gsub(";\\s*$", "", .) %>% 
+      gsub(";", ",", .)
     pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd, "))"))), silent = TRUE)
     if (is(pred, "try-error")) {
       return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
@@ -700,11 +701,13 @@ predict_model <- function(
     if (length(wid) > 0) dat_classes <- dat_classes[-wid]
 
     isFct <- dat_classes == "factor"
+    isChar <- dat_classes == "character"
     isLog <- dat_classes == "logical"
     isNum <- dat_classes == "numeric" | dat_classes == "integer"
 
     # based on http://stackoverflow.com/questions/19982938/how-to-find-the-most-frequent-values-across-several-columns-containing-factors
-    max_freq <- function(x) names(which.max(table(x))) %>% as.factor()
+    max_freq <- function(x) names(which.max(table(x)))
+    max_ffreq <- function(x) as.factor(max_freq(x))
     max_lfreq <- function(x) ifelse(mean(x) > .5, TRUE, FALSE)
 
     plug_data <- data.frame(init___ = 1, stringsAsFactors = FALSE)
@@ -712,7 +715,10 @@ predict_model <- function(
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = funs(mean)))
     }
     if (sum(isFct) > 0) {
-      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = funs(max_freq)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = funs(max_ffreq)))
+    }
+    if (sum(isChar) > 0) {
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isChar], .funs = funs(max_freq)))
     }
     if (sum(isLog) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isLog], .funs = funs(max_lfreq)))
@@ -720,7 +726,7 @@ predict_model <- function(
 
     rm(dat)
 
-    if ((sum(isNum) + sum(isFct) + sum(isLog)) < length(vars)) {
+    if ((sum(isNum) + sum(isFct) + sum(isLog) + sum(isChar)) < length(vars)) {
       return("The model includes data-types that cannot be used for\nprediction at this point\n")
     } else {
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
@@ -847,8 +853,8 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     pred_data <- attr(pred_data, "pred_data")
   }
 
-  pred_cmd <- gsub("([\\=\\+\\*-])", " \\1 ", attr(x, "pred_cmd")) %>%
-    gsub("([;,])", "\\1 ", .) %>%
+  pred_cmd <- gsub("\\s*([\\=\\+\\*-])\\s*", " \\1 ", attr(x, "pred_cmd")) %>%
+    gsub("(\\s*[;,]\\s*)", "\\1 ", .) %>%
     gsub("\\s+=\\s+=\\s+", " == ", .)
 
   cat(header)

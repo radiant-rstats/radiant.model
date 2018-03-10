@@ -127,16 +127,14 @@ nn <- function(
 
   ## need do.call so Garson/Olden plot will work
   model <- do.call(nnet::nnet, nninput)
-
   coefnames <- model$coefnames
-  isFct <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x))
-  if (sum(isFct) > 0) {
-    for (i in names(isFct[isFct])) {
-      coefnames <- gsub(paste0("^", i), paste0(i, "|"), coefnames) %>% 
-        gsub(paste0(":", i), paste0(":", i, "|"), .) %>% 
-        gsub("\\|\\|", "\\|", .)
+  hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
+  if (sum(hasLevs) > 0) {
+    for (i in names(hasLevs[hasLevs])) {
+      coefnames %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+        gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
-    rm(i, isFct)
+    rm(i, hasLevs)
   }
 
   ## nn returns residuals as a matrix
