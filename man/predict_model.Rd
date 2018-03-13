@@ -16,7 +16,7 @@ predict_model(object, pfun, mclass, pred_data = "", pred_cmd = "",
 
 \item{pred_data}{Name of the dataset to use for prediction}
 
-\item{pred_cmd}{Command used to generate data for prediction}
+\item{pred_cmd}{Command used to generate data for prediction (e.g., 'carat = 1:10')}
 
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 

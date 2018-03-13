@@ -25,11 +25,15 @@ nb_pred_inputs <- reactive({
 
   nb_pred_args$pred_cmd <- nb_pred_args$pred_data <- ""
   if (input$nb_predict == "cmd") {
-    nb_pred_args$pred_cmd <- gsub("\\s", "", input$nb_pred_cmd) %>% gsub("\"", "\'", .)
+    nb_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$nb_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
   } else if (input$nb_predict == "data") {
     nb_pred_args$pred_data <- input$nb_pred_data
   } else if (input$nb_predict == "datacmd") {
-    nb_pred_args$pred_cmd <- gsub("\\s", "", input$nb_pred_cmd) %>% gsub("\"", "\'", .)
+    nb_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$nb_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
     nb_pred_args$pred_data <- input$nb_pred_data
   }
   nb_pred_args
@@ -312,6 +316,9 @@ observeEvent(input$nb_report, {
   if (!is_empty(input$nb_predict, "none") &&
     (!is_empty(input$nb_pred_data) || !is_empty(input$nb_pred_cmd))) {
     pred_args <- clean_args(nb_pred_inputs(), nb_pred_args[-1])
+    if (!is_empty(pred_args[["pred_cmd"]])) {
+      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    }
     inp_out[[2 + figs]] <- pred_args
 
     outputs <- c(outputs, "pred <- predict")

@@ -27,11 +27,15 @@ crtree_pred_inputs <- reactive({
 
   crtree_pred_args$pred_cmd <- crtree_pred_args$pred_data <- ""
   if (input$crtree_predict == "cmd") {
-    crtree_pred_args$pred_cmd <- gsub("\\s", "", input$crtree_pred_cmd) %>% gsub("\"", "\'", .)
+    crtree_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$crtree_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
   } else if (input$crtree_predict == "data") {
     crtree_pred_args$pred_data <- input$crtree_pred_data
   } else if (input$crtree_predict == "datacmd") {
-    crtree_pred_args$pred_cmd <- gsub("\\s", "", input$crtree_pred_cmd) %>% gsub("\"", "\'", .)
+    crtree_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$crtree_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
     crtree_pred_args$pred_data <- input$crtree_pred_data
   }
   crtree_pred_args
@@ -480,6 +484,9 @@ observeEvent(input$crtree_report, {
   if (!is_empty(input$crtree_predict, "none") &&
     (!is_empty(input$crtree_pred_data) || !is_empty(input$crtree_pred_cmd))) {
     pred_args <- clean_args(crtree_pred_inputs(), crtree_pred_args[-1])
+    if (!is_empty(pred_args[["pred_cmd"]])) {
+      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    }
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
@@ -499,16 +506,16 @@ observeEvent(input$crtree_report, {
   width <- ifelse(is_empty(input$crtree_width), "\"900px\"", paste0("\"", input$crtree_width, "px\""))
   orient <- ifelse(is_empty(input$crtree_orient), "\"TD\"", paste0("\"", input$crtree_orient, "\""))
   if (input$crtree_plots == "tree") {
-    xcmd <- paste0(xcmd, "#plot(result, plots = \"prune\", custom = FALSE)")
+    xcmd <- paste0(xcmd, "\n# plot(result, plots = \"prune\", custom = FALSE)")
     xcmd <- paste0(xcmd, "\nplot(result, orient = ", orient, ", width = ", width, ") %>% render()")
   } else if (input$crtree_plots == "prune") {
     figs <- TRUE
-    xcmd <- paste0(xcmd, "plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+    xcmd <- paste0(xcmd, "\nplot(result, plots = \"prune\", custom = FALSE)")
+    xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
   } else {
     figs <- TRUE
-    xcmd <- paste0(xcmd, "plot(result, plots = \"imp\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n#plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+    xcmd <- paste0(xcmd, "\nplot(result, plots = \"imp\", custom = FALSE)")
+    xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
   }
 
   crtree_inp <- crtree_inputs()

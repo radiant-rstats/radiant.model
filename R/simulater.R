@@ -33,22 +33,12 @@
 #' @seealso \code{\link{plot.simulater}} to plot results
 #'
 #' @export
-simulater <- function(const = "",
-                      lnorm = "",
-                      norm = "",
-                      unif = "",
-                      discrete = "",
-                      binom = "",
-                      sequ = "",
-                      grid = "",
-                      data = "",
-                      form = "",
-                      seed = NULL,
-                      nexact = FALSE,
-                      ncorr = NULL,
-                      name = "",
-                      nr = 1000,
-                      dat = NULL) {
+simulater <- function(
+  const = "", lnorm = "", norm = "", unif = "", discrete = "",
+  binom = "", sequ = "", grid = "", data = "", form = "",
+  seed = NULL, nexact = FALSE, ncorr = NULL, name = "", 
+  nr = 1000, dat = NULL
+) {
 
   if (!is_empty(seed)) set.seed(as_numeric(seed))
   if (is.null(dat)) {

@@ -22,10 +22,7 @@
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-regress <- function(
-  dataset, rvar, evar, int = "",
-  check = "", data_filter = ""
-) {
+regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "") {
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -594,9 +591,8 @@ plot.regress <- function(
 #'
 #' @export
 predict.regress <- function(
-  object, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = TRUE, dec = 3,
-  ...
+  object, pred_data = "", pred_cmd = "", conf_lev = 0.95, 
+  se = TRUE, dec = 3, ...
 ) {
 
   if (is.character(object)) return(object)
@@ -641,7 +637,7 @@ predict.regress <- function(
 #' @param pfun Function to use for prediction
 #' @param mclass Model class to attach
 #' @param pred_data Name of the dataset to use for prediction
-#' @param pred_cmd Command used to generate data for prediction
+#' @param pred_cmd Command used to generate data for prediction (e.g., 'carat = 1:10')
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param dec Number of decimals to show
@@ -651,10 +647,8 @@ predict.regress <- function(
 #'
 #' @export
 predict_model <- function(
-  object, pfun, mclass,
-  pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = FALSE,
-  dec = 3, ...
+  object, pfun, mclass, pred_data = "", pred_cmd = "",
+  conf_lev = 0.95, se = FALSE, dec = 3, ...
 ) {
 
   if (is.character(object)) return(object)
@@ -679,9 +673,11 @@ predict_model <- function(
       }
     }
 
-    pred_cmd %<>% gsub("\"", "\'", .) %>% 
+    pred_cmd %<>% paste0(., collapse = ";") %>%
+      gsub("\"", "\'", .) %>% 
       gsub(";\\s*$", "", .) %>% 
       gsub(";", ",", .)
+
     pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd, "))"))), silent = TRUE)
     if (is(pred, "try-error")) {
       return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
@@ -747,9 +743,11 @@ predict_model <- function(
     }
 
     if (!is_empty(pred_cmd)) {
-      pred_cmd <- gsub("\"", "\'", pred_cmd) %>%
+      pred_cmd %<>% paste0(., collapse = ";") %>% 
+        gsub("\"", "\'", .) %>%
         gsub("\\s+", "", .) %>%
         gsub("<-", "=", .)
+        
       vars <- strsplit(pred_cmd, ";")[[1]] %>%
         strsplit(., "=") %>%
         sapply("[", 1)
@@ -920,7 +918,7 @@ print.regress.predict <- function(x, ..., n = 10)
 #'   predict(pred_cmd = "carat = 1:10") %>%
 #'   plot(xvar = "carat")
 #' logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") %>%
-#'   predict(pred_cmd="pclass=levels(pclass), sex=levels(sex), age=seq(0,100,20)") %>%
+#'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = seq(0,100,20)") %>%
 #'   plot(xvar = "age", color = "sex", facet_col = "pclass")
 #'
 #' @seealso \code{\link{predict.regress}} to generate predictions

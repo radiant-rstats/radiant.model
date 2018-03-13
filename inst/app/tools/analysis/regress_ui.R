@@ -74,11 +74,15 @@ reg_pred_inputs <- reactive({
 
   reg_pred_args$pred_cmd <- reg_pred_args$pred_data <- ""
   if (input$reg_predict == "cmd") {
-    reg_pred_args$pred_cmd <- gsub("\\s", "", input$reg_pred_cmd) %>% gsub("\"", "\'", .)
+    reg_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$reg_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
   } else if (input$reg_predict == "data") {
     reg_pred_args$pred_data <- input$reg_pred_data
   } else if (input$reg_predict == "datacmd") {
-    reg_pred_args$pred_cmd <- gsub("\\s", "", input$reg_pred_cmd) %>% gsub("\"", "\'", .)
+    reg_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$reg_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
     reg_pred_args$pred_data <- input$reg_pred_data
   }
   reg_pred_args
@@ -296,9 +300,9 @@ output$ui_regress <- renderUI({
         ),
         conditionalPanel(
           condition = "input.reg_predict == 'cmd' |
-                         input.reg_predict == 'data' |
-                         (input.reg_sum_check && input.reg_sum_check.indexOf('confint') >= 0) |
-                         input.reg_plots == 'coef'",
+                       input.reg_predict == 'data' |
+                       (input.reg_sum_check && input.reg_sum_check.indexOf('confint') >= 0) |
+                       input.reg_plots == 'coef'",
           sliderInput(
             "reg_conf_lev", "Confidence level:", min = 0.80,
             max = 0.99, value = state_init("reg_conf_lev", .95),
@@ -506,6 +510,11 @@ observeEvent(input$regress_report, {
   if (!is_empty(input$reg_predict, "none") &&
      (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
+
+    if (!is_empty(pred_args[["pred_cmd"]])) {
+      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    }
+
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
 

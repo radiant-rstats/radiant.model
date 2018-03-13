@@ -4,12 +4,14 @@
 \alias{summary.evalbin}
 \title{Summary method for the evalbin function}
 \usage{
-\method{summary}{evalbin}(object, prn = TRUE, ...)
+\method{summary}{evalbin}(object, prn = TRUE, dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{evalbin}}}
 
 \item{prn}{Print full table of measures per model and bin}
+
+\item{dec}{Number of decimals to show}
 
 \item{...}{further arguments passed to or from other methods}
 }

@@ -144,6 +144,7 @@ evalbin <- function(
 #'
 #' @param object Return value from \code{\link{evalbin}}
 #' @param prn Print full table of measures per model and bin
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalbin}} to summarize results
@@ -154,7 +155,7 @@ evalbin <- function(
 #' evalbin("titanic", c("age","fare"), "survived") %>% summary
 #'
 #' @export
-summary.evalbin <- function(object, prn = TRUE, ...) {
+summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
   if (is.character(object)) return(object)
 
   cat("Evaluate predictions for binary response models\n")
@@ -169,8 +170,11 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
   cat("Bins        :", object$qnt, "\n")
   cat("Cost:Margin :", object$cost, ":", object$margin, "\n")
 
-  if (prn)
-    print(formatdf(as.data.frame(object$dat, stringsAsFactors = FALSE), 3), row.names = FALSE)
+  if (prn) {
+    as.data.frame(object$dat, stringsAsFactors = FALSE) %>%
+      formatdf(dec = dec, mark = ",") %>%
+      print(row.names = FALSE)
+  }
 }
 
 #' Confusion matrix
@@ -196,10 +200,8 @@ summary.evalbin <- function(object, prn = TRUE, ...) {
 #'
 #' @export
 confusion <- function(
-  dataset, pred, rvar, lev = "",
-  cost = 1, margin = 2, 
-  train = "", data_filter = "",
-  ...
+  dataset, pred, rvar, lev = "", cost = 1, margin = 2, 
+  train = "", data_filter = "", ...
 ) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
@@ -352,13 +354,14 @@ confusion <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{confusion}}
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{confusion}} to generate results
 #' @seealso \code{\link{plot.confusion}} to visualize result
 #'
 #' @export
-summary.confusion <- function(object, ...) {
+summary.confusion <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
 
   cat("Confusion matrix\n")
@@ -373,9 +376,13 @@ summary.confusion <- function(object, ...) {
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
   cat("\n")
 
-  print(formatdf(as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE), 3, mark = ","), row.names = FALSE)
+  as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE) %>%
+    formatdf(dec = dec, mark = ",") %>%
+    print(row.names = FALSE)
   cat("\n")
-  print(formatdf(as.data.frame(object$dat[, c(1, 2, 12:18)], stringsAsFactors = FALSE), 3, mark = ","), row.names = FALSE)
+  as.data.frame(object$dat[, c(1, 2, 12:18)], stringsAsFactors = FALSE) %>%
+    formatdf(dec = dec, mark = ",") %>%
+    print(row.names = FALSE)
 }
 
 #' Plot method for the confusion matrix

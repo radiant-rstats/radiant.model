@@ -1,6 +1,7 @@
-# CHANGES IN radiant.model 0.9.0.14
+# CHANGES IN radiant.model 0.9.0.15
 
 * Allow character variables in estimation and prediction
+* Depend on DiagrammeR 1.0.0
 
 # CHANGES IN radiant.model 0.9.0.13
 

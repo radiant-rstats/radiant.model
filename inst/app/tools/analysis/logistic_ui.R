@@ -74,11 +74,15 @@ logit_pred_inputs <- reactive({
 
   logit_pred_args$pred_cmd <- logit_pred_args$pred_data <- ""
   if (input$logit_predict == "cmd") {
-    logit_pred_args$pred_cmd <- gsub("\\s", "", input$logit_pred_cmd) %>% gsub("\"", "\'", .)
+    logit_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$logit_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
   } else if (input$logit_predict == "data") {
     logit_pred_args$pred_data <- input$logit_pred_data
   } else if (input$logit_predict == "datacmd") {
-    logit_pred_args$pred_cmd <- gsub("\\s", "", input$logit_pred_cmd) %>% gsub("\"", "\'", .)
+    logit_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$logit_pred_cmd) %>% 
+      gsub(";\\s+", ";", .) %>%
+      gsub("\"", "\'", .)
     logit_pred_args$pred_data <- input$logit_pred_data
   }
   logit_pred_args
@@ -507,10 +511,12 @@ observeEvent(input$logistic_report, {
   }
   xcmd <- ""
   if (!is_empty(input$logit_predict, "none") &&
-    (!is_empty(input$logit_pred_data) || !is_empty(input$logit_pred_cmd))) {
+     (!is_empty(input$logit_pred_data) || !is_empty(input$logit_pred_cmd))) {
     pred_args <- clean_args(logit_pred_inputs(), logit_pred_args[-1])
+    if (!is_empty(pred_args[["pred_cmd"]])) {
+      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    }
     inp_out[[2 + figs]] <- pred_args
-
     outputs <- c(outputs, "pred <- predict")
 
     xcmd <- paste0("print(pred, n = 10)")

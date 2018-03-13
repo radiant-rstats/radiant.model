@@ -4,10 +4,12 @@
 \alias{summary.confusion}
 \title{Summary method for the confusion matrix}
 \usage{
-\method{summary}{confusion}(object, ...)
+\method{summary}{confusion}(object, dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{confusion}}}
+
+\item{dec}{Number of decimals to show}
 
 \item{...}{further arguments passed to or from other methods}
 }
