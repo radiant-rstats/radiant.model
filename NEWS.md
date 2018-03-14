@@ -1,3 +1,7 @@
+# CHANGES IN radiant.model 0.9.0.16
+
+* Fix for [#43](https://github.com/radiant-rstats/radiant/issues/43) where scatter plot was not shown for a dataset with less than 1,000 rows
+
 # CHANGES IN radiant.model 0.9.0.15
 
 * Allow character variables in estimation and prediction

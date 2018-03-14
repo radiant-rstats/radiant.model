@@ -189,7 +189,7 @@ output$ui_reg_predict_plot <- renderUI({
 
 output$ui_reg_nrobs <- renderUI({
   nrobs <- nrow(.getdata())
-  req(nrobs > 1000)
+  # req(nrobs > 1000)
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(
