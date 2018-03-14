@@ -32,7 +32,7 @@ Imports:
     import (>= 1.1.0),
     psych (>= 1.7.3.21),
     e1071 (>= 1.6.8),
-    rpart (>= 4.1.13),
+    rpart (>= 4.1.11),
     rstudioapi (>= 0.7),
     yaml,
     methods
