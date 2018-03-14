@@ -110,7 +110,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+      coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
     rm(i, hasLevs)
@@ -150,7 +150,7 @@ summary.regress <- function(
   object, sum_check = "", conf_lev = .95,
   test_var = "", dec = 3, ...
 ) {
-  
+
   if (is.character(object)) return(object)
   if (class(object$model)[1] != "lm") return(object)
 
@@ -396,9 +396,9 @@ summary.regress <- function(
 #'
 #' @export
 plot.regress <- function(
-  x, plots = "", lines = "", 
+  x, plots = "", lines = "",
   conf_lev = .95, intercept = FALSE,
-  nrobs = -1, shiny = FALSE, 
+  nrobs = -1, shiny = FALSE,
   custom = FALSE, ...
 ) {
 
@@ -591,7 +591,7 @@ plot.regress <- function(
 #'
 #' @export
 predict.regress <- function(
-  object, pred_data = "", pred_cmd = "", conf_lev = 0.95, 
+  object, pred_data = "", pred_cmd = "", conf_lev = 0.95,
   se = TRUE, dec = 3, ...
 ) {
 
@@ -674,8 +674,8 @@ predict_model <- function(
     }
 
     pred_cmd %<>% paste0(., collapse = ";") %>%
-      gsub("\"", "\'", .) %>% 
-      gsub(";\\s*$", "", .) %>% 
+      gsub("\"", "\'", .) %>%
+      gsub(";\\s*$", "", .) %>%
       gsub(";", ",", .)
 
     pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd, "))"))), silent = TRUE)
@@ -743,11 +743,11 @@ predict_model <- function(
     }
 
     if (!is_empty(pred_cmd)) {
-      pred_cmd %<>% paste0(., collapse = ";") %>% 
+      pred_cmd %<>% paste0(., collapse = ";") %>%
         gsub("\"", "\'", .) %>%
         gsub("\\s+", "", .) %>%
         gsub("<-", "=", .)
-        
+
       vars <- strsplit(pred_cmd, ";")[[1]] %>%
         strsplit(., "=") %>%
         sapply("[", 1)
@@ -918,7 +918,10 @@ print.regress.predict <- function(x, ..., n = 10)
 #'   predict(pred_cmd = "carat = 1:10") %>%
 #'   plot(xvar = "carat")
 #' logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") %>%
-#'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = seq(0,100,20)") %>%
+#'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) %>%
+#'   plot(xvar = "age", color = "sex", facet_col = "pclass")
+#' logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") %>%
+#'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) %>%
 #'   plot(xvar = "age", color = "sex", facet_col = "pclass")
 #'
 #' @seealso \code{\link{predict.regress}} to generate predictions
@@ -1040,8 +1043,8 @@ store_reg <- function(
 #'
 #' @export
 store.model.predict <- function(
-  object, ..., 
-  data = attr(object, "pred_data"), 
+  object, ...,
+  data = attr(object, "pred_data"),
   name = "prediction"
 ) {
 
