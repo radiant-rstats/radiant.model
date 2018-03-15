@@ -259,7 +259,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
   nweights <- length(object$model$wts)
   cat("Network              :", network, "with", nweights, "weights\n")
 
-  if (!is_empty(object$wts, "None") && min(object$wts) >= 1) {
+  if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n")

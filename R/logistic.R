@@ -73,7 +73,7 @@ logistic <- function(
       )
     }
     if (!is.integer(wts)) {
-      if (min(wts) < 1) {
+      if (length(unique(wts)) == 2 && min(wts) < 1) {
         check <- union(check, "robust")
       }
     }
@@ -259,7 +259,7 @@ summary.logistic <- function(
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
   logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>%
     round(dec)
-  if (!is_empty(object$wts) && min(object$wts) >= 1) {
+  if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
