@@ -1,5 +1,6 @@
-# CHANGES IN radiant.model 0.9.0.19
+# CHANGES IN radiant.model 0.9.1
 
+* Add Poisson as an option for _Model > Simulate_
 * Fix for [#43](https://github.com/radiant-rstats/radiant/issues/43) where scatter plot was not shown for a dataset with less than 1,000 rows
 * Fixed example for logistic regression prediction plot
 * Fix for case weights when minimum response value is 0
