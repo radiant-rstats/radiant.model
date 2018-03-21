@@ -5,7 +5,7 @@
 \title{Simulate data for decision analysis}
 \usage{
 simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
-  binom = "", sequ = "", grid = "", data = "", form = "",
+  binom = "", pois = "", sequ = "", grid = "", data = "", form = "",
   seed = NULL, nexact = FALSE, ncorr = NULL, name = "", nr = 1000,
   dat = NULL)
 }
@@ -22,7 +22,9 @@ simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
 
 \item{binom}{A character vector listing the random variables with a binomial distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)}
 
-\item{sequ}{A character vector listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations.}
+\item{pois}{A character vector listing the random variables with a poisson distribution to include in the analysis (e.g., "demand 10") where the number is the lambda value (i.e., the average number of events or the event rate)}
+
+\item{sequ}{A character vector listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations}
 
 \item{grid}{A character vector listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations}
 

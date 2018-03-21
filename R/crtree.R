@@ -240,7 +240,11 @@ crtree <- function(
 #' @seealso \code{\link{predict.crtree}} for prediction
 #'
 #' @export
-summary.crtree <- function(object, prn = TRUE, cptab = FALSE, modsum = FALSE, ...) {
+summary.crtree <- function(
+  object, prn = TRUE, cptab = FALSE, 
+  modsum = FALSE, ...
+) {
+
   if (is.character(object)) return(object)
 
   if (object$type == "classification") {
@@ -284,11 +288,10 @@ summary.crtree <- function(object, prn = TRUE, cptab = FALSE, modsum = FALSE, ..
   if (cptab)
     print(object$model$cptable)
 
-  if (modsum)
+  if (modsum) {
     print(summary(object$model))
-
-  if (prn) {
-    cat(paste0(capture.output(print(object$model, digits = 4))[c(-1, -2)], collapse = "\n"))
+  } else if (prn) {
+    cat(paste0(capture.output(print(object$model))[c(-1, -2)], collapse = "\n"))
   }
 }
 

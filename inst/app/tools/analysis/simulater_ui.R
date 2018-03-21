@@ -14,11 +14,30 @@
 ####
 ####
 
-sim_types <- c(
-  "Binomial" = "binom", "Constant" = "const", "Discrete" = "discrete",
-  "Log normal" = "lnorm", "Normal" = "norm", "Uniform" = "unif",
-  "Data" = "data", "Grid search" = "grid", "Sequence" = "sequ"
+# sim_types <- c(
+#   "Binomial" = "binom", "Constant" = "const", "Discrete" = "discrete",
+#   "Log normal" = "lnorm", "Normal" = "norm", "Uniform" = "unif",
+#   "Data" = "data", "Grid search" = "grid", "Sequence" = "sequ"
+# )
+
+sim_types <- list(
+  `Probability distributions` = c(
+    "Binomial" = "binom", 
+    "Discrete" = "discrete",
+    "Log normal" = "lnorm", 
+    "Normal" = "norm", 
+    "Poisson" = "pois", 
+    "Uniform" = "unif"
+  ),
+  `Deterministic` = c(
+    "Constant" = "const", 
+    "Data" = "data", 
+    "Grid search" = "grid", 
+    "Sequence" = "sequ"
+  )
 )
+
+sim_types_vec <- c(sim_types[[1]], sim_types[[2]])
 
 sim_args <- as.list(formals(simulater))
 
@@ -29,7 +48,7 @@ sim_inputs <- reactive({
     sim_args[[i]] <- input[[paste0("sim_", i)]]
 
   if (!is_empty(input$sim_types)) {
-    for (i in sim_types)
+    for (i in sim_types_vec)
       if (!i %in% input$sim_types) sim_args[[i]] <- ""
   }
 
@@ -76,11 +95,10 @@ rep_plot_inputs <- reactive({
   rep_plot_args
 })
 
-textinput_maker <- function(id = "const",
-                            lab = "Constant",
-                            rows = 3,
-                            pre = "sim_",
-                            placeholder = "Provide values in the input boxes above and then press the + symbol") {
+textinput_maker <- function(
+  id = "const", lab = "Constant", rows = 3, pre = "sim_",
+  placeholder = "Provide values in the input boxes above and then press the + symbol"
+) {
 
   ## avoid all sorts of 'helpful' behavior from your browser
   ## based on https://stackoverflow.com/a/35514029/1974918
@@ -102,7 +120,7 @@ output$ui_sim_types <- renderUI({
   selectizeInput(
     "sim_types", label = "Select types:",
     choices = sim_types, multiple = TRUE,
-    selected = state_multiple("sim_types", sim_types),
+    selected = state_multiple("sim_types", sim_types_vec),
     options = list(placeholder = "Select types", plugins = list("remove_button"))
   )
 })
@@ -131,7 +149,6 @@ sim_vars <- reactive({
 
 output$ui_rep_vars <- renderUI({
   vars <- sim_vars()
-  # if (is_empty(vars)) return()
   req(!is_empty(vars))
 
   form <- input$sim_form %>% sim_cleaner()
@@ -162,10 +179,7 @@ output$ui_rep_grid_vars <- renderUI({
     for (i in 1:length(s))
       vars <- c(vars, s[[i]][1])
   }
-
-  # if (is_empty(vars)) return()
   req(!is_empty(vars))
-
   selectizeInput(
     "rep_grid_vars", label = "Name:",
     choices = vars, multiple = FALSE,
@@ -175,15 +189,16 @@ output$ui_rep_grid_vars <- renderUI({
 
 output$ui_rep_sum_vars <- renderUI({
   vars <- sim_vars()
-  # if (is_empty(vars)) return()
-
   req(!is_empty(vars))
 
   selectizeInput(
     "rep_sum_vars", label = "Output variables:",
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_sum_vars", vars),
-    options = list(placeholder = "Select variables", plugins = list("remove_button", "drag_drop"))
+    options = list(
+      placeholder = "Select variables", 
+      plugins = list("remove_button", "drag_drop")
+    )
   )
 })
 
@@ -199,7 +214,8 @@ output$ui_rep_byvar <- renderUI({
 output$ui_rep_fun <- renderUI({
   choices <- list(
     "sum" = "sum_rm", "mean" = "mean_rm", "median" = "median_rm",
-    "min" = "min_rm", "max" = "max_rm", "last" = "last", "none" = "none"
+    "min" = "min_rm", "max" = "max_rm", "first" = "first", 
+    "last" = "last", "none" = "none"
   )
 
   selectInput(
@@ -243,27 +259,12 @@ var_remover <- function(variable) {
     updateTextInput(session = session, variable, value = .)
 }
 
-observeEvent(input$sim_const_add, {
-  var_updater(input$sim_const_add, "sim_const", c(input$sim_const_name, input$sim_const_nr))
+observeEvent(input$sim_binom_add, {
+  var_updater(
+    input$sim_binom_add, "sim_binom",
+    c(input$sim_binom_name, input$sim_binom_n, input$sim_binom_p)
+  )
 })
-
-observeEvent(input$sim_sequ_add, {
-  var_updater(input$sim_sequ_add, "sim_sequ", c(input$sim_sequ_name, input$sim_sequ_min, input$sim_sequ_max))
-})
-
-
-observeEvent(input$sim_unif_add, {
-  var_updater(input$sim_unif_add, "sim_unif", c(input$sim_unif_name, input$sim_unif_min, input$sim_unif_max))
-})
-
-observeEvent(input$sim_norm_add, {
-  var_updater(input$sim_norm_add, "sim_norm", c(input$sim_norm_name, input$sim_norm_mean, input$sim_norm_sd))
-})
-
-observeEvent(input$sim_lnorm_add, {
-  var_updater(input$sim_lnorm_add, "sim_lnorm", c(input$sim_lnorm_name, input$sim_lnorm_mean, input$sim_lnorm_sd))
-})
-
 
 observeEvent(input$sim_discrete_add, {
   v <- input$sim_discrete_val
@@ -282,11 +283,28 @@ observeEvent(input$sim_discrete_add, {
   )
 })
 
-observeEvent(input$sim_binom_add, {
-  var_updater(
-    input$sim_binom_add, "sim_binom",
-    c(input$sim_binom_name, input$sim_binom_n, input$sim_binom_p)
-  )
+observeEvent(input$sim_lnorm_add, {
+  var_updater(input$sim_lnorm_add, "sim_lnorm", c(input$sim_lnorm_name, input$sim_lnorm_mean, input$sim_lnorm_sd))
+})
+
+observeEvent(input$sim_norm_add, {
+  var_updater(input$sim_norm_add, "sim_norm", c(input$sim_norm_name, input$sim_norm_mean, input$sim_norm_sd))
+})
+
+observeEvent(input$sim_pois_add, {
+  var_updater(input$sim_pois_add, "sim_pois", c(input$sim_pois_name, input$sim_pois_lambda))
+})
+
+observeEvent(input$sim_unif_add, {
+  var_updater(input$sim_unif_add, "sim_unif", c(input$sim_unif_name, input$sim_unif_min, input$sim_unif_max))
+})
+
+observeEvent(input$sim_const_add, {
+  var_updater(input$sim_const_add, "sim_const", c(input$sim_const_name, input$sim_const_nr))
+})
+
+observeEvent(input$sim_sequ_add, {
+  var_updater(input$sim_sequ_add, "sim_sequ", c(input$sim_sequ_name, input$sim_sequ_min, input$sim_sequ_max))
 })
 
 observeEvent(input$rep_grid_add, {
@@ -322,16 +340,12 @@ observeEvent(input$rep_grid, {
   }
 })
 
-observeEvent(input$sim_const_del, {
-  var_remover("sim_const")
+observeEvent(input$sim_binom_del, {
+  var_remover("sim_binom")
 })
 
-observeEvent(input$sim_sequ_del, {
-  var_remover("sim_sequ")
-})
-
-observeEvent(input$sim_unif_del, {
-  var_remover("sim_unif")
+observeEvent(input$sim_discrete_del, {
+  var_remover("sim_discrete")
 })
 
 observeEvent(input$sim_norm_del, {
@@ -342,16 +356,23 @@ observeEvent(input$sim_lnorm_del, {
   var_remover("sim_lnorm")
 })
 
-observeEvent(input$sim_discrete_del, {
-  var_remover("sim_discrete")
+observeEvent(input$sim_pois_del, {
+  var_remover("sim_pois")
 })
 
-observeEvent(input$sim_binom_del, {
-  var_remover("sim_binom")
+observeEvent(input$sim_unif_del, {
+  var_remover("sim_unif")
+})
+observeEvent(input$sim_const_del, {
+  var_remover("sim_const")
 })
 
 observeEvent(input$rep_grid_del, {
   var_remover("rep_grid")
+})
+
+observeEvent(input$sim_sequ_del, {
+  var_remover("sim_sequ")
 })
 
 observeEvent(input$sim_grid_del, {
@@ -433,6 +454,18 @@ output$ui_simulater <- renderUI({
           textinput_maker("norm", "Normal"),
           checkboxInput("sim_nexact", "Use exact specifications", state_init("sim_nexact", FALSE)),
           textInput("sim_ncorr", "Correlations:", value = state_init("sim_ncorr"))
+        )
+      ),
+      conditionalPanel(
+        "input.sim_types && input.sim_types.indexOf('pois') >= 0",
+        wellPanel(
+          HTML("<label>Poisson variables: <i id='sim_pois_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
+                <i id='sim_pois_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
+          with(tags, table(
+            td(textInput("sim_pois_name", "Name:", value = state_init("sim_pois_name", ""))),
+            td(numericInput("sim_pois_lambda", "Lambda:", value = state_init("sim_pois_lambda")))
+          )),
+          textinput_maker("pois", "Poisson")
         )
       ),
       conditionalPanel(
@@ -789,3 +822,4 @@ observeEvent(input$repeater_report, {
     fig.height = rep_plot_height()
   )
 })
+

@@ -8,7 +8,8 @@
 #' @param unif A character vector listing the uniformly distributed random variables to include in the analysis (e.g., "demand 0 1" where the first number is the minimum value and the second is the maximum value)
 #' @param discrete A character vector listing the random variables with a discrete distribution to include in the analysis (e.g., "price 5 8 .3 .7" where the first set of numbers are the values and the second set the probabilities
 #' @param binom A character vector listing the random variables with a binomial distribution to include in the analysis (e.g., "crash 100 .01") where the first number is the number of trials and the second is the probability of success)
-#' @param sequ A character vector listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations.
+#' @param pois A character vector listing the random variables with a poisson distribution to include in the analysis (e.g., "demand 10") where the number is the lambda value (i.e., the average number of events or the event rate)
+#' @param sequ A character vector listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations
 #' @param grid A character vector listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
 #' @param data Name of a dataset to be used in the calculations
 #' @param form A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")
@@ -35,9 +36,9 @@
 #' @export
 simulater <- function(
   const = "", lnorm = "", norm = "", unif = "", discrete = "",
-  binom = "", sequ = "", grid = "", data = "", form = "",
-  seed = NULL, nexact = FALSE, ncorr = NULL, name = "", 
-  nr = 1000, dat = NULL
+  binom = "", pois = "", sequ = "", grid = "", data = "", 
+  form = "", seed = NULL, nexact = FALSE, ncorr = NULL, 
+  name = "", nr = 1000, dat = NULL
 ) {
 
   if (!is_empty(seed)) set.seed(as_numeric(seed))
@@ -163,6 +164,16 @@ simulater <- function(
     for (i in 1:length(s))
       s[[i]] %>% {
         dat[[.[1]]] <<- rbinom(nr, as_integer(.[2]), as_numeric(.[3]))
+      }
+  }
+
+  ## parsing poisson
+  pois %<>% sim_cleaner
+  if (pois != "") {
+    s <- pois %>% sim_splitter()
+    for (i in 1:length(s))
+      s[[i]] %>% {
+        dat[[.[1]]] <<- rpois(nr, as_integer(.[2]))
       }
   }
 
@@ -309,14 +320,15 @@ summary.simulater <- function(object, dec = 4, ...) {
   cat("Random seed:", sc$seed, "\n")
   cat("Sim data   :", sc$name, "\n")
   if (!is_empty(sc$binom)) cat("Binomial   :", clean(sc$binom))
-  if (!is_empty(sc$const)) cat("Constant   :", clean(sc$const))
   if (!is_empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
   if (!is_empty(sc$lnorm)) cat("Log normal :", clean(sc$lnorm))
   if (!is_empty(sc$norm)) cat("Normal     :", clean(ifelse(sc$nexact, paste0(sc$norm, "(exact)"), sc$norm)))
   if (!is_empty(sc$unif)) cat("Uniform    :", clean(sc$unif))
-  if (!is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
-  if (!is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
+  if (!is_empty(sc$pois)) cat("Poisson    :", clean(sc$pois))
+  if (!is_empty(sc$const)) cat("Constant   :", clean(sc$const))
   if (!is_empty(sc$data)) cat("Data       :", clean(sc$data))
+  if (!is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
+  if (!is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
   if (!is_empty(sc$form)) cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
   cat("\n")
 
