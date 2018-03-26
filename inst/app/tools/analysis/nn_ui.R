@@ -368,7 +368,8 @@ output$nn <- renderUI({
         plot_downloader("nn", height = nn_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
         plotOutput("predict_plot_nn", width = "100%", height = "100%")
       ),
-      downloadLink("dl_nn_pred", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_nn_pred", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_nn_pred"), br(),
       verbatimTextOutput("predict_nn")
     ),
     tabPanel(
@@ -510,19 +511,6 @@ observeEvent(input$nn_store_res, {
   )
 })
 
-output$dl_nn_pred <- downloadHandler(
-  filename = function() {
-    "nn_predictions.csv"
-  },
-  content = function(file) {
-    if (pressed(input$nn_run)) {
-      .predict_nn() %>% write.csv(file = file, row.names = FALSE)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
-  }
-)
-
 observeEvent(input$nn_report, {
   if (is_empty(input$nn_evar)) return(invisible())
 
@@ -585,3 +573,31 @@ observeEvent(input$nn_report, {
     xcmd = xcmd
   )
 })
+
+# output$dl_nn_pred <- downloadHandler(
+#   filename = function() {
+#     "nn_predictions.csv"
+#   },
+#   content = function(file) {
+#     if (pressed(input$nn_run)) {
+#       .predict_nn() %>% write.csv(file = file, row.names = FALSE)
+#     } else {
+#       cat("No output available. Press the Estimate button to generate results", file = file)
+#     }
+#   }
+# )
+
+dl_nn_pred <- function(path) {
+  if (pressed(input$nn_run)) {
+    write.csv(.predict_nn(), file = path, row.names = FALSE)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
+  }
+}
+
+download_handler(
+  id = "dl_nn_pred", 
+  fun = dl_nn_pred, 
+  fn = paste0(input$dataset, "_nn_pred.csv"),
+  caption = "Download predictions"
+)

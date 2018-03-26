@@ -151,7 +151,8 @@ output$evalbin <- renderUI({
     id = "tabs_evalbin",
     tabPanel(
       "Summary",
-      downloadLink("dl_ebin_tab", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_ebin_tab", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_ebin_tab"), br(),
       verbatimTextOutput("summary_evalbin")
     ),
     tabPanel(
@@ -161,7 +162,8 @@ output$evalbin <- renderUI({
     ),
     tabPanel(
       "Confusion",
-      downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
+      #downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_confusion_tab"), br(),
       verbatimTextOutput("summary_confusion"),
       conditionalPanel(
         condition = "input.ebin_show_plots == true",
@@ -283,23 +285,46 @@ observeEvent(input$confusion_report, {
   )
 })
 
+# output$dl_ebin_tab <- downloadHandler(
+#   filename = function() {
+#     "evalbin.csv"
+#   },
+#   content = function(file) {
+#     eb <- .evalbin()
+#     if (!is_empty(eb$dat)) write.csv(eb$dat, file = file, row.names = FALSE)
+#   }
+# )
 
-output$dl_ebin_tab <- downloadHandler(
-  filename = function() {
-    "evalbin.csv"
-  },
-  content = function(file) {
-    eb <- .evalbin()
-    if (!is_empty(eb$dat)) write.csv(eb$dat, file = file, row.names = FALSE)
-  }
+# output$dl_confusion_tab <- downloadHandler(
+#   filename = function() {
+#     "confusion.csv"
+#   },
+#   content = function(file) {
+#     .confusion() %>%
+#       {if (!is_empty(.$dat)) write.csv(.$dat, file = file, row.names = FALSE)
+#   }
+# )
+
+dl_ebin_tab <- function(path) {
+  .evalbin() %>%
+    {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+}
+
+download_handler(
+  id = "dl_ebin_tab", 
+  fun = dl_ebin_tab, 
+  fn = paste0(input$dataset, "_evalbin.csv"),
+  caption = "Download evaluations"
 )
 
-output$dl_confusion_tab <- downloadHandler(
-  filename = function() {
-    "confusion.csv"
-  },
-  content = function(file) {
-    .confusion()$dat %>%
-      write.csv(., file = file, row.names = FALSE)
-  }
+dl_confusion_tab <- function(path) {
+  .confusion() %>%
+    {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+}
+
+download_handler(
+  id = "dl_confusion_tab", 
+  fun = dl_confusion_tab, 
+  fn = paste0(input$dataset, "_confusion.csv"),
+  caption = "Download confusion"
 )

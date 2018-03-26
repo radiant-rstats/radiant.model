@@ -326,7 +326,8 @@ output$crtree <- renderUI({
         plot_downloader("crtree", height = crtree_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
         plotOutput("predict_plot_crtree", width = "100%", height = "100%")
       ),
-      downloadLink("dl_crtree_pred", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_crtree_pred", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_crtree_pred"), br(),
       verbatimTextOutput("predict_crtree")
     ),
     tabPanel(
@@ -461,18 +462,18 @@ observeEvent(input$crtree_store_res, {
   )
 })
 
-output$dl_crtree_pred <- downloadHandler(
-  filename = function() {
-    "crtree_predictions.csv"
-  },
-  content = function(file) {
-    if (pressed(input$crtree_run)) {
-      .predict_crtree() %>% write.csv(file = file, row.names = FALSE)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
-  }
-)
+# output$dl_crtree_pred <- downloadHandler(
+#   filename = function() {
+#     "crtree_predictions.csv"
+#   },
+#   content = function(file) {
+#     if (pressed(input$crtree_run)) {
+#       .predict_crtree() %>% write.csv(file = file, row.names = FALSE)
+#     } else {
+#       cat("No output available. Press the Estimate button to generate results", file = file)
+#     }
+#   }
+# )
 
 observeEvent(input$crtree_report, {
   if (is_empty(input$crtree_evar)) return(invisible())
@@ -534,3 +535,18 @@ observeEvent(input$crtree_report, {
     xcmd = xcmd
   )
 })
+
+dl_crtree_pred <- function(path) {
+  if (pressed(input$crtree_run)) {
+    .predict_crtree() %>% write.csv(file = path, row.names = FALSE)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
+  }
+}
+
+download_handler(
+  id = "dl_crtree_pred", 
+  fun = dl_crtree_pred, 
+  fn = paste0(input$dataset, "_crtree_pred.csv"),
+  caption = "Download crtree predictions"
+)

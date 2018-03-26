@@ -309,10 +309,11 @@ output$ui_logistic <- renderUI({
         ),
         ## Using && to check that input.logit_sum_check is not null (must be &&)
         conditionalPanel(
-          condition = "(input.logit_sum_check && (input.logit_sum_check.indexOf('odds') >= 0 |
-                        input.logit_sum_check.indexOf('confint') >= 0)) |
-                        input.logit_plots == 'coef' |
-                        input.tabs_logistic == 'Predict'",
+          condition = "(input.logit_sum_check && 
+                        (input.logit_sum_check.indexOf('odds') >= 0 | input.logit_sum_check.indexOf('confint') >= 0)
+                       ) |
+                       input.logit_plots == 'coef' |
+                       input.tabs_logistic == 'Predict'",
           sliderInput(
             "logit_conf_lev", "Confidence level:", min = 0.80,
             max = 0.99, value = state_init("logit_conf_lev", .95),
@@ -387,7 +388,8 @@ output$logistic <- renderUI({
     id = "tabs_logistic",
     tabPanel(
       "Summary",
-      downloadLink("dl_logit_coef", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_logit_coef", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_logit_coef"), br(),
       verbatimTextOutput("summary_logistic")
     ),
     tabPanel(
@@ -397,7 +399,8 @@ output$logistic <- renderUI({
         plot_downloader("logistic", height = logit_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
         plotOutput("predict_plot_logistic", width = "100%", height = "100%")
       ),
-      downloadLink("dl_logit_pred", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_logit_pred", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_logit_pred"), br(),
       verbatimTextOutput("predict_logistic")
     ),
     tabPanel(
@@ -571,29 +574,59 @@ observeEvent(input$logit_store_pred, {
   )
 })
 
-output$dl_logit_coef <- downloadHandler(
-  filename = function() {
-    "logit_coefficients.csv"
-  },
-  content = function(file) {
-    if (pressed(input$logit_run)) {
-      write.coeff(.logistic(), file = file)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
+# output$dl_logit_coef <- downloadHandler(
+#   filename = function() {
+#     "logit_coefficients.csv"
+#   },
+#   content = function(file) {
+#     if (pressed(input$logit_run)) {
+#       write.coeff(.logistic(), file = file)
+#     } else {
+#       cat("No output available. Press the Estimate button to generate results", file = file)
+#     }
+#   }
+# )
+
+# output$dl_logit_pred <- downloadHandler(
+#   filename = function() {
+#     "logit_predictions.csv"
+#   },
+#   content = function(file) {
+#     if (pressed(input$logit_run)) {
+#       .predict_logistic() %>%
+#         write.csv(file = file, row.names = FALSE)
+#     } else {
+#       cat("No output available. Press the Estimate button to generate results", file = file)
+#     }
+#   }
+# )
+
+dl_logit_coef <- function(path) {
+  if (pressed(input$logit_run)) {
+    write.coeff(.logistic(), file = path)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
   }
+}
+
+download_handler(
+  id = "dl_logit_coef", 
+  fun = dl_logit_coef, 
+  fn = paste0(input$dataset, "_logit_coef.csv"),
+  caption = "Download coefficients"
 )
 
-output$dl_logit_pred <- downloadHandler(
-  filename = function() {
-    "logit_predictions.csv"
-  },
-  content = function(file) {
-    if (pressed(input$logit_run)) {
-      .predict_logistic() %>%
-        write.csv(file = file, row.names = FALSE)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
+dl_logit_pred <- function(path) {
+  if (pressed(input$logit_run)) {
+    write.csv(.predict_logistic(), file = path, row.names = FALSE)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
   }
+}
+
+download_handler(
+  id = "dl_logit_pred", 
+  fun = dl_logit_pred, 
+  fn = paste0(input$dataset, "_logit_pred.csv"),
+  caption = "Download predictions"
 )

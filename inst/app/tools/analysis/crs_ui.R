@@ -118,7 +118,8 @@ output$crs <- renderUI({
     id = "tabs_crs",
     tabPanel(
       "Summary",
-      downloadLink("dl_crs_recommendations", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_crs_recommendations", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_crs_recommendations"), br(),
       verbatimTextOutput("summary_crs")
     ),
     tabPanel(
@@ -206,19 +207,19 @@ observeEvent(input$crs_report, {
   )
 })
 
-output$dl_crs_recommendations <- downloadHandler(
-  filename = function() {
-    "recommendations_crs.csv"
-  },
-  content = function(file) {
-    pred <- .crs()
-    if (!is.data.frame(pred$recommendations)) {
-      write.csv("No recommendations available", file = file, row.names = FALSE)
-    } else {
-      write.csv(pred$recommendations, file = file, row.names = FALSE)
-    }
-  }
-)
+# output$dl_crs_recommendations <- downloadHandler(
+#   filename = function() {
+#     "recommendations_crs.csv"
+#   },
+#   content = function(file) {
+#     pred <- .crs()
+#     if (!is.data.frame(pred$recommendations)) {
+#       write.csv("No recommendations available", file = file, row.names = FALSE)
+#     } else {
+#       write.csv(pred$recommendations, file = file, row.names = FALSE)
+#     }
+#   }
+# )
 
 ## Store results
 observeEvent(input$crs_store_pred, {
@@ -244,3 +245,19 @@ observeEvent(input$crs_store_pred, {
     )
   )
 })
+
+dl_crs_recommendations <- function(path) {
+  pred <- .crs()
+  if (!is.data.frame(pred$recommendations)) {
+    write.csv("No recommendations available", file = path, row.names = FALSE)
+  } else {
+    write.csv(pred$recommendations, file = path, row.names = FALSE)
+  }
+}
+
+download_handler(
+  id = "dl_crs_recommendations", 
+  fun = dl_crs_recommendations, 
+  fn = paste0(input$dataset, "_crs.csv"),
+  caption = "Download recommendations"
+)

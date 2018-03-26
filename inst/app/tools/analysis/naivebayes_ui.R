@@ -187,7 +187,8 @@ output$nb <- renderUI({
         plot_downloader("nb", height = nb_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
         plotOutput("predict_plot_nb", width = "100%", height = "100%")
       ),
-      downloadLink("dl_nb_pred", "", class = "fa fa-download alignright"), br(),
+      # downloadLink("dl_nb_pred", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_nb_pred"), br(),
       verbatimTextOutput("predict_nb")
     ),
     tabPanel(
@@ -294,19 +295,6 @@ observeEvent(input$nb_store_res, {
   )
 })
 
-output$dl_nb_pred <- downloadHandler(
-  filename = function() {
-    "nb_predictions.csv"
-  },
-  content = function(file) {
-    if (pressed(input$nb_run)) {
-      .predict_nb() %>% write.csv(file = file, row.names = FALSE)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
-  }
-)
-
 observeEvent(input$nb_report, {
   outputs <- c("summary")
   inp_out <- list("", "")
@@ -349,3 +337,32 @@ observeEvent(input$nb_report, {
     xcmd = xcmd
   )
 })
+
+# output$dl_nb_pred <- downloadHandler(
+#   filename = function() {
+#     "nb_predictions.csv"
+#   },
+#   content = function(file) {
+#     if (pressed(input$nb_run)) {
+#       .predict_nb() %>% write.csv(file = file, row.names = FALSE)
+#     } else {
+#       cat("No output available. Press the Estimate button to generate results", file = file)
+#     }
+#   }
+# )
+
+dl_nb_pred <- function(path) {
+  if (pressed(input$nb_run)) {
+    write.csv(.predict_nb(), file = path, row.names = FALSE)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
+  }
+}
+
+download_handler(
+  id = "dl_nb_pred", 
+  fun = dl_nb_pred, 
+  fn = paste0(input$dataset, "_nb_pred.csv"),
+  caption = "Download predictions"
+)
+

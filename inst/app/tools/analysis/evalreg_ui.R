@@ -85,7 +85,8 @@ output$evalreg <- renderUI({
 
   ## one output with components stacked
   ereg_output_panels <- tagList(
-    downloadLink("dl_ereg_tab", "", class = "fa fa-download alignright"), br(),
+    # downloadLink("dl_ereg_tab", "", class = "fa fa-download alignright"), br(),
+    download_link("dl_ereg_tab"), br(),
     verbatimTextOutput("summary_evalreg"),
     conditionalPanel(
       condition = "input.ereg_show_plots == true",
@@ -144,15 +145,27 @@ observeEvent(input$evalreg_report, {
   )
 })
 
-output$dl_ereg_tab <- downloadHandler(
-  filename = function() {
-    "evalreg.csv"
-  },
-  content = function(file) {
-    do.call(summary, c(
-      list(object = .evalreg()), ereg_inputs(),
-      list(prn = FALSE)
-    )) %>%
-      write.csv(., file = file, row.names = FALSE)
-  }
+# output$dl_ereg_tab <- downloadHandler(
+#   filename = function() {
+#     "evalreg.csv"
+#   },
+#   content = function(file) {
+#     do.call(summary, c(
+#       list(object = .evalreg()), ereg_inputs(),
+#       list(prn = FALSE)
+#     )) %>%
+#       write.csv(., file = file, row.names = FALSE)
+#   }
+# )
+
+dl_ereg_tab <- function(path) {
+  .evalreg() %>%
+    {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+}
+
+download_handler(
+  id = "dl_ereg_tab", 
+  fun = dl_ereg_tab, 
+  fn = paste0(input$dataset, "_evalreg.csv"),
+  caption = "Download evaluations"
 )

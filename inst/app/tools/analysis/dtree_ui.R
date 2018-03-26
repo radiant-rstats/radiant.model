@@ -41,7 +41,7 @@ output$ui_dtree_name <- renderUI({
 
 output$ui_dtree_remove <- renderUI({
   req(length(r_data[["dtree_list"]]) > 1)
-  actionButton("dtree_remove", "Remove")
+  actionButton("dtree_remove", "Remove", icon = icon("trash"), class = "btn-danger")
 })
 
 output$ui_dtree_sense_name <- renderUI({
@@ -126,10 +126,15 @@ output$dtree <- renderUI({
           td(actionButton("dtree_run", "Calculate tree", icon = icon("play"), class = "btn-success"), style = "padding-top:5px;"),
           td(uiOutput("ui_dtree_name"), style = "padding-top:-5px"),
           td(uiOutput("ui_dtree_list"), style = "padding-top:0px;"),
-          td(downloadButton("dtree_save_yaml", "Save input"), style = "padding-top:5px;"),
-          td(downloadButton("dtree_save", "Save output"), style = "padding-top:5px;"),
           td(uiOutput("ui_dtree_remove"), style = "padding-top:5px;"),
-          td(HTML("<div class='form-group shiny-input-container'><input id='dtree_load_yaml' name='dtree_load_yaml' type='file' accept='.yaml'/></div>"))
+          td(file_upload_button(
+            "dtree_load_yaml", label = NULL, accept = ".yaml", 
+            buttonLabel = "Load input", class = "btn-primary"
+          ), style = "padding-top:5px;"),
+          # td(downloadButton("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
+          # td(downloadButton("dtree_save", "Save output"), style = "padding-top:5px;")
+          td(download_button("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
+          td(download_button("dtree_save", "Save output"), style = "padding-top:5px;")
         )
       ),
       shinyAce::aceEditor(
@@ -142,6 +147,7 @@ output$dtree <- renderUI({
         vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
         hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
         autoComplete = "live",
+        useSoftTabs = FALSE, 
         showInvisibles = TRUE
         ## autoCompleteList of suggestions for 'dtree' is never shown 
         ## suggestion: build a minimal shiny app based on the autocomplete example
@@ -384,41 +390,24 @@ output$plot_dtree_sensitivity <- renderPlot({
   })
 }, width = dtree_sense_width, height = dtree_sense_height, res = 96)
 
-
-output$dtree_save <- downloadHandler(
-  filename = function() {
-    if (is_empty(input$dtree_name)) {
-      "dtree.txt"
-    } else {
-      paste0(input$dtree_name, "_dtree.txt")
-    }
-  },
-  content = function(file) {
-    isolate({
-      capture.output(dtree(input$dtree_edit) %>% summary(input = FALSE, output = TRUE)) %>%
-        cat(., file = file, sep = "\n")
-    })
-  }
-)
-
-output$dtree_save_yaml <- downloadHandler(
-  filename = function() {
-    if (is_empty(input$dtree_name)) {
-      "dtree.yaml"
-    } else {
-      paste0(input$dtree_name, "_dtree.yaml")
-    }
-  },
-  content = function(file) {
-    isolate({
-      cat(paste0(input$dtree_edit, "\n"), file = file)
-    })
-  }
-)
-
 observeEvent(input$dtree_load_yaml, {
   ## loading yaml file from disk
-  inFile <- input$dtree_load_yaml
+  if (isTRUE(getOption("radiant.launch", "browser") == "viewer")) {
+    path <- rstudioapi::selectFile(
+      caption = "Select .yaml",
+      filter = "Select .yaml (*.yaml)",
+      path = getOption("radiant.launch_dir")
+    )
+    if (is(path, "try-error") || is_empty(path)) return()
+    inFile <- data.frame(
+      name = basename(path),
+      datapath = path, 
+      stringsAsFactors = FALSE
+    )
+  } else {
+    inFile <- input$dtree_load_yaml
+  }
+
   yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
 
   ## remove characters that may cause problems in shinyAce
@@ -521,3 +510,37 @@ observeEvent(input$dtree_remove, {
     xcmd = xcmd
   )
 })
+
+dl_dtree_save <- function(path) {
+  capture.output(dtree(input$dtree_edit) %>% 
+    summary(input = FALSE, output = TRUE)) %>%
+    cat(file = path, sep = "\n")
+}
+
+download_handler(
+  id = "dtree_save", 
+  fun = dl_dtree_save, 
+  fn = ifelse(
+    is_empty(input$dtree_name), 
+    "dtree.txt", 
+    paste0(input$dtree_name, "_dtree.txt")
+  ),
+  caption = "Download decision tree output",
+  type = "txt"
+)
+
+dl_dtree_save_yaml <- function(path) {
+  cat(paste0(input$dtree_edit, "\n"), file = path)
+}
+
+download_handler(
+  id = "dtree_save_yaml", 
+  fun = dl_dtree_save_yaml, 
+  fn = ifelse(
+    is_empty(input$dtree_name), 
+    "dtree.yaml", 
+    paste0(input$dtree_name, "_dtree.yaml")
+  ),
+  caption = "Download decision tree input",
+  type = "yaml"
+)
