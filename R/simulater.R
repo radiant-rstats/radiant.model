@@ -50,13 +50,12 @@ simulater <- function(
   }
 
   grid %<>% sim_cleaner
-  if (grid != "") {
+  if (grid != "" && length(dat) == 0) {
     s <- grid %>% sim_splitter()
-    for (i in 1:length(s)) {
+      for (i in 1:length(s)) {
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
-      s[[i]] %>% {
-        dat[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))
-      }
+      s[[i]] %>% 
+        {dat[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))}
     }
     dat <- as.list(expand.grid(dat) %>% as.data.frame(stringsAsFactors = FALSE))
     nr <- length(dat[[1]])
@@ -432,50 +431,10 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' ) %>% head
 #'
 #' @export
-repeater <- function(nr = 12,
-                     vars = "",
-                     grid = "",
-                     sum_vars = "",
-                     byvar = "sim",
-                     fun = "sum_rm",
-                     form = "",
-                     seed = NULL,
-                     name = "",
-                     sim = "") {
-
-  # nr = 12
-  # grid = ""
-  # byvar = "sim"
-  # fun = "sum_rm"
-  # vars = c("E","price")
-  # sum_vars = c("profit","E")
-  # form = "profit_365 = profit < 36500"
-  # seed = "1234"
-  # name = ""
-  # sim = simulater(const = "var_cost 5;fixed_cost 1000;", norm = "E 0 100;",
-  #                 discrete = "price 6 8 .3 .7;",
-  #                 form = "demand = 1000 - 50*price + E;
-  #                         profit = demand*(price-var_cost) - fixed_cost;
-  #                         profit_small = profit < 100",
-  #                 seed = "1234")
-
-  # nr = 5 
-  # vars = c("incidental", "A3403", "A3402", "B757") 
-  # sum_vars = c(
-  #   "total", "RCNC1", "RCNC1_prof", "RCNC2", "CTC", "HIC", 
-  #   "HIC_prof"
-  # ) 
-  # form = c(
-  #   "## RCNC1_net = RCNC1 - .2 * pmax(RCNC1 - .1*total - .9*total, 0)", 
-  #   "RCNC1_net = RCNC1 - 0.2 * pmax(RCNC1_prof, 0)", 
-  #   "## HIC_net = HIC - .035 * pmax(HIC - total, 0)", 
-  #   "HIC_net = HIC - .035 * pmax(HIC_prof, 0)", 
-  #   "HIC_MIN_CTC = HIC_net - CTC", 
-  #   "HIC_LT_CTC = HIC_net < CTC"
-  # ) 
-  # seed = 1234 
-  # name = "repdat" 
-  # sim = sim
+repeater <- function(
+  nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
+  fun = "sum_rm", form = "", seed = NULL, name = "", sim = ""
+) {
 
   if (byvar == "sim") grid <- ""
 
@@ -566,7 +525,9 @@ repeater <- function(nr = 12,
     bind_cols(
       data.frame(rep = rep(rep_nr, nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
-    ) %>% na.omit() %>% sfun()
+    ) %>% 
+      na.omit() %>% 
+      sfun()
   }
 
   rep_grid_sim <- function(gval, sfun = function(x) x) {
@@ -574,9 +535,7 @@ repeater <- function(nr = 12,
 
     ## removing form ...
     sc_grid <- grep(paste(gvars, collapse = "|"), sc_keep, value = TRUE) %>%
-      {
-        .[which(names(.) != "form")]
-      } %>%
+      {.[which(names(.) != "form")]} %>%
       gsub("[ ]{2,}", " ", .)
 
     for (i in 1:length(gvars)) {
@@ -638,8 +597,6 @@ repeater <- function(nr = 12,
 
   ## capturing the function call for use in summary and plot
   rc <- formals()
-
-  # rmc <- lapply(match.call()[-1], eval)
   rmc <- lapply(match.call()[-1], eval, envir = parent.frame())
   rc[names(rmc)] <- rmc
 
@@ -836,27 +793,12 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
         group_by_at(.vars = "variable") %>%
         summarise_all(
           funs(
-            n = length,
-            mean = mean_rm,
-            sd = sd_rm,
-            min = min_rm,
-            `25%` = p25,
-            median = median_rm,
-            `75%` = p75,
-            max = max_rm
+            n = length, mean = mean_rm, sd = sd_rm, min = min_rm,
+            `25%` = p25, median = median_rm, `75%` = p75, max = max_rm
           )
         ) %>%
-        {if (fun == "" || fun == "none") {
-            .
-          } else {
-            .[[1]] <- paste0(fun, " of ", .[[1]])
-          }
-          .
-        } %>%
-        {
-          .[[1]] <- format(.[[1]], justify = "left")
-          .
-        } %>%
+        {if (fun == "" || fun == "none") { . } else { .[[1]] <- paste0(fun, " of ", .[[1]]) }; .} %>%
+        {.[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE, stringsAsFactors = FALSE) %>%
         formatdf(., dec = dec, mark = ",") %>%
         print(row.names = FALSE)
