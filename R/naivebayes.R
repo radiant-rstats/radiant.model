@@ -111,6 +111,8 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{nb}}
+#' @param plots Plots to produce for the specified model. Use "" to avoid showing any plots (default). Use "vimp" for variable importance or "correlations" to examine conditional independence
+#' @param lev The level(s) in the response variable used as the basis for plots (defaults to "All levels")
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -124,18 +126,36 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @seealso \code{\link{predict.nb}} for prediction
 #'
 #' @export
-plot.nb <- function(x, ...) {
+plot.nb <- function(x, plots = "", lev = "All levels", ...) {
   object <- x; rm(x)
   if (is.character(object)) return(object)
+  if (is_empty(plots[1])) {
+    return("Please select a naive Bayes plot from the drop-down menu")
+  }
 
-  # x <- mutate_all(object$model$model[,-1, drop = FALSE], funs(as_numeric))
   x <- mutate_all(select(object$model$model, -1), funs(as_numeric))
   y <- object$model$model[[1]]
+
+  if ("correlations" %in% plots) {
+    if (lev == "All levels") {
+      return(radiant.basics:::plot.correlation(x, nrobs = 1000))
+    } else {
+      return(radiant.basics:::plot.correlation(filter(x, y == lev), nrobs = 1000))
+    }
+  }
+
+  if (lev != "All levels") {
+    y <- factor(
+      ifelse(y == lev, lev, paste0("not_", lev)), 
+      levels = c(lev, paste0("not_", lev))
+    )
+    object$lev <- c(lev, paste0("not_", lev))
+  }
+
   k <- length(object$lev)
 
   if (k == 2) {
     ## with two variables one of them would be set to 0 by caret::varImp
-    # apply(x, 2, auc, y) %>% {. - min(.)} %>% {. / max(.)} %>% cbind(.,.) %>% set_colnames(levs)
     ## reporting auc for each variable
     vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x), stringsAsFactors = FALSE) %>%
       arrange_at(.vars = "auc")
@@ -159,7 +179,7 @@ plot.nb <- function(x, ...) {
     vimp <- gather(vimp, "vars", "auc", !! names(x), factor_key = TRUE)
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
-      guides(fill = guide_legend(title = "X-vars")) +
+      guides(fill = guide_legend(title = "")) +
       labs(x = "", y = "Variable Importance (AUC)") +
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
       theme(axis.text.y = element_text(hjust = 0))
@@ -342,8 +362,6 @@ store.nb.predict <- function(object, ..., data = attr(object, "pred_data"), name
   }
 
   indr <- indexr(data, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
-  # indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
-
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- df
 
