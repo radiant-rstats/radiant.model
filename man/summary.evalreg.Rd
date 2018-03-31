@@ -4,10 +4,12 @@
 \alias{summary.evalreg}
 \title{Summary method for the evalreg function}
 \usage{
-\method{summary}{evalreg}(object, ...)
+\method{summary}{evalreg}(object, dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{evalreg}}}
+
+\item{dec}{Number of decimals to show}
 
 \item{...}{further arguments passed to or from other methods}
 }

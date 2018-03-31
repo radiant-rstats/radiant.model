@@ -5,16 +5,18 @@
 \title{Plot method for the logistic function}
 \usage{
 \method{plot}{logistic}(x, plots = "", conf_lev = 0.95, intercept = FALSE,
-  shiny = FALSE, custom = FALSE, ...)
+  nrobs = -1, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{logistic}}}
 
-\item{plots}{Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" is a series of four plots used to visually evaluate model. "coef" provides a coefficient plot}
+\item{plots}{Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "coef" provides a coefficient plot}
 
 \item{conf_lev}{Confidence level to use for coefficient and odds confidence intervals (.95 is the default)}
 
 \item{intercept}{Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default}
+
+\item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

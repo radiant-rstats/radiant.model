@@ -12,7 +12,7 @@ radiant.model()
 \description{
 radiant.model
 
-Launch radiant.model in default browser
+Launch radiant.model in the default browser
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
