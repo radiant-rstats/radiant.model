@@ -70,13 +70,14 @@ evalreg <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{evalreg}}
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalreg}} to summarize results
 #' @seealso \code{\link{plot.evalreg}} to plot results
 #'
 #' @export
-summary.evalreg <- function(object, ...) {
+summary.evalreg <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
   cat("Evaluate predictions for regression models\n")
   cat("Data        :", object$dataset, "\n")
@@ -86,7 +87,8 @@ summary.evalreg <- function(object, ...) {
   cat("Results for :", object$train, "\n")
   cat("Predictors  :", paste0(object$pred, collapse = ", "), "\n")
   cat("Response    :", object$rvar, "\n\n")
-  print(formatdf(object$dat, mark = ","), row.names = FALSE)
+  formatdf(object$dat, dec = dec, mark = ",") %>%
+    print(row.names = FALSE)
 }
 
 #' Plot method for the evalreg function
