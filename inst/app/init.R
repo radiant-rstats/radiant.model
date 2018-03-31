@@ -33,7 +33,7 @@ r_url_list[["Classification and regression trees"]] <-
 r_url_list[["Evaluate regression"]] <-
   list("tabs_evalreg" = list("Summary" = "model/evalreg/"))
 r_url_list[["Evaluate classification"]] <-
-  list("tabs_evalbin" = list("Summary" = "model/evalbin/", "Plot" = "model/evalbin/plot/"))
+  list("tabs_evalbin" = list("Evaluate" = "model/evalbin/", "Confusion" = "model/evalbin/confusion/"))
 r_url_list[["Collaborative Filtering"]] <-
   list("tabs_crs" = list("Summary" = "model/crs/", "Plot" = "model/crs/plot/"))
 r_url_list[["Decision analysis"]] <-
