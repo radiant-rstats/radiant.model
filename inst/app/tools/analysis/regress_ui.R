@@ -2,7 +2,12 @@
 # Regression - UI
 ################################################################
 reg_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
-reg_predict <- c("None" = "none", "Data" = "data", "Command" = "cmd", "Data & Command" = "datacmd")
+reg_predict <- c(
+  "None" = "none", 
+  "Data" = "data", 
+  "Command" = "cmd", 
+  "Data & Command" = "datacmd"
+)
 reg_check <- c(
   "Standardize" = "standardize", "Center" = "center",
   "Stepwise" = "stepwise-backward", "Robust" = "robust"
@@ -123,7 +128,7 @@ output$ui_reg_evar <- renderUI({
 
   selectInput(
     inputId = "reg_evar", label = "Explanatory variables:", choices = vars,
-    selected = state_multiple("reg_evar", vars),
+    selected = state_multiple("reg_evar", vars, isolate(input$reg_evar)),
     multiple = TRUE, size = min(10, length(vars)), selectize = FALSE
   )
 })
@@ -134,7 +139,8 @@ output$ui_reg_test_var <- renderUI({
   if (!is.null(input$reg_int)) vars <- c(vars, input$reg_int)
   selectizeInput(
     inputId = "reg_test_var", label = "Variables to test:",
-    choices = vars, selected = state_multiple("reg_test_var", vars),
+    choices = vars, 
+    selected = state_multiple("reg_test_var", vars, isolate(input$reg_test_var)),
     multiple = TRUE,
     options = list(placeholder = "None", plugins = list("remove_button"))
   )
@@ -177,7 +183,7 @@ output$ui_reg_int <- renderUI({
   )
 })
 
-## reset prediction settings when the dataset changes
+## reset prediction and plot settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "reg_predict", selected = "none")
   updateSelectInput(session = session, inputId = "reg_plots", selected = "none")
@@ -189,7 +195,6 @@ output$ui_reg_predict_plot <- renderUI({
 
 output$ui_reg_nrobs <- renderUI({
   nrobs <- nrow(.getdata())
-  # req(nrobs > 1000)
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(
@@ -199,6 +204,26 @@ output$ui_reg_nrobs <- renderUI({
   )
 })
 
+observe({
+  ## dep on most inputs
+  input$data_filter
+  input$show_filter
+  sapply(r_drop(names(reg_args)), function(x) input[[paste0("reg_", x)]])
+
+  ## notify user when the model needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$reg_run)) {
+    if (is.null(input$reg_evar)) { 
+      updateTabsetPanel(session, "tabs_regress ", selected = "Summary")
+      updateActionButton(session, "reg_run", "Estimate model", icon = icon("play"))
+    } else if (isTRUE(attr(reg_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "reg_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "reg_run", "Estimate model", icon = icon("play"))
+    }
+  }
+})
+
 ## data ui and tabs
 output$ui_regress <- renderUI({
   req(input$dataset)
@@ -206,19 +231,42 @@ output$ui_regress <- renderUI({
     wellPanel(
       actionButton("reg_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
-    conditionalPanel(
-      condition = "input.tabs_regress == 'Predict'",
-      wellPanel(
+    wellPanel(
+      conditionalPanel(
+        condition = "input.tabs_regress == 'Summary'",
+        uiOutput("ui_reg_rvar"),
+        uiOutput("ui_reg_evar"),
+        conditionalPanel(
+          condition = "input.reg_evar != null", 
+          uiOutput("ui_reg_show_interactions"),
+          conditionalPanel(
+            condition = "input.reg_show_interactions != ''",
+            uiOutput("ui_reg_int")
+          ),
+          uiOutput("ui_reg_test_var"),
+          checkboxGroupInput(
+            "reg_check", NULL, reg_check,
+            selected = state_group("reg_check"), inline = TRUE
+          ),
+          checkboxGroupInput(
+            "reg_sum_check", NULL, reg_sum_check,
+            selected = state_group("reg_sum_check"), inline = TRUE
+          )
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_regress == 'Predict'",
         selectInput(
-          "reg_predict", label = "Prediction input:", reg_predict,
+          "reg_predict", label = "Prediction input type:", reg_predict,
           selected = state_single("reg_predict", reg_predict, "none")
         ),
         conditionalPanel(
           "input.reg_predict == 'data' | input.reg_predict == 'datacmd'",
           selectizeInput(
-            inputId = "reg_pred_data", label = "Predict for profiles:",
+            inputId = "reg_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_data$datasetlist),
-            selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
+            selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), 
+            multiple = FALSE
           )
         ),
         conditionalPanel(
@@ -246,13 +294,11 @@ output$ui_regress <- renderUI({
             tags$td(actionButton("reg_store_pred", "Store"), style = "padding-top:30px;")
           )
         )
-      )
-    ),
-    conditionalPanel(
-      condition = "input.tabs_regress == 'Plot'",
-      wellPanel(
+      ),
+      conditionalPanel(
+        condition = "input.tabs_regress == 'Plot'",
         selectInput(
-          "reg_plots", "Regression plots:", choices = reg_plots,
+          "reg_plots", "Plots:", choices = reg_plots,
           selected = state_single("reg_plots", reg_plots)
         ),
         conditionalPanel(
@@ -264,7 +310,6 @@ output$ui_regress <- renderUI({
                        input.reg_plots == 'scatter' |
                        input.reg_plots == 'dashboard' |
                        input.reg_plots == 'resid_pred'",
-
           uiOutput("ui_reg_nrobs"),
           conditionalPanel(
             condition = "input.reg_plots != 'correlations'", 
@@ -274,48 +319,22 @@ output$ui_regress <- renderUI({
             )
           )
         )
-      )
-    ),
-    wellPanel(
-      uiOutput("ui_reg_rvar"),
-      uiOutput("ui_reg_evar"),
-
+      ),
       conditionalPanel(
-        condition = "input.reg_evar != null", uiOutput("ui_reg_show_interactions"),
-        conditionalPanel(
-          condition = "input.reg_show_interactions != ''",
-          uiOutput("ui_reg_int")
-        ),
-        conditionalPanel(
-          condition = "input.tabs_regress == 'Summary'",
-          uiOutput("ui_reg_test_var"),
-          checkboxGroupInput(
-            "reg_check", NULL, reg_check,
-            selected = state_group("reg_check"), inline = TRUE
-          ),
-          checkboxGroupInput(
-            "reg_sum_check", NULL, reg_sum_check,
-            selected = state_group("reg_sum_check"), inline = TRUE
-          )
-        ),
-        conditionalPanel(
-          condition = "input.reg_predict == 'cmd' |
-                       input.reg_predict == 'data' |
-                       (input.reg_sum_check && input.reg_sum_check.indexOf('confint') >= 0) |
-                       input.reg_plots == 'coef'",
-          sliderInput(
-            "reg_conf_lev", "Confidence level:", min = 0.80,
-            max = 0.99, value = state_init("reg_conf_lev", .95),
-            step = 0.01
-          )
-        ),
-        ## Only save residuals when filter is off
-        conditionalPanel(
-          condition = "input.tabs_regress == 'Summary'",
-          tags$table(
-            tags$td(textInput("reg_store_res_name", "Store residuals:", state_init("reg_store_res_name", "residuals_reg"))),
-            tags$td(actionButton("reg_store_res", "Store"), style = "padding-top:30px;")
-          )
+        condition = "(input.tabs_regress == 'Summary' && input.reg_sum_check != undefined && input.reg_sum_check.indexOf('confint') >= 0) |
+                     (input.tabs_regress == 'Predict' && input.reg_predict != 'none') |
+                     (input.tabs_regress == 'Plot' && input.reg_plots == 'coef')",
+        sliderInput(
+          "reg_conf_lev", "Confidence level:", min = 0.80,
+          max = 0.99, value = state_init("reg_conf_lev", .95),
+          step = 0.01
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_regress == 'Summary'",
+        tags$table(
+          tags$td(textInput("reg_store_res_name", "Store residuals:", state_init("reg_store_res_name", "residuals_reg"))),
+          tags$td(actionButton("reg_store_res", "Store"), style = "padding-top:30px;")
         )
       )
     ),
@@ -350,14 +369,10 @@ reg_plot <- reactive({
 })
 
 reg_plot_width <- function()
-  reg_plot() %>% {
-    if (is.list(.)) .$plot_width else 650
-  }
+  reg_plot() %>% {if (is.list(.)) .$plot_width else 650}
 
 reg_plot_height <- function()
-  reg_plot() %>% {
-    if (is.list(.)) .$plot_height else 500
-  }
+  reg_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
 reg_pred_plot_height <- function()
   if (input$reg_pred_plot) 500 else 0
@@ -381,22 +396,22 @@ output$regress <- renderUI({
     id = "tabs_regress",
     tabPanel(
       "Summary",
-      downloadLink("dl_reg_coef", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_reg_coef"), br(),
       verbatimTextOutput("summary_regress")
     ),
     tabPanel(
       "Predict",
       conditionalPanel(
         "input.reg_pred_plot == true",
-        plot_downloader("regress", height = reg_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
+        download_link("dlp_reg_pred"),
         plotOutput("predict_plot_regress", width = "100%", height = "100%")
       ),
-      downloadLink("dl_reg_pred", "", class = "fa fa-download alignright"), br(),
+      download_link("dl_reg_pred"), br(),
       verbatimTextOutput("predict_regress")
     ),
     tabPanel(
       "Plot",
-      plot_downloader("regress", width = reg_plot_width, height = reg_plot_height),
+      download_link("dlp_regress"),
       plotOutput("plot_regress", width = "100%", height = "100%")
     )
   )
@@ -409,12 +424,13 @@ output$regress <- renderUI({
   )
 })
 
-reg_available <- reactive({
+# reg_available <- reactive({
+reg_available <- eventReactive(input$reg_run, {
   if (not_available(input$reg_rvar)) {
     "This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% 
       suggest_data("diamonds")
   } else if (not_available(input$reg_evar)) {
-    "Please select one or more explanatory variables.\n\n" %>% 
+    "Please select one or more explanatory variables. Then press the Estimate\nbutton to estimate the model.\n\n" %>% 
       suggest_data("diamonds")
   } else {
     "available"
@@ -428,14 +444,14 @@ reg_available <- reactive({
 })
 
 .summary_regress <- reactive({
-  if (reg_available() != "available") return(reg_available())
   if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
+  if (reg_available() != "available") return(reg_available())
   do.call(summary, c(list(object = .regress()), reg_sum_inputs()))
 })
 
 .predict_regress <- reactive({
-  if (reg_available() != "available") return(reg_available())
   if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
+  if (reg_available() != "available") return(reg_available())
   if (is_empty(input$reg_predict, "none")) return("** Select prediction input **")
   if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && is_empty(input$reg_pred_data)) {
     return("** Select data for prediction **")
@@ -443,22 +459,20 @@ reg_available <- reactive({
   if (input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd)) {
     return("** Enter prediction commands **")
   }
-
   withProgress(message = "Generating predictions", value = 1, {
     do.call(predict, c(list(object = .regress()), reg_pred_inputs()))
   })
 })
 
 .predict_print_regress <- reactive({
-  .predict_regress() %>% {
-    if (is.character(.)) cat(., "\n") else print(.)
-  }
+  .predict_regress() %>% 
+    {if (is.character(.)) cat(., "\n") else print(.)}
 })
 
 .predict_plot_regress <- reactive({
+  if (not_pressed(input$reg_run)) return(invisible())
   if (reg_available() != "available") return(reg_available())
   req(input$reg_pred_plot, available(input$reg_xvar))
-  if (not_pressed(input$reg_run)) return(invisible())
   if (is_empty(input$reg_predict, "none")) return(invisible())
   if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && is_empty(input$reg_pred_data)) {
     return(invisible())
@@ -470,18 +484,22 @@ reg_available <- reactive({
 })
 
 .plot_regress <- reactive({
-  if (reg_available() != "available") return(reg_available())
-  if (is_empty(input$reg_plots, "none")) return("Please select a regression plot from the drop-down menu")
-  if (not_pressed(input$reg_run)) return("** Press the Estimate button to estimate the model **")
-
-  if (input$reg_plots %in% c("correlations", "leverage")) {
-    capture_plot(do.call(plot, c(list(x = .regress()), reg_plot_inputs())))
-  } else {
-    if (!input$reg_plots %in% c("coef", "dist")) req(input$reg_nrobs)
-    withProgress(message = "Generating plots", value = 1, {
-      do.call(plot, c(list(x = .regress()), reg_plot_inputs(), shiny = TRUE))
-    })
+  if (not_pressed(input$reg_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  } else if (is_empty(input$reg_plots, "none")) {
+    return("Please select a regression plot from the drop-down menu")
+  } else if (reg_available() != "available") {
+    return(reg_available())
   }
+
+  if (!input$reg_plots %in% c("coef", "dist")) req(input$reg_nrobs)
+  withProgress(message = "Generating plots", value = 1, {
+    if (input$reg_plots %in% c("correlations", "leverage")) {
+      capture_plot(do.call(plot, c(list(x = .regress()), reg_plot_inputs())))
+    } else {
+      do.call(plot, c(list(x = .regress()), reg_plot_inputs(), shiny = TRUE))
+    }
+  })
 })
 
 observeEvent(input$regress_report, {
@@ -569,29 +587,53 @@ observeEvent(input$reg_store_pred, {
   )
 })
 
-output$dl_reg_coef <- downloadHandler(
-  filename = function() {
-    "reg_coefficients.csv"
-  },
-  content = function(file) {
-    if (pressed(input$reg_run)) {
-      write.coeff(.regress(), file = file)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
+dl_reg_coef <- function(path) {
+  if (pressed(input$reg_run)) {
+    write.coeff(.regress(), file = path)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
   }
+}
+
+download_handler(
+  id = "dl_reg_coef", 
+  fun = dl_reg_coef, 
+  fn = paste0(input$dataset, "_reg_coef.csv"),
+  caption = "Download coefficients"
 )
 
-output$dl_reg_pred <- downloadHandler(
-  filename = function() {
-    "reg_predictions.csv"
-  },
-  content = function(file) {
-    if (pressed(input$reg_run)) {
-      .predict_regress() %>%
-        write.csv(file = file, row.names = FALSE)
-    } else {
-      cat("No output available. Press the Estimate button to generate results", file = file)
-    }
+dl_reg_pred <- function(path) {
+  if (pressed(input$reg_run)) {
+    write.csv(.predict_regress(), file = path, row.names = FALSE)
+  } else {
+    cat("No output available. Press the Estimate button to generate results", file = path)
   }
+}
+
+download_handler(
+  id = "dl_reg_pred", 
+  fun = dl_reg_pred, 
+  fn = paste0(input$dataset, "_reg_pred.csv"),
+  caption = "Download regression predictions"
+)
+
+download_handler(
+  id = "dlp_reg_pred", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_reg_pred.png"),
+  caption = "Download regression prediction plot",
+  plot = .predict_plot_regress,
+  width = plot_width,
+  height = reg_pred_plot_height
+)
+
+download_handler(
+  id = "dlp_regress", 
+  fun = download_handler_plot, 
+  # fn = paste0(input$dataset, "_", input$reg_plots, "_regress.png"),
+  fn = paste0(input$dataset, "_regress.png"),
+  caption = "Download regression plot",
+  plot = .plot_regress,
+  width = reg_plot_width,
+  height = reg_plot_height
 )

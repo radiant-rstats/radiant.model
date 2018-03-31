@@ -1,3 +1,11 @@
+# CHANGES IN radiant.model 0.9.2
+
+* `Estimate model` button indicates when the output has been invalidated and the model should be re-estimated
+* Combined _Evaluate classification_ Summary and Plot into Evaluate tab
+* Addins option to start app in Rstudio window
+* Upload and download data using the Rstudio file browser. Allows using relative paths to files (e.g., data or images inside an Rstudio project)
+* Default interval for predictions from a linear regression is now "confidence" rather than "prediction"
+
 # CHANGES IN radiant.model 0.9.1
 
 * Add Poisson as an option for _Model > Simulate_

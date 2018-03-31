@@ -1,8 +1,8 @@
 Package: radiant.model
 Type: Package
 Title: Model Menu for Radiant: Business Analytics using R and Shiny
-Version: 0.9.1
-Date: 2018-3-21
+Version: 0.9.2
+Date: 2018-3-30
 Authors@R: person("Vincent", "Nijs", , "radiant@rady.ucsd.edu", c("aut", "cre"))
 Description: The Radiant Model menu includes interfaces for linear and logistic
     regression, naive bayes, neural networks, classification and regression trees,
@@ -10,9 +10,9 @@ Description: The Radiant Model menu includes interfaces for linear and logistic
     The application extends the functionality in radiant.data.
 Depends:
     R (>= 3.3.0),
-    radiant.data (>= 0.9.1)
+    radiant.data (>= 0.9.2)
 Imports:
-    radiant.basics (>= 0.9.1),
+    radiant.basics (>= 0.9.2),
     shiny (>= 1.0.5),
     nnet (>= 7.3.12),
     NeuralNetTools (>= 1.5.1),

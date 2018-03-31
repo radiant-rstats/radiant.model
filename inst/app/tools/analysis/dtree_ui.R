@@ -106,6 +106,27 @@ observeEvent(input$dtree_sense_del, {
   var_remover("dtree_sense")
 })
 
+# dtree_inputs <- reactive({
+#   # input$dtree_edit
+#   # input$dtree_opt
+# })
+
+# observe({
+#   ## dep on most inputs
+#   # input$dtree_edit
+#   # input$dtree_opt
+
+#   ## notify user when the regression needs to be updated
+#   ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+#   if (pressed(input$dtree_run)) {
+#     if (isTRUE(attr(dtree_inputs, "observable")$.invalidated)) {
+#       updateActionButton(session, "dtree_run", "Re-calculate tree", icon = icon("refresh", class = "fa-spin"))
+#     } else {
+#       updateActionButton(session, "dtree_run", "Calculate tree", icon = icon("play"))
+#     }
+#   }
+# })
+
 output$dtree <- renderUI({
   tabsetPanel(
     id = "tabs_dtree",
@@ -131,8 +152,6 @@ output$dtree <- renderUI({
             "dtree_load_yaml", label = NULL, accept = ".yaml", 
             buttonLabel = "Load input", class = "btn-primary"
           ), style = "padding-top:5px;"),
-          # td(downloadButton("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
-          # td(downloadButton("dtree_save", "Save output"), style = "padding-top:5px;")
           td(download_button("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
           td(download_button("dtree_save", "Save output"), style = "padding-top:5px;")
         )
@@ -218,7 +237,7 @@ output$dtree <- renderUI({
           )
         ),
         mainPanel(
-          plot_downloader("dtree_sensitivity", height = dtree_sense_height),
+          download_link("dlp_dtree_sensitivity"),
           plotOutput("plot_dtree_sensitivity")
         )
       )
@@ -301,17 +320,12 @@ dtree_name <- function() {
 
 dtree_run <- eventReactive(vals_dtree$dtree_hotkey > 1, {
   req(vals_dtree$dtree_hotkey != 1)
-
   validate(
-    need(
-      !is_empty(input$dtree_edit),
-      "No decision tree input available"
-    )
+    need(!is_empty(input$dtree_edit), "No decision tree input available")
   )
 
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
-
   if (input$dtree_edit != "") {
     withProgress(message = "Creating decision tree", value = 1, {
       dtree(input$dtree_edit, opt = input$dtree_opt)
@@ -520,11 +534,12 @@ dl_dtree_save <- function(path) {
 download_handler(
   id = "dtree_save", 
   fun = dl_dtree_save, 
-  fn = ifelse(
-    is_empty(input$dtree_name), 
-    "dtree.txt", 
-    paste0(input$dtree_name, "_dtree.txt")
-  ),
+  # fn = ifelse(
+  #   is_empty(input$dtree_name), 
+  #   "dtree.txt", 
+  #   paste0(input$dtree_name, "_dtree.txt")
+  # ),
+  fn = "dtree_output.txt",
   caption = "Download decision tree output",
   type = "txt"
 )
@@ -536,11 +551,27 @@ dl_dtree_save_yaml <- function(path) {
 download_handler(
   id = "dtree_save_yaml", 
   fun = dl_dtree_save_yaml, 
-  fn = ifelse(
-    is_empty(input$dtree_name), 
-    "dtree.yaml", 
-    paste0(input$dtree_name, "_dtree.yaml")
-  ),
+  # fn = ifelse(
+  #   is_empty(input$dtree_name), 
+  #   "dtree.yaml", 
+  #   paste0(input$dtree_name, "_dtree.yaml")
+  # ),
+  fn = "dtree_input.yaml",
   caption = "Download decision tree input",
   type = "yaml"
+)
+
+download_handler(
+  id = "dlp_dtree_sensitivity", 
+  fun = download_handler_plot, 
+  # fn = ifelse(
+  #   is_empty(input$dtree_name), 
+  #   "dtree_sensitivity.png", 
+  #   paste0(input$dtree_name, "_dtree_sensitivity.png")
+  # ),
+  fn = "dtree_sensitivity.png", 
+  caption = "Download decision tree sensitivity plot",
+  plot = .plot_dtree_sensitivity,
+  width = dtree_sense_width,
+  height = dtree_sense_height
 )

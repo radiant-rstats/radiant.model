@@ -1,3 +1,9 @@
+nb_plots <- c(
+  "None" = "none", 
+  "Variable importance" = "vimp",
+  "Correlations" = "correlations"
+)
+
 ## list of function arguments
 nb_args <- as.list(formals(nb))
 
@@ -9,6 +15,20 @@ nb_inputs <- reactive({
   for (i in r_drop(names(nb_args)))
     nb_args[[i]] <- input[[paste0("nb_", i)]]
   nb_args
+})
+
+nb_plot_args <- as.list(if (exists("plot.nb")) {
+  formals(plot.nb)
+} else {
+  formals(radiant.model:::plot.nb)
+} )
+
+## list of function inputs selected by user
+nb_plot_inputs <- reactive({
+  ## loop needed because reactive values don't allow single bracket indexing
+  for (i in names(nb_plot_args))
+    nb_plot_args[[i]] <- input[[paste0("nb_", i)]]
+  nb_plot_args
 })
 
 nb_pred_args <- as.list(if (exists("predict.nb")) {
@@ -58,32 +78,50 @@ output$ui_nb_rvar <- renderUI({
     isFct <- "factor" == .getclass()
     vars <- varnames()[isFct]
   })
+
+  init <- if (is_empty(input$logit_rvar)) isolate(input$nb_rvar) else input$logit_rvar
   selectInput(
     inputId = "nb_rvar", label = "Response variable:", choices = vars,
-    selected = state_single("nb_rvar", vars), multiple = FALSE
+    selected = state_single("nb_rvar", vars, init), multiple = FALSE
+  )
+})
+
+output$ui_nb_lev <- renderUI({
+  req(available(input$nb_rvar))
+  levs <- .getdata()[[input$nb_rvar]] %>% 
+    as.factor() %>% 
+    levels() %>%
+    c("All levels", .)
+
+  selectInput(
+    inputId = "nb_lev", label = "Choose level:",
+    choices = levs, selected = state_init("nb_lev", "")
   )
 })
 
 output$ui_nb_evar <- renderUI({
-  if (not_available(input$nb_rvar)) return()
+  req(available(input$nb_rvar))
   notVar <- .getclass() != "date"
   vars <- varnames()[notVar]
-  if (length(vars) > 0) {
+  if (length(vars) > 0 && input$nb_rvar %in% vars) {
     vars <- vars[-which(vars == input$nb_rvar)]
   }
 
-  init <- input$logit_evar
-
+  ## initialize to variables selected for logistic regression
+  init <- if (is_empty(input$logit_evar)) isolate(input$nb_evar) else input$logit_evar
   selectInput(
-    inputId = "nb_evar", label = "Explanatory variables:", choices = vars,
+    inputId = "nb_evar", label = "Explanatory variables:", 
+    choices = vars,
     selected = state_multiple("nb_evar", vars, init),
-    multiple = TRUE, size = min(10, length(vars)), selectize = FALSE
+    multiple = TRUE, size = min(10, length(vars)), 
+    selectize = FALSE
   )
 })
 
 ## reset prediction settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "nb_predict", selected = "none")
+  updateSelectInput(session = session, inputId = "nb_plots", selected = "none")
 })
 
 output$ui_nb_predict_plot <- renderUI({
@@ -92,23 +130,49 @@ output$ui_nb_predict_plot <- renderUI({
   predict_plot_controls("nb", vars_color = var_colors, init_color = ".class")
 })
 
+observe({
+  ## dep on most inputs
+  input$data_filter
+  input$show_filter
+  sapply(r_drop(names(nb_args)), function(x) input[[paste0("nb_", x)]])
+
+  ## notify user when the regression needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$nb_run)) {
+    if (is.null(input$nb_evar)) { 
+      updateTabsetPanel(session, "tabs_nb ", selected = "Summary")
+      updateActionButton(session, "nb_run", "Estimate model", icon = icon("play"))
+    } else if (isTRUE(attr(nb_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "nb_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "nb_run", "Estimate model", icon = icon("play"))
+    }
+  }
+})
+
 output$ui_nb <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
       actionButton("nb_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
-    conditionalPanel(
-      condition = "input.tabs_nb == 'Predict'",
-      wellPanel(
+    wellPanel(
+      conditionalPanel(
+        condition = "input.tabs_nb == 'Summary'",
+        uiOutput("ui_nb_rvar"),
+        uiOutput("ui_nb_evar"),
+        numericInput("nb_laplace", label = "Laplace:", min = 0, value = state_init("nb_laplace", 0))
+      ),
+      conditionalPanel(
+        condition = "input.tabs_nb == 'Predict'",
         selectInput(
-          "nb_predict", label = "Prediction input:", reg_predict,
+          "nb_predict", label = "Prediction input type:", reg_predict,
           selected = state_single("nb_predict", reg_predict, "none")
         ),
         conditionalPanel(
           "input.nb_predict == 'data' | input.nb_predict == 'datacmd'",
           selectizeInput(
-            inputId = "nb_pred_data", label = "Predict for profiles:",
+            inputId = "nb_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_data$datasetlist),
             selected = state_single("nb_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
           )
@@ -138,12 +202,18 @@ output$ui_nb <- renderUI({
             tags$td(actionButton("nb_store_pred", "Store"), style = "padding-top:30px;")
           )
         )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_nb == 'Plot'",
+        selectInput(
+          "nb_plots", "Plots:", choices = nb_plots,
+          selected = state_single("nb_plots", nb_plots)
+        ),
+        conditionalPanel(
+          condition = "input.nb_plots != 'none'",
+          uiOutput("ui_nb_lev")
+        )
       )
-    ),
-    wellPanel(
-      uiOutput("ui_nb_rvar"),
-      uiOutput("ui_nb_evar"),
-      numericInput("nb_laplace", label = "Laplace:", min = 0, value = state_init("nb_laplace", 0))
     ),
     help_and_report(
       modal_title = "Naive Bayes",
@@ -153,13 +223,33 @@ output$ui_nb <- renderUI({
   )
 })
 
-nb_plot_width <- function() 650
-nb_plot_height <- function() {
-  if (nb_available() != "available") return(500)
-  n_lev <- length(.nb()$lev) - 1
+nb_plot <- reactive({
+  if (nb_available() != "available") return()
+  if (is_empty(input$nb_plots, "none")) return()
+  req(input$nb_lev)
+
   n_vars <- length(.nb()$vars)
-  plot_height <- 300 + 20 * n_vars * n_lev
-}
+  if (input$nb_plots == "correlations") {
+    plot_height <- 150 * n_vars
+    plot_width <- 150 * n_vars
+  } else {
+    if (input$nb_lev == "All levels") {
+      n_lev <- length(.nb()$lev) - 1
+    } else {
+      n_lev <- 2
+    }
+    plot_height <- 300 + 20 * n_vars * n_lev
+    plot_width <- 650
+  }
+  list(plot_width = plot_width, plot_height = plot_height)
+})
+
+nb_plot_width <- function()
+  nb_plot() %>% {if (is.list(.)) .$plot_width else 650}
+
+nb_plot_height <- function()
+  nb_plot() %>% {if (is.list(.)) .$plot_height else 500}
+
 nb_pred_plot_height <- function() if (input$nb_pred_plot) 500 else 0
 
 ## output is called from the main radiant ui.R
@@ -184,15 +274,15 @@ output$nb <- renderUI({
       "Predict",
       conditionalPanel(
         "input.nb_pred_plot == true",
-        plot_downloader("nb", height = nb_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
+        download_link("dlp_nb_pred"),
         plotOutput("predict_plot_nb", width = "100%", height = "100%")
       ),
-      # downloadLink("dl_nb_pred", "", class = "fa fa-download alignright"), br(),
       download_link("dl_nb_pred"), br(),
       verbatimTextOutput("predict_nb")
     ),
     tabPanel(
-      "Plot", plot_downloader("nb", height = nb_plot_height),
+      "Plot", 
+      download_link("dlp_nb"),
       plotOutput("plot_nb", width = "100%", height = "100%")
     )
   )
@@ -208,13 +298,11 @@ output$nb <- renderUI({
 nb_available <- reactive({
   if (not_available(input$nb_rvar)) {
     return("This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>% suggest_data("titanic"))
-  }
-
-  if (not_available(input$nb_evar)) {
+  } else if (not_available(input$nb_evar)) {
     return("Please select one or more explanatory variables.\n\n" %>% suggest_data("titanic"))
+  } else {
+    "available"
   }
-
-  "available"
 })
 
 .nb <- eventReactive(input$nb_run, {
@@ -225,9 +313,8 @@ nb_available <- reactive({
 })
 
 .summary_nb <- reactive({
-  if (nb_available() != "available") return(nb_available())
   if (not_pressed(input$nb_run)) return("** Press the Estimate button to estimate the model **")
-
+  if (nb_available() != "available") return(nb_available())
   summary(.nb())
 })
 
@@ -270,9 +357,22 @@ nb_available <- reactive({
 })
 
 .plot_nb <- reactive({
-  if (nb_available() != "available") return(nb_available())
-  if (not_pressed(input$nb_run)) return("** Press the Estimate button to estimate the model **")
-  plot(.nb())
+  if (not_pressed(input$nb_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  } else if (is_empty(input$nb_plots, "none")) {
+    return("Please select a naive Bayes plot from the drop-down menu")
+  } else if (nb_available() != "available") {
+    return(nb_available())
+  }
+  req(input$nb_lev)
+  if (input$nb_plots == "correlations") {
+    capture_plot(do.call(plot, c(list(x = .nb()), nb_plot_inputs())))
+  } else {
+    if (input$nb_plots %in% c("correlations", "scatter")) req(input$nb_nrobs)
+    withProgress(message = "Generating plots", value = 1, {
+      do.call(plot, c(list(x = .nb()), nb_plot_inputs(), shiny = TRUE))
+    })
+  }
 })
 
 observeEvent(input$nb_store_pred, {
@@ -299,7 +399,12 @@ observeEvent(input$nb_report, {
   outputs <- c("summary")
   inp_out <- list("", "")
   figs <- TRUE
-  outputs <- c(outputs, "plot")
+  # outputs <- c(outputs, "plot")
+  if (!is_empty(input$nb_plots, "none")) {
+    inp_out[[2]] <- clean_args(nb_plot_inputs(), nb_plot_args[-1])
+    outputs <- c(outputs, "plot")
+    figs <- TRUE
+  }
   xcmd <- ""
   if (!is_empty(input$nb_predict, "none") &&
     (!is_empty(input$nb_pred_data) || !is_empty(input$nb_pred_cmd))) {
@@ -338,19 +443,6 @@ observeEvent(input$nb_report, {
   )
 })
 
-# output$dl_nb_pred <- downloadHandler(
-#   filename = function() {
-#     "nb_predictions.csv"
-#   },
-#   content = function(file) {
-#     if (pressed(input$nb_run)) {
-#       .predict_nb() %>% write.csv(file = file, row.names = FALSE)
-#     } else {
-#       cat("No output available. Press the Estimate button to generate results", file = file)
-#     }
-#   }
-# )
-
 dl_nb_pred <- function(path) {
   if (pressed(input$nb_run)) {
     write.csv(.predict_nb(), file = path, row.names = FALSE)
@@ -366,3 +458,22 @@ download_handler(
   caption = "Download predictions"
 )
 
+download_handler(
+  id = "dlp_nb_pred", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_nb_pred.png"),
+  caption = "Download naive Bayes prediction plot",
+  plot = .predict_plot_nb,
+  width = plot_width,
+  height = nb_pred_plot_height
+)
+
+download_handler(
+  id = "dlp_nb", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_nb.png"),
+  caption = "Download naive Bayes plot",
+  plot = .plot_nb,
+  width = nb_plot_width,
+  height = nb_plot_height
+)

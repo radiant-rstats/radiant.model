@@ -168,7 +168,7 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
   cat("Response    :", object$rvar, "\n")
   cat("Level       :", object$lev, "in", object$rvar, "\n")
   cat("Bins        :", object$qnt, "\n")
-  cat("Cost:Margin :", object$cost, ":", object$margin, "\n")
+  cat("Cost:Margin :", object$cost, ":", object$margin, "\n\n")
 
   if (prn) {
     as.data.frame(object$dat, stringsAsFactors = FALSE) %>%
@@ -176,6 +176,110 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
       print(row.names = FALSE)
   }
 }
+
+#' Plot method for the evalbin function
+#'
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#'
+#' @param x Return value from \code{\link{evalbin}}
+#' @param plots Plots to return
+#' @param size Font size used
+#' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param ... further arguments passed to or from other methods
+#'
+#' @seealso \code{\link{evalbin}} to generate results
+#' @seealso \code{\link{summary.evalbin}} to summarize results
+#'
+#' @examples
+#' evalbin("titanic", "age", "survived") %>% plot
+#' evalbin("titanic", c("age","fare"), "survived") %>% plot
+#' evalbin("titanic", c("age","fare"), "survived") %>% summary
+#'
+#' @export
+plot.evalbin <- function(
+  x, plots = c("lift", "gains"), 
+  size = 13, shiny = FALSE, 
+  custom = FALSE, ...
+) {
+
+  object <- x; rm(x)
+  if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||
+    is.null(plots)) {
+    return(invisible())
+  }
+
+  plot_list <- list()
+  if ("lift" %in% plots) {
+    plot_list[["lift"]] <-
+      visualize(object$dat, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
+      geom_point() +
+      geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), size = .1, color = "black") +
+      labs(y = "Cumulative lift", x = "Proportion of customers")
+  }
+
+  if ("gains" %in% plots) {
+    dat <-
+      object$dat %>%
+      select(pred, cum_prop, cum_gains) %>%
+      group_by(pred) %>%
+      mutate(obs = 1:n())
+
+    init <- dat %>% filter(obs == 1)
+    init[, c("cum_prop", "cum_gains", "obs")] <- 0
+    dat <- bind_rows(init, dat) %>% arrange(pred, obs)
+
+    plot_list[["gains"]] <-
+      visualize(dat, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
+      geom_point() +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), size = .1, color = "black") +
+      labs(y = "Cumulative gains", x = "Proportion of customers")
+  }
+
+  if ("profit" %in% plots) {
+    dat <-
+      object$dat %>%
+      select(pred, cum_prop, profit) %>%
+      group_by(pred) %>%
+      mutate(obs = 1:n())
+
+    init <- dat %>% filter(obs == 1)
+    init[, c("profit", "cum_prop", "obs")] <- 0
+    dat <- bind_rows(init, dat) %>% arrange(pred, obs)
+
+    plot_list[["profit"]] <-
+      visualize(dat, xvar = "cum_prop", yvar = "profit", type = "line", color = "pred", custom = TRUE) +
+      geom_point() +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
+      labs(y = "Profit", x = "Proportion of customers")
+  }
+
+  if ("rome" %in% plots) {
+    plot_list[["rome"]] <-
+      visualize(object$dat, xvar = "cum_prop", yvar = "ROME", type = "line", color = "pred", custom = TRUE) +
+      geom_point() +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
+      labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers")
+  }
+
+  for (i in names(plot_list)) {
+    plot_list[[i]] <- plot_list[[i]] + theme_set(theme_gray(base_size = size))
+    if (length(object$pred) < 2 && object$train != "Both") {
+      plot_list[[i]] <- plot_list[[i]] + theme(legend.position = "none")
+    } else {
+      plot_list[[i]] <- plot_list[[i]] + labs(colour = "Predictor")
+    }
+  }
+
+  if (custom) {
+    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
+  }
+
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
+    if (shiny) . else print(.)
+  }
+}
+
 
 #' Confusion matrix
 #'
@@ -439,109 +543,6 @@ plot.confusion <- function(
   }
 
   p
-}
-
-#' Plot method for the evalbin function
-#'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
-#'
-#' @param x Return value from \code{\link{evalbin}}
-#' @param plots Plots to return
-#' @param size Font size used
-#' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
-#' @param ... further arguments passed to or from other methods
-#'
-#' @seealso \code{\link{evalbin}} to generate results
-#' @seealso \code{\link{summary.evalbin}} to summarize results
-#'
-#' @examples
-#' evalbin("titanic", "age", "survived") %>% plot
-#' evalbin("titanic", c("age","fare"), "survived") %>% plot
-#' evalbin("titanic", c("age","fare"), "survived") %>% summary
-#'
-#' @export
-plot.evalbin <- function(
-  x, plots = c("lift", "gains"), 
-  size = 13, shiny = FALSE, 
-  custom = FALSE, ...
-) {
-
-  object <- x; rm(x)
-  if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||
-    is.null(plots)) {
-    return(invisible())
-  }
-
-  plot_list <- list()
-  if ("lift" %in% plots) {
-    plot_list[["lift"]] <-
-      visualize(object$dat, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
-      geom_point() +
-      geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), size = .1, color = "black") +
-      labs(y = "Cumulative lift", x = "Proportion of customers")
-  }
-
-  if ("gains" %in% plots) {
-    dat <-
-      object$dat %>%
-      select(pred, cum_prop, cum_gains) %>%
-      group_by(pred) %>%
-      mutate(obs = 1:n())
-
-    init <- dat %>% filter(obs == 1)
-    init[, c("cum_prop", "cum_gains", "obs")] <- 0
-    dat <- bind_rows(init, dat) %>% arrange(pred, obs)
-
-    plot_list[["gains"]] <-
-      visualize(dat, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
-      geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), size = .1, color = "black") +
-      labs(y = "Cumulative gains", x = "Proportion of customers")
-  }
-
-  if ("profit" %in% plots) {
-    dat <-
-      object$dat %>%
-      select(pred, cum_prop, profit) %>%
-      group_by(pred) %>%
-      mutate(obs = 1:n())
-
-    init <- dat %>% filter(obs == 1)
-    init[, c("profit", "cum_prop", "obs")] <- 0
-    dat <- bind_rows(init, dat) %>% arrange(pred, obs)
-
-    plot_list[["profit"]] <-
-      visualize(dat, xvar = "cum_prop", yvar = "profit", type = "line", color = "pred", custom = TRUE) +
-      geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
-      labs(y = "Profit", x = "Proportion of customers")
-  }
-
-  if ("rome" %in% plots) {
-    plot_list[["rome"]] <-
-      visualize(object$dat, xvar = "cum_prop", yvar = "ROME", type = "line", color = "pred", custom = TRUE) +
-      geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
-      labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers")
-  }
-
-  for (i in names(plot_list)) {
-    plot_list[[i]] <- plot_list[[i]] + theme_set(theme_gray(base_size = size))
-    if (length(object$pred) < 2 && object$train != "Both") {
-      plot_list[[i]] <- plot_list[[i]] + theme(legend.position = "none")
-    } else {
-      plot_list[[i]] <- plot_list[[i]] + labs(colour = "Predictor")
-    }
-  }
-
-  if (custom) {
-    if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
-  }
-
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
-    if (shiny) . else print(.)
-  }
 }
 
 #' Area Under the Curve (AUC)

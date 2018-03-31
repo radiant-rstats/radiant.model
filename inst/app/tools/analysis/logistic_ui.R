@@ -1,6 +1,10 @@
-# logit_link <- c("Logit" = "logit", "Probit" = "probit")
 logit_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
-logit_predict <- c("None" = "none", "Data" = "data", "Command" = "cmd", "Data & Command" = "datacmd")
+logit_predict <- c(
+  "None" = "none", 
+  "Data" = "data", 
+  "Command" = "cmd", 
+  "Data & Command" = "datacmd"
+)
 logit_check <- c(
   "Standardize" = "standardize", "Center" = "center",
   "Stepwise" = "stepwise-backward", "Robust" = "robust"
@@ -25,8 +29,6 @@ logit_inputs <- reactive({
   logit_args$dataset <- input$dataset
   for (i in r_drop(names(logit_args)))
     logit_args[[i]] <- input[[paste0("logit_", i)]]
-
-  # isolate(cat(paste0(names(logit_args), " ", logit_args, collapse = ", "), file = stderr(), "\n"))
   logit_args
 })
 
@@ -114,12 +116,10 @@ output$ui_logit_rvar <- renderUI({
 })
 
 output$ui_logit_lev <- renderUI({
-  req(input$logit_rvar)
-  if (available(input$logit_rvar)) {
-    levs <- .getdata()[[input$logit_rvar]] %>% as.factor() %>% levels()
-  } else {
-    levs <- c()
-  }
+  req(available(input$logit_rvar))
+  levs <- .getdata()[[input$logit_rvar]] %>% 
+    as.factor() %>% 
+    levels()
   selectInput(
     inputId = "logit_lev", label = "Choose level:",
     choices = levs, selected = state_init("logit_lev")
@@ -135,7 +135,7 @@ output$ui_logit_evar <- renderUI({
 
   selectInput(
     inputId = "logit_evar", label = "Explanatory variables:", choices = vars,
-    selected = state_multiple("logit_evar", vars),
+    selected = state_multiple("logit_evar", vars, isolate(input$logit_evar)),
     multiple = TRUE, size = min(10, length(vars)), selectize = FALSE
   )
 })
@@ -146,9 +146,9 @@ output$ui_logit_wts <- renderUI({
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$logit_evar)) {
     vars <- setdiff(vars, input$logit_evar)
-    names(vars) <- varnames() %>% {
-      .[match(vars, .)]
-    } %>% names()
+    names(vars) <- varnames() %>% 
+      {.[match(vars, .)]} %>% 
+      names()
   }
   vars <- c("None", vars)
 
@@ -166,7 +166,7 @@ output$ui_logit_test_var <- renderUI({
   selectizeInput(
     inputId = "logit_test_var", label = "Variables to test:",
     choices = vars,
-    selected = state_multiple("logit_test_var", vars),
+    selected = state_multiple("logit_test_var", vars, isolate(input$logit_test_var)),
     multiple = TRUE,
     options = list(placeholder = "None", plugins = list("remove_button"))
   )
@@ -178,12 +178,10 @@ observeEvent(is.null(input$logit_test_var), {
 })
 
 output$ui_logit_show_interactions <- renderUI({
-  # req(input$logit_evar)
   choices <- logit_show_interactions[1:max(min(3, length(input$logit_evar)), 1)]
   radioButtons(
     inputId = "logit_show_interactions", label = "Interactions:",
-    choices = choices,
-    selected = state_init("logit_show_interactions"),
+    choices = choices, selected = state_init("logit_show_interactions"),
     inline = TRUE
   )
 })
@@ -211,7 +209,7 @@ output$ui_logit_int <- renderUI({
   )
 })
 
-## reset prediction settings when the dataset changes
+## reset prediction and plot settings when the dataset changes
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "logit_predict", selected = "none")
   updateSelectInput(session = session, inputId = "logit_plots", selected = "none")
@@ -221,25 +219,83 @@ output$ui_logit_predict_plot <- renderUI({
   predict_plot_controls("logit")
 })
 
+output$ui_logit_nrobs <- renderUI({
+  nrobs <- nrow(.getdata())
+  choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
+    .[. < nrobs]
+  selectInput(
+    "logit_nrobs", "Number of data points plotted:", 
+    choices = choices,
+    selected = state_single("logit_nrobs", choices, 1000)
+  )
+})
+
+observe({
+  ## dep on most inputs
+  input$data_filter
+  input$show_filter
+  sapply(r_drop(names(logit_args)), function(x) input[[paste0("logit_", x)]])
+
+  ## notify user when the model needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$logit_run)) {
+    if (is.null(input$logit_evar)) { 
+      updateTabsetPanel(session, "tabs_logistic ", selected = "Summary")
+      updateActionButton(session, "logit_run", "Estimate model", icon = icon("play"))
+    } else if (isTRUE(attr(logit_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "logit_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "logit_run", "Estimate model", icon = icon("play"))
+    }
+  }
+})
+
 output$ui_logistic <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
       actionButton("logit_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
-    conditionalPanel(
-      condition = "input.tabs_logistic == 'Predict'",
-      wellPanel(
+    wellPanel(
+      conditionalPanel(
+        condition = "input.tabs_logistic == 'Summary'",
+        uiOutput("ui_logit_rvar"),
+        uiOutput("ui_logit_lev"),
+        uiOutput("ui_logit_evar"),
+        uiOutput("ui_logit_wts"),
+        conditionalPanel(
+          condition = "input.logit_evar != null",
+
+          uiOutput("ui_logit_show_interactions"),
+          conditionalPanel(
+            condition = "input.logit_show_interactions != ''",
+            uiOutput("ui_logit_int")
+          ),
+          uiOutput("ui_logit_test_var"),
+          checkboxGroupInput(
+            "logit_check", NULL, logit_check,
+            selected = state_group("logit_check"), inline = TRUE
+          ),
+          checkboxGroupInput(
+            "logit_sum_check", NULL, logit_sum_check,
+            selected = state_group("logit_sum_check", ""), inline = TRUE
+          )
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_logistic == 'Predict'",
         selectInput(
-          "logit_predict", label = "Prediction input:", logit_predict,
+          "logit_predict", label = "Prediction input type:", logit_predict,
           selected = state_single("logit_predict", logit_predict, "none")
         ),
         conditionalPanel(
           "input.logit_predict == 'data' | input.logit_predict == 'datacmd'",
           selectizeInput(
-            inputId = "logit_pred_data", label = "Predict for profiles:",
+            inputId = "logit_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_data$datasetlist),
-            selected = state_init("logit_pred_data"), multiple = FALSE
+            # selected = state_init("logit_pred_data")
+            selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), 
+            multiple = FALSE
           )
         ),
         conditionalPanel(
@@ -267,11 +323,9 @@ output$ui_logistic <- renderUI({
             tags$td(actionButton("logit_store_pred", "Store"), style = "padding-top:30px;")
           )
         )
-      )
-    ),
-    conditionalPanel(
-      condition = "input.tabs_logistic == 'Plot'",
-      wellPanel(
+      ),
+      conditionalPanel(
+        condition = "input.tabs_logistic == 'Plot'",
         selectInput(
           "logit_plots", "Plots:", choices = logit_plots,
           selected = state_single("logit_plots", logit_plots)
@@ -279,53 +333,29 @@ output$ui_logistic <- renderUI({
         conditionalPanel(
           condition = "input.logit_plots == 'coef'",
           checkboxInput("logit_intercept", "Include intercept", state_init("logit_intercept", FALSE))
+        ),
+        conditionalPanel(
+          condition = "input.logit_plots == 'correlations' |
+                       input.logit_plots == 'scatter'",
+          uiOutput("ui_logit_nrobs")
         )
-      )
-    ),
-    wellPanel(
-      uiOutput("ui_logit_rvar"),
-      uiOutput("ui_logit_lev"),
-      uiOutput("ui_logit_evar"),
-      uiOutput("ui_logit_wts"),
+      ),
+      # Using && to check that input.logit_sum_check is not null (must be &&)
       conditionalPanel(
-        condition = "input.logit_evar != null",
-
-        uiOutput("ui_logit_show_interactions"),
-        conditionalPanel(
-          condition = "input.logit_show_interactions != ''",
-          uiOutput("ui_logit_int")
-        ),
-        conditionalPanel(
-          condition = "input.tabs_logistic == 'Summary'",
-          uiOutput("ui_logit_test_var"),
-          checkboxGroupInput(
-            "logit_check", NULL, logit_check,
-            selected = state_group("logit_check"), inline = TRUE
-          ),
-          checkboxGroupInput(
-            "logit_sum_check", NULL, logit_sum_check,
-            selected = state_group("logit_sum_check", ""), inline = TRUE
-          )
-        ),
-        ## Using && to check that input.logit_sum_check is not null (must be &&)
-        conditionalPanel(
-          condition = "(input.logit_sum_check && 
-                        (input.logit_sum_check.indexOf('odds') >= 0 | input.logit_sum_check.indexOf('confint') >= 0)
-                       ) |
-                       input.logit_plots == 'coef' |
-                       input.tabs_logistic == 'Predict'",
-          sliderInput(
-            "logit_conf_lev", "Confidence level:", min = 0.80,
-            max = 0.99, value = state_init("logit_conf_lev", .95),
-            step = 0.01
-          )
-        ),
-        conditionalPanel(
-          condition = "input.tabs_logistic == 'Summary'",
-          tags$table(
-            tags$td(textInput("logit_store_res_name", "Store residuals:", state_init("logit_store_res_name", "residuals_logit"))),
-            tags$td(actionButton("logit_store_res", "Store"), style = "padding-top:30px;")
-          )
+        condition = "(input.tabs_logistic == 'Summary' && input.logit_sum_check != undefined && input.logit_sum_check.indexOf('confint') >= 0) |
+                     (input.tabs_logistic == 'Predict' && input.logit_predict != 'none') |
+                     (input.tabs_logistic == 'Plot' && input.logit_plots == 'coef')",
+        sliderInput(
+          "logit_conf_lev", "Confidence level:", min = 0.80,
+          max = 0.99, value = state_init("logit_conf_lev", .95),
+          step = 0.01
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_logistic == 'Summary'",
+        tags$table(
+          tags$td(textInput("logit_store_res_name", "Store residuals:", state_init("logit_store_res_name", "residuals_logit"))),
+          tags$td(actionButton("logit_store_res", "Store"), style = "padding-top:30px;")
         )
       )
     ),
@@ -357,14 +387,10 @@ logit_plot <- reactive({
 })
 
 logit_plot_width <- function()
-  logit_plot() %>% {
-    if (is.list(.)) .$plot_width else 650
-  }
+  logit_plot() %>% {if (is.list(.)) .$plot_width else 650}
 
 logit_plot_height <- function()
-  logit_plot() %>% {
-    if (is.list(.)) .$plot_height else 500
-  }
+  logit_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
 logit_pred_plot_height <- function()
   if (input$logit_pred_plot) 500 else 0
@@ -388,7 +414,6 @@ output$logistic <- renderUI({
     id = "tabs_logistic",
     tabPanel(
       "Summary",
-      # downloadLink("dl_logit_coef", "", class = "fa fa-download alignright"), br(),
       download_link("dl_logit_coef"), br(),
       verbatimTextOutput("summary_logistic")
     ),
@@ -396,43 +421,42 @@ output$logistic <- renderUI({
       "Predict",
       conditionalPanel(
         "input.logit_pred_plot == true",
-        plot_downloader("logistic", height = logit_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
+        download_link("dlp_logit_pred"),
         plotOutput("predict_plot_logistic", width = "100%", height = "100%")
       ),
-      # downloadLink("dl_logit_pred", "", class = "fa fa-download alignright"), br(),
       download_link("dl_logit_pred"), br(),
       verbatimTextOutput("predict_logistic")
     ),
     tabPanel(
       "Plot",
-      plot_downloader("logistic", height = logit_plot_height),
+      download_link("dlp_logistic"),
       plotOutput("plot_logistic", width = "100%", height = "100%")
     )
   )
 
   stat_tab_panel(
-    menu = "Model > Estimate", tool = "Logistic regression (GLM)",
-    tool_ui = "ui_logistic", output_panels = logit_output_panels
+    menu = "Model > Estimate", 
+    tool = "Logistic regression (GLM)",
+    tool_ui = "ui_logistic", 
+    output_panels = logit_output_panels
   )
 })
 
 logit_available <- reactive({
   if (not_available(input$logit_rvar)) {
-    return("This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>% suggest_data("titanic"))
+    "This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>% 
+      suggest_data("titanic")
+  } else if (not_available(input$logit_evar)) {
+    "Please select one or more explanatory variables.\n\n" %>% 
+      suggest_data("titanic")
+  } else {
+    "available"
   }
-
-  if (not_available(input$logit_evar)) {
-    return("Please select one or more explanatory variables.\n\n" %>% suggest_data("titanic"))
-  }
-
-  "available"
 })
 
 .logistic <- eventReactive(input$logit_run, {
-  req(available(input$logit_rvar), available(input$logit_evar))
   req(input$logit_lev)
   req(input$logit_wts == "None" || available(input$logit_wts))
-
   withProgress(
     message = "Estimating model", value = 1,
     do.call(logistic, logit_inputs())
@@ -440,34 +464,14 @@ logit_available <- reactive({
 })
 
 .summary_logistic <- reactive({
-  if (logit_available() != "available") return(logit_available())
   if (not_pressed(input$logit_run)) return("** Press the Estimate button to estimate the model **")
+  if (logit_available() != "available") return(logit_available())
   do.call(summary, c(list(object = .logistic()), logit_sum_inputs()))
 })
 
-.plot_logistic <- reactive({
-  if (logit_available() != "available") {
-    return(logit_available())
-  }
-  if (is_empty(input$logit_plots, "none")) {
-    return("Please select a logistic regression plot from the drop-down menu")
-  }
-  if (not_pressed(input$logit_run)) {
-    return("** Press the Estimate button to estimate the model **")
-  }
-
-  if (input$logit_plots == "correlations") {
-    capture_plot(do.call(plot, c(list(x = .logistic()), logit_plot_inputs())))
-  } else {
-    withProgress(message = "Generating plots", value = 1, {
-      do.call(plot, c(list(x = .logistic()), logit_plot_inputs(), shiny = TRUE))
-    })
-  }
-})
-
 .predict_logistic <- reactive({
-  if (logit_available() != "available") return(logit_available())
   if (not_pressed(input$logit_run)) return("** Press the Estimate button to estimate the model **")
+  if (logit_available() != "available") return(logit_available())
   if (is_empty(input$logit_predict, "none")) return("** Select prediction input **")
   if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && is_empty(input$logit_pred_data)) {
     return("** Select data for prediction **")
@@ -482,15 +486,14 @@ logit_available <- reactive({
 })
 
 .predict_print_logistic <- reactive({
-  .predict_logistic() %>% {
-    if (is.character(.)) cat(., "\n") else print(.)
-  }
+  .predict_logistic() %>% 
+    {if (is.character(.)) cat(., "\n") else print(.)}
 })
 
 .predict_plot_logistic <- reactive({
+  if (not_pressed(input$logit_run)) return(invisible())
   if (logit_available() != "available") return(logit_available())
   req(input$logit_pred_plot, available(input$logit_xvar))
-  if (not_pressed(input$logit_run)) return(invisible())
   if (is_empty(input$logit_predict, "none")) return(invisible())
   if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && is_empty(input$logit_pred_data)) {
     return(invisible())
@@ -499,6 +502,27 @@ logit_available <- reactive({
     return(invisible())
   }
   do.call(plot, c(list(x = .predict_logistic()), logit_pred_plot_inputs()))
+})
+
+.plot_logistic <- reactive({
+  if (not_pressed(input$logit_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (is_empty(input$logit_plots, "none")) {
+    return("Please select a logistic regression plot from the drop-down menu")
+  }
+  if (logit_available() != "available") {
+    return(logit_available())
+  }
+
+  if (input$logit_plots %in% c("correlations", "scatter")) req(input$logit_nrobs)
+  if (input$logit_plots == "correlations") {
+    capture_plot(do.call(plot, c(list(x = .logistic()), logit_plot_inputs())))
+  } else {
+    withProgress(message = "Generating plots", value = 1, {
+      do.call(plot, c(list(x = .logistic()), logit_plot_inputs(), shiny = TRUE))
+    })
+  }
 })
 
 observeEvent(input$logistic_report, {
@@ -574,33 +598,6 @@ observeEvent(input$logit_store_pred, {
   )
 })
 
-# output$dl_logit_coef <- downloadHandler(
-#   filename = function() {
-#     "logit_coefficients.csv"
-#   },
-#   content = function(file) {
-#     if (pressed(input$logit_run)) {
-#       write.coeff(.logistic(), file = file)
-#     } else {
-#       cat("No output available. Press the Estimate button to generate results", file = file)
-#     }
-#   }
-# )
-
-# output$dl_logit_pred <- downloadHandler(
-#   filename = function() {
-#     "logit_predictions.csv"
-#   },
-#   content = function(file) {
-#     if (pressed(input$logit_run)) {
-#       .predict_logistic() %>%
-#         write.csv(file = file, row.names = FALSE)
-#     } else {
-#       cat("No output available. Press the Estimate button to generate results", file = file)
-#     }
-#   }
-# )
-
 dl_logit_coef <- function(path) {
   if (pressed(input$logit_run)) {
     write.coeff(.logistic(), file = path)
@@ -630,3 +627,24 @@ download_handler(
   fn = paste0(input$dataset, "_logit_pred.csv"),
   caption = "Download predictions"
 )
+
+download_handler(
+  id = "dlp_logit_pred", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_logit_pred.png"),
+  caption = "Download logistic prediction plot",
+  plot = .predict_plot_logistic,
+  width = plot_width,
+  height = logit_pred_plot_height
+)
+
+download_handler(
+  id = "dlp_logistic", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_logistic.png"),
+  caption = "Download logistic plot",
+  plot = .plot_logistic,
+  width = logit_plot_width,
+  height = logit_plot_height
+)
+

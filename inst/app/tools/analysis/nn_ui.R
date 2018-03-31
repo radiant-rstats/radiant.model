@@ -72,12 +72,10 @@ output$ui_nn_rvar <- renderUI({
     }
   })
 
-  # init <- ifelse(input$nn_type == "classification", input$logit_rvar, input$reg_rvar)
-
   init <- if (input$nn_type == "classification") {
-    input$logit_rvar
+    if (is_empty(input$logit_rvar)) isolate(input$nn_rvar) else input$logit_rvar
   } else {
-    input$reg_rvar
+    if (is_empty(input$reg_rvar)) isolate(input$nn_rvar) else input$reg_rvar
   }
 
   selectInput(
@@ -96,10 +94,11 @@ output$ui_nn_lev <- renderUI({
     as_factor() %>%
     levels()
 
+  init <- if (is_empty(input$logit_lev)) isolate(input$nn_lev) else input$logit_lev
   selectInput(
     inputId = "nn_lev", label = "Choose level:",
     choices = levs,
-    selected = state_init("nn_lev")
+    selected = state_init("nn_lev", init)
   )
 })
 
@@ -111,9 +110,11 @@ output$ui_nn_evar <- renderUI({
   }
 
   init <- if (input$nn_type == "classification") {
-    input$logit_evar
+    # input$logit_evar
+    if (is_empty(input$logit_evar)) isolate(input$nn_evar) else input$logit_evar
   } else {
-    input$reg_evar
+    # input$reg_evar
+    if (is_empty(input$reg_evar)) isolate(input$nn_evar) else input$reg_evar
   }
 
   selectInput(
@@ -197,7 +198,6 @@ output$ui_nn_plots <- renderUI({
 
 output$ui_nn_nrobs <- renderUI({
   nrobs <- nrow(.getdata())
-  # req(nrobs > 1000)
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(
@@ -207,23 +207,68 @@ output$ui_nn_nrobs <- renderUI({
   )
 })
 
+observe({
+  ## dep on most inputs
+  input$data_filter
+  input$show_filter
+  sapply(r_drop(names(nn_args)), function(x) input[[paste0("nn_", x)]])
+  ## notify user when the model needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$nn_run)) {
+    if (is.null(input$nn_evar)) { 
+      updateTabsetPanel(session, "tabs_nn ", selected = "Summary")
+      updateActionButton(session, "nn_run", "Estimate model", icon = icon("play"))
+    } else if (isTRUE(attr(nn_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "nn_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "nn_run", "Estimate model", icon = icon("play"))
+    }
+  }
+})
+
 output$ui_nn <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
       actionButton("nn_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
-    conditionalPanel(
-      condition = "input.tabs_nn == 'Predict'",
-      wellPanel(
+    wellPanel(
+      conditionalPanel(
+        condition = "input.tabs_nn == 'Summary'",
+        radioButtons(
+          "nn_type", label = NULL, c("classification", "regression"),
+          selected = state_init("nn_type", "classification"),
+          inline = TRUE
+        ),
+        uiOutput("ui_nn_rvar"),
+        uiOutput("ui_nn_lev"),
+        uiOutput("ui_nn_evar"),
+        uiOutput("ui_nn_wts"),
+        tags$table(
+          tags$td(numericInput(
+            "nn_size", label = "Size:", min = 1, max = 20,
+            value = state_init("nn_size", 1), width = "77px"
+          )),
+          tags$td(numericInput(
+            "nn_decay", label = "Decay:", min = 0, max = 1,
+            step = .1, value = state_init("nn_decay", .5), width = "77px"
+          )),
+          tags$td(numericInput(
+            "nn_seed", label = "Seed:",
+            value = state_init("nn_seed", 1234), width = "77px"
+          ))
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_nn == 'Predict'",
         selectInput(
-          "nn_predict", label = "Prediction input:", reg_predict,
+          "nn_predict", label = "Prediction input type:", reg_predict,
           selected = state_single("nn_predict", reg_predict, "none")
         ),
         conditionalPanel(
           "input.nn_predict == 'data' | input.nn_predict == 'datacmd'",
           selectizeInput(
-            inputId = "nn_pred_data", label = "Predict for profiles:",
+            inputId = "nn_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_data$datasetlist),
             selected = state_single("nn_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
           )
@@ -254,50 +299,18 @@ output$ui_nn <- renderUI({
             tags$td(actionButton("nn_store_pred", "Store"), style = "padding-top:30px;")
           )
         )
-      )
-    ),
-    conditionalPanel(
-      condition = "input.tabs_nn == 'Plot'",
-      wellPanel(
-        # selectInput(
-        #   "nn_plots", "Plots:", choices = nn_plots,
-        #   selected = state_single("nn_plots", nn_plots)
-        # ),
+      ),
+      conditionalPanel(
+        condition = "input.tabs_nn == 'Plot'",
         uiOutput("ui_nn_plots"),
         conditionalPanel(
           condition = "input.nn_plots == 'dashboard'",
           uiOutput("ui_nn_nrobs")
         )
-      )
-    ),
-    wellPanel(
-      radioButtons(
-        "nn_type", label = NULL, c("classification", "regression"),
-        selected = state_init("nn_type", "classification"),
-        inline = TRUE
-      ),
-      uiOutput("ui_nn_rvar"),
-      uiOutput("ui_nn_lev"),
-      uiOutput("ui_nn_evar"),
-      uiOutput("ui_nn_wts"),
-      tags$table(
-        tags$td(numericInput(
-          "nn_size", label = "Size:", min = 1, max = 20,
-          value = state_init("nn_size", 1), width = "77px"
-        )),
-        tags$td(numericInput(
-          "nn_decay", label = "Decay:", min = 0, max = 1,
-          step = .1, value = state_init("nn_decay", .5), width = "77px"
-        )),
-        tags$td(numericInput(
-          "nn_seed", label = "Seed:",
-          value = state_init("nn_seed", 1234), width = "77px"
-        ))
       ),
       conditionalPanel(
         condition = "input.tabs_nn == 'Summary'",
         tags$table(
-          # tags$td(textInput("nn_store_res_name", "Store residuals:", state_init("nn_store_res_name", "residuals_nn"))),
           tags$td(uiOutput("ui_nn_store_res_name")),
           tags$td(actionButton("nn_store_res", "Store"), style = "padding-top:30px;")
         )
@@ -365,15 +378,15 @@ output$nn <- renderUI({
       "Predict",
       conditionalPanel(
         "input.nn_pred_plot == true",
-        plot_downloader("nn", height = nn_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
+        download_link("dlp_nn_pred"),
         plotOutput("predict_plot_nn", width = "100%", height = "100%")
       ),
-      # downloadLink("dl_nn_pred", "", class = "fa fa-download alignright"), br(),
       download_link("dl_nn_pred"), br(),
       verbatimTextOutput("predict_nn")
     ),
     tabPanel(
-      "Plot", plot_downloader("nn", height = nn_plot_height),
+      "Plot", 
+      download_link("dlp_nn"),
       plotOutput("plot_nn", width = "100%", height = "100%")
     )
   )
@@ -417,15 +430,14 @@ nn_available <- reactive({
 })
 
 .summary_nn <- reactive({
-  if (nn_available() != "available") return(nn_available())
   if (not_pressed(input$nn_run)) return("** Press the Estimate button to estimate the model **")
-
+  if (nn_available() != "available") return(nn_available())
   summary(.nn())
 })
 
 .predict_nn <- reactive({
-  if (nn_available() != "available") return(nn_available())
   if (not_pressed(input$nn_run)) return("** Press the Estimate button to estimate the model **")
+  if (nn_available() != "available") return(nn_available())
   if (is_empty(input$nn_predict, "none")) return("** Select prediction input **")
 
   if ((input$nn_predict == "data" || input$nn_predict == "datacmd") && is_empty(input$nn_pred_data)) {
@@ -447,9 +459,9 @@ nn_available <- reactive({
 })
 
 .predict_plot_nn <- reactive({
+  if (not_pressed(input$nn_run)) return(invisible())
   if (nn_available() != "available") return(nn_available())
   req(input$nn_pred_plot, available(input$nn_xvar))
-  if (not_pressed(input$nn_run)) return(invisible())
   if (is_empty(input$nn_predict, "none")) return(invisible())
   if ((input$nn_predict == "data" || input$nn_predict == "datacmd") && is_empty(input$nn_pred_data)) {
     return(invisible())
@@ -462,21 +474,17 @@ nn_available <- reactive({
 })
 
 .plot_nn <- reactive({
-  if (nn_available() != "available") {
-    return(nn_available())
-  }
-
-  req(input$nn_size)
-
-  if (is_empty(input$nn_plots, "none")) {
-    return("Please select a neural network plot from the drop-down menu")
-  }
   if (not_pressed(input$nn_run)) {
     return("** Press the Estimate button to estimate the model **")
   }
-
+  if (nn_available() != "available") {
+    return(nn_available())
+  }
+  req(input$nn_size)
+  if (is_empty(input$nn_plots, "none")) {
+    return("Please select a neural network plot from the drop-down menu")
+  }
   pinp <- list(plots = input$nn_plots, shiny = TRUE)
-
   if (input$nn_plots == "dashboard") {
     req(input$nn_nrobs)
     pinp <- c(pinp, nrobs = as_integer(input$nn_nrobs))
@@ -574,19 +582,6 @@ observeEvent(input$nn_report, {
   )
 })
 
-# output$dl_nn_pred <- downloadHandler(
-#   filename = function() {
-#     "nn_predictions.csv"
-#   },
-#   content = function(file) {
-#     if (pressed(input$nn_run)) {
-#       .predict_nn() %>% write.csv(file = file, row.names = FALSE)
-#     } else {
-#       cat("No output available. Press the Estimate button to generate results", file = file)
-#     }
-#   }
-# )
-
 dl_nn_pred <- function(path) {
   if (pressed(input$nn_run)) {
     write.csv(.predict_nn(), file = path, row.names = FALSE)
@@ -600,4 +595,24 @@ download_handler(
   fun = dl_nn_pred, 
   fn = paste0(input$dataset, "_nn_pred.csv"),
   caption = "Download predictions"
+)
+
+download_handler(
+  id = "dlp_nn_pred", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_nn_pred.png"),
+  caption = "Download neural network prediction plot",
+  plot = .predict_plot_nn,
+  width = plot_width,
+  height = nn_pred_plot_height
+)
+
+download_handler(
+  id = "dlp_nn", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_nn.png"),
+  caption = "Download neural network plot",
+  plot = .plot_nn,
+  width = nn_plot_width,
+  height = nn_plot_height
 )

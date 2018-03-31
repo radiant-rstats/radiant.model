@@ -38,17 +38,33 @@ output$ui_ereg_pred <- renderUI({
 
   selectInput(
     inputId = "ereg_pred", label = "Select stored predictions:", choices = vars,
-    selected = state_multiple("ereg_pred", vars),
+    selected = state_multiple("ereg_pred", vars, isolate(input$ereg_pred)),
     multiple = TRUE, size = min(4, length(vars)), selectize = FALSE
   )
 })
 
 output$ui_ereg_train <- renderUI({
-  radioButtons(
+  selectInput(
     "ereg_train", label = "Show results for:", ereg_train,
-    selected = state_init("ereg_train", "All"),
-    inline = TRUE
+    selected = state_single("ereg_train", "All")
   )
+})
+
+observe({
+  ## dep on most inputs
+  input$data_filter
+  input$show_filter
+  sapply(r_drop(names(ereg_args)), function(x) input[[paste0("ereg_", x)]])
+
+  ## notify user when the regression needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$ereg_run) && !is.null(input$ereg_pred)) {
+    if (isTRUE(attr(ereg_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "ereg_run", "Re-evaluate models", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "ereg_run", "Evaluate models", icon = icon("play"))
+    }
+  }
 })
 
 output$ui_evalreg <- renderUI({
@@ -85,12 +101,11 @@ output$evalreg <- renderUI({
 
   ## one output with components stacked
   ereg_output_panels <- tagList(
-    # downloadLink("dl_ereg_tab", "", class = "fa fa-download alignright"), br(),
     download_link("dl_ereg_tab"), br(),
     verbatimTextOutput("summary_evalreg"),
     conditionalPanel(
       condition = "input.ereg_show_plots == true",
-      plot_downloader("evalreg", height = ereg_plot_height),
+      download_link("dlp_evalreg"),
       plotOutput("plot_evalreg", height = "100%")
     )
   )
@@ -108,16 +123,14 @@ output$evalreg <- renderUI({
 })
 
 .summary_evalreg <- reactive({
+  if (not_pressed(input$ereg_run)) return("** Press the Evaluate button to evaluate models **")
   if (not_available(input$ereg_rvar) || not_available(input$ereg_pred)) {
     return("This analysis requires a numeric response variable and one or more\nnumeric predictors. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("diamonds"))
   }
-  if (not_pressed(input$ereg_run)) return("** Press the Evaluate button to evaluate models **")
   summary(.evalreg())
 })
 
-.plot_evalreg <- reactive({
-  if (not_pressed(input$ereg_run)) return(invisible())
-  if (not_available(input$ereg_rvar) || not_available(input$ereg_pred)) return(" ")
+.plot_evalreg <- eventReactive(input$ereg_run, {
   req(input$ereg_train)
   plot(.evalreg())
 })
@@ -145,19 +158,6 @@ observeEvent(input$evalreg_report, {
   )
 })
 
-# output$dl_ereg_tab <- downloadHandler(
-#   filename = function() {
-#     "evalreg.csv"
-#   },
-#   content = function(file) {
-#     do.call(summary, c(
-#       list(object = .evalreg()), ereg_inputs(),
-#       list(prn = FALSE)
-#     )) %>%
-#       write.csv(., file = file, row.names = FALSE)
-#   }
-# )
-
 dl_ereg_tab <- function(path) {
   .evalreg() %>%
     {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
@@ -167,5 +167,15 @@ download_handler(
   id = "dl_ereg_tab", 
   fun = dl_ereg_tab, 
   fn = paste0(input$dataset, "_evalreg.csv"),
-  caption = "Download evaluations"
+  caption = "Download model evaluations"
+)
+
+download_handler(
+  id = "dlp_evalreg", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_evalreg.png"),
+  caption = "Download model evaluation plot",
+  plot = .plot_evalreg,
+  width = ereg_plot_width,
+  height = ereg_plot_height
 )

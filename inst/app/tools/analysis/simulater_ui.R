@@ -148,15 +148,16 @@ sim_vars <- reactive({
 })
 
 output$ui_rep_vars <- renderUI({
+
   vars <- sim_vars()
-  req(!is_empty(vars))
+  req(vars)
 
   form <- input$sim_form %>% sim_cleaner()
   if (!is_empty(form)) {
-    s <- form %>% gsub(" ", "", .) %>% sim_splitter("=")
+    s <- gsub(" ", "", form) %>% sim_splitter("=")
     svars <- c()
     for (i in 1:length(s)) {
-      if (grepl("^#", s[[i]][1])) next
+      if (grepl("^\\s*#", s[[i]][1])) next
       if (grepl(s[[i]][1], s[[i]][2])) next
       svars <- c(svars, s[[i]][1])
     }
@@ -166,8 +167,23 @@ output$ui_rep_vars <- renderUI({
   selectizeInput(
     "rep_vars", label = "Variables to re-simulate:",
     choices = vars, multiple = TRUE,
-    selected = state_multiple("rep_vars", vars),
+    selected = state_multiple("rep_vars", vars, isolate(input$rep_vars)),
     options = list(placeholder = "Select variables", plugins = list("remove_button"))
+  )
+})
+
+output$ui_rep_sum_vars <- renderUI({
+  vars <- sim_vars()
+  req(!is_empty(vars))
+
+  selectizeInput(
+    "rep_sum_vars", label = "Output variables:",
+    choices = vars, multiple = TRUE,
+    selected = state_multiple("rep_sum_vars", vars, isolate(input$rep_sum_vars)),
+    options = list(
+      placeholder = "Select variables", 
+      plugins = list("remove_button", "drag_drop")
+    )
   )
 })
 
@@ -184,21 +200,6 @@ output$ui_rep_grid_vars <- renderUI({
     "rep_grid_vars", label = "Name:",
     choices = vars, multiple = FALSE,
     selected = state_single("rep_grid_vars", vars)
-  )
-})
-
-output$ui_rep_sum_vars <- renderUI({
-  vars <- sim_vars()
-  req(!is_empty(vars))
-
-  selectizeInput(
-    "rep_sum_vars", label = "Output variables:",
-    choices = vars, multiple = TRUE,
-    selected = state_multiple("rep_sum_vars", vars),
-    options = list(
-      placeholder = "Select variables", 
-      plugins = list("remove_button", "drag_drop")
-    )
   )
 })
 
@@ -243,7 +244,8 @@ var_updater <- function(variable, var_str, var_inputs) {
     if (is_empty(input[[var_str]])) {
       val <- paste0(inp, ";")
     } else {
-      val <- paste0(inp, ";\n", input[[var_str]])
+      # val <- paste0(inp, ";\n", input[[var_str]])
+      val <- paste0(input[[var_str]], "\n", inp, ";")
     }
 
     updateTextInput(session = session, var_str, value = val)
@@ -254,7 +256,8 @@ var_remover <- function(variable) {
   input[[variable]] %>%
     strsplit("\n") %>%
     unlist() %>%
-    .[-1] %>%
+    # .[-1] %>%
+    head(., -1) %>%
     paste0(collapse = "\n") %>%
     updateTextInput(session = session, variable, value = .)
 }
@@ -322,8 +325,8 @@ observeEvent(input$sim_grid_add, {
   )
 })
 
-observeEvent(input$sim_grid, {
-  if (!is_empty(input$sim_grid)) {
+observeEvent(c(input$sim_grid, input$sim_types), {
+  if ("grid" %in% input$sim_types && !is_empty(input$sim_grid)) {
     updateNumericInput(session = session, "sim_nr", value = NA)
   } else {
     val <- ifelse(is_empty(r_state$sim_nr), 1000, r_state$sim_nr)
@@ -331,8 +334,8 @@ observeEvent(input$sim_grid, {
   }
 })
 
-observeEvent(input$rep_grid, {
-  if (!is_empty(input$rep_grid)) {
+observeEvent(c(input$rep_grid, input$rep_byvar), {
+  if (input$rep_byvar == "rep" && !is_empty(input$rep_grid)) {
     updateNumericInput(session = session, "rep_nr", value = NA)
   } else {
     val <- ifelse(is_empty(r_state$rep_nr), 12, r_state$rep_nr)
@@ -377,6 +380,40 @@ observeEvent(input$sim_sequ_del, {
 
 observeEvent(input$sim_grid_del, {
   var_remover("sim_grid")
+})
+
+observe({
+  ## dep on most inputs
+  input$sim_types
+  ret <- sapply(names(sim_args), function(x) input[[paste0("sim_", x)]])
+  ## notify user when the simulation needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$sim_run)) {
+    if(is_empty(input$sim_types)) {
+      updateActionButton(session, "sim_run", "Run simulation", icon = icon("play"))
+    } else if (isTRUE(attr(sim_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "sim_run", "Re-run simulation", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "sim_run", "Run simulation", icon = icon("play"))
+    }
+  }
+})
+
+observe({
+  ## dep on most inputs
+  ret <- sapply(names(rep_args), function(x) input[[paste0("rep_", x)]])
+  ## notify user when the repeated simulation needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$rep_run)) {
+    # if(is_empty(input$rep_vars) || is_empty(input$rep_sum_vars)) {
+    if(is_empty(input$rep_sum_vars)) {
+      updateActionButton(session, "rep_run", "Repeat simulation", icon = icon("play"))
+    } else if (isTRUE(attr(rep_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "rep_run", "Repeat simulation", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "rep_run", "Repeat simulation", icon = icon("play"))
+    }
+  }
 })
 
 output$ui_simulater <- renderUI({
@@ -620,7 +657,7 @@ output$simulater <- renderUI({
       conditionalPanel(
         condition = "input.sim_show_plots == true",
         HTML("</br><label>Simulation plots:</label>"),
-        plot_downloader("simulate", height = sim_plot_height),
+        download_link("dlp_simulate"),
         plotOutput("plot_simulate", height = "100%")
       )
     ),
@@ -637,7 +674,7 @@ output$simulater <- renderUI({
       conditionalPanel(
         condition = "input.rep_show_plots == true",
         HTML("</br><label>Repeated simulation plots:</label>"),
-        plot_downloader("repeat", height = rep_plot_height),
+        download_link("dlp_repeat"),
         plotOutput("plot_repeat", height = "100%")
       )
     )
@@ -664,7 +701,10 @@ output$simulater <- renderUI({
   })
 })
 
-.summary_simulate <- eventReactive(input$sim_run, {
+.summary_simulate <- eventReactive({
+  input$sim_run
+  input$sim_dec
+}, {
   summary(.simulater(), dec = input$sim_dec)
 })
 
@@ -699,7 +739,10 @@ sim_plot_height <- function() {
   })
 })
 
-.summary_repeat <- eventReactive(input$rep_run, {
+.summary_repeat <- eventReactive({
+  input$rep_run
+  input$rep_dec
+}, {
   if (length(input$rep_sum_vars) == 0) {
     return("Select at least one Output variable")
   }
@@ -771,7 +814,7 @@ observeEvent(input$simulater_report, {
     if (is_empty(inp$ncorr)) inp$ncorr <- NULL
     if (!is_empty(inp$nexact)) inp$nexact <- as.logical(inp$nexact)
   }
-  for (i in c(sim_types, "form")) {
+  for (i in c(sim_types_vec, "form")) {
     if (i %in% names(inp)) {
       inp[[i]] <- strsplit(inp[[i]], ";")[[1]]
     }
@@ -823,3 +866,22 @@ observeEvent(input$repeater_report, {
   )
 })
 
+download_handler(
+  id = "dlp_simulate", 
+  fun = download_handler_plot, 
+  fn = "simulate_sim.png",
+  caption = "Download simulation plots",
+  plot = .plot_simulate,
+  width = sim_plot_width,
+  height = sim_plot_height
+)
+
+download_handler(
+  id = "dlp_repeat", 
+  fun = download_handler_plot, 
+  fn = "simulate_repeat.png",
+  caption = "Download repeated simulation plots",
+  plot = .plot_repeat,
+  width = rep_plot_width,
+  height = rep_plot_height
+)

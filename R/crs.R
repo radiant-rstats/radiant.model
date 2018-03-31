@@ -236,8 +236,7 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 #'
 #' @export
 plot.crs <- function(x, ...) {
-  object <- x
-  rm(x)
+  object <- x; rm(x)
   if (is.character(object)) return(object)
 
   if (any(is.na(object$act))) {

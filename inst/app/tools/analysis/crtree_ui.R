@@ -74,28 +74,26 @@ output$ui_crtree_rvar <- renderUI({
 
 output$ui_crtree_lev <- renderUI({
   req(input$crtree_type == "classification")
-  req(input$crtree_rvar)
-  levs <- c()
-  if (available(input$crtree_rvar)) {
-    levs <- .getdata()[[input$crtree_rvar]] %>% as.factor() %>% levels()
-  }
+  req(available(input$crtree_rvar))
+  levs <- .getdata()[[input$crtree_rvar]] %>% 
+    as.factor() %>% 
+    levels()
 
   selectInput(
     inputId = "crtree_lev", label = "Choose level:",
-    choices = levs,
-    selected = state_init("crtree_lev")
+    choices = levs, selected = state_init("crtree_lev")
   )
 })
 
 output$ui_crtree_evar <- renderUI({
-  if (not_available(input$crtree_rvar)) return()
+  # if (not_available(input$crtree_rvar)) return()
+  req(available(input$crtree_rvar))
   vars <- varnames()
   if (length(vars) > 0) {
     vars <- vars[-which(vars == input$crtree_rvar)]
   }
 
   init <- if (input$crtree_type == "classification") input$logit_evar else input$reg_evar
-
   selectInput(
     inputId = "crtree_evar", label = "Explanatory variables:", choices = vars,
     selected = state_multiple("crtree_evar", vars, init),
@@ -108,9 +106,9 @@ output$ui_crtree_wts <- renderUI({
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
     vars <- setdiff(vars, input$crtree_evar)
-    names(vars) <- varnames() %>% {
-      .[match(vars, .)]
-    } %>% names()
+    names(vars) <- varnames() %>% 
+      {.[match(vars, .)]} %>% 
+      names()
   }
   vars <- c("None", vars)
 
@@ -141,23 +139,109 @@ output$ui_crtree_width <- renderUI({
   )
 })
 
+observe({
+  ## dep on most inputs
+  input$data_filter
+  input$show_filter
+  sapply(r_drop(names(crtree_args)), function(x) input[[paste0("crtree_", x)]])
+
+  ## notify user when the model needs to be updated
+  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
+  if (pressed(input$crtree_run)) {
+    if (is.null(input$crtree_evar)) { 
+      updateTabsetPanel(session, "tabs_crtree ", selected = "Summary")
+      updateActionButton(session, "crtee_run", "Estimate model", icon = icon("play"))
+    } else 
+    if (isTRUE(attr(crtree_inputs, "observable")$.invalidated)) {
+      updateActionButton(session, "crtree_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
+    } else {
+      updateActionButton(session, "crtree_run", "Estimate model", icon = icon("play"))
+    }
+  }
+})
+
 output$ui_crtree <- renderUI({
   req(input$dataset)
   tagList(
     wellPanel(
       actionButton("crtree_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
     ),
-    conditionalPanel(
-      condition = "input.tabs_crtree == 'Predict'",
-      wellPanel(
+    wellPanel(
+      conditionalPanel(
+        condition = "input.tabs_crtree == 'Summary'",
+        radioButtons(
+          "crtree_type", label = NULL, c("classification", "regression"),
+          selected = state_init("crtree_type", "classification"),
+          inline = TRUE
+        ),
+        uiOutput("ui_crtree_rvar"),
+        uiOutput("ui_crtree_lev"),
+        uiOutput("ui_crtree_evar"),
+        # uiOutput("ui_crtree_wts"),
+        conditionalPanel(
+          condition = "input.crtree_type == 'classification'",
+          tags$table(
+            tags$td(numericInput(
+              "crtree_prior", label = "Prior:",
+              value = state_init("crtree_prior", .5, na.rm = FALSE),
+              min = 0, max = 1, step = 0.1,
+              width = "116px"
+            )),
+            tags$td(numericInput(
+              "crtree_minsplit", label = "Min obs.:",
+              value = state_init("crtree_minsplit", 2)
+            ))
+          ),
+          tags$table(
+            tags$td(numericInput(
+              "crtree_cost", label = "Cost:",
+              value = state_init("crtree_cost", NA)
+            )),
+            tags$td(numericInput(
+              "crtree_margin", label = "Margin:",
+              value = state_init("crtree_margin", NA)
+            ))
+          )
+        ),
+        tags$table(
+          tags$td(numericInput(
+            "crtree_cp", label = "Complexity:", min = 0,
+            max = 1, step = 0.01,
+            value = state_init("crtree_cp", 0.001), width = "116px"
+          )),
+          tags$td(numericInput(
+            "crtree_nodes", label = "Max. nodes:", min = 2,
+            value = state_init("crtree_nodes", NA), width = "100%"
+          ))
+        ),
+        tags$table(
+          tags$td(numericInput(
+            "crtree_K", label = "K-folds:",
+            value = state_init("crtree_K", 10), width = "116px"
+          )),
+          tags$td(numericInput(
+            "crtree_seed", label = "Seed:",
+            value = state_init("crtree_seed", 1234), width = "100%"
+          ))
+        ),
+        conditionalPanel(
+          condition = "input.tabs_crtree == 'Summary'",
+          tags$table(
+            tags$td(textInput("crtree_store_res_name", "Store residuals:", state_init("crtree_store_res_name", "residuals_crtree"))),
+            tags$td(actionButton("crtree_store_res", "Store"), style = "padding-top:30px;")
+          )
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs_crtree == 'Predict'",
         selectInput(
-          "crtree_predict", label = "Prediction input:", reg_predict,
+          "crtree_predict", label = "Prediction input type:", reg_predict,
           selected = state_single("crtree_predict", reg_predict, "none")
         ),
         conditionalPanel(
           "input.crtree_predict == 'data' | input.crtree_predict == 'datacmd'",
           selectizeInput(
-            inputId = "crtree_pred_data", label = "Predict for profiles:",
+            inputId = "crtree_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_data$datasetlist),
             selected = state_single("crtree_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
           )
@@ -187,11 +271,9 @@ output$ui_crtree <- renderUI({
             tags$td(actionButton("crtree_store_pred", "Store"), style = "padding-top:30px;")
           )
         )
-      )
-    ),
-    conditionalPanel(
-      condition = "input.tabs_crtree == 'Plot'",
-      wellPanel(
+      ),
+      conditionalPanel(
+        condition = "input.tabs_crtree == 'Plot'",
         selectInput(
           "crtree_plots", "Plots:", choices = ctree_plots,
           selected = state_single("crtree_plots", ctree_plots)
@@ -208,71 +290,6 @@ output$ui_crtree <- renderUI({
             ),
             tags$td(uiOutput("ui_crtree_width"), width = "100%")
           )
-        )
-      )
-    ),
-    wellPanel(
-      radioButtons(
-        "crtree_type", label = NULL, c("classification", "regression"),
-        selected = state_init("crtree_type", "classification"),
-        inline = TRUE
-      ),
-      uiOutput("ui_crtree_rvar"),
-      uiOutput("ui_crtree_lev"),
-      uiOutput("ui_crtree_evar"),
-      # uiOutput("ui_crtree_wts"),
-      conditionalPanel(
-        condition = "input.crtree_type == 'classification'",
-        tags$table(
-          tags$td(numericInput(
-            "crtree_prior", label = "Prior:",
-            value = state_init("crtree_prior", .5, na.rm = FALSE),
-            min = 0, max = 1, step = 0.1,
-            width = "116px"
-          )),
-          tags$td(numericInput(
-            "crtree_minsplit", label = "Min obs.:",
-            value = state_init("crtree_minsplit", 2)
-          ))
-        ),
-        tags$table(
-          tags$td(numericInput(
-            "crtree_cost", label = "Cost:",
-            value = state_init("crtree_cost", NA)
-          )),
-          tags$td(numericInput(
-            "crtree_margin", label = "Margin:",
-            value = state_init("crtree_margin", NA)
-          ))
-        )
-      ),
-      tags$table(
-        tags$td(numericInput(
-          "crtree_cp", label = "Complexity:", min = 0,
-          max = 1, step = 0.01,
-          value = state_init("crtree_cp", 0.001), width = "116px"
-        )),
-        tags$td(numericInput(
-          "crtree_nodes", label = "Max. nodes:", min = 2,
-          value = state_init("crtree_nodes", NA), width = "100%"
-        ))
-      ),
-      tags$table(
-        tags$td(numericInput(
-          "crtree_K", label = "K-folds:",
-          value = state_init("crtree_K", 10), width = "116px"
-        )),
-        tags$td(numericInput(
-          "crtree_seed", label = "Seed:",
-          value = state_init("crtree_seed", 1234), width = "100%"
-        ))
-      ),
-
-      conditionalPanel(
-        condition = "input.tabs_crtree == 'Summary'",
-        tags$table(
-          tags$td(textInput("crtree_store_res_name", "Store residuals:", state_init("crtree_store_res_name", "residuals_crtree"))),
-          tags$td(actionButton("crtree_store_res", "Store"), style = "padding-top:30px;")
         )
       )
     ),
@@ -323,10 +340,9 @@ output$crtree <- renderUI({
       "Predict",
       conditionalPanel(
         "input.crtree_pred_plot == true",
-        plot_downloader("crtree", height = crtree_pred_plot_height, po = "dlp_", pre = ".predict_plot_"),
+        download_link("dlp_crtree_pred"),
         plotOutput("predict_plot_crtree", width = "100%", height = "100%")
       ),
-      # downloadLink("dl_crtree_pred", "", class = "fa fa-download alignright"), br(),
       download_link("dl_crtree_pred"), br(),
       verbatimTextOutput("predict_crtree")
     ),
@@ -339,7 +355,7 @@ output$crtree <- renderUI({
       ),
       conditionalPanel(
         "input.crtree_plots != 'tree'",
-        plot_downloader("crtree", height = crtree_plot_height),
+        download_link("dlp_crtree"),
         plotOutput("plot_crtree", width = "100%", height = "100%")
       )
     )
@@ -364,28 +380,14 @@ output$crtree_plot <- DiagrammeR::renderDiagrammeR({
   }
 })
 
-.plot_crtree <- reactive({
-  if (crtree_available() != "available") return(crtree_available())
-  if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
-  if (is_empty(input$crtree_plots)) return("Please select a plot type from the drop-down menu")
-
-  if (input$crtree_plots == "prune") {
-    plot(.crtree(), plots = "prune", shiny = TRUE)
-  } else if (input$crtree_plots == "imp") {
-    plot(.crtree(), plots = "imp", shiny = TRUE)
-  }
-})
-
 crtree_available <- reactive({
   if (not_available(input$crtree_rvar)) {
     return("This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>% suggest_data("titanic"))
-  }
-
-  if (not_available(input$crtree_evar)) {
+  } else if (not_available(input$crtree_evar)) {
     return("Please select one or more explanatory variables.\n\n" %>% suggest_data("titanic"))
+  } else {
+    "available"
   }
-
-  "available"
 })
 
 .crtree <- eventReactive(input$crtree_run, {
@@ -397,40 +399,36 @@ crtree_available <- reactive({
 })
 
 .summary_crtree <- reactive({
-  if (crtree_available() != "available") return(crtree_available())
   if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
-
+  if (crtree_available() != "available") return(crtree_available())
   summary(.crtree())
 })
 
-
 .predict_crtree <- reactive({
-  if (crtree_available() != "available") return(crtree_available())
   if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
+  if (crtree_available() != "available") return(crtree_available())
   if (is_empty(input$crtree_predict, "none")) return("** Select prediction input **")
 
-  if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && is_empty(input$crtree_pred_data)) {
-    return("** Select data for prediction **")
+  if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && 
+       is_empty(input$crtree_pred_data)) {
+    "** Select data for prediction **"
+  } else if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
+    "** Enter prediction commands **"
+  } else {
+    withProgress(message = "Generating predictions", value = 1, {
+      do.call(predict, c(list(object = .crtree()), crtree_pred_inputs()))
+    })
   }
-  if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
-    return("** Enter prediction commands **")
-  }
-
-  withProgress(message = "Generating predictions", value = 1, {
-    do.call(predict, c(list(object = .crtree()), crtree_pred_inputs()))
-  })
 })
 
 .predict_print_crtree <- reactive({
-  .predict_crtree() %>% {
-    if (is.character(.)) cat(., "\n") else print(.)
-  }
+  .predict_crtree() %>% {if (is.character(.)) cat(., "\n") else print(.)}
 })
 
 .predict_plot_crtree <- reactive({
+  if (not_pressed(input$crtree_run)) return(invisible())
   if (crtree_available() != "available") return(crtree_available())
   req(input$crtree_pred_plot, available(input$crtree_xvar))
-  if (not_pressed(input$crtree_run)) return(invisible())
   if (is_empty(input$crtree_predict, "none")) return(invisible())
   if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && is_empty(input$crtree_pred_data)) {
     return(invisible())
@@ -440,6 +438,18 @@ crtree_available <- reactive({
   }
 
   do.call(plot, c(list(x = .predict_crtree()), crtree_pred_plot_inputs()))
+})
+
+.plot_crtree <- reactive({
+  if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
+  if (crtree_available() != "available") return(crtree_available())
+  if (is_empty(input$crtree_plots)) return("Please select a plot type from the drop-down menu")
+
+  if (input$crtree_plots == "prune") {
+    plot(.crtree(), plots = "prune", shiny = TRUE)
+  } else if (input$crtree_plots == "imp") {
+    plot(.crtree(), plots = "imp", shiny = TRUE)
+  }
 })
 
 observeEvent(input$crtree_store_pred, {
@@ -549,4 +559,24 @@ download_handler(
   fun = dl_crtree_pred, 
   fn = paste0(input$dataset, "_crtree_pred.csv"),
   caption = "Download crtree predictions"
+)
+
+download_handler(
+  id = "dlp_crtree_pred", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_crtree_pred.png"),
+  caption = "Download decision tree prediction plot",
+  plot = .predict_plot_crtree,
+  width = plot_width,
+  height = crtree_pred_plot_height
+)
+
+download_handler(
+  id = "dlp_crtree", 
+  fun = download_handler_plot, 
+  fn = paste0(input$dataset, "_crtree.png"),
+  caption = "Download decision tree plot",
+  plot = .plot_crtree,
+  width = crtree_plot_width,
+  height = crtree_plot_height
 )

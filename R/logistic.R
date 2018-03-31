@@ -423,9 +423,10 @@ summary.logistic <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{logistic}}
-#' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" is a series of four plots used to visually evaluate model. "coef" provides a coefficient plot
+#' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "coef" provides a coefficient plot
 #' @param conf_lev Confidence level to use for coefficient and odds confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
+#' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
@@ -442,8 +443,8 @@ summary.logistic <- function(
 #' @export
 plot.logistic <- function(
   x, plots = "", conf_lev = .95,
-  intercept = FALSE, shiny = FALSE,
-  custom = FALSE, ...
+  intercept = FALSE, nrobs = -1, 
+  shiny = FALSE, custom = FALSE, ...
 ) {
 
   if (is.character(x)) return(x)
@@ -463,8 +464,7 @@ plot.logistic <- function(
   model$.fitted <- predict(x$model, type = "response")
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
-  model$.actual <- as_numeric(x$rv) %>%
-    {. - max(.) + 1}
+  model$.actual <- as_numeric(x$rv) %>% {. - max(.) + 1}
 
   rvar <- x$rvar
   evar <- x$evar
@@ -527,10 +527,14 @@ plot.logistic <- function(
   }
 
   if ("scatter" %in% plots) {
+    nrobs <- as.integer(nrobs)
+    if (nrobs > 0 && nrobs < nrow(model)) {
+      model <- sample_n(model, nrobs, replace = FALSE)
+    }
     for (i in evar) {
       if ("factor" %in% class(model[, i])) {
         plot_list[[paste0("scatter_", i)]] <- ggplot(model, aes_string(x = i, fill = rvar)) +
-          geom_bar(position = "fill", alpha = .5) +
+          geom_bar(position = "fill", alpha = 0.5) +
           labs(y = "")
       } else {
         plot_list[[paste0("scatter_", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
@@ -568,7 +572,7 @@ plot.logistic <- function(
   }
 
   if ("correlations" %in% plots) {
-    return(radiant.basics:::plot.correlation(select_at(model, .vars = vars)))
+    return(radiant.basics:::plot.correlation(select_at(model, .vars = vars), nrobs = nrobs))
   }
 
   if (custom) {
