@@ -1,9 +1,14 @@
+Name: Start radiant.model (window)
+Description: Start radiant.model in an Rstudio window
+Binding: radiant.model_window
+Interactive: true
+
 Name: Start radiant.model (viewer)
-Description: Start radiant.model in rstudio viewer
+Description: Start radiant.model in the Rstudio viewer
 Binding: radiant.model_viewer
 Interactive: true
 
 Name: Start radiant.model (browser)
-Description: Start radiant.model in default browser
+Description: Start radiant.model in the default browser
 Binding: radiant.model
 Interactive: true
