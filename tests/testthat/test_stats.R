@@ -1,6 +1,5 @@
-# library(radiant.model)
-# library(testthat)
-
+library(radiant.model)
+library(testthat)
 trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 
 ######### tests ########
@@ -28,7 +27,7 @@ test_that("regress - predict", {
   result <- regress("diamonds", "price", c("carat", "clarity"))
   res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[16] %>% trim()
   # cat(paste0(res1, "\n"))
-  res2 <- "SI1     9  72769.811 70229.110 75310.513 2540.701"
+  res2 <- "SI1     9  72769.811 71948.301 73591.322 821.511"
   expect_equal(res1, res2)
 
   result <- regress("diamonds", "price", "carat:clarity")
