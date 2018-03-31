@@ -445,14 +445,14 @@ plot.regress <- function(
     plot_list[["dash3"]] <- ggplot(model, aes(y = .resid, x = seq_along(.resid))) + geom_line() +
       labs(title = "Residuals vs Row order", x = "Row order", y = "Residuals")
 
-    plot_list[["dash4"]] <- ggplot(model, aes_string(sample = ".stdresid")) + stat_qq(alpha = .5) +
+    plot_list[["dash4"]] <- ggplot(model, aes_string(sample = ".stdresid")) + stat_qq(alpha = 0.5) +
       labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals")
 
     plot_list[["dash5"]] <-
       visualize(model, xvar = ".resid", custom = TRUE) +
       labs(title = "Histogram of residuals", x = "Residuals")
 
-    plot_list[["dash6"]] <- ggplot(model, aes_string(x = ".resid")) + geom_density(alpha = .3, fill = "green") +
+    plot_list[["dash6"]] <- ggplot(model, aes_string(x = ".resid")) + geom_density(alpha = 0.3, fill = "green") +
       stat_function(fun = dnorm, args = list(mean = mean(model[, ".resid"]), sd = sd(model[, ".resid"])), color = "blue") +
       labs(title = "Residuals vs Normal density", x = "Residuals", y = "") +
       theme(axis.text.y = element_blank())
@@ -480,7 +480,7 @@ plot.regress <- function(
     for (i in evar) {
       if ("factor" %in% class(model[, i])) {
         plot_list[[paste0("scatter", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
-          visualize(xvar = i, yvar = rvar, type = "scatter", check = flines, alpha = .2, custom = TRUE)
+          visualize(xvar = i, yvar = rvar, type = "scatter", check = flines, alpha = 0.2, custom = TRUE)
       } else {
         plot_list[[paste0("scatter", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
           visualize(xvar = i, yvar = rvar, type = "scatter", check = nlines, custom = TRUE)
@@ -492,7 +492,7 @@ plot.regress <- function(
     for (i in evar) {
       if ("factor" %in% class(model[, i])) {
         plot_list[[paste0("resid_", i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
-          visualize(xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = .2, custom = TRUE) +
+          visualize(xvar = i, yvar = ".resid", type = "scatter", check = flines, alpha = 0.2, custom = TRUE) +
           labs(y = "residuals")
       } else {
         plot_list[[paste0("resid_", i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
@@ -538,7 +538,7 @@ plot.regress <- function(
   }
 
   if ("correlations" %in% plots) {
-    return(radiant.basics:::plot.correlation(object$model$model))
+    return(radiant.basics:::plot.correlation(object$model$model, nrobs = nrobs))
   }
 
   # if ("leverage" %in% plots) {
@@ -573,6 +573,7 @@ plot.regress <- function(
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param interval Type of interval calculation ("confidence" or "prediction"). Set to "none" if se is FALSE
 #' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
@@ -592,7 +593,7 @@ plot.regress <- function(
 #' @export
 predict.regress <- function(
   object, pred_data = "", pred_cmd = "", conf_lev = 0.95,
-  se = TRUE, dec = 3, ...
+  se = TRUE, interval = "confidence", dec = 3, ...
 ) {
 
   if (is.character(object)) return(object)
@@ -607,7 +608,7 @@ predict.regress <- function(
     pred_val <-
       try(
         sshhr(
-          predict(model, pred, interval = ifelse(se, "prediction", "none"), level = conf_lev)
+          predict(model, pred, interval = ifelse(se, interval, "none"), level = conf_lev)
         ),
         silent = TRUE
       )
@@ -739,7 +740,8 @@ predict_model <- function(
     pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 
     if (is(pred, "try-error")) {
-      return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
+      # return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
+      return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
     }
 
     if (!is_empty(pred_cmd)) {
@@ -984,7 +986,7 @@ plot.model.predict <- function(
     if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11) {
       p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size = .3)
     } else {
-      p <- p + geom_ribbon(aes_string(ymin = "ymin", ymax = "ymax"), fill = "grey70", color = NA, alpha = .5)
+      p <- p + geom_ribbon(aes_string(ymin = "ymin", ymax = "ymax"), fill = "grey70", color = NA, alpha = 0.5)
     }
   }
 
