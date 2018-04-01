@@ -276,7 +276,7 @@ output$ui_crtree <- renderUI({
         condition = "input.tabs_crtree == 'Plot'",
         selectInput(
           "crtree_plots", "Plots:", choices = ctree_plots,
-          selected = state_single("crtree_plots", ctree_plots)
+          selected = state_single("crtree_plots", ctree_plots, "none")
         ),
         conditionalPanel(
           condition = "input.crtree_plots == 'tree'",
@@ -514,19 +514,21 @@ observeEvent(input$crtree_report, {
     }
   }
 
-  width <- ifelse(is_empty(input$crtree_width), "\"900px\"", paste0("\"", input$crtree_width, "px\""))
-  orient <- ifelse(is_empty(input$crtree_orient), "\"TD\"", paste0("\"", input$crtree_orient, "\""))
-  if (input$crtree_plots == "tree") {
-    xcmd <- paste0(xcmd, "\n# plot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\nplot(result, orient = ", orient, ", width = ", width, ") %>% render()")
-  } else if (input$crtree_plots == "prune") {
-    figs <- TRUE
-    xcmd <- paste0(xcmd, "\nplot(result, plots = \"prune\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
-  } else {
-    figs <- TRUE
-    xcmd <- paste0(xcmd, "\nplot(result, plots = \"imp\", custom = FALSE)")
-    xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+  if (input$crtree_plots != "none") {
+    width <- ifelse(is_empty(input$crtree_width), "\"900px\"", paste0("\"", input$crtree_width, "px\""))
+    orient <- ifelse(is_empty(input$crtree_orient), "\"TD\"", paste0("\"", input$crtree_orient, "\""))
+    if (input$crtree_plots == "tree") {
+      xcmd <- paste0(xcmd, "\n# plot(result, plots = \"prune\", custom = FALSE)")
+      xcmd <- paste0(xcmd, "\nplot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+    } else if (input$crtree_plots == "prune") {
+      figs <- TRUE
+      xcmd <- paste0(xcmd, "\nplot(result, plots = \"prune\", custom = FALSE)")
+      xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+    } else if (input$crtree_plots == "imp") {
+      figs <- TRUE
+      xcmd <- paste0(xcmd, "\nplot(result, plots = \"imp\", custom = FALSE)")
+      xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+    }
   }
 
   crtree_inp <- crtree_inputs()
