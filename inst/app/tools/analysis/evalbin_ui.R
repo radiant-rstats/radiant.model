@@ -115,7 +115,7 @@ output$ui_evalbin <- renderUI({
         checkboxInput("ebin_show_tab", "Show lift and gains table" , state_init("ebin_show_tab", FALSE)),
         checkboxGroupInput(
           "ebin_plots", "Plots:", ebin_plots,
-          selected = state_group("ebin_plots", ""),
+          selected = state_group("ebin_plots", "gains"),
           inline = TRUE
         )
       ),
