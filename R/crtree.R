@@ -413,23 +413,25 @@ plot.crtree <- function(
 
     leafs <- paste0("id", setdiff(df$to, df$id))
 
-    style <- paste0(
-      "classDef default fill:none, bg:none, stroke-width:0px;
-      classDef leaf fill:#9ACD32,stroke:#333,stroke-width:1px;
-      class ", paste(leafs, collapse = ","), " leaf;"
-    )
-
-    ## may still need to keep the "chance" info around as it used to
-    ## affect other (decision analysis) in the report
+    ## still need the below setup to keep the "chance" class 
+    ## when a decision analysis plot is in the report
     # style <- paste0(
     #   "classDef default fill:none, bg:none, stroke-width:0px;
     #   classDef leaf fill:#9ACD32,stroke:#333,stroke-width:1px;
-    #   classDef chance fill:#FF8C00,stroke:#333,stroke-width:1px;
-    #   classDef chance_with_cost fill:#FF8C00,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
-    #   classDef decision fill:#9ACD32,stroke:#333,stroke-width:1px;
-    #   classDef decision_with_cost fill:#9ACD32,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
     #   class ", paste(leafs, collapse = ","), " leaf;"
     # )
+
+    ## still need this to keep the "chance" class 
+    ## when a decision analysis plot is in the report
+    style <- paste0(
+      "classDef default fill:none, bg:none, stroke-width:0px;
+      classDef leaf fill:#9ACD32,stroke:#333,stroke-width:1px;
+      classDef chance fill:#FF8C00,stroke:#333,stroke-width:1px;
+      classDef chance_with_cost fill:#FF8C00,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
+      classDef decision fill:#9ACD32,stroke:#333,stroke-width:1px;
+      classDef decision_with_cost fill:#9ACD32,stroke:#333,stroke-width:3px,stroke-dasharray:4,5;
+      class ", paste(leafs, collapse = ","), " leaf;"
+    )
 
     ## check orientation for branch labels
     brn <- if (orient %in% c("LR", "RL")) {
