@@ -1,5 +1,6 @@
-# CHANGES IN radiant.model 0.9.2
+# CHANGES IN radiant.model 0.9.2.1
 
+* Require `shinyAce` 0.3.0 in `radiant.data` and `useSoftTabs` for _Model > Decision Analysis_
 * `Estimate model` button indicates when the output has been invalidated and the model should be re-estimated
 * Combined _Evaluate classification_ Summary and Plot into Evaluate tab
 * Addins option to start app in Rstudio window

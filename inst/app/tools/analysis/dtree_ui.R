@@ -161,13 +161,15 @@ output$dtree <- renderUI({
         mode = "yaml",
         theme = getOption("radiant.ace_theme", default = "tomorrow"),
         wordWrap = TRUE, 
+        debounce = 100,
         height = "auto", 
-        value = state_init("dtree_edit", dtree_example),
+        value = state_init("dtree_edit", dtree_example) %>% gsub("\t", "    ", .),
         vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
         hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
         autoComplete = "live",
-        useSoftTabs = FALSE, 
-        showInvisibles = TRUE
+        tabSize = 4, 
+        showInvisibles = TRUE,
+        useSoftTabs = TRUE
         ## autoCompleteList of suggestions for 'dtree' is never shown 
         ## suggestion: build a minimal shiny app based on the autocomplete example
         ## in shinyAce that does what you want and then figure out how to get it 
@@ -334,16 +336,15 @@ dtree_run <- eventReactive(vals_dtree$dtree_hotkey > 1, {
 })
 
 output$dtree_print <- renderPrint({
-  dtree_run() %>% {
-    if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)
-  }
+  dtree_run() %>% 
+    {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)}
 })
 
 dtree_plot_args <- as.list(if (exists("plot.dtree")) {
   formals(plot.dtree)
 } else {
   formals(radiant:::plot.dtree)
-} )
+})
 
 ## list of function inputs selected by user
 dtree_plot_inputs <- reactive({
@@ -431,7 +432,7 @@ observeEvent(input$dtree_load_yaml, {
   r_data[[dtree_name]] <- yaml_file
   r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
-  shinyAce::updateAceEditor(session, "dtree_edit", value = yaml_file)
+  shinyAce::updateAceEditor(session, "dtree_edit", value = gsub("\t", "    ", yaml_file))
 })
 
 observeEvent(input$dtree_list, {
@@ -447,7 +448,7 @@ observeEvent(input$dtree_list, {
     yl <- yaml::as.yaml(yl, indent = 4)
   }
 
-  shinyAce::updateAceEditor(session, "dtree_edit", value = yl)
+  shinyAce::updateAceEditor(session, "dtree_edit", value = gsub("\t", "    ", yl))
 })
 
 observeEvent(input$dtree_report, {
