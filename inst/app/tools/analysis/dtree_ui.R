@@ -149,7 +149,7 @@ output$dtree <- renderUI({
           td(uiOutput("ui_dtree_list"), style = "padding-top:0px;"),
           td(uiOutput("ui_dtree_remove"), style = "padding-top:5px;"),
           td(file_upload_button(
-            "dtree_load_yaml", label = NULL, accept = ".yaml", 
+            "dtree_load_yaml", label = NULL, accept = ".yaml",
             buttonLabel = "Load input", class = "btn-primary"
           ), style = "padding-top:5px;"),
           td(download_button("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
@@ -157,24 +157,20 @@ output$dtree <- renderUI({
         )
       ),
       shinyAce::aceEditor(
-        "dtree_edit", 
+        "dtree_edit",
         mode = "yaml",
         theme = getOption("radiant.ace_theme", default = "tomorrow"),
-        wordWrap = TRUE, 
+        wordWrap = TRUE,
         debounce = 100,
-        height = "auto", 
+        height = "auto",
         value = state_init("dtree_edit", dtree_example) %>% gsub("\t", "    ", .),
         vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
         hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
-        autoComplete = "live",
-        tabSize = 4, 
+        tabSize = 4,
         showInvisibles = TRUE,
-        useSoftTabs = TRUE
-        ## autoCompleteList of suggestions for 'dtree' is never shown 
-        ## suggestion: build a minimal shiny app based on the autocomplete example
-        ## in shinyAce that does what you want and then figure out how to get it 
-        ## to work in radiant.model::dtree_edit
-        # autoCompleteList = list(dtree = c("variables:", "type:", "decision", "chance", "cost:", "payoff:"))
+        useSoftTabs = FALSE,
+        autoComplete = "live",
+        setBehavioursEnabled = FALSE
       ),
       verbatimTextOutput("dtree_print")
     ),
@@ -247,51 +243,38 @@ output$dtree <- renderUI({
   )
 })
 
-#Update static autocomplete list according to dataset
-# observe({
-#   comps <- list(dtree = c("variables", "type", "decision", "choice", "cost", "payoff"), R = NULL)
-#   shinyAce::updateAceEditor(session, "dtree_edit", autoCompleteList = comps)
-# })
+tree_types <- c("name:", "variables:", "type:", "cost:", "payoff:", "p:")
+## Create auto complete list
+observe({
+  req(input$dtree_name)
+  req(r_data[[input$dtree_name]])
+  comps <- list(
+    `tree-input` = c("name:", "variables:", "type: decision", "type: chance", "cost: 000", "payoff: 000", "p: 0.5")
+  )
 
-## consider building your own auto-completer (see ?aceAutocomplete)
-## it could list the labels of entries in the `variables` section
-## and the key inputs as listed in comps
-# observe({
-  # print(input$shinyAce_dtree_edit_hint)
-  # comps <- list(dtree = c("variables", "type", "decision", "choice", "cost", "payoff"), R = NULL)
-  # comps <- structure(list(colnames(dataset())), names = input$dataset)
-# comps <- structure(list(colnames(mtcars)), names = "mtcars")
-#   print(comps)
-# shinyAce::updateAceEditor(
-#   session, "dtree_edit", 
-#   autoCompleteList = comps
-# )
-# })
+  trees <- r_data$dtree_list
+  if (length(trees) < 2) {
+    trees <- input$dtree_name
+  } else {
+    comps[["dtree_list"]] <- paste0("dtree('", trees, "')")
+  }
 
-## not needed for basic autocompletion ... but if you want to
-## augment it, you do
-# dtree_edit_auto <- shinyAce::aceAutocomplete("dtree_edit")
-# observe({
-#   dtree_edit_auto$suspend()
-# })
+  for (tree in trees) {
+    rows <- strsplit(r_data[[tree]], "\n")[[1]]
+    comps[[tree]] <- gsub("\\s*([^#]+:).*", "\\1", rows) %>%
+      gsub("^\\s+","", .) %>%
+      unique() %>%
+      .[!. %in% tree_types] %>%
+      gsub(":$", "", .) %>%
+      .[!grepl("^#", .)]
+  }
 
-# observe({
-#   inputId <- "dtree_edit"
-#   value <- session$input[[paste0("shinyAce_", inputId, "_hint")]]
-#   if(is.null(value)) return(NULL)
-  
-#   utilEnv <- environment(utils::alarm)
-#   w32 <- get(".win32consoleCompletion", utilEnv)
-#   w32
-  
-#   comps <- list(
-#     id = inputId,
-#     codeCompletions = w32(value$linebuffer, value$cursorPosition)$comps
-#   )
-#   print(str(comps))
-
-#   session$sendCustomMessage('shinyAce', comps)
-# })
+  shinyAce::updateAceEditor(
+    session, "dtree_edit",
+    autoCompleters = "static",
+    autoCompleteList = comps
+  )
+})
 
 vals_dtree <- reactiveValues(dtree_hotkey = 0, dtree_report = 0)
 
@@ -336,7 +319,7 @@ dtree_run <- eventReactive(vals_dtree$dtree_hotkey > 1, {
 })
 
 output$dtree_print <- renderPrint({
-  dtree_run() %>% 
+  dtree_run() %>%
     {if (is.null(.)) cat("** Click the calculate button to generate results **") else summary(., input = FALSE, output = TRUE)}
 })
 
@@ -416,7 +399,7 @@ observeEvent(input$dtree_load_yaml, {
     if (is(path, "try-error") || is_empty(path)) return()
     inFile <- data.frame(
       name = basename(path),
-      datapath = path, 
+      datapath = path,
       stringsAsFactors = FALSE
     )
   } else {
@@ -527,17 +510,17 @@ observeEvent(input$dtree_remove, {
 })
 
 dl_dtree_save <- function(path) {
-  capture.output(dtree(input$dtree_edit) %>% 
+  capture.output(dtree(input$dtree_edit) %>%
     summary(input = FALSE, output = TRUE)) %>%
     cat(file = path, sep = "\n")
 }
 
 download_handler(
-  id = "dtree_save", 
-  fun = dl_dtree_save, 
+  id = "dtree_save",
+  fun = dl_dtree_save,
   # fn = ifelse(
-  #   is_empty(input$dtree_name), 
-  #   "dtree.txt", 
+  #   is_empty(input$dtree_name),
+  #   "dtree.txt",
   #   paste0(input$dtree_name, "_dtree.txt")
   # ),
   fn = "dtree_output.txt",
@@ -550,11 +533,11 @@ dl_dtree_save_yaml <- function(path) {
 }
 
 download_handler(
-  id = "dtree_save_yaml", 
-  fun = dl_dtree_save_yaml, 
+  id = "dtree_save_yaml",
+  fun = dl_dtree_save_yaml,
   # fn = ifelse(
-  #   is_empty(input$dtree_name), 
-  #   "dtree.yaml", 
+  #   is_empty(input$dtree_name),
+  #   "dtree.yaml",
   #   paste0(input$dtree_name, "_dtree.yaml")
   # ),
   fn = "dtree_input.yaml",
@@ -563,14 +546,14 @@ download_handler(
 )
 
 download_handler(
-  id = "dlp_dtree_sensitivity", 
-  fun = download_handler_plot, 
+  id = "dlp_dtree_sensitivity",
+  fun = download_handler_plot,
   # fn = ifelse(
-  #   is_empty(input$dtree_name), 
-  #   "dtree_sensitivity.png", 
+  #   is_empty(input$dtree_name),
+  #   "dtree_sensitivity.png",
   #   paste0(input$dtree_name, "_dtree_sensitivity.png")
   # ),
-  fn = "dtree_sensitivity.png", 
+  fn = "dtree_sensitivity.png",
   caption = "Download decision tree sensitivity plot",
   plot = .plot_dtree_sensitivity,
   width = dtree_sense_width,

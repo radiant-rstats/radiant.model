@@ -17,24 +17,23 @@ dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
-  yl <- fixMS(yl) %>% gsub("[\x80-\xFF]", "", .)
+  yl <- fixMS(yl) %>% 
+    gsub("[\x80-\xFF]", "", .) %>% 
+    gsub("\t", "    ", .)
 
-  ## collect errors
+  ## container to collect errors
   err <- c()
 
-  ## cheching if a : is present
-  # yl <- c(yl, "something without a colon")
+  ## cheching if : is present in each line
   col_ln <- grepl("(?=:)|(?=^\\s*$)|(?=^\\s*#)", yl, perl = TRUE)
   if (any(!col_ln)) {
-    err <- c(err, paste0("Each line must have a ':'. Add a ':' in line(s): ", paste0(which(!col_ln), collapse = ", ")))
+    err <- c(err, paste0("Each line in the tree input must have a ':'. Add a ':' in line(s): ", paste0(which(!col_ln), collapse = ", ")))
   }
 
   ## add a space to input after the : YAML needs this
-  # yl %<>% gsub(":([^\\s$])",": \\1", .) %>% gsub("  ", " ", .)
   yl %<>% gsub(":([^ $])", ": \\1", .) %>% gsub(":\\s{2,}", ": ", .)
 
   ## replace .4 by 0.4
-  # yl <- c(yl, "p: .4")
   yl %<>% gsub("(^\\s*p\\s*:)\\s*(\\.[0-9]+$)", "\\1 0\\2", ., perl = TRUE)
 
   ## make sure the labels are in lower case
@@ -46,7 +45,6 @@ dtree_parser <- function(yl) {
   yl %<>% gsub("(^\\s*)cost(\\s*:)", "\\1cost\\2", ., ignore.case = TRUE, perl = TRUE)
 
   ## check type line is followed by a name
-  # yl <- c(yl, "   type   : another   ")
   type_id <- yl %>% grepl("^\\s*type\\s*:\\s*(.*)$", ., perl = TRUE) %>% which()
   type_cid <- yl %>% grepl("^\\s*type\\s*:\\s*((chance)|(decision)|())\\s*$", ., perl = TRUE) %>% which()
 
@@ -62,9 +60,9 @@ dtree_parser <- function(yl) {
   # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
   ## incase there are 2 # signs - should be able to do that in
   # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
-  nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>% {
-    . == FALSE
-  } %>% which()
+  nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>% 
+    {. == FALSE} %>% 
+    which()
 
   if (length(nc_id) > 0) {
     yl[nc_id] %<>% gsub("#", "//", ., perl = TRUE) %>%
@@ -72,14 +70,7 @@ dtree_parser <- function(yl) {
   }
 
   ## Find node names
-  # yl <- c(" # name 3:")
-  # yl <- c(" p:   ", "  type: ")
-  # yl <- c(" name 3:")
-  # nn_id <- yl %>% grepl("^[^:#]+:\\s*$",., perl = TRUE) %>% which
-  # nn_id <- yl %>% grepl("^\\s*[^#]+[^:]+:\\s*$",., perl = TRUE) %>% which
-  nn_id <-
-    yl %>%
-    gsub("(^\\s*p\\s*:\\s*$)", "\\1 0", .) %>%
+  nn_id <- gsub("(^\\s*p\\s*:\\s*$)", "\\1 0", yl) %>%
     gsub("(^\\s*type\\s*:\\s*$)", "\\1 0", .) %>%
     gsub("(^\\s*cost\\s*:\\s*$)", "\\1 0", .) %>%
     gsub("(^\\s*payoff\\s*:\\s*$)", "\\1 0", .) %>%
@@ -120,7 +111,7 @@ dtree_parser <- function(yl) {
   indent_issue <- indent_type == indent_next
 
   if (any(!indent_issue)) {
-    err <- c(err, paste0("Indent issue in line(s): ", paste0(type_cid[!indent_issue] + 1, collapse = ", "), "\nUse the tab key to ensure a node name is indented the same amount\nas the node type on the preceding line."))
+    err <- c(err, paste0("Indent issue in line(s): ", paste0(type_cid[!indent_issue] + 1, collapse = ", "), "\nUse the tab key to ensure a node name is indented the same amount\nas the node type on the preceding line. Check the level of indentation\non each line shown, as well as the indentation on the preceding lines"))
   }
 
   ## check indent for node names
@@ -184,16 +175,16 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     if (is(yl, "try-error")) {
       err_line <- stringr::str_match(attr(yl, "condition")$message, "^Scanner error:.*line\\s([0-9]*),")[2]
       if (is.na(err_line)) {
-        err <- paste0("**\nError reading input:\n", attr(yl, "condition")$message, "\n\nPlease try again. Examples are shown in the help file\n**")
+        err <- paste0("**\nError reading the tree input:\n", attr(yl, "condition")$message, "\n\nPlease try again. Examples are shown in the help file (?)\n**")
       } else {
-        err <- paste0("**\nIndentation error in line ", err_line, ".\nUse tabs to separate the branches in the decision tree.\nFix the indentation error and try again. Examples are shown in the help file\n**")
+        err <- paste0("**\nIndentation issue found in line ", err_line, ".\nThis means that the indentation level is not correct when compared\nto prior or subsequent lines in the tree input. Use tabs to separate\nthe branches in the decision tree. Fix the indentation error and try\nagain. Examples are shown in the help file (?)\n**")
       }
       return(add_class(err, "dtree"))
     }
   }
 
   if (length(yl) == 0) {
-    err <- "**\nThe provided list is empty or not in the correct format.\nPlease check the input file.\n**"
+    err <- "**\nThe provided tree input list is empty or not in the correct format.\nPlease double check the tree input and try again.\n**"
     return(add_class(err, "dtree"))
   }
 
@@ -201,15 +192,13 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   if (!is.null(yl$variables) && is.character(yl$variables[1])) {
     if (exists("r_data") && !is.null(r_data$dtree_list)) {
       if (!yl$variables %in% r_data$dtree_list) {
-        err <- "**\nThe tree listed is not available. Please provide another name.\n**"
+        err <- "**\nThe tree referenced in the 'variables:' section is not available.\nPlease correct the name and try again.\n**"
         return(add_class(err, "dtree"))
       }
       yl$variables <-
         getdata(yl$variables) %>%
         dtree_parser() %>%
-        {
-          yaml::yaml.load(.)
-        } %>%
+        {yaml::yaml.load(.)} %>%
         .$variables %>%
         .[!grepl("dtree\\(.*\\)", .)]
     }
@@ -235,13 +224,13 @@ dtree <- function(yl, opt = "max", base = character(0)) {
       ret <- sapply(vn, function(x) grepl(x, vn, fixed = TRUE)) %>% set_rownames(vn)
       overlap <- colSums(ret) > 1
       if (any(overlap)) {
-        cat("Some of the variable labels overlap. Each label should be unique\nand not be part of another label. An easy fix may be to use\nsomewhat longer labels (e.g., success instead of S). To use\nsearch-and-replace in the editor press CTRL-F (CMD-F on mac) twice.\n\n")
+        cat("Some of the labels in the 'variables:' section are too similar. Each label should\nbe unique and not be part of another label (e.g., 'proceed' is part of 'do not proceed').\nAn easy fix may be to use somewhat longer labels (e.g., 'success' instead of 'S').\nInstead of 'proceed' and 'do not proceed', for example, you could use 'do proceed'\nand 'do not proceed'. To use search-and-replace in the editor press CTRL-F\n(CMD-F on mac) twice. The overlap in labels is described below:\n\n")
         ret <- ret[, overlap, drop = FALSE]
         for (i in 1:ncol(ret)) {
           tmp <- names(ret[ret[, i], i])
-          cat(tmp[1], "is part of", paste0(tail(tmp, -1), collapse = ", "), "\n")
+          cat(paste0(paste0("'", tmp[1], "'"), " is part of '", paste0(tail(tmp, -1), collapse = "', '"), "'\n"))
         }
-        return("\nUpdate the input file and try again." %>% add_class("dtree"))
+        return("\nPlease update the tree input and try again." %>% add_class("dtree"))
       }
     }
 
@@ -254,12 +243,12 @@ dtree <- function(yl, opt = "max", base = character(0)) {
           ret <- try(eval(parse(text = cmd)), silent = TRUE)
 
           if (is(ret, "try-error") || !is.list(ret)) {
-            return("**\nThe dtree command was invalid. Please fix it and try again\n**" %>% add_class("dtree"))
+            return("**\nThe reference to another tree was not succesful. It is possible\nthis was caused by a problem earlier in the 'variables:' section\nor because of a typo in the name of the tree you are trying to\nreference. Please check any messages about issues in the 'variables:'\nsection and try again\n**" %>% add_class("dtree"))
           } else {
             if (!is.null(ret$jl)) {
               vars[i] <- ret$jl$Get(function(x) x$payoff)[1]
             } else {
-              vars[i] <- "No payoff available. Incorrect tree specification"
+              vars[i] <- "No payoff was specified for one or more nodes ('payoff:'). Please check\neach `payoff:' the tree input and try again"
             }
           }
         } else {
@@ -270,6 +259,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     for (i in 2:max(2, length(vn))) {
       vars <- gsub(vn[i - 1], paste0("(", vars[[i - 1]], ")"), vars, fixed = TRUE)
+      # vars <- gsub(paste0("\b", vn[i - 1], "\b"), paste0("(", vars[[i - 1]], ")"), vars, fixed = TRUE)
       vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+", x), x, eval(parse(text = x))))
     }
     names(vars) <- vn
@@ -277,9 +267,9 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     isNum <- function(x) sshhr(!is.na(as.numeric(x)))
     isNot <- vars[!sapply(vars, isNum)]
     if (length(isNot) > 0) {
-      cat("Not all variables resolved to numeric.\n")
+      cat("Not all variables could be resolved to a numeric value.\n")
       print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
-      return("\nUpdate the input file and try again." %>% add_class("dtree"))
+      # return("\nUpdate the tree input and try again." %>% add_class("dtree"))
     }
 
     ## cycle through a nested list recursively
@@ -293,7 +283,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     }
 
     if (any(unlist(nlapply(yl, is.null)))) {
-      return("**\nOne or more payoffs or probabilities were not specified.\nUpdate the input file and try again\n**" %>% add_class("dtree"))
+      return("**\nOne or more payoffs or probabilities were not specified.\nUpdate the tree input and try again\n**" %>% add_class("dtree"))
     }
 
     ## based on http://stackoverflow.com/a/14656351/1974918
@@ -306,9 +296,9 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     isNot <- isNot[grepl("[^0-9.-]+", isNot)]
     if (length(isNot) > 0) {
       names(isNot) <- gsub(".", ":", names(isNot), fixed = TRUE)
-      cat("Not all variables can be resolved to numeric. Note that\nformula's are only allowed in the 'variables' section\n")
+      cat("Not all variables could be resolved to a numeric value. Note\nthat formula's are only allowed in the 'variables:' section\n")
       print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
-      return("\nUpdate the input file and try again." %>% add_class("dtree"))
+      return("\nUpdate the tree input and try again." %>% add_class("dtree"))
     }
 
     ## convert payoff, probabilities, and costs to numeric
@@ -338,7 +328,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     ## costs should not be set in terminal nodes, use payoff instead
     if (isNum(x$cost)) {
-      cost_check <<- "One or more terminal nodes have been assigned a cost. Specifying a cost\nis only useful if it applies to multiple nodes in a branch. If the cost\nonly applies to a terminal node adjust the payoff instead"
+      cost_check <<- "One or more terminal nodes have been assigned a cost. Specifying a cost\nusing 'cost:' in the tree input is only useful if it applies to multiple\nnodes in a branch. If the cost only applies to a single terminal node it\nis better to adjust the payoff value for that node instead"
     }
   }
 
@@ -377,11 +367,11 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
       probs <- sapply(x$children, prob_checker)
       if (min(probs) < 0) {
-        prob_check <<- "One or more probabilities are less than 0.\nPlease correct the inputs and re-run the analysis"
+        prob_check <<- "One or more probabilities are smalller than 0.\nPlease correct the tree input ('p:') and re-calculate the tree"
       } else if (max(probs) > 1) {
-        prob_check <<- "One or more probabilities are more than 1.\nPlease correct the inputs and re-run the analysis"
+        prob_check <<- "One or more probabilities are larger than 1.\nPlease correct the tree input ('p:') and re-calculate the tree"
       } else if (round(sum(probs), 2) != 1) {
-        prob_check <<- "Probabilities for one or more chance nodes do not sum to 1.\nPlease correct the inputs and re-run the analysis"
+        prob_check <<- "Probabilities for one (or more) chance nodes do not sum to 1.\nPlease correct the tree input ('p:') and re-calculate the tree"
       }
     } else if (x$type == "decision") {
       x$payoff <- get(opt)(sapply(x$children, decision_payoff))
@@ -394,7 +384,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   err <- try(jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf), silent = TRUE)
 
   if (is(err, "try-error")) {
-    err <- paste0("**\nError calculating payoffs associated with a chance or decision node.\nPlease check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
+    err <- paste0("**\nThere was an error calculating payoffs associated with a chance or decision\nnode. Please check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
     return(err %>% add_class("dtree"))
   }
 
@@ -407,7 +397,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   err <- try(jl$Do(decision, filterFun = function(x) !is.null(x$type) && x$type == "decision"), silent = TRUE)
 
   if (is(err, "try-error")) {
-    err <- paste0("**\nError calculating payoffs associated with a decision node. Please check\nthat each terminal node has a payoff\n**")
+    err <- paste0("**\nThere was an error calculating payoffs associated with a decision node.\nPlease check that each terminal node has a payoff\n**")
     return(err %>% add_class("dtree"))
   }
 
@@ -546,7 +536,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
     return(paste0("graph LR\n A[Errors in the input file]") %>% DiagrammeR::DiagrammeR(.))
   }
   if (x$type_none != "") {
-    return(paste0("graph LR\n A[Node does not have a type. Fix the input file]") %>% DiagrammeR::DiagrammeR(.))
+    return(paste0("graph LR\n A[Node does not have a type. Please fix the tree input]") %>% DiagrammeR::DiagrammeR(.))
   }
 
   ## based on https://gist.github.com/gluc/79ef7a0e747f217ca45e
@@ -616,7 +606,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 
   ToolTip <- function(node) {
     if (final == TRUE && !is.null(node$cost)) {
-      paste0(formatnr(node$payoff + node$cost, symbol, dec = dec), " - ", formatnr(node$cost, symbol, dec = dec)) %>%
+      sym <- ifelse(node$cost < 0, " + ", " - ")
+      paste0(formatnr(node$payoff + node$cost, symbol, dec = dec), sym, formatnr(abs(node$cost), symbol, dec = dec)) %>%
         paste0("click ", node$id, " callback \"", ., "\"")
     } else if (!is.null(node$cost)) {
       paste0("Cost: ", formatnr(node$cost, symbol, dec = dec)) %>%
