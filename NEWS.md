@@ -1,3 +1,9 @@
+# CHANGES IN radiant.model 0.9.2.2
+
+* Show the interval used in prediction for _Model > Regression_ and _Model > logistic_ (e.g., "prediction" or "confidence" for linear regression)
+* Auto complete in _Model > Decision analysis_ now provides hints based on the current tree input and any others defined in the app. It also provides suggestions for the basic element of the tree (e.g., `type: decision`, `type: chance`, `payoff`, etc.)
+* Updated users message for _Model > Decision analysis_
+
 # CHANGES IN radiant.model 0.9.2.1
 
 * Require `shinyAce` 0.3.0 in `radiant.data` and `useSoftTabs` for _Model > Decision Analysis_

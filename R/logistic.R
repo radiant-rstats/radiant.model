@@ -599,6 +599,7 @@ plot.logistic <- function(
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
+#' @param interval Type of interval calculation ("confidence" or "none"). Set to "none" if se is FALSE
 #' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
@@ -618,12 +619,18 @@ plot.logistic <- function(
 #' @export
 predict.logistic <- function(
   object, pred_data = "", pred_cmd = "",
-  conf_lev = 0.95, se = TRUE, dec = 3, ...
+  conf_lev = 0.95, se = TRUE, interval = "confidence",
+  dec = 3, ...
 ) {
 
   if (is.character(object)) return(object)
   if ("center" %in% object$check || "standardize" %in% object$check) {
     message("Standard error calculations not supported when coefficients are centered or standardized")
+    se <- FALSE
+  }
+  if (!isTRUE(se)) {
+    interval <- "none"
+  } else if (isTRUE(interval == "none")) {
     se <- FALSE
   }
 
@@ -659,7 +666,7 @@ predict.logistic <- function(
         ) %>%
           set_colnames(c("Prediction", ci_perc[1], ci_perc[2]))
       } else {
-        pred_val %<>% data.frame(stringsAsFactors = FALSE) %>%
+        pred_val <- data.frame(pred_val, stringsAsFactors = FALSE) %>%
           select(1) %>%
           set_colnames("Prediction")
       }
@@ -667,7 +674,8 @@ predict.logistic <- function(
     pred_val
   }
 
-  predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
+    set_attr("interval", interval)
 }
 
 #' Print method for logistic.predict

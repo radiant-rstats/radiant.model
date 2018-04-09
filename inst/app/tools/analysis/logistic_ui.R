@@ -87,6 +87,10 @@ logit_pred_inputs <- reactive({
       gsub("\"", "\'", .)
     logit_pred_args$pred_data <- input$logit_pred_data
   }
+
+  ## setting value for prediction interval type
+  logit_pred_args$interval <- "confidence"
+
   logit_pred_args
 })
 

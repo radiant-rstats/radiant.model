@@ -597,7 +597,15 @@ predict.regress <- function(
 ) {
 
   if (is.character(object)) return(object)
-  if ("center" %in% object$check || "standardize" %in% object$check) se <- FALSE
+  if ("center" %in% object$check || "standardize" %in% object$check) {
+    message("Standard error calculations not supported when coefficients are centered or standardized")
+    se <- FALSE
+  }
+  if (!isTRUE(se)) {
+    interval <- "none"
+  } else if (isTRUE(interval == "none")) {
+    se <- FALSE
+  }
 
   ## ensure you have a name for the prediction dataset
   if (!is.character(pred_data)) {
@@ -608,7 +616,11 @@ predict.regress <- function(
     pred_val <-
       try(
         sshhr(
-          predict(model, pred, interval = ifelse(se, interval, "none"), level = conf_lev)
+          predict(
+            model, pred, 
+            interval = ifelse(se, interval, "none"), 
+            level = conf_lev
+          )
         ),
         silent = TRUE
       )
@@ -627,7 +639,8 @@ predict.regress <- function(
     pred_val
   }
 
-  predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
+    set_attr("interval", interval)
 }
 
 #' Predict method for model functions
@@ -785,10 +798,10 @@ predict_model <- function(
       scale <- FALSE
     }
     pred_val <- scaledf(pred, center = TRUE, scale = scale, calc = FALSE) %>%
-      pfun(object$model, ., se, conf_lev)
+      pfun(object$model, ., se = se, conf_lev = conf_lev)
   } else {
     ## generate predictions using the supplied function (pfun)
-    pred_val <- pfun(object$model, pred, se, conf_lev)
+    pred_val <- pfun(object$model, pred, se = se, conf_lev = conf_lev)
   }
 
   if (!is(pred_val, "try-error")) {
@@ -830,7 +843,7 @@ predict_model <- function(
 
     return(add_class(pred, c(mclass, "model.predict")))
   } else {
-    return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred_val, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+    return(paste0("There was an error when trying to generate predictions. The\nerror message was:\n\n", attr(pred_val, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
   }
 }
 
@@ -869,6 +882,10 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   cat("Explanatory variables:", paste0(attr(x, "evar"), collapse = ", "), "\n")
   if (!is_empty(attr(x, "wtsname"))) {
     cat("Weights used         :", attr(x, "wtsname"), "\n")
+  }
+
+  if (!is_empty(attr(x, "interval"), "none")) {
+    cat("Interval             :", attr(x, "interval"), "\n")
   }
 
   if (pred_type == "cmd") {

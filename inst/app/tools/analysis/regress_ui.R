@@ -90,6 +90,10 @@ reg_pred_inputs <- reactive({
       gsub("\"", "\'", .)
     reg_pred_args$pred_data <- input$reg_pred_data
   }
+
+  ## setting value for prediction interval type
+  reg_pred_args$interval <- "confidence"
+
   reg_pred_args
 })
 
