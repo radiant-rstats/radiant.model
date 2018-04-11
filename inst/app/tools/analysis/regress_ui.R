@@ -208,6 +208,11 @@ output$ui_reg_nrobs <- renderUI({
   )
 })
 
+output$ui_reg_store_res_name <- renderUI({
+  req(input$dataset)
+  textInput("reg_store_res_name", "Store residuals:", "", placeholder = "Provide variable name")
+})
+
 observe({
   ## dep on most inputs
   input$data_filter
@@ -337,8 +342,9 @@ output$ui_regress <- renderUI({
       conditionalPanel(
         condition = "input.tabs_regress == 'Summary'",
         tags$table(
-          tags$td(textInput("reg_store_res_name", "Store residuals:", state_init("reg_store_res_name", "residuals_reg"))),
-          tags$td(actionButton("reg_store_res", "Store"), style = "padding-top:30px;")
+          # tags$td(textInput("reg_store_res_name", "Store residuals:", state_init("reg_store_res_name", "residuals_reg"))),
+          tags$td(uiOutput("ui_reg_store_res_name")),
+          tags$td(actionButton("reg_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
         )
       )
     ),
@@ -527,7 +533,12 @@ observeEvent(input$regress_report, {
     figs <- TRUE
   }
 
-  xcmd <- paste0("# store(result, name = \"", input$reg_store_res_name, "\")")
+
+  if (!is_empty(input$reg_store_res_name)) {
+    xcmd <- paste0("store(result, name = \"", input$reg_store_res_name, "\")")
+  } else {
+    xcmd <- ""
+  }
 
   if (!is_empty(input$reg_predict, "none") &&
      (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
