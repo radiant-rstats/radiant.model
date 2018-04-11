@@ -105,18 +105,22 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
     coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dat) - nrow(coeff), lower.tail = FALSE)
   }
 
-  coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
-  colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
+  # coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
+  coeff$sig_star  <- sig_stars(coeff$p.value) %>% format(justify = "left")
+  # colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
+  colnames(coeff) <- c("label", "coefficient", "std.error", "t.value", "p.value", "sig_star")
   hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
+      # coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
+      coeff$label %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
-    rm(i, hasLevs)
+    rm(i)
   }
 
-  rm(dat) ## dat is not needed elsewhere and is already in "model" anyway
+  ## remove elements no longer needed
+  rm(dat, hasLevs, form_lower, form_upper, isNum)
 
   as.list(environment()) %>% add_class(c("regress", "model"))
 }
@@ -187,12 +191,11 @@ summary.regress <- function(
   }
 
   coeff <- object$coeff
-  coeff$`  ` %<>% format(justify = "left")
+  # coeff$`  ` %<>% format(justify = "left")
+  coeff$label %<>% format(justify = "left")
   cat("\n")
   if (all(object$coeff$p.value == "NaN")) {
-    coeff[, 2] %<>% {
-      sprintf(paste0("%.", dec, "f"), .)
-    }
+    coeff[, 2] %<>% {sprintf(paste0("%.", dec, "f"), .)}
     print(coeff[, 1:2], row.names = FALSE)
     cat("\nInsufficient variation in explanatory variable(s) to report additional statistics")
     return()
@@ -200,7 +203,7 @@ summary.regress <- function(
     p.small <- coeff$p.value < .001
     coeff[, 2:5] %<>% formatdf(dec)
     coeff$p.value[p.small] <- "< .001"
-    print(coeff, row.names = FALSE)
+    print(rename(coeff, `  ` = label, ` ` = sig_star), row.names = FALSE)
   }
 
   if (nrow(object$model$model) <= (length(object$evar) + 1)) {
@@ -1090,7 +1093,8 @@ store.model.predict <- function(
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
-  changedata(data, vars = pred, var_names = name)
+  data[, name] <- pred
+  # changedata(data, vars = pred, var_names = name)
 }
 
 #' Store residuals from a model

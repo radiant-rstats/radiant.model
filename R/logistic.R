@@ -149,14 +149,16 @@ logistic <- function(
   attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
-  colnames(coeff) <- c("  ", "coefficient", "std.error", "z.value", "p.value")
+  # colnames(coeff) <- c("  ", "coefficient", "std.error", "z.value", "p.value")
+  colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
   hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+      # coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+      coeff$label %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
-    rm(i, hasLevs)
+    rm(i)
   }
 
   if ("robust" %in% check) {
@@ -166,11 +168,13 @@ logistic <- function(
     coeff$p.value <- 2 * pnorm(abs(coeff$z.value), lower.tail = FALSE)
   }
 
-  coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
+  # coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
+  coeff$sig_star <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$OR <- exp(coeff$coefficient)
-  coeff <- coeff[, c("  ", "OR", "coefficient", "std.error", "z.value", "p.value", " ")]
+  coeff <- coeff[, c("label", "OR", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
 
-  rm(dat) ## dat not needed elsewhere
+  ## remove elements no longer needed
+  rm(dat, hasLevs, form_lower, form_upper)
 
   as.list(environment()) %>% add_class(c("logistic", "model"))
 }
@@ -247,11 +251,12 @@ summary.logistic <- function(
   cat("\n")
 
   coeff <- object$coeff
-  coeff$`  ` %<>% format(justify = "left")
+  # coeff$`  ` %<>% format(justify = "left")
+  coeff$label %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
   coeff[, 2:6] %<>% formatdf(dec)
   coeff$p.value[p.small] <- "< .001"
-  coeff %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
+  rename(coeff, `  ` = label, ` ` = sig_star) %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
   logit_fit <- glance(object$model)
@@ -328,7 +333,8 @@ summary.logistic <- function(
           {.$`+/-` <- (.$High - .$coefficient)} %>%
           formatdf(dec) %>%
           set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
-          set_rownames(object$coeff$`  `) %>%
+          # set_rownames(object$coeff$`  `) %>%
+          set_rownames(object$coeff$label) %>%
           print()
         cat("\n")
       }
@@ -343,7 +349,8 @@ summary.logistic <- function(
       exp(ci_tab[-1, ]) %>%
         formatdf(dec) %>%
         set_colnames(c(orlab, ci_perc[1], ci_perc[2])) %>%
-        set_rownames(object$coeff$`  `[-1]) %>%
+        # set_rownames(object$coeff$`  `[-1]) %>%
+        set_rownames(object$coeff$label[-1]) %>%
         print()
       cat("\n")
     }
@@ -511,7 +518,8 @@ plot.logistic <- function(
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(x$coeff, 2), .) %>%
-      set_rownames(x$coeff$`  `) %>%
+      # set_rownames(x$coeff$`  `) %>%
+      set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
@@ -520,7 +528,8 @@ plot.logistic <- function(
       labs(y = yl, x = "") +
       ## can't use coord_trans together with coord_flip
       ## http://stackoverflow.com/a/26185278/1974918
-      scale_x_discrete(limits = {if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])}) +
+      # scale_x_discrete(limits = {if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])}) +
+      scale_x_discrete(limits = {if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])}) +
       scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
       coord_flip() +
       theme(axis.text.y = element_text(hjust = 0))
