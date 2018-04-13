@@ -1,3 +1,7 @@
+# CHANGES IN radiant.model 0.9.2.3
+
+* Fix for https://github.com/radiant-rstats/radiant/issues/53
+
 # CHANGES IN radiant.model 0.9.2.2
 
 * Show the interval used in prediction for _Model > Regression_ and _Model > logistic_ (e.g., "prediction" or "confidence" for linear regression)

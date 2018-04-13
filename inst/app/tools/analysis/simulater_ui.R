@@ -335,7 +335,7 @@ observeEvent(c(input$sim_grid, input$sim_types), {
 })
 
 observeEvent(c(input$rep_grid, input$rep_byvar), {
-  if (input$rep_byvar == "rep" && !is_empty(input$rep_grid)) {
+  if (isTRUE(input$rep_byvar == "rep") && !is_empty(input$rep_grid)) {
     updateNumericInput(session = session, "rep_nr", value = NA)
   } else {
     val <- ifelse(is_empty(r_state$rep_nr), 12, r_state$rep_nr)
