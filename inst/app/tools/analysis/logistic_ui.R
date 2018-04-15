@@ -234,6 +234,11 @@ output$ui_logit_nrobs <- renderUI({
   )
 })
 
+output$ui_logit_store_res_name <- renderUI({
+  req(input$dataset)
+  textInput("logit_store_res_name", "Store residuals:", "", placeholder = "Provide variable name")
+})
+
 observe({
   ## dep on most inputs
   input$data_filter
@@ -297,8 +302,7 @@ output$ui_logistic <- renderUI({
           selectizeInput(
             inputId = "logit_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_data$datasetlist),
-            # selected = state_init("logit_pred_data")
-            selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), 
+            selected = state_single("logit_pred_data", c("None" = "", r_data$datasetlist)), 
             multiple = FALSE
           )
         ),
@@ -323,8 +327,8 @@ output$ui_logistic <- renderUI({
         conditionalPanel(
           "input.logit_predict == 'data' | input.logit_predict == 'datacmd'",
           tags$table(
-            tags$td(textInput("logit_store_pred_name", "Store predictions:", state_init("logit_store_pred_name", "predict_logit"))),
-            tags$td(actionButton("logit_store_pred", "Store"), style = "padding-top:30px;")
+            tags$td(textInput("logit_store_pred_name", "Store predictions:", state_init("logit_store_pred_name", "pred_logit"))),
+            tags$td(actionButton("logit_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
           )
         )
       ),
@@ -358,8 +362,9 @@ output$ui_logistic <- renderUI({
       conditionalPanel(
         condition = "input.tabs_logistic == 'Summary'",
         tags$table(
-          tags$td(textInput("logit_store_res_name", "Store residuals:", state_init("logit_store_res_name", "residuals_logit"))),
-          tags$td(actionButton("logit_store_res", "Store"), style = "padding-top:30px;")
+          # tags$td(textInput("logit_store_res_name", "Store residuals:", state_init("logit_store_res_name", "residuals_logit"))),
+          tags$td(uiOutput("ui_logit_store_res_name")),
+          tags$td(actionButton("logit_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
         )
       )
     ),
@@ -540,13 +545,23 @@ observeEvent(input$logistic_report, {
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }
-  xcmd <- ""
+
+  if (!is_empty(input$logit_store_res_name)) {
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$logit_store_res_name, "\")\n")
+  } else {
+    xcmd <- ""
+  }
+
   if (!is_empty(input$logit_predict, "none") &&
      (!is_empty(input$logit_pred_data) || !is_empty(input$logit_pred_cmd))) {
     pred_args <- clean_args(logit_pred_inputs(), logit_pred_args[-1])
-    if (!is_empty(pred_args[["pred_cmd"]])) {
-      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    if (!is_empty(pred_args$pred_cmd)) {
+      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     }
+    if (!is_empty(pred_args$pred_data)) {
+      pred_args$pred_data <- as.symbol(pred_args$pred_data)
+    } 
+
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
 
@@ -554,11 +569,17 @@ observeEvent(input$logistic_report, {
     if (input$logit_predict %in% c("data", "datacmd")) {
       name <- input$logit_store_pred_name
       if (!is_empty(name)) {
-        name <- unlist(strsplit(input$logit_store_pred_name, ",")) %>%
+        name <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
           gsub("\\s", "", .) %>%
           deparse(., control = "keepNA", width.cutoff = 500L)
+        # name <- unlist(strsplit(input$logit_store_pred_name, ",")) %>%
+          # gsub("\\s", "", .) %>%
+          # deparse(., control = "keepNA", width.cutoff = 500L)
       }
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = ", name, ")")
+      # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = ", name, ")")
+      xcmd <- paste0(xcmd, "\n", input$logit_pred_data, " <- store(", 
+        input$logit_pred_data, ", pred, name = ", name, ")"
+      )
     }
     # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
 
@@ -582,13 +603,23 @@ observeEvent(input$logistic_report, {
   )
 })
 
+# observeEvent(input$logit_store_res, {
+#   req(pressed(input$logit_run))
+#   robj <- .logistic()
+#   if (!is.list(robj)) return()
+#   withProgress(
+#     message = "Storing residuals", value = 1,
+#     store(robj, name = input$logit_store_res_name)
+#   )
+# })
+
 observeEvent(input$logit_store_res, {
   req(pressed(input$logit_run))
   robj <- .logistic()
   if (!is.list(robj)) return()
   withProgress(
     message = "Storing residuals", value = 1,
-    store(robj, name = input$logit_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$logit_store_res_name)
   )
 })
 
@@ -598,7 +629,11 @@ observeEvent(input$logit_store_pred, {
   if (is.null(pred)) return()
   withProgress(
     message = "Storing predictions", value = 1,
-    store(pred, data = input$logit_pred_data, name = input$logit_store_pred_name)
+    r_data[[input$logit_pred_data]] <- store(
+      r_data[[input$logit_pred_data]], pred, 
+      name = input$logit_store_pred_name
+    )
+    # store(pred, data = input$logit_pred_data, name = input$logit_store_pred_name)
   )
 })
 

@@ -25,9 +25,9 @@ Summary method for the crtree function
 See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 }
 \examples{
-result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
+result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
 summary(result)
-result <- crtree("diamonds", "price", c("carat","color"), type = "regression")
+result <- crtree(diamonds, "price", c("carat","color"), type = "regression")
 summary(result)
 
 }

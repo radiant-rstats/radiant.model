@@ -25,9 +25,9 @@
 #' @return A list with all variables defined in crtree as an object of class tree
 #'
 #' @examples
-#' result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
-#' result <- crtree("titanic", "survived", c("pclass","sex"))
-#' result <- crtree("diamonds", "price", c("carat","clarity"), type = "regression")
+#' result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
+#' result <- crtree(titanic, "survived", c("pclass","sex"))
+#' result <- crtree(diamonds, "price", c("carat","clarity"), type = "regression")
 #'
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #' @seealso \code{\link{plot.crtree}} to plot results
@@ -64,45 +64,46 @@ crtree <- function(
     vars <- c(rvar, evar, wtsname)
   }
 
-  dat <- getdata(dataset, vars, filt = data_filter)
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  dataset <- getdata(dataset, vars, filt = data_filter)
+  # if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
-      wts <- dat[[wtsname]]
-      dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
+      wts <- dataset[[wtsname]]
+      dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), wtsname))
     }
-    if (length(wts) != nrow(dat)) {
+    if (length(wts) != nrow(dataset)) {
       return(
-        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dat), dec = 0), ")") %>%
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dataset), dec = 0), ")") %>%
           add_class("crtree")
       )
     }
   }
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("crtree"))
   }
 
-  rv <- dat[[rvar]]
+  rv <- dataset[[rvar]]
 
   if (type == "classification" && !is.factor(rv)) {
-    dat[[rvar]] <- as_factor(dat[[rvar]])
+    dataset[[rvar]] <- as_factor(dataset[[rvar]])
   }
 
-  if (is.factor(dat[[rvar]])) {
+  if (is.factor(dataset[[rvar]])) {
     if (type == "regression") {
       return("Cannot estimate a regression when the response variable is of type factor." %>% add_class("crtree"))
     }
 
     if (lev == "") {
-      lev <- levels(dat[[rvar]])[1]
+      lev <- levels(dataset[[rvar]])[1]
     } else {
-      if (!lev %in% levels(dat[[rvar]])) {
+      if (!lev %in% levels(dataset[[rvar]])) {
         return(paste0("Specified level is not a level in ", rvar) %>% add_class("crtree"))
       }
 
-      dat[[rvar]] <- factor(dat[[rvar]], levels = unique(c(lev, levels(dat[[rvar]]))))
+      dataset[[rvar]] <- factor(dataset[[rvar]], levels = unique(c(lev, levels(dataset[[rvar]]))))
     }
 
     type <- "classification"
@@ -115,16 +116,16 @@ crtree <- function(
   ## logicals would get < 0.5 and >= 0.5 otherwise
   ## also need to update data in predict_model
   ## so the correct type is used in prediction
-  dat <- mutate_if(dat, is.logical, as.factor)
+  dataset <- mutate_if(dataset, is.logical, as.factor)
 
   ## standardize data ...
   if ("standardize" %in% check) {
-    dat <- scaledf(dat, wts = wts)
+    dataset <- scaledf(dataset, wts = wts)
   }
 
   vars <- evar
   ## in case : is used
-  if (length(vars) < (ncol(dat) - 1)) vars <- evar <- colnames(dat)[-1]
+  if (length(vars) < (ncol(dataset) - 1)) vars <- evar <- colnames(dataset)[-1]
 
   form <- paste(rvar, "~ . ")
 
@@ -146,7 +147,7 @@ crtree <- function(
   parms <- list(split = split)
   # loss <- c(6,.5); cost <- .5, margin <- 6
   if (type == "classification") {
-    ind <- if (which(lev %in% levels(dat[[rvar]])) == 1) c(1, 2) else c(2, 1)
+    ind <- if (which(lev %in% levels(dataset[[rvar]])) == 1) c(1, 2) else c(2, 1)
 
     if (!is_not(cost) && !is_not(margin)) {
       parms[["loss"]] <- c(as_numeric(margin), as_numeric(cost)) %>% .[ind] %>% {
@@ -167,7 +168,7 @@ crtree <- function(
 
   model <- rpart::rpart(
     as.formula(form),
-    data = dat,
+    data = dataset,
     method = method,
     parms = parms,
     weights = wts,
@@ -190,10 +191,10 @@ crtree <- function(
   if (is_not(cost) && is_not(margin) &&
       !is_empty(prior) && !is_empty(adjprob)) {
 
-    # org_frac <- mean(dat[[rvar]] == lev)
+    # org_frac <- mean(dataset[[rvar]] == lev)
     # over_frac <- prior
     p <- model$frame$yval2[, 4]
-    bp <- mean(dat[[rvar]] == lev)
+    bp <- mean(dataset[[rvar]] == lev)
     
     ## note that this adjustment will reset the prior in the print out
     ## to the original prior using the 'SAS approach'
@@ -209,12 +210,12 @@ crtree <- function(
   }
 
   ## tree model object does not include the data by default
-  model$model <- dat
+  model$model <- dataset
 
   ## passing on variable classes for plotting
-  model$var_types <- sapply(dat, class)
+  model$var_types <- sapply(dataset, class)
 
-  rm(dat) ## dat not needed elsewhere
+  rm(dataset) ## dataset not needed elsewhere
 
   as.list(environment()) %>% add_class(c("crtree", "model"))
 }
@@ -230,9 +231,9 @@ crtree <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
 #' summary(result)
-#' result <- crtree("diamonds", "price", c("carat","color"), type = "regression")
+#' result <- crtree(diamonds, "price", c("carat","color"), type = "regression")
 #' summary(result)
 #'
 #' @seealso \code{\link{crtree}} to generate results
@@ -252,7 +253,7 @@ summary.crtree <- function(
   } else {
     cat("Regression tree")
   }
-  cat("\nData                 :", object$dataset)
+  cat("\nData                 :", object$df_name)
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
@@ -310,11 +311,11 @@ summary.crtree <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
 #' plot(result)
-#' result <- crtree("diamonds", "price", c("carat","clarity", "cut"))
+#' result <- crtree(diamonds, "price", c("carat","clarity", "cut"))
 #' plot(result, plots = "prune")
-#' result <- crtree("dvd", "buy", c("coupon","purch", "last"), cp = .01)
+#' result <- crtree(dvd, "buy", c("coupon","purch", "last"), cp = .01)
 #' plot(result, plots = "imp")
 #'
 #' @importFrom DiagrammeR DiagrammeR mermaid
@@ -553,7 +554,7 @@ plot.crtree <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{crtree}}
-#' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
+#' @param pred_data Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
@@ -561,10 +562,10 @@ plot.crtree <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
-#' result <- crtree("titanic", "survived", "pclass", lev = "Yes")
-#' predict(result, pred_data = "titanic") %>% head
+#' result <- crtree(titanic, "survived", "pclass", lev = "Yes")
+#' predict(result, pred_data = titanic) %>% head()
 #'
 #' @seealso \code{\link{crtree}} to generate the result
 #' @seealso \code{\link{summary.crtree}} to summarize results

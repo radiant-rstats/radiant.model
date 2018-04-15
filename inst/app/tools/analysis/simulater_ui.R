@@ -52,6 +52,7 @@ sim_inputs <- reactive({
       if (!i %in% input$sim_types) sim_args[[i]] <- ""
   }
 
+  # sim_args$name <- NULL
   sim_args
 })
 
@@ -59,11 +60,13 @@ rep_args <- as.list(formals(repeater))
 
 ## list of function inputs selected by user
 rep_inputs <- reactive({
+  # rep_args[["dataset"]] <- input$sim_name
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(rep_args))
+  rep_args$dataset <- input$sim_name
+  for (i in r_drop(names(rep_args)))
     rep_args[[i]] <- input[[paste0("rep_", i)]]
 
-  rep_args[["sim"]] <- input$sim_name
+  # rep_args$name <- NULL
   rep_args
 })
 
@@ -697,7 +700,12 @@ output$simulater <- renderUI({
     )
   )
   withProgress(message = "Running simulation", value = 1, {
-    do.call(simulater, sim_inputs())
+    sim <- do.call(simulater, sim_inputs())
+    if (is.data.frame(sim)) {
+      r_data[[input$sim_name]] <- sim
+      register(input$sim_name)
+    }
+    sim
   })
 })
 
@@ -705,37 +713,55 @@ output$simulater <- renderUI({
   input$sim_run
   input$sim_dec
 }, {
-  summary(.simulater(), dec = input$sim_dec)
+  if (not_pressed(input$sim_run)) {
+    "** Press the Run simulation button to simulate data **"
+  } else {
+    summary(.simulater(), dec = input$sim_dec)
+  }
 })
 
 sim_plot_width <- function() 650
 sim_plot_height <- function() {
   sim <- .simulater()
   if (is.character(sim)) {
-    if (sim[1] == "error") return(300)
-    sim <- getdata(sim)
+    # if (sim[1] == "error") return(300)
+    300
+  } else {
     if (dim(sim)[1] == 0) {
       300
     } else {
       ceiling(sum(sapply(sim, does_vary)) / 2) * 300
     }
-  } else {
-    300
   }
+  # if (is.character(sim)) {
+  #   if (sim[1] == "error") return(300)
+  #   # sim <- getdata(sim)
+  #   if (dim(sim)[1] == 0) {
+  #     300
+  #   } else {
+  #     ceiling(sum(sapply(sim, does_vary)) / 2) * 300
+  #   }
+  # } else {
+    # 300
+  # }
 }
 
 .plot_simulate <- eventReactive(input$sim_run, {
   req(input$sim_show_plots)
   withProgress(message = "Generating simulation plots", value = 1, {
-    .simulater() %>% {
-      if (is_empty(.)) invisible() else plot(., shiny = TRUE)
-    }
+    .simulater() %>% 
+      {if (is_empty(.)) invisible() else plot(., shiny = TRUE)}
   })
 })
 
 .repeater <- eventReactive(input$rep_run, {
   withProgress(message = "Running repeated simulation", value = 1, {
-    do.call(repeater, rep_inputs())
+    rep <- do.call(repeater, rep_inputs())
+    if (is.data.frame(rep)) {
+      r_data[[input$rep_name]] <- rep
+      register(input$rep_name)
+    }
+    rep
   })
 })
 
@@ -743,16 +769,17 @@ sim_plot_height <- function() {
   input$rep_run
   input$rep_dec
 }, {
-  if (length(input$rep_sum_vars) == 0) {
-    return("Select at least one Output variable")
+  if (not_pressed(input$rep_run)) {
+    "** Press the Repeat simulation button **"
+  } else if (length(input$rep_sum_vars) == 0) {
+    "Select at least one Output variable"
+  } else if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
+    "Please specify the number of repetitions in '# reps'"
+  } else if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
+    "Specify one or more constants in the Grid search input"
+  } else {
+    summary(.repeater(), dec = input$rep_dec)
   }
-  if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
-    return("Please specify the number of repetitions in '# reps'")
-  }
-  if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
-    return("Specify one or more constants in the Grid search input")
-  }
-  summary(.repeater(), dec = input$rep_dec)
 })
 
 rep_plot_width <- function() 650
@@ -760,15 +787,13 @@ rep_plot_height <- function() {
   if (length(input$rep_sum_vars) == 0) return(300)
   rp <- .repeater()
   if (is.character(rp)) {
-    if (rp[1] == "error") return(300)
-    rp <- getdata(rp)
+    300
+  } else {
     if (dim(rp)[1] == 0) {
       300
     } else {
       ceiling(sum(sapply(select(rp, -1), does_vary)) / 2) * 300
     }
-  } else {
-    300
   }
 }
 
@@ -777,8 +802,7 @@ rep_plot_height <- function() {
   req(length(input$rep_sum_vars) > 0)
   if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
     return(invisible())
-  }
-  if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
+  } else if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
     return(invisible())
   }
   object <- .repeater()
@@ -819,11 +843,15 @@ observeEvent(input$simulater_report, {
       inp[[i]] <- strsplit(inp[[i]], ";")[[1]]
     }
   }
+  inp$name <- NULL
   update_report(
     inp_main = inp,
     fun_name = "simulater",
     inp_out = inp_out,
+    pre_cmd = paste0(input$sim_name, " <- "),
+    xcmd = paste0("register(\"", input$sim_name, "\")"),
     outputs = outputs,
+    inp = input$sim_name, 
     figs = figs,
     fig.width = sim_plot_width(),
     fig.height = sim_plot_height()
@@ -854,12 +882,15 @@ observeEvent(input$repeater_report, {
   if (!is_empty(inp[["grid"]])) {
     inp[["grid"]] <- strsplit(inp[["grid"]], ";")[[1]]
   }
-
+  inp$name <- NULL
   update_report(
     inp_main = inp,
     fun_name = "repeater",
     inp_out = inp_out,
+    pre_cmd = paste0(input$rep_name, " <- "),
+    xcmd = paste0("register(\"", input$rep_name, "\")"),
     outputs = outputs,
+    inp = input$rep_name, 
     figs = figs,
     fig.width = rep_plot_width(),
     fig.height = rep_plot_height()

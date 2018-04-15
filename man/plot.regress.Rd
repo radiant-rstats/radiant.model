@@ -33,7 +33,7 @@ Plot method for the regress function
 See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-result <- regress("diamonds", "price", c("carat","clarity"))
+result <- regress(diamonds, "price", c("carat","clarity"))
 plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
 plot(result, plots = "dist")
 \dontrun{

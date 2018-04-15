@@ -12,6 +12,6 @@ data(ideal)
 Ideal data for linear regression
 }
 \details{
-Description provided in attr(ideal,"description")
+Description provided in attr(ideal,  "description")
 }
 \keyword{datasets}

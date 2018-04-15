@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset 
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
 #' @param lev The level in the response variable defined as _success_
@@ -18,7 +18,7 @@
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' result <- evalbin("titanic", c("age","fare"), "survived")
+#' result <- evalbin(titanic, c("age", "fare"), "survived")
 #'
 #' @export
 evalbin <- function(
@@ -37,6 +37,7 @@ evalbin <- function(
 
   if (is_empty(qnt)) qnt <- 10
 
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
@@ -50,8 +51,6 @@ evalbin <- function(
     dat_list[["All"]] <- getdata(dataset, vars, filt = "")
   }
 
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
-
   qnt_name <- "bins"
   auc_list <- list()
   prof_list <- c()
@@ -61,8 +60,8 @@ evalbin <- function(
   for (i in names(dat_list)) {
     lg_list <- list()
     pl <- c()
-    dat <- dat_list[[i]]
-    rv <- dat[[rvar]]
+    dataset <- dat_list[[i]]
+    rv <- dataset[[rvar]]
     if (is.factor(rv)) {
       levs <- levels(rv)
     } else {
@@ -76,19 +75,19 @@ evalbin <- function(
     }
 
     ## transformation to TRUE/FALSE depending on the selected level (lev)
-    dat[[rvar]] <- dat[[rvar]] == lev
+    dataset[[rvar]] <- dataset[[rvar]] == lev
 
     ## tip for summarise_ from http://stackoverflow.com/a/27592077/1974918
     ## put summaries in list so you can print and plot
-    tot_resp <- sum(dat[[rvar]])
-    tot_obs <- nrow(dat)
+    tot_resp <- sum(dataset[[rvar]])
+    tot_obs <- nrow(dataset)
     tot_rate <- tot_resp / tot_obs
 
     for (j in seq_along(pred)) {
       pname <- paste0(pred[j], pext[i])
-      auc_list[[pname]] <- auc(dat[[pred[j]]], dat[[rvar]], TRUE)
+      auc_list[[pname]] <- auc(dataset[[pred[j]]], dataset[[rvar]], TRUE)
       lg_list[[pname]] <-
-        dat %>%
+        dataset %>%
         select_at(.vars = c(pred[j], rvar)) %>%
         # mutate_(.dots = setNames(paste0(method,"(",pred[j],",", qnt,", rev = TRUE)"), pred[j])) %>%
         mutate(!! pred[j] := radiant.data::xtile(.data[[pred[j]]], n = qnt, rev = TRUE)) %>%
@@ -126,13 +125,13 @@ evalbin <- function(
     prof_list <- c(prof_list, pl / abs(max(pl)))
     pdat[[i]] <- bind_rows(lg_list) %>% mutate(profit = profit)
   }
-  dat <- bind_rows(pdat) %>% mutate(profit = ifelse(is.na(profit), 0, profit))
-  dat$pred <- factor(dat$pred, levels = unique(dat$pred))
+  dataset <- bind_rows(pdat) %>% mutate(profit = ifelse(is.na(profit), 0, profit))
+  dataset$pred <- factor(dataset$pred, levels = unique(dataset$pred))
 
   names(prof_list) <- names(auc_list)
 
   list(
-    dat = dat, dataset = dataset, data_filter = data_filter, 
+    dataset = dataset, df_name = df_name, data_filter = data_filter, 
     train = train, pred = pred, rvar = rvar, lev = lev, 
     qnt = qnt, cost = cost, margin = margin
   ) %>% add_class("evalbin")
@@ -151,15 +150,15 @@ evalbin <- function(
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' evalbin("titanic", "age", "survived") %>% summary
-#' evalbin("titanic", c("age","fare"), "survived") %>% summary
+#' evalbin(titanic, "age", "survived") %>% summary
+#' evalbin(titanic, c("age", "fare"), "survived") %>% summary
 #'
 #' @export
 summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
   if (is.character(object)) return(object)
 
   cat("Evaluate predictions for binary response models\n")
-  cat("Data        :", object$dataset, "\n")
+  cat("Data        :", object$df_name, "\n")
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
   }
@@ -171,7 +170,7 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
   cat("Cost:Margin :", object$cost, ":", object$margin, "\n\n")
 
   if (prn) {
-    as.data.frame(object$dat, stringsAsFactors = FALSE) %>%
+    as.data.frame(object$dataset, stringsAsFactors = FALSE) %>%
       formatdf(dec = dec, mark = ",") %>%
       print(row.names = FALSE)
   }
@@ -192,9 +191,9 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 #' @seealso \code{\link{summary.evalbin}} to summarize results
 #'
 #' @examples
-#' evalbin("titanic", "age", "survived") %>% plot
-#' evalbin("titanic", c("age","fare"), "survived") %>% plot
-#' evalbin("titanic", c("age","fare"), "survived") %>% summary
+#' evalbin(titanic, "age", "survived") %>% plot()
+#' evalbin(titanic, c("age", "fare"), "survived") %>% plot()
+#' evalbin(titanic, c("age", "fare"), "survived") %>% summary()
 #'
 #' @export
 plot.evalbin <- function(
@@ -203,8 +202,7 @@ plot.evalbin <- function(
   custom = FALSE, ...
 ) {
 
-  object <- x; rm(x)
-  if (is.character(object) || is.null(object$dat) || any(is.na(object$dat$cum_lift)) ||
+  if (is.character(x) || is.null(x$dataset) || any(is.na(x$dataset$cum_lift)) ||
     is.null(plots)) {
     return(invisible())
   }
@@ -212,51 +210,60 @@ plot.evalbin <- function(
   plot_list <- list()
   if ("lift" %in% plots) {
     plot_list[["lift"]] <-
-      visualize(object$dat, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
+      visualize(x$dataset, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
       geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), size = .1, color = "black") +
       labs(y = "Cumulative lift", x = "Proportion of customers")
   }
 
   if ("gains" %in% plots) {
-    dat <-
-      object$dat %>%
+    dataset <- x$dataset %>%
       select(pred, cum_prop, cum_gains) %>%
       group_by(pred) %>%
       mutate(obs = 1:n())
 
-    init <- dat %>% filter(obs == 1)
+    init <- filter(dataset, obs == 1)
     init[, c("cum_prop", "cum_gains", "obs")] <- 0
-    dat <- bind_rows(init, dat) %>% arrange(pred, obs)
+    dataset <- bind_rows(init, dataset) %>% arrange(pred, obs)
 
     plot_list[["gains"]] <-
-      visualize(dat, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
+      visualize(dataset, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), size = .1, color = "black") +
       labs(y = "Cumulative gains", x = "Proportion of customers")
   }
 
   if ("profit" %in% plots) {
-    dat <-
-      object$dat %>%
-      select(pred, cum_prop, profit) %>%
+    dataset <- select(x$dataset, pred, cum_prop, profit) %>%
       group_by(pred) %>%
       mutate(obs = 1:n())
 
-    init <- dat %>% filter(obs == 1)
+    init <- filter(dataset, obs == 1)
     init[, c("profit", "cum_prop", "obs")] <- 0
-    dat <- bind_rows(init, dat) %>% arrange(pred, obs)
+    dataset <- bind_rows(init, dataset) %>% arrange(pred, obs)
 
-    plot_list[["profit"]] <-
-      visualize(dat, xvar = "cum_prop", yvar = "profit", type = "line", color = "pred", custom = TRUE) +
+    plot_list[["profit"]] <- visualize(
+      dataset, 
+      xvar = "cum_prop", 
+      yvar = "profit", 
+      type = "line", 
+      color = "pred", 
+      custom = TRUE
+    ) +
       geom_point() +
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
       labs(y = "Profit", x = "Proportion of customers")
   }
 
   if ("rome" %in% plots) {
-    plot_list[["rome"]] <-
-      visualize(object$dat, xvar = "cum_prop", yvar = "ROME", type = "line", color = "pred", custom = TRUE) +
+    plot_list[["rome"]] <- visualize(
+      x$dataset, 
+      xvar = "cum_prop", 
+      yvar = "ROME", 
+      type = "line", 
+      color = "pred", 
+      custom = TRUE
+    ) +
       geom_point() +
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
       labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers")
@@ -264,7 +271,7 @@ plot.evalbin <- function(
 
   for (i in names(plot_list)) {
     plot_list[[i]] <- plot_list[[i]] + theme_set(theme_gray(base_size = size))
-    if (length(object$pred) < 2 && object$train != "Both") {
+    if (length(x$pred) < 2 && x$train != "Both") {
       plot_list[[i]] <- plot_list[[i]] + theme(legend.position = "none")
     } else {
       plot_list[[i]] <- plot_list[[i]] + labs(colour = "Predictor")
@@ -275,9 +282,8 @@ plot.evalbin <- function(
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
-    if (shiny) . else print(.)
-  }
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% 
+    {if (shiny) . else print(.)}
 }
 
 
@@ -285,7 +291,7 @@ plot.evalbin <- function(
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
 #' @param lev The level in the response variable defined as _success_
@@ -321,6 +327,7 @@ confusion <- function(
     break_even <- cost / margin
   }
 
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
@@ -338,8 +345,8 @@ confusion <- function(
 
   pdat <- list()
   for (i in names(dat_list)) {
-    dat <- dat_list[[i]]
-    rv <- dat[[rvar]]
+    dataset <- dat_list[[i]]
+    rv <- dataset[[rvar]]
 
     if (lev == "") {
       if (is.factor(rv)) {
@@ -348,28 +355,28 @@ confusion <- function(
         lev <- as.character(rv) %>% as.factor() %>% levels() %>% .[1]
       }
     } else {
-      if (!lev %in% dat[[rvar]]) return(add_class("Please update the selected level in the response variable", "confusion"))
+      if (!lev %in% dataset[[rvar]]) return(add_class("Please update the selected level in the response variable", "confusion"))
     }
 
     ## transformation to TRUE/FALSE depending on the selected level (lev)
-    dat[[rvar]] <- dat[[rvar]] == lev
+    dataset[[rvar]] <- dataset[[rvar]] == lev
 
     auc_vec <- rep(NA, length(pred)) %>% set_names(pred)
-    for (p in pred) auc_vec[p] <- auc(dat[[p]], dat[[rvar]], TRUE)
+    for (p in pred) auc_vec[p] <- auc(dataset[[p]], dataset[[rvar]], TRUE)
 
-    p_vec <- colMeans(dat[, pred, drop = FALSE]) / mean(dat[[rvar]])
+    p_vec <- colMeans(dataset[, pred, drop = FALSE]) / mean(dataset[[rvar]])
 
-    dat[, pred] <- select_at(dat, .vars = pred) > break_even
+    dataset[, pred] <- select_at(dataset, .vars = pred) > break_even
 
     if (length(pred) > 1) {
-      dat <- mutate_at(dat, .vars = c(rvar, pred), .funs = funs(factor(., levels = c("FALSE", "TRUE"))))
+      dataset <- mutate_at(dataset, .vars = c(rvar, pred), .funs = funs(factor(., levels = c("FALSE", "TRUE"))))
     } else {
-      dat[, pred] %<>% apply(2, function(x) factor(x, levels = c("FALSE", "TRUE")))
+      dataset[, pred] %<>% apply(2, function(x) factor(x, levels = c("FALSE", "TRUE")))
     }
 
     make_tab <- function(x) {
       ret <- rep(0L, 4) %>% set_names(c("TN", "FN", "FP", "TP"))
-      tab <- table(dat[[rvar]], x) %>% as.data.frame(stringsAsFactors = FALSE)
+      tab <- table(dataset[[rvar]], x) %>% as.data.frame(stringsAsFactors = FALSE)
       ## ensure a value is availble for all four options
       for (i in 1:nrow(tab)) {
         if (tab[i, 1] == "TRUE") {
@@ -388,7 +395,7 @@ confusion <- function(
       }
       return(ret)
     }
-    ret <- lapply(select_at(dat, .vars = pred), make_tab) %>%
+    ret <- lapply(select_at(dataset, .vars = pred), make_tab) %>%
       as.data.frame(stringsAsFactors = FALSE) %>%
       t() %>%
       as.data.frame(stringsAsFactors = FALSE)
@@ -409,7 +416,7 @@ confusion <- function(
     pdat[[i]] <- ret
   }
 
-  dat <- bind_rows(pdat) %>%
+  dataset <- bind_rows(pdat) %>%
     as.data.frame(stringsAsFactors = FALSE) %>%
     mutate(
       total = TN + FN + FP + TP,
@@ -424,22 +431,22 @@ confusion <- function(
       kappa = 0
     )
 
-  dat <- group_by_at(dat, .vars = "Type") %>%
+  dataset <- group_by_at(dataset, .vars = "Type") %>%
     mutate(index = profit / max(profit)) %>%
     ungroup()
-  dat <- mutate(dat, profit = as.integer(round(profit, 0)))
+  dataset <- mutate(dataset, profit = as.integer(round(profit, 0)))
 
-  for (i in 1:nrow(dat)) {
-    tmp <- slice(dat, i)
+  for (i in 1:nrow(dataset)) {
+    tmp <- slice(dataset, i)
     ## sent prof. Revelle an email about warning message on 2/18/2018
     ## will be fixed in next psych release
-    dat$kappa[i] <- sshhr(
+    dataset$kappa[i] <- sshhr(
       psych::cohen.kappa(matrix(with(tmp, c(TN, FP, FN, TP)), ncol = 2))[["kappa"]]
     )
   }
 
-  dat <- select_at(
-    dat,
+  dataset <- select_at(
+    dataset,
     .vars = c(
       "Type", "Predictor", "TP", "FP", "TN", "FN", "total",
       "TPR", "TNR", "precision", "Fscore", "accuracy",
@@ -448,7 +455,7 @@ confusion <- function(
   )
 
   list(
-    dat = dat, dataset = dataset, data_filter = data_filter, train = train,
+    dataset = dataset, df_name = df_name, data_filter = data_filter, train = train,
     pred = pred, rvar = rvar, lev = lev, cost = cost, margin = margin
   ) %>% add_class("confusion")
 }
@@ -469,7 +476,7 @@ summary.confusion <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
 
   cat("Confusion matrix\n")
-  cat("Data       :", object$dataset, "\n")
+  cat("Data       :", object$df_name, "\n")
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter     :", gsub("\\n", "", object$data_filter), "\n")
   }
@@ -480,11 +487,11 @@ summary.confusion <- function(object, dec = 3, ...) {
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
   cat("\n")
 
-  as.data.frame(object$dat[, 1:11], stringsAsFactors = FALSE) %>%
+  as.data.frame(object$dataset[, 1:11], stringsAsFactors = FALSE) %>%
     formatdf(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
   cat("\n")
-  as.data.frame(object$dat[, c(1, 2, 12:18)], stringsAsFactors = FALSE) %>%
+  as.data.frame(object$dataset[, c(1, 2, 12:18)], stringsAsFactors = FALSE) %>%
     formatdf(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
 }
@@ -508,25 +515,23 @@ plot.confusion <- function(
   scale_y = TRUE, size = 13, ...
 ) {
 
-  object <- x; rm(x)
-  if (is.character(object) || is.null(object)) return(invisible())
-
-  dat <- object$dat %>%
+  if (is.character(x) || is.null(x)) return(invisible())
+  dataset <- x$dataset %>%
     mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = funs(if (is.numeric(.)) . / total else .)) %>%
     gather("Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
   ## what data was used in evaluation? All, Training, Validation, or Both
-  type <- unique(dat$Type)
+  type <- unique(dataset$Type)
 
   if (scale_y) {
     p <- visualize(
-      dat, xvar = "Predictor", yvar = "Value", type = "bar",
+      dataset, xvar = "Predictor", yvar = "Value", type = "bar",
       facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE
     )
   } else {
     p <- visualize(
-      dat, xvar = "Predictor", yvar = "Value", type = "bar",
+      dataset, xvar = "Predictor", yvar = "Value", type = "bar",
       facet_row = "Metric", fill = "Type", custom = TRUE
     )
   }

@@ -4,17 +4,16 @@
 \alias{store.nb.predict}
 \title{Store predicted values generated in the nb function}
 \usage{
-\method{store}{nb.predict}(object, ..., data = attr(object, "pred_data"),
-  name = "")
+\method{store}{nb.predict}(dataset, object, name = "pred_nb", ...)
 }
 \arguments{
+\item{dataset}{Dataset to add predictions two}
+
 \item{object}{Return value from model function}
 
-\item{...}{Additional arguments}
-
-\item{data}{Data or dataset name (e.g., data = mtcars or data = "mtcars")}
-
 \item{name}{Variable name(s) assigned to predicted values. If empty, the levels of the response variable will be used}
+
+\item{...}{Additional arguments}
 }
 \description{
 Store predicted values generated in the nb function
@@ -23,9 +22,8 @@ Store predicted values generated in the nb function
 See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
-result <- nb("titanic", "survived", c("pclass","sex","age"))
-pred <- predict(result, pred_data = "titanic")
-store(pred, data = titanic, name = "pred") \%>\% head
-store(pred, data = titanic) \%>\% head
+result <- nb(titanic, rvar = "survived", evar = c("pclass", "sex", "age"))
+pred <- predict(result, pred_data = titanic)
+titanic <- store(titanic, pred, name = c("Yes", "No"))
 
 }

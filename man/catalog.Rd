@@ -12,6 +12,6 @@ data(catalog)
 Catalog sales for men's and women's apparel
 }
 \details{
-Description provided in attr(catalog,"description")
+Description provided in attr(catalog, "description")
 }
 \keyword{datasets}

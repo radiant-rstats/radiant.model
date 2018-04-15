@@ -29,8 +29,8 @@ Plot method for the nn function
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 }
 \examples{
-result <- nn("titanic", "survived", c("pclass","sex"), lev = "Yes")
-plot(result, plots = c("olden","net"))
+result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+plot(result, plots = c("olden", "net"))
 
 }
 \seealso{

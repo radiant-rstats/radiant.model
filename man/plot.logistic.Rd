@@ -31,7 +31,7 @@ Plot method for the logistic function
 See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 }
 \examples{
-result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
+result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 plot(result, plots = "coef")
 
 }

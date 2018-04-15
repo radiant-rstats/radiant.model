@@ -58,9 +58,9 @@ Classification and regression trees based on the rpart package
 See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 }
 \examples{
-result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
-result <- crtree("titanic", "survived", c("pclass","sex"))
-result <- crtree("diamonds", "price", c("carat","clarity"), type = "regression")
+result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
+result <- crtree(titanic, "survived", c("pclass","sex"))
+result <- crtree(diamonds, "price", c("carat","clarity"), type = "regression")
 
 }
 \seealso{

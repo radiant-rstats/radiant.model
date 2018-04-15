@@ -11,19 +11,19 @@
 #' @param pois A character vector listing the random variables with a poisson distribution to include in the analysis (e.g., "demand 10") where the number is the lambda value (i.e., the average number of events or the event rate)
 #' @param sequ A character vector listing the start and end for a sequence to include in the analysis (e.g., "trend 1 100 1"). The number of 'steps' is determined by the number of simulations
 #' @param grid A character vector listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
-#' @param data Name of a dataset to be used in the calculations
+#' @param data Dataset to be used in the calculations
 #' @param form A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")
 #' @param seed Optional seed used in simulation 
 #' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
 #' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables simulated
-#' @param name Name used to store the simulated data (optional)
+#' @param name Deprecated argument
 #' @param nr Number of simulations
-#' @param dat Data list from previous simulation. Used by repeater function
+#' @param dataset Data list from previous simulation. Used by repeater function
 #'
 #' @return A data.frame with the simulated data
 #'
 #' @examples
-#' result <- simulater(
+#' simdat <- simulater(
 #'   const = "cost 3", 
 #'   norm = "demand 2000 1000", 
 #'   discrete = "price 5 8 .3 .7", 
@@ -38,27 +38,28 @@ simulater <- function(
   const = "", lnorm = "", norm = "", unif = "", discrete = "",
   binom = "", pois = "", sequ = "", grid = "", data = "", 
   form = "", seed = NULL, nexact = FALSE, ncorr = NULL, 
-  name = "", nr = 1000, dat = NULL
+  name = "", nr = 1000, dataset = NULL
 ) {
 
+  # if (!is_empty(name)) message("Use of the 'name' argument is deprecated. Please remove it from the call to 'simulater'")
   if (!is_empty(seed)) set.seed(as_numeric(seed))
-  if (is.null(dat)) {
-    dat <- list()
+  if (is.null(dataset)) {
+    dataset <- list()
   } else {
     ## needed because number may be NA and missing if grid used in Simulate
-    nr <- attr(dat, "sim_call")$nr
+    nr <- attr(dataset, "sim_call")$nr
   }
 
   grid %<>% sim_cleaner
-  if (grid != "" && length(dat) == 0) {
+  if (grid != "" && length(dataset) == 0) {
     s <- grid %>% sim_splitter()
       for (i in 1:length(s)) {
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
       s[[i]] %>% 
-        {dat[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))}
+        {dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))}
     }
-    dat <- as.list(expand.grid(dat) %>% as.data.frame(stringsAsFactors = FALSE))
-    nr <- length(dat[[1]])
+    dataset <- as.list(expand.grid(dataset) %>% as.data.frame(stringsAsFactors = FALSE))
+    nr <- length(dataset[[1]])
   }
 
   if (is_empty(nr)) {
@@ -72,7 +73,7 @@ simulater <- function(
     s <- const %>% sim_splitter()
     for (i in 1:length(s))
       s[[i]] %>% {
-        dat[[.[1]]] <<- as.numeric(.[2]) %>% rep(nr)
+        dataset[[.[1]]] <<- as.numeric(.[2]) %>% rep(nr)
       }
   }
 
@@ -82,7 +83,7 @@ simulater <- function(
     s <- unif %>% sim_splitter()
     for (i in 1:length(s))
       s[[i]] %>% {
-        dat[[.[1]]] <<- runif(nr, as.numeric(.[2]), as.numeric(.[3]))
+        dataset[[.[1]]] <<- runif(nr, as.numeric(.[2]), as.numeric(.[3]))
       }
   }
 
@@ -97,7 +98,7 @@ simulater <- function(
         return(add_class(mess, "simulater"))
       }
       s[[i]] %>% {
-        dat[[.[1]]] <<- rlnorm(nr, as.numeric(.[2]), sdev)
+        dataset[[.[1]]] <<- rlnorm(nr, as.numeric(.[2]), sdev)
       }
     }
   }
@@ -116,11 +117,11 @@ simulater <- function(
       if (is_empty(ncorr) || length(s) == 1) {
         if (nexact) {
           s[[i]] %>% {
-            dat[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + as.numeric(.[2])
+            dataset[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + as.numeric(.[2])
           }
         } else {
           s[[i]] %>% {
-            dat[[.[1]]] <<- rnorm(nr, as.numeric(.[2]), sdev)
+            dataset[[.[1]]] <<- rnorm(nr, as.numeric(.[2]), sdev)
           }
         }
       } else {
@@ -151,7 +152,7 @@ simulater <- function(
 
       colnames(df) <- nms
       for (i in nms) {
-        dat[[i]] <- df[[i]]
+        dataset[[i]] <- df[[i]]
       }
     }
   }
@@ -162,7 +163,7 @@ simulater <- function(
     s <- binom %>% sim_splitter()
     for (i in 1:length(s))
       s[[i]] %>% {
-        dat[[.[1]]] <<- rbinom(nr, as_integer(.[2]), as_numeric(.[3]))
+        dataset[[.[1]]] <<- rbinom(nr, as_integer(.[2]), as_numeric(.[3]))
       }
   }
 
@@ -172,7 +173,7 @@ simulater <- function(
     s <- pois %>% sim_splitter()
     for (i in 1:length(s))
       s[[i]] %>% {
-        dat[[.[1]]] <<- rpois(nr, as_integer(.[2]))
+        dataset[[.[1]]] <<- rpois(nr, as_integer(.[2]))
       }
   }
 
@@ -182,15 +183,15 @@ simulater <- function(
     s <- sequ %>% sim_splitter()
     for (i in 1:length(s))
       s[[i]] %>% {
-        dat[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), length.out = as.numeric(nr))
+        dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), length.out = as.numeric(nr))
       }
   }
 
-  ## adding data to dat list
+  ## adding data to dataset list
   if (data != "" && data != "none") {
     sdat <- getdata(data)
     for (i in colnames(sdat))
-      dat[[i]] <- sdat[[i]]
+      dataset[[i]] <- sdat[[i]]
   }
 
   ## parsing discrete
@@ -210,7 +211,7 @@ simulater <- function(
         return(add_class(mess, "simulater"))
       }
 
-      dat[[s[[i]][1]]] <- sample(dpar[, 1], nr, replace = TRUE, prob = dpar[, 2])
+      dataset[[s[[i]][1]]] <- sample(dpar[, 1], nr, replace = TRUE, prob = dpar[, 2])
     }
   }
 
@@ -224,24 +225,24 @@ simulater <- function(
       obj <- s[[i]][1]
       fobj <- s[[i]][-1]
       if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
-      out <- try(do.call(with, list(dat, parse(text = fobj))), silent = TRUE)
+      out <- try(do.call(with, list(dataset, parse(text = fobj))), silent = TRUE)
       if (!is(out, "try-error")) {
-        dat[[obj]] <- out
+        dataset[[obj]] <- out
       } else {
-        dat[[obj]] <- NA
+        dataset[[obj]] <- NA
         mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message))
         return(add_class(mess, "simulater"))
       }
     }
   }
 
-  ## removing data from dat list
+  ## removing data from dataset list
   if (!data %in% c("", "none")) {
-    dat[colnames(sdat)] <- NULL
+    dataset[colnames(sdat)] <- NULL
   }
 
   ## convert list to a data.frame
-  dat <- as.data.frame(dat, stringsAsFactors = FALSE) %>% na.omit()
+  dataset <- as.data.frame(dataset, stringsAsFactors = FALSE) %>% na.omit()
 
   ## capturing the function call for use in repeat
   sc <- formals()
@@ -250,35 +251,41 @@ simulater <- function(
   sc$nr <- nr
   sc$ncorr <- ncorr
   sc$nexact <- nexact
-  attr(dat, "sim_call") <- sc
+  attr(dataset, "sim_call") <- sc
 
-  if (nrow(dat) == 0) {
+  if (nrow(dataset) == 0) {
     mess <- c("error", paste0("The simulated data set has 0 rows"))
     return(add_class(mess, "simulater"))
   }
 
-  name %<>% gsub(" ", "", .)
-  if (name != "") {
-    if (exists("r_environment")) {
-      env <- r_environment
-    } else if (exists("r_data")) {
-      env <- pryr::where("r_data")
-    } else {
-      return(add_class(dat, "simulater"))
-    }
+  # name %<>% gsub(" ", "", .)
+  # if (name != "") {
+  #   if (exists("r_environment")) {
+  #     env <- r_environment
+  #   # } else if (exists("r_data")) {
+  #     # env <- pryr::where("r_data")
+  #   } else {
+  #     return(add_class(dataset, "simulater"))
+  #   }
 
-    form <- gsub("*", "\\*", form, fixed = TRUE) %>%
-      gsub(";", "\n\n", .)
+  #   form <- gsub("*", "\\*", form, fixed = TRUE) %>%
+  #     gsub(";", "\n\n", .)
 
-    mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
+  #   mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
 
-    env$r_data[[name]] <- dat
-    env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
-    env$r_data[[paste0(name, "_descr")]] <- mess
-    return(add_class(name, "simulater"))
-  }
+  #   env$r_data[[name]] <- dataset
+  #   env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
+  #   env$r_data[[paste0(name, "_descr")]] <- mess
+  #   return(add_class(name, "simulater"))
+  # }
 
-  add_class(dat, "simulater")
+ form <- gsub("*", "\\*", form, fixed = TRUE) %>%
+   gsub("[;\n]\\s*\\#+[^\\#]", ";#####", .) %>%
+   gsub(";", "\n\n", .)
+
+  mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
+
+  add_class(set_attr(dataset, "description", mess), "simulater")
 }
 
 #' Summary method for the simulater function
@@ -301,9 +308,8 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (is.character(object)) {
     if (length(object) == 2 && object[1] == "error") {
       return(cat(object[2]))
-    } else {
-      object <- getdata(object)
-    }
+    } 
+    stop("To generate summary statistics please provide a simulated dataset as input", call. = FALSE)
   }
 
   sc <- attr(object, "sim_call")
@@ -317,7 +323,12 @@ summary.simulater <- function(object, dec = 4, ...) {
   cat("Simulation\n")
   cat("Simulations:", formatnr(nrow(object), dec = 0), "\n")
   cat("Random seed:", sc$seed, "\n")
-  cat("Sim data   :", sc$name, "\n")
+  if (is_empty(sc$name)) {
+    cat("Sim data   :", deparse(substitute(object)), "\n")
+  } else {
+    cat("Sim data   :", sc$name, "\n")
+  }
+  # cat("Sim data   :", sc$name, "\n")
   if (!is_empty(sc$binom)) cat("Binomial   :", clean(sc$binom))
   if (!is_empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
   if (!is_empty(sc$lnorm)) cat("Log normal :", clean(sc$lnorm))
@@ -337,7 +348,7 @@ summary.simulater <- function(object, dec = 4, ...) {
     cat("\n")
   }
 
-  sim_summary(object, dec = ifelse(is.na(dec), 4, dec))
+  sim_summary(object, dec = ifelse(is_empty(dec), 4, dec))
 }
 
 #' Plot method for the simulater function
@@ -351,13 +362,13 @@ summary.simulater <- function(object, dec = 4, ...) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- simulater(
+#' simdat <- simulater(
 #'   const = "cost 3", 
 #'   norm = "demand 2000 1000", 
 #'   discrete = "price 5 8 .3 .7", 
 #'   form = "profit = demand * (price - cost)"
 #' )
-#' plot(result, bins = 25)
+#' plot(simdat, bins = 25)
 #'
 #' @seealso \code{\link{simulater}} to generate the result
 #' @seealso \code{\link{summary.simulater}} to summarize results
@@ -365,19 +376,18 @@ summary.simulater <- function(object, dec = 4, ...) {
 #' @export
 plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
-    if (x[1] == "error") return(invisible())
-    object <- getdata(x)
-    if (nrow(object) == 0) return(invisible())
-  } else {
-    object <- x
-  }
-  rm(x)
-
+    # if (x[1] == "error") {
+      return(invisible())
+    # } else {
+      # stop("To generate plots please provide a simulated dataset as input", call. = FALSE)
+    # }
+  } 
+  if (nrow(x) == 0) return(invisible())
   plot_list <- list()
-  for (i in colnames(object)) {
-    dat <- select_at(object, .vars = i)
-    if (!does_vary(object[[i]])) next
-    plot_list[[i]] <- select_at(object, .vars = i) %>%
+  for (i in colnames(x)) {
+    dat <- select_at(x, .vars = i)
+    if (!does_vary(x[[i]])) next
+    plot_list[[i]] <- select_at(x, .vars = i) %>%
       visualize(xvar = i, bins = bins, custom = TRUE)
   }
 
@@ -389,13 +399,13 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
     }
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>% {
-    if (shiny) . else print(.)
-  }
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>% 
+    {if (shiny) . else print(.)}
 }
 
 #' Repeated simulation
 #'
+#' @param dataset Return value from the simulater function
 #' @param nr Number times to repeat the simulation
 #' @param vars Variables to use in repeated simulation
 #' @param grid Character vector of expressions to use in grid search for constants
@@ -404,11 +414,10 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @param fun Functions to use for summarizing
 #' @param form A character vector with the formula to apply to the summarized data
 #' @param seed Seed for the repeated simulation
-#' @param name Name for data.frame with the repeated simulation data (optional)
-#' @param sim Return value from the simulater function (data.frame or data.frame name)
+#' @param name Deprecated argument
 #'
 #' @examples
-#' result <- simulater(
+#' simdat <- simulater(
 #'   const = c("var_cost 5","fixed_cost 1000"), 
 #'   norm = "E 0 100;",
 #'   discrete = "price 6 8 .3 .7;",
@@ -421,23 +430,24 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' )
 #'
 #' repeater(
+#'   simdat,
 #'   nr = 12, 
 #'   vars = c("E","price"), 
 #'   sum_vars = "profit", 
 #'   byvar = "sim", 
 #'   form = "profit_365 = profit < 36500", 
 #'   seed = 1234, 
-#'   sim = result
-#' ) %>% head
+#' ) %>% head()
 #'
 #' @export
 repeater <- function(
-  nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
-  fun = "sum_rm", form = "", seed = NULL, name = "", sim = ""
+  dataset, nr = 12, vars = "", grid = "", sum_vars = "", 
+  byvar = "sim", fun = "sum_rm", form = "", seed = NULL, 
+  name = ""
 ) {
 
+  # if (!is_empty(name)) message("Use of the 'name' argument is deprecated. Please remove it from the call to 'repeater'")
   if (byvar == "sim") grid <- ""
-
   if (is_empty(nr)) {
     if (is_empty(grid)) {
       mess <- c("error", paste0("Please specify the number of repetitions in '# reps'"))
@@ -447,10 +457,14 @@ repeater <- function(
     }
   }
 
-  dat <- sim
-  rm(sim)
-  if (is_string(dat)) dat <- getdata(dat)
-
+  # dat <- sim; rm(sim)
+  if (is_string(dataset)) {
+    df_name <- dataset
+    dataset <- getdata(dataset)
+  } else {
+    df_name <- deparse(substitute(dataset)) 
+  }
+  # if (is_string(dataset)) dataset <- getdata(dataset)
   if (!is_empty(seed)) set.seed(as_numeric(seed))
 
   if (identical(vars, "") && identical(grid, "")) {
@@ -478,8 +492,8 @@ repeater <- function(
 
   ## from http://stackoverflow.com/a/7664655/1974918
   ## keep those list elements that, e.g., q is in
-  nr_sim <- nrow(dat)
-  sc <- attr(dat, "sim_call")
+  nr_sim <- nrow(dataset)
+  sc <- attr(dataset, "sim_call")
 
   ## needed if inputs are provided as vectors
   sc[1:(which(names(sc) == "seed") - 1)] %<>% lapply(paste, collapse = ";")
@@ -508,7 +522,7 @@ repeater <- function(
   ## needed in case there is no 'form' in simulate
   sc[1:(which(names(sc) == "seed") - 1)] <- ""
   sc[names(sc_keep)] <- sc_keep
-  sc$dat <- as.list(dat)
+  sc$dataset <- as.list(dataset)
 
   summarize_sim <- function(object) {
     if (fun != "none") {
@@ -602,36 +616,47 @@ repeater <- function(
 
   rc$sc <- sc[setdiff(names(sc), "dat")]
   attr(ret, "rep_call") <- rc
+  attr(ret, "df_name") <- df_name
 
   ## allow methods to work on repeater data.frame
-  ret <- add_class(ret, "repeater")
+  # ret <- add_class(ret, "repeater")
 
-  name %<>% gsub(" ", "", .)
-  if (name != "") {
-    if (exists("r_environment")) {
-      env <- r_environment
-    } else if (exists("r_data")) {
-      env <- pryr::where("r_data")
-    } else {
-      return(ret)
-    }
+  # name %<>% gsub(" ", "", .)
+  # if (name != "") {
+  #   if (exists("r_environment")) {
+  #     env <- r_environment
+  #   # } else if (exists("r_data")) {
+  #     # env <- pryr::where("r_data")
+  #   } else {
+  #     return(ret)
+  #   }
 
-    mess <- paste0(
-      "\n### Repeated simulation data\n\nFormula:\n\n",
-      gsub("*", "\\*", sc$form, fixed = TRUE) %>%
-        gsub("\n", "\n\n", .) %>%
-        gsub(";", "\n\n", .),
-      "\n\nDate: ",
-      lubridate::now()
-    )
+    # mess <- paste0(
+    #   "\n### Repeated simulation data\n\nFormula:\n\n",
+    #   gsub("*", "\\*", sc$form, fixed = TRUE) %>%
+    #     gsub("\n", "\n\n", .) %>%
+    #     gsub(";", "\n\n", .),
+    #   "\n\nDate: ",
+    #   lubridate::now()
+    # )
 
-    env$r_data[[name]] <- ret
-    env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
-    env$r_data[[paste0(name, "_descr")]] <- mess
-    return(add_class(name, "repeater"))
-  }
+  #   env$r_data[[name]] <- ret
+  #   env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
+  #   env$r_data[[paste0(name, "_descr")]] <- mess
+  #   return(add_class(name, "repeater"))
+  # }
 
-  ret
+  mess <- paste0(
+    "\n### Repeated simulation data\n\nFormula:\n\n",
+    gsub("*", "\\*", sc$form, fixed = TRUE) %>%
+      gsub("\n", "\n\n", .) %>%
+      gsub(";", "\n\n", .),
+    "\n\nDate: ",
+    lubridate::now()
+  )
+
+  # ret
+  add_class(set_attr(ret, "description", mess), "repeater")
 }
 
 #' Summarize repeated simulation
@@ -646,9 +671,11 @@ summary.repeater <- function(object, dec = 4, ...) {
   if (is.character(object)) {
     if (length(object) == 2 && object[1] == "error") {
       return(cat(object[2]))
-    } else {
-      object <- getdata(object)
-    }
+    } 
+    # else {
+      # object <- getdata(object)
+    # }
+    stop("To generate summary statistics please provide a simulated dataset as input", call. = FALSE)
   }
 
   ## getting the repeater call
@@ -663,7 +690,7 @@ summary.repeater <- function(object, dec = 4, ...) {
 
   clean <- function(x) {
     paste0(x, collapse = ";") %>%
-    gsub(";", "; ", .) %>%
+      gsub(";", "; ", .) %>%
       gsub("\\n", "", .) %>%
       paste0(., "\n")
   }
@@ -682,8 +709,12 @@ summary.repeater <- function(object, dec = 4, ...) {
   if (is.data.frame(rc$sim)) {
     rc$sim <- attr(rc$sim, "sim_call")$name
   }
-  cat("Simulated data:", rc$sim, "\n")
-  cat("Repeat  data  :", rc$name, "\n")
+  cat("Simulated data:", attr(object, "df_name"), "\n")
+  if (is_empty(rc$name)) {
+    cat("Repeat  data  :", deparse(substitute(object)), "\n")
+  } else {
+    cat("Repeat  data  :", rc$name, "\n")
+  }
 
   if (rc$byvar == "rep" && !is_empty(rc$grid)) {
     cat("Grid search.  :", clean(rc$grid))
@@ -691,7 +722,13 @@ summary.repeater <- function(object, dec = 4, ...) {
 
   if (!is_empty(rc$form)) {
     rc$form %<>% sim_cleaner
-    cat(paste0("Formulas      :\n\t", paste0(rc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
+    paste0(
+      "Formulas      :\n\t", 
+      paste0(rc$form, collapse = ";") %>% 
+        gsub(";", "\n", .) %>% 
+        gsub("\n", "\n\t", .), 
+      "\n"
+    ) %>% cat()
   }
   cat("\n")
 
@@ -709,14 +746,12 @@ summary.repeater <- function(object, dec = 4, ...) {
 #' @export
 plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
-    if (x[1] == "error") return(invisible())
-    object <- getdata(x)
-    if (nrow(object) == 0) return(invisible())
+    return(invisible())
   }
-  rm(x)
+  if (nrow(x) == 0) return(invisible())
 
   ## getting the repeater call
-  rc <- attr(object, "rep_call")
+  rc <- attr(x, "rep_call")
 
   ## legacy 
   if (is.null(rc)) rc <- formals("repeater")
@@ -724,11 +759,11 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 
   cfun <- sub("_rm$", "", rc$fun)
   plot_list <- list()
-  for (i in colnames(object)[-1]) {
-    dat <- select_at(object, .vars = i)
-    if (!does_vary(object[[i]])) next
+  for (i in colnames(x)[-1]) {
+    dat <- select_at(x, .vars = i)
+    if (!does_vary(x[[i]])) next
 
-    plot_list[[i]] <- select_at(object, .vars = i) %>%
+    plot_list[[i]] <- select_at(x, .vars = i) %>%
       visualize(xvar = i, bins = bins, custom = TRUE)
 
     if (i %in% rc$sum_vars && !is_empty(cfun, "none")) {
@@ -746,20 +781,19 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
     }
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>% {
-    if (shiny) . else print(.)
-  }
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>% 
+    {if (shiny) . else print(.)}
 }
 
 #' Print simulation summary
 #'
-#' @param dat Simulated data
+#' @param dataset Simulated data
 #' @param dc Variable classes
 #' @param fun Summary function to apply
 #' @param dec Number of decimals to show
 #'
 #' @export
-sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
+sim_summary <- function(dataset, dc = getclass(dataset), fun = "", dec = 4) {
   isFct <- "factor" == dc
   isNum <- dc %in% c("numeric", "integer", "Duration")
   isChar <- "character" == dc
@@ -768,11 +802,11 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
   dec <- ifelse(is.na(dec), 4, as_integer(dec))
 
   if (sum(isNum) > 0) {
-    isConst <- !sapply(dat, does_vary) & isNum
+    isConst <- !sapply(dataset, does_vary) & isNum
     if (sum(isConst) > 0) {
       cn <- names(dc)[isConst]
       cat("Constants:\n")
-      select(dat, which(isConst)) %>%
+      select(dataset, which(isConst)) %>%
         na.omit() %>%
         .[1, ] %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
@@ -788,7 +822,7 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
     if (sum(isRnd) > 0) {
       cn <- names(dc)[isRnd]
       cat("Variables:\n")
-      select(dat, which(isNum & !isConst)) %>%
+      select(dataset, which(isNum & !isConst)) %>%
         gather("variable", "values", !! cn) %>%
         group_by_at(.vars = "variable") %>%
         summarise_all(
@@ -808,19 +842,19 @@ sim_summary <- function(dat, dc = getclass(dat), fun = "", dec = 4) {
 
   if (sum(isLogic) > 0) {
     cat("Logicals:\n")
-    select(dat, which(isLogic)) %>%
+    select(dataset, which(isLogic)) %>%
       summarise_all(funs(sum, mean)) %>%
       round(dec) %>%
       matrix(ncol = 2) %>%
       set_colnames(c("TRUE (nr)  ", "TRUE (prop)")) %>%
-      set_rownames(names(dat)[isLogic]) %>%
+      set_rownames(names(dataset)[isLogic]) %>%
       print()
     cat("\n")
   }
 
   if (sum(isFct) > 0 | sum(isChar) > 0) {
     cat("Factors:\n")
-    select(dat, which(isFct | isChar)) %>%
+    select(dataset, which(isFct | isChar)) %>%
       mutate_if(is.character, funs(as_factor)) %>%
       summary() %>%
       print()

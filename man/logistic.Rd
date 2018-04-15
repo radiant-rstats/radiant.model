@@ -8,7 +8,7 @@ logistic(dataset, rvar, evar, lev = "", int = "", wts = "None",
   check = "", ci_type, data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{rvar}{The response variable in the model}
 
@@ -36,8 +36,8 @@ Logistic regression
 See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 }
 \examples{
-result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
-result <- logistic("titanic", "survived", c("pclass","sex"))
+result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+result <- logistic(titanic, "survived", c("pclass", "sex"))
 
 }
 \seealso{

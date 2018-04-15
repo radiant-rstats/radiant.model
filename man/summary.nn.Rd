@@ -20,7 +20,7 @@ Summary method for the nn function
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 }
 \examples{
-result <- nn("titanic", "survived", "pclass", lev = "Yes")
+result <- nn(titanic, "survived", "pclass", lev = "Yes")
 summary(result)
 
 }

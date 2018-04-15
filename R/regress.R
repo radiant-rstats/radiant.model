@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset
 #' @param rvar The response variable in the regression
 #' @param evar Explanatory variables in the regression
 #' @param int Interaction terms to include in the model
@@ -12,8 +12,8 @@
 #' @return A list of all variables variables used in the regress function as an object of class regress
 #'
 #' @examples
-#' result <- regress("diamonds", "price", c("carat","clarity"))
-#' result <- regress("diamonds", "price", c("carat","clarity"), check = "standardize")
+#' result <- regress(diamonds, "price", c("carat","clarity"))
+#' result <- regress(diamonds, "price", c("carat","clarity"), check = "standardize")
 #'
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{plot.regress}} to plot results
@@ -29,34 +29,32 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
       add_class("regress"))
   }
 
-  dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
-  if (!is_string(dataset)) {
-    dataset <- deparse(substitute(dataset)) %>%
-      set_attr("df", TRUE)
-  }
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  dataset <- getdata(dataset, c(rvar, evar), filt = data_filter)
+  # if (!is_string(dataset)) {
+  #   dataset <- deparse(substitute(dataset)) %>%
+  #     set_attr("df", TRUE)
+  # }
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
       add_class("regress"))
   }
 
   vars <- ""
-  var_check(evar, colnames(dat)[-1], int) %>% {
-    vars <<- .$vars
-    evar <<- .$ev
-    int <<- .$intv
-  }
+  var_check(evar, colnames(dataset)[-1], int) %>% 
+    {vars <<- .$vars; evar <<- .$ev; int <<- .$intv}
 
   ## add minmax attributes to data
-  mmx <- minmax(dat)
+  mmx <- minmax(dataset)
 
   ## scale data
-  isNum <- sapply(dat, is.numeric)
+  isNum <- sapply(dataset, is.numeric)
   if (sum(isNum) > 0) {
     if ("standardize" %in% check) {
-      dat <- scaledf(dat)
+      dataset <- scaledf(dataset)
     } else if ("center" %in% check) {
-      dat <- scaledf(dat, scale = FALSE)
+      dataset <- scaledf(dataset, scale = FALSE)
     }
   }
 
@@ -64,32 +62,32 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
-    ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
-    model <- lm(form_upper, data = dat) %>%
+    ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
+    model <- lm(form_upper, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
 
     ## adding full data even if all variables are not significant
-    model$model <- dat
+    model$model <- dataset
   } else if ("stepwise-forward" %in% check) {
-    model <- lm(form_lower, data = dat) %>%
+    model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
 
     ## adding full data even if all variables are not significant
-    model$model <- dat
+    model$model <- dataset
   } else if ("stepwise-both" %in% check) {
-    model <- lm(form_lower, data = dat) %>%
+    model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
 
     ## adding full data even if all variables are not significant
-    model$model <- dat
+    model$model <- dataset
   } else {
-    model <- lm(form_upper, data = dat)
+    model <- lm(form_upper, data = dataset)
   }
 
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
-    attr(model$model, "ms") <- attr(dat, "ms")
-    attr(model$model, "sds") <- attr(dat, "sds")
+    attr(model$model, "ms") <- attr(dataset, "ms")
+    attr(model$model, "sds") <- attr(dataset, "sds")
   }
 
   attr(model$model, "min") <- mmx[["min"]]
@@ -102,14 +100,14 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
     vcov <- sandwich::vcovHC(model, type = "HC1")
     coeff$std.error <- sqrt(diag(vcov))
     coeff$t.value <- coef(model) / coeff$std.error
-    coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dat) - nrow(coeff), lower.tail = FALSE)
+    coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dataset) - nrow(coeff), lower.tail = FALSE)
   }
 
   # coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$sig_star  <- sig_stars(coeff$p.value) %>% format(justify = "left")
   # colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
   colnames(coeff) <- c("label", "coefficient", "std.error", "t.value", "p.value", "sig_star")
-  hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
+  hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
       # coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
@@ -120,7 +118,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   }
 
   ## remove elements no longer needed
-  rm(dat, hasLevs, form_lower, form_upper, isNum)
+  rm(dataset, hasLevs, form_lower, form_upper, isNum)
 
   as.list(environment()) %>% add_class(c("regress", "model"))
 }
@@ -137,9 +135,9 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress("diamonds", "price", c("carat","clarity"))
+#' result <- regress(diamonds, "price", c("carat","clarity"))
 #' summary(result, sum_check = c("rmse","sumsquares","vif","confint"), test_var = "clarity")
-#' result <- regress("ideal", "y", c("x1","x2"))
+#' result <- regress(ideal, "y", c("x1","x2"))
 #' summary(result, test_var = "x2")
 #' ideal %>% regress("y", "x1:x3") %>% summary
 #'
@@ -172,7 +170,8 @@ summary.regress <- function(
   }
 
   cat("Linear regression (OLS)\n")
-  cat("Data     :", object$dataset, "\n")
+  # cat("Data     :", object$dataset, "\n")
+  cat("Data     :", object$df_name, "\n")
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
   }
@@ -203,7 +202,7 @@ summary.regress <- function(
     p.small <- coeff$p.value < .001
     coeff[, 2:5] %<>% formatdf(dec)
     coeff$p.value[p.small] <- "< .001"
-    print(rename(coeff, `  ` = label, ` ` = sig_star), row.names = FALSE)
+    print(rename(coeff, `  ` = "label", ` ` = "sig_star"), row.names = FALSE)
   }
 
   if (nrow(object$model$model) <= (length(object$evar) + 1)) {
@@ -294,7 +293,8 @@ summary.regress <- function(
         {.$`+/-` <- (.$High - .$Low) / 2; .} %>%
         mutate_all(funs(sprintf(paste0("%.", dec, "f"), .))) %>%
         cbind(coeff[[2]], .) %>%
-        set_rownames(object$coeff$`  `) %>%
+        # set_rownames(object$coeff$`  `) %>%
+        set_rownames(object$coeff$label) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %T>%
         print
       cat("\n")
@@ -383,7 +383,7 @@ summary.regress <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress("diamonds", "price", c("carat","clarity"))
+#' result <- regress(diamonds, "price", c("carat","clarity"))
 #' plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
 #' plot(result, plots = "dist")
 #' \dontrun{
@@ -523,7 +523,8 @@ plot.regress <- function(
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(object$coeff, 2), .) %>%
-      set_rownames(object$coeff$`  `) %>%
+      # set_rownames(object$coeff$`  `) %>%
+      set_rownames(object$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
@@ -534,7 +535,8 @@ plot.regress <- function(
       geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
       labs(y = yl, x = "") +
       scale_x_discrete(limits = {
-        if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])
+        # if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])
+        if (intercept) rev(object$coeff$label) else rev(object$coeff$label[-1])
       }) +
       coord_flip() +
       theme(axis.text.y = element_text(hjust = 0))
@@ -581,13 +583,11 @@ plot.regress <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress("diamonds", "price", c("carat","clarity"))
+#' result <- regress(diamonds, "price", c("carat","clarity"))
 #' predict(result, pred_cmd = "carat = 1:10")
 #' predict(result, pred_cmd = "clarity = levels(clarity)")
-#' result <- regress("diamonds", "price", c("carat","clarity"), int = c("carat:clarity"))
-#' dpred <<- getdata("diamonds") %>% slice(1:10)
-#' predict(result, pred_data = "dpred")
-#' rm(dpred, envir = .GlobalEnv)
+#' result <- regress(diamonds, "price", c("carat","clarity"), int = c("carat:clarity"))
+#' predict(result, pred_data = slice(diamonds, 1:10))
 #'
 #' @seealso \code{\link{regress}} to generate the result
 #' @seealso \code{\link{summary.regress}} to summarize results
@@ -832,7 +832,8 @@ predict_model <- function(
     }
 
     ## adding attributes used by other methods
-    pred <- set_attr(pred, "dataset", object$dataset) %>%
+    # pred <- set_attr(pred, "dataset", object$dataset) %>%
+    pred <- set_attr(pred, "df_name", object$df_name) %>%
       set_attr("data_filter", object$data_filter) %>%
       set_attr("rvar", object$rvar) %>%
       set_attr("lev", object$lev) %>%
@@ -874,7 +875,8 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     gsub("\\s+=\\s+=\\s+", " == ", .)
 
   cat(header)
-  cat("\nData                 :", attr(x, "dataset"), "\n")
+  # cat("\nData                 :", attr(x, "dataset"), "\n")
+  cat("\nData                 :", attr(x, "df_name"), "\n")
   if (data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter               :", gsub("\\n", "", data_filter), "\n")
   }
@@ -936,13 +938,13 @@ print.regress.predict <- function(x, ..., n = 10)
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' regress("diamonds", "price", c("carat","clarity")) %>%
+#' regress(diamonds, "price", c("carat","clarity")) %>%
 #'   predict(pred_cmd = "carat = 1:10") %>%
 #'   plot(xvar = "carat")
-#' logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") %>%
+#' logistic(titanic, "survived", c("pclass","sex","age"), lev = "Yes") %>%
 #'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) %>%
 #'   plot(xvar = "age", color = "sex", facet_col = "pclass")
-#' logistic("titanic", "survived", c("pclass","sex","age"), lev = "Yes") %>%
+#' logistic(titanic, "survived", c("pclass","sex","age"), lev = "Yes") %>%
 #'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) %>%
 #'   plot(xvar = "age", color = "sex", facet_col = "pclass")
 #'
@@ -1027,47 +1029,23 @@ plot.model.predict <- function(
   sshhr(p)
 }
 
-#' Deprecated function to store regression residuals and predictions
-#'
-#' @details Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
-#'
-#' @param object Return value from \code{\link{regress}} or \code{\link{predict.regress}}
-#' @param data Dataset name
-#' @param type Residuals ("residuals") or predictions ("predictions"). For predictions the dataset name must be provided
-#' @param name Variable name assigned to the residuals or predicted values
-#'
-#' @export
-store_reg <- function(
-  object, data = object$dataset,
-  type = "residuals", name = paste0(type, "_reg")
-) {
-
-  if (type == "residuals") {
-    store.model(object, data = data, name = name)
-  } else {
-    store.model.predict(object, data = data, name = name)
-  }
-}
-
 #' Store predicted values generated in model functions
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
+#' @param dataset Dataset to add predictions to
 #' @param object Return value from model function
-#' @param ... Additional arguments
-#' @param data Data or dataset name (e.g., data = mtcars or data = "mtcars")
 #' @param name Variable name(s) assigned to predicted values
+#' @param ... Additional arguments
 #'
 #' @examples
-#' regress(diamonds, rvar = "price", evar = c("carat","cut"))  %>%
-#'   predict(diamonds) %>%
-#'   store(name = "pred, pred_low, pred_high") %>% head
+#' model <- regress(diamonds, rvar = "price", evar = c("carat","cut"))
+#' pred <- predict(model, pred_data = diamonds)
+#' diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high")) 
 #'
 #' @export
 store.model.predict <- function(
-  object, ...,
-  data = attr(object, "pred_data"),
-  name = "prediction"
+  dataset, object, name = "prediction", ... 
 ) {
 
   if (is_empty(name)) name <- "prediction"
@@ -1077,7 +1055,7 @@ store.model.predict <- function(
 
   ## if se was calculated
   if (length(name) == 1) {
-    name <- unlist(strsplit(name, ",")) %>%
+    name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
       gsub("\\s", "", .)
   }
   if (length(name) > 1) {
@@ -1089,35 +1067,49 @@ store.model.predict <- function(
   }
 
   vars <- colnames(object)[1:(ind - 1)]
-  indr <- indexr(data, vars, "", cmd = attr(object, "pred_cmd"))
+  indr <- indexr(dataset, vars, "", cmd = attr(object, "pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
-  data[, name] <- pred
-  # changedata(data, vars = pred, var_names = name)
+  dataset[, name] <- pred
+  dataset
 }
 
 #' Store residuals from a model
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' @details The store method for objects of class "model". Adds model residuals to the dataset while handling missing values and filters. See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
+#' @param dataset Dataset to append residuals to
 #' @param object Return value from a model function
+#' @param name Variable name(s) assigned to model residuals
 #' @param ... Additional arguments
-#' @param name Variable name(s) assigned to predicted values
 #'
 #' @examples
-#' regress(diamonds, rvar = "price", evar = c("carat","cut")) %>%
-#'   store %>% head
+#' model <- regress(diamonds, rvar = "price", evar = c("carat","cut"), data_filter = "price > 1000")
+#' diamonds <- store(diamonds, model, name = "resid")
 #'
 #' @export
-store.model <- function(object, ..., name = "residuals") {
+store.model <- function(dataset, object, name = "residuals", ...) {
   if (is_empty(name)) name <- "residuals"
-  dat <- if (length(attr(object$dataset, "df")) > 0) object$model$model else object$dataset
-  indr <- indexr(dat, c(object$rvar, object$evar), object$data_filter)
+  # dat <- if (length(attr(object$dataset, "df")) > 0) object$model$model else object$dataset
+  indr <- indexr(dataset, c(object$rvar, object$evar), object$data_filter)
   res <- rep(NA, indr$nr)
   res[indr$ind] <- object$model$residuals
-  changedata(dat, vars = res, var_names = name)
+  # changedata(dat, vars = res, var_names = name)
+  # dataset[[name]] <- res
+  dataset[[name]] <- res
+  dataset
 }
+
+## pre MRB
+# store.model <- function(object, ..., name = "residuals") {
+#   if (is_empty(name)) name <- "residuals"
+#   dat <- if (length(attr(object$dataset, "df")) > 0) object$model$model else object$dataset
+#   indr <- indexr(dat, c(object$rvar, object$evar), object$data_filter)
+#   res <- rep(NA, indr$nr)
+#   res[indr$ind] <- object$model$residuals
+#   changedata(dat, vars = res, var_names = name)
+# }
 
 #' Check if main effects for all interaction effects are included in the model
 #' If ':' is used to select a range _evar_ is updated

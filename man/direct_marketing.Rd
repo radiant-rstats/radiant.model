@@ -12,6 +12,6 @@ data(direct_marketing)
 Direct marketing data
 }
 \details{
-Description provided in attr(direct_marketing,"description")
+Description provided in attr(direct_marketing, "description")
 }
 \keyword{datasets}

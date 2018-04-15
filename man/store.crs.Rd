@@ -2,23 +2,22 @@
 % Please edit documentation in R/crs.R
 \name{store.crs}
 \alias{store.crs}
-\title{Store predicted values generated in the crs function}
+\title{Deprecates: Store method for the crs function}
 \usage{
-\method{store}{crs}(object, name = "predict_cf", envir = parent.frame(),
-  ...)
+\method{store}{crs}(dataset, object, name, ...)
 }
 \arguments{
-\item{object}{Return value from crs}
+\item{dataset}{Dataset}
 
-\item{name}{Name of the dataset to store}
+\item{object}{Return value from \code{\link{crs}}}
 
-\item{envir}{Environment to assign 'new' dataset (optional). Used when an r_data list is not available}
+\item{name}{Name to assign to the dataset}
 
 \item{...}{further arguments passed to or from other methods}
 }
 \description{
-Store predicted values generated in the crs function
+Deprecates: Store method for the crs function
 }
 \details{
-Store data frame with predictions in Radiant r_data list if available. See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+Return recommendations See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }

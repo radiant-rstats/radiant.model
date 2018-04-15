@@ -31,13 +31,11 @@ Predict method for the regress function
 See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-result <- regress("diamonds", "price", c("carat","clarity"))
+result <- regress(diamonds, "price", c("carat","clarity"))
 predict(result, pred_cmd = "carat = 1:10")
 predict(result, pred_cmd = "clarity = levels(clarity)")
-result <- regress("diamonds", "price", c("carat","clarity"), int = c("carat:clarity"))
-dpred <<- getdata("diamonds") \%>\% slice(1:10)
-predict(result, pred_data = "dpred")
-rm(dpred, envir = .GlobalEnv)
+result <- regress(diamonds, "price", c("carat","clarity"), int = c("carat:clarity"))
+predict(result, pred_data = slice(diamonds, 1:10))
 
 }
 \seealso{

@@ -22,9 +22,9 @@ Plot method for the nb function
 See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
-result <- nb("titanic", "survived", c("pclass","sex"))
+result <- nb(titanic, "survived", c("pclass","sex"))
 plot(result)
-result <- nb("titanic", "pclass", c("sex","age"))
+result <- nb(titanic, "pclass", c("sex","age"))
 plot(result)
 
 }

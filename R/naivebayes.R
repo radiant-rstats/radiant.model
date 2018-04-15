@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset 
 #' @param rvar The response variable in the logit (probit) model
 #' @param evar Explanatory variables in the model
 #' @param laplace Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
@@ -11,7 +11,7 @@
 #' @return A list with all variables defined in nb as an object of class nb
 #'
 #' @examples
-#' result <- nb("titanic", "survived", c("pclass","sex","age"))
+#' result <- nb(titanic, "survived", c("pclass","sex","age"))
 #'
 #' @seealso \code{\link{summary.nb}} to summarize results
 #' @seealso \code{\link{plot.nb}} to plot results
@@ -26,37 +26,37 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
       add_class("nb"))
   }
 
-  dat <- getdata(dataset, c(rvar, evar), filt = data_filter)
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  dataset <- getdata(dataset, c(rvar, evar), filt = data_filter)
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
   }
 
   vars <- evar
   ## in case : is used
-  if (length(vars) < (ncol(dat) - 1)) {
-    vars <- evar <- colnames(dat)[-1]
+  if (length(vars) < (ncol(dataset) - 1)) {
+    vars <- evar <- colnames(dataset)[-1]
   }
 
   ## make sure the dv is a factor
-  if (!is.factor(dat[[1]])) dat <- as_factor(dat[[1]])
-  lev <- levels(dat[[1]])
+  if (!is.factor(dataset[[1]])) dataset <- as_factor(dataset[[1]])
+  lev <- levels(dataset[[1]])
 
   ## estimate using e1071
   form <- paste0(rvar, " ~ ", paste0(evar, collapse = "+")) %>% as.formula()
-  model <- e1071::naiveBayes(dat[, -1, drop = FALSE], dat[[1]], laplace = laplace)
+  model <- e1071::naiveBayes(dataset[, -1, drop = FALSE], dataset[[1]], laplace = laplace)
 
   ## nb does not return residuals
   model$residuals <- NA
 
   ## nb doesn't indlude model terms, needed for predict_model
-  # model$terms <- colnames(dat)
-  # attr(model$term, "dataClasses") <- getclass(dat)
+  # model$terms <- colnames(dataset)
+  # attr(model$term, "dataClasses") <- getclass(dataset)
 
   ## nb model object does not include the data by default
-  model$model <- dat
-  rm(dat) ## dat not needed elsewhere
+  model$model <- dataset
+  rm(dataset) ## dataset not needed elsewhere
 
   as.list(environment()) %>% add_class(c("nb", "model"))
 }
@@ -70,7 +70,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb("titanic", "survived", c("pclass","sex","age"))
+#' result <- nb(titanic, "survived", c("pclass","sex","age"))
 #' summary(result)
 #'
 #' @seealso \code{\link{nb}} to generate results
@@ -82,7 +82,7 @@ summary.nb <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
 
   cat("Naive Bayes Classifier")
-  cat("\nData                 :", object$dataset)
+  cat("\nData                 :", object$df_name)
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
@@ -116,9 +116,9 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb("titanic", "survived", c("pclass","sex"))
+#' result <- nb(titanic, "survived", c("pclass","sex"))
 #' plot(result)
-#' result <- nb("titanic", "pclass", c("sex","age"))
+#' result <- nb(titanic, "pclass", c("sex","age"))
 #' plot(result)
 #'
 #' @seealso \code{\link{nb}} to generate results
@@ -127,37 +127,37 @@ summary.nb <- function(object, dec = 3, ...) {
 #'
 #' @export
 plot.nb <- function(x, plots = "", lev = "All levels", ...) {
-  object <- x; rm(x)
-  if (is.character(object)) return(object)
+  # object <- x; rm(x)
+  if (is.character(x)) return(x)
   if (is_empty(plots[1])) {
     return("Please select a naive Bayes plot from the drop-down menu")
   }
 
-  x <- mutate_all(select(object$model$model, -1), funs(as_numeric))
-  y <- object$model$model[[1]]
+  evar <- mutate_all(select(x$model$model, -1), funs(as_numeric))
+  rvar <- x$model$model[[1]]
 
   if ("correlations" %in% plots) {
     if (lev == "All levels") {
-      return(radiant.basics:::plot.correlation(x, nrobs = 1000))
+      return(radiant.basics:::plot.correlation(evar, nrobs = 1000))
     } else {
-      return(radiant.basics:::plot.correlation(filter(x, y == lev), nrobs = 1000))
+      return(radiant.basics:::plot.correlation(filter(evar, rvar == lev), nrobs = 1000))
     }
   }
 
   if (lev != "All levels") {
-    y <- factor(
-      ifelse(y == lev, lev, paste0("not_", lev)), 
+    rvar <- factor(
+      ifelse(rvar == lev, lev, paste0("not_", lev)), 
       levels = c(lev, paste0("not_", lev))
     )
-    object$lev <- c(lev, paste0("not_", lev))
+    x$lev <- c(lev, paste0("not_", lev))
   }
 
-  k <- length(object$lev)
+  k <- length(x$lev)
 
   if (k == 2) {
     ## with two variables one of them would be set to 0 by caret::varImp
     ## reporting auc for each variable
-    vimp <- data.frame(auc = apply(x, 2, auc, y), vars = names(x), stringsAsFactors = FALSE) %>%
+    vimp <- data.frame(auc = apply(evar, 2, auc, rvar), vars = names(x), stringsAsFactors = FALSE) %>%
       arrange_at(.vars = "auc")
     vimp$vars <- factor(vimp$vars, levels = vimp$vars)
     p <- visualize(vimp, yvar = "auc", xvar = "vars", type = "bar", custom = TRUE) +
@@ -165,18 +165,18 @@ plot.nb <- function(x, plots = "", lev = "All levels", ...) {
       coord_flip(ylim = c(0.5, max(vimp$auc))) +
       theme(axis.text.y = element_text(hjust = 0))
   } else {
-    cmb <- combn(object$lev, 2)
-    vimp <- matrix(NA, ncol(cmb), ncol(x))
+    cmb <- combn(x$lev, 2)
+    vimp <- matrix(NA, ncol(cmb), ncol(evar))
 
     for (i in 1:ncol(cmb)) {
-      ind <- y %in% cmb[, i]
-      vimp[i, ] <- apply(x[ind, , drop = FALSE], 2, auc, droplevels(y[ind]))
+      ind <- rvar %in% cmb[, i]
+      vimp[i, ] <- apply(evar[ind, , drop = FALSE], 2, auc, droplevels(rvar[ind]))
     }
     vimp <- as.data.frame(vimp, stringsAsFactors = FALSE)
-    colnames(vimp) <- names(x)
+    colnames(vimp) <- names(evar)
     vimp$Predict <- apply(cmb, 2, paste0, collapse = " vs ")
     vimp$Predict <- factor(vimp$Predict, levels = unique(rev(vimp$Predict)))
-    vimp <- gather(vimp, "vars", "auc", !! names(x), factor_key = TRUE)
+    vimp <- gather(vimp, "vars", "auc", !! names(evar), factor_key = TRUE)
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
       guides(fill = guide_legend(title = "")) +
@@ -193,22 +193,22 @@ plot.nb <- function(x, plots = "", lev = "All levels", ...) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{nb}}
-#' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
+#' @param pred_data Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
 #' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the level in the response variable of the nb model will be used
 #' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb("titanic", "survived", c("pclass","sex","age"))
-#' predict(result, pred_data = "titanic")
-#' predict(result, pred_data = "titanic", pred_names = c("Yes","No"))
+#' result <- nb(titanic, "survived", c("pclass", "sex", "age"))
+#' predict(result, pred_data = titanic)
+#' predict(result, pred_data = titanic, pred_names = c("Yes", "No"))
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
-#' result <- nb("titanic", "pclass", c("survived","sex","age"))
-#' predict(result, pred_data = "titanic")
-#' predict(result, pred_data = "titanic", pred_names = c("1st","2nd","3rd"))
-#' predict(result, pred_data = "titanic", pred_names = "")
-#' predict(result, pred_data = "titanic", pred_names = NA)
+#' result <- nb(titanic, "pclass", c("survived", "sex", "age"))
+#' predict(result, pred_data = titanic)
+#' predict(result, pred_data = titanic, pred_names = c("1st", "2nd", "3rd"))
+#' predict(result, pred_data = titanic, pred_names = "")
+#' predict(result, pred_data = titanic, pred_names = NA)
 #'
 #' @seealso \code{\link{nb}} to generate the result
 #' @seealso \code{\link{summary.nb}} to summarize results
@@ -276,20 +276,19 @@ print.nb.predict <- function(x, ..., n = 10)
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb("titanic", "survived", c("pclass","sex","age"))
-#' pred <- predict(result, pred_cmd="pclass=levels(pclass), sex=levels(sex), age=seq(0,100,20)")
+#' result <- nb(titanic, "survived", c("pclass", "sex", "age"))
+#' pred <- predict(result, pred_cmd="pclass = levels(pclass), sex = levels(sex), age=seq(0, 100, 20)")
 #' plot(pred, xvar = "age", facet_col = "sex", facet_row = "pclass")
-#' pred <- predict(result, pred_data="titanic")
+#' pred <- predict(result, pred_data = titanic)
 #' plot(pred, xvar = "age", facet_col = "sex")
 #'
 #' @seealso \code{\link{predict.nb}} to generate predictions
 #'
 #' @export
-plot.nb.predict <- function(x, xvar = "",
-                            facet_row = ".",
-                            facet_col = ".",
-                            color = ".class",
-                            ...) {
+plot.nb.predict <- function(
+  x, xvar = "", facet_row = ".", facet_col = ".",
+  color = ".class", ...
+) {
 
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
@@ -298,19 +297,18 @@ plot.nb.predict <- function(x, xvar = "",
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
-  object <- x
-  rm(x)
-  if (is.character(object)) return(object)
+  # object <- x; rm(x)
+  if (is.character(x)) return(x)
 
-  pvars <- setdiff(attr(object, "vars"), attr(object, "evar"))
-  rvar <- attr(object, "rvar")
-  object %<>% gather(".class", "Prediction", !! pvars)
+  pvars <- setdiff(attr(x, "vars"), attr(x, "evar"))
+  rvar <- attr(x, "rvar")
+  x %<>% gather(".class", "Prediction", !! pvars)
 
   byvar <- c(xvar, color)
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
   if (facet_col != ".") byvar <- unique(c(byvar, facet_col))
 
-  tmp <- group_by_at(object, .vars = byvar) %>%
+  tmp <- group_by_at(x, .vars = byvar) %>%
     select_at(.vars = c(byvar, "Prediction")) %>%
     summarise_all(funs(mean))
   p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
@@ -331,19 +329,18 @@ plot.nb.predict <- function(x, xvar = "",
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
+#' @param dataset Dataset to add predictions two
 #' @param object Return value from model function
-#' @param ... Additional arguments
-#' @param data Data or dataset name (e.g., data = mtcars or data = "mtcars")
 #' @param name Variable name(s) assigned to predicted values. If empty, the levels of the response variable will be used
+#' @param ... Additional arguments
 #'
 #' @examples
-#' result <- nb("titanic", "survived", c("pclass","sex","age"))
-#' pred <- predict(result, pred_data = "titanic")
-#' store(pred, data = titanic, name = "pred") %>% head
-#' store(pred, data = titanic) %>% head
+#' result <- nb(titanic, rvar = "survived", evar = c("pclass", "sex", "age"))
+#' pred <- predict(result, pred_data = titanic)
+#' titanic <- store(titanic, pred, name = c("Yes", "No"))
 #'
 #' @export
-store.nb.predict <- function(object, ..., data = attr(object, "pred_data"), name = "") {
+store.nb.predict <- function(dataset, object, name = "pred_nb", ...) {
 
   ## extract the names of the variables predicted
   pvars <- setdiff(attr(object, "vars"), attr(object, "evar"))
@@ -355,15 +352,18 @@ store.nb.predict <- function(object, ..., data = attr(object, "pred_data"), name
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name
-    name <- unlist(strsplit(name, ",")) %>% gsub("\\s", "", .)
+    # name <- unlist(strsplit(name, ",")) %>% gsub("\\s", "", .)
+    name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
+      gsub("\\s", "", .)
     if (length(name) < length(pvars)) {
       df <- df[, 1:length(name), drop = FALSE] %>% set_colnames(name)
     }
   }
 
-  indr <- indexr(data, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
+  indr <- indexr(dataset, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- df
 
-  changedata(data, vars = pred, var_names = name)
+  dataset[, name] <- pred
+  dataset
 }

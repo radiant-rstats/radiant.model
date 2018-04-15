@@ -8,7 +8,7 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
   train = "", data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{pred}{Predictions or predictors}
 
@@ -36,7 +36,7 @@ Model evalbin
 See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
-result <- evalbin("titanic", c("age","fare"), "survived")
+result <- evalbin(titanic, c("age", "fare"), "survived")
 
 }
 \seealso{

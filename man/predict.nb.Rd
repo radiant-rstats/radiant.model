@@ -10,7 +10,7 @@
 \arguments{
 \item{object}{Return value from \code{\link{nb}}}
 
-\item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation}
+\item{pred_data}{Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation}
 
 \item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')}
 
@@ -27,15 +27,15 @@ Predict method for the nb function
 See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
-result <- nb("titanic", "survived", c("pclass","sex","age"))
-predict(result, pred_data = "titanic")
-predict(result, pred_data = "titanic", pred_names = c("Yes","No"))
+result <- nb(titanic, "survived", c("pclass", "sex", "age"))
+predict(result, pred_data = titanic)
+predict(result, pred_data = titanic, pred_names = c("Yes", "No"))
 predict(result, pred_cmd = "pclass = levels(pclass)")
-result <- nb("titanic", "pclass", c("survived","sex","age"))
-predict(result, pred_data = "titanic")
-predict(result, pred_data = "titanic", pred_names = c("1st","2nd","3rd"))
-predict(result, pred_data = "titanic", pred_names = "")
-predict(result, pred_data = "titanic", pred_names = NA)
+result <- nb(titanic, "pclass", c("survived", "sex", "age"))
+predict(result, pred_data = titanic)
+predict(result, pred_data = titanic, pred_names = c("1st", "2nd", "3rd"))
+predict(result, pred_data = titanic, pred_names = "")
+predict(result, pred_data = titanic, pred_names = NA)
 
 }
 \seealso{

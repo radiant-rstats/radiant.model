@@ -12,6 +12,6 @@ data(houseprices)
 Houseprices
 }
 \details{
-Description provided in attr(houseprices,"description")
+Description provided in attr(houseprices, "description")
 }
 \keyword{datasets}

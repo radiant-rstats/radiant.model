@@ -10,7 +10,7 @@
 \arguments{
 \item{object}{Return value from \code{\link{crtree}}}
 
-\item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation}
+\item{pred_data}{Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation}
 
 \item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')}
 
@@ -29,10 +29,10 @@ Predict method for the crtree function
 See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 }
 \examples{
-result <- crtree("titanic", "survived", c("pclass","sex"), lev = "Yes")
+result <- crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 predict(result, pred_cmd = "pclass = levels(pclass)")
-result <- crtree("titanic", "survived", "pclass", lev = "Yes")
-predict(result, pred_data = "titanic") \%>\% head
+result <- crtree(titanic, "survived", "pclass", lev = "Yes")
+predict(result, pred_data = titanic) \%>\% head()
 
 }
 \seealso{

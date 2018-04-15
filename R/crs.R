@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset 
 #' @param id String with name of the variable containing user ids
 #' @param prod String with name of the variable with product ids
 #' @param pred Products to predict for
@@ -15,58 +15,55 @@
 #'
 #' @export
 crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
+
   vars <- c(id, prod, rate)
-  dat <- getdata(dataset, vars, na.rm = FALSE)
-  if (!is_string(dataset)) {
-    dataset <- deparse(substitute(dataset)) %>% 
-      set_attr("df", TRUE)
-  }
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
+  dataset <- getdata(dataset, vars, na.rm = FALSE)
 
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets
   ## improvement possible with dplyr or sparse matrix?
 
   ## make sure spread doesn't complain
-  cn <- colnames(dat)
-  nr <- distinct_(dat, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% 
+  cn <- colnames(dataset)
+  nr <- distinct_(dataset, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% 
     nrow()
-  if (nr < nrow(dat)) {
+  if (nr < nrow(dataset)) {
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
   }
 
-  dat <- spread(dat, !! prod, !! rate) %>%
+  dataset <- spread(dataset, !! prod, !! rate) %>%
     as.data.frame(stringsAsFactors = FALSE)
 
-  idv <- select_at(dat, .vars = id)
-  uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
-  uid <- seq_len(nrow(dat))[idv[[1]] %in% uid[[1]]]
-
-  dat <- select_at(dat, .vars = setdiff(colnames(dat), id))
+  idv <- select_at(dataset, .vars = id)
+  uid <- seq_len(nrow(dataset))[idv[[1]] %in% uid[[1]]]
+  dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), id))
 
   ## can use : for long sets of products to predict for
   if (any(grepl(":", pred))) {
     pred <- select(
-      dat[1, , drop = FALSE], 
+      dataset[1, , drop = FALSE], 
       !!! rlang::parse_exprs(paste0(pred, collapse = ";"))
     ) %>% colnames()
   }
 
   ## stop if insufficient overlap in ratings
-  if (length(pred) >= (ncol(dat) - 1)) {
+  if (length(pred) >= (ncol(dataset) - 1)) {
     return("Cannot predict for all products. Ratings must overlap on at least two products." %>% add_class("crs"))
   } 
 
-  if (length(vars) < (ncol(dat) - 1)) {
-    vars <- evar <- colnames(dat)[-1]
+  if (length(vars) < (ncol(dataset) - 1)) {
+    vars <- evar <- colnames(dataset)[-1]
   }
 
   ## indices
-  cn <- colnames(dat)
+  cn <- colnames(dataset)
   nind <- which(cn %in% pred)
   ind <- (1:length(cn))[-nind]
 
   ## average scores and rankings
-  avg <- dat[uid, , drop = FALSE] %>%
+  avg <- dataset[uid, , drop = FALSE] %>%
     select(nind) %>%
     summarise_all(funs(mean_rm))
   ravg <- avg
@@ -74,23 +71,23 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ravg <- mutate_all(ravg, funs(as.integer))
 
   ## actual scores and rankings (if available, else will be NA)
-  act <- dat[-uid, , drop = FALSE] %>% select(nind)
+  act <- dataset[-uid, , drop = FALSE] %>% select(nind)
   ract <- act
 
   if (nrow(act) == 0) {
-    return("Invalid filter used. Users to predict for should not be in the training set." %>% add_class("crs"))
+    return("Invalid filter used. Users to predict for should not be in the training set." %>% 
+      add_class("crs"))
   }
 
-  rank <- apply(act, 1, function(x) as.integer(min_rank(desc(x)))) %>% {
-    if (length(pred) == 1) . else t(.)
-  }
+  rank <- apply(act, 1, function(x) as.integer(min_rank(desc(x)))) %>% 
+    {if (length(pred) == 1) . else t(.)}
   ract[, pred] <- rank
   ract <- bind_cols(idv[-uid, , drop = FALSE], ract)
   act <- bind_cols(idv[-uid, , drop = FALSE], act)
 
   ## CF calculations per row
-  ms <- apply(select(dat, -nind), 1, function(x) mean(x, na.rm = TRUE))
-  sds <- apply(select(dat, -nind), 1, function(x) sd(x, na.rm = TRUE))
+  ms <- apply(select(dataset, -nind), 1, function(x) mean(x, na.rm = TRUE))
+  sds <- apply(select(dataset, -nind), 1, function(x) sd(x, na.rm = TRUE))
 
   ## to forego standardization
   # ms <- ms * 0
@@ -98,15 +95,14 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## standardized ratings
   if (length(nind) < 2) {
-    srate <- (dat[uid, nind] - ms[uid]) / sds[uid]
+    srate <- (dataset[uid, nind] - ms[uid]) / sds[uid]
   } else {
-    srate <- sweep(dat[uid, nind], 1, ms[uid], "-") %>% sweep(1, sds[uid], "/")
+    srate <- sweep(dataset[uid, nind], 1, ms[uid], "-") %>% sweep(1, sds[uid], "/")
   }
   ## comfirmed to produce consistent results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
   srate[is.na(srate)] <- 0
   srate <- mutate_all(as.data.frame(srate, stringsAsFactors = FALSE), funs(ifelse(is.infinite(.), 0, .)))
-
-  cors <- sshhr(cor(t(dat[uid, ind]), t(dat[-uid, ind]), use = "pairwise.complete.obs"))
+  cors <- sshhr(cor(t(dataset[uid, ind]), t(dataset[-uid, ind]), use = "pairwise.complete.obs"))
 
   ## comfirmed to produce correct results -- see cf-demo-missing-state.rda and cf-demo-missing.xlsx
   cors[is.na(cors)] <- 0
@@ -142,7 +138,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
     arrange_at(.vars = c(id, "product")) %>%
     select_at(.vars = c(id, "product", "rating", "average", "cf", "ranking", "avg_rank", "cf_rank"))
 
-  rm(dat, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
+  rm(dataset, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
 
   as.list(environment()) %>% add_class("crs")
 }
@@ -164,7 +160,7 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
   if (is.character(object)) return(cat(object))
 
   cat("Collaborative filtering")
-  cat("\nData       :", object$dataset)
+  cat("\nData       :", object$df_name)
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("\nFilter     :", gsub("\\n", "", object$data_filter))
   }
@@ -236,18 +232,16 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 #'
 #' @export
 plot.crs <- function(x, ...) {
-  object <- x; rm(x)
-  if (is.character(object)) return(object)
-
-  if (any(is.na(object$act))) {
+  if (is.character(x)) return(x)
+  if (any(is.na(x$act))) {
     return("Plotting for Collaborative Filter requires the actual ratings associated\nwith the predictions")
   }
 
   ## use quantile to avoid plotting extreme predictions
-  lim <- quantile(object$recommendations[, c("rating", "cf")], probs = c(.025, .975), na.rm = TRUE)
+  lim <- quantile(x$recommendations[, c("rating", "cf")], probs = c(.025, .975), na.rm = TRUE)
 
   p <- visualize(
-    object$recommendations, xvar = "cf", yvar = "rating",
+    x$recommendations, xvar = "cf", yvar = "rating",
     type = "scatter", facet_col = "product", check = "line",
     custom = TRUE
   ) +
@@ -263,38 +257,48 @@ plot.crs <- function(x, ...) {
   sshhr(p)
 }
 
-#' Store predicted values generated in the crs function
+#' Deprecates: Store method for the crs function
 #'
-#' @details Store data frame with predictions in Radiant r_data list if available. See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details Return recommendations See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
-#' @param object Return value from crs
-#' @param name Name of the dataset to store
-#' @param envir Environment to assign 'new' dataset (optional). Used when an r_data list is not available
+#' @param dataset Dataset
+#' @param object Return value from \code{\link{crs}}
+#' @param name Name to assign to the dataset
 #' @param ... further arguments passed to or from other methods
 #'
-#' @importFrom pryr where
-#'
 #' @export
-store.crs <- function(object, name = "predict_cf", envir = parent.frame(), ...) {
-  object <- object$recommendations
-  if (exists("r_environment")) {
-    env <- r_environment
-  } else if (exists("r_data")) {
-    env <- pryr::where("r_data")
+store.crs <- function(dataset, object, name, ...) {
+  if (missing(name)) {
+    object$recommendations
   } else {
-    assign(name, object, envir = envir)
-    message("Dataset ", name, " created in ", environmentName(envir), " environment")
-    return(invisible())
+     stop(
+      paste0(
+        "This function is deprecated. Use the code below instead:\n\n", 
+        name, " <- ", deparse(substitute(object)), "$recommendations\nregister(\"", 
+        name, ")"
+      ),
+      call. = FALSE
+    )
   }
 
-  # ## use data description from the original if available
-  if (is_empty(env$r_data[[paste0(name, "_descr")]])) {
-    attr(object, "description") <- paste0("## Collaborative Filtering\n\nThis dataset contains predicted ratings and ranking based on collaborative filter applied to the ", attr(object, "dataset"), "dataset.")
-  } else {
-    attr(object, "description") <- env$r_data[[paste0(name, "_descr")]]
-  }
+  # if (exists("r_environment")) {
+  #   env <- r_environment
+  # # } else if (exists("r_data")) {
+  #   # env <- pryr::where("r_data")
+  # } else {
+  #   assign(name, object, envir = envir)
+  #   message("Dataset ", name, " created in ", environmentName(envir), " environment")
+  #   return(invisible())
+  # }
 
-  env$r_data[[name]] <- object
-  env$r_data[[paste0(name, "_descr")]] <- attr(object, "description")
-  env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
+  # # ## use data description from the original if available
+  # if (is_empty(env$r_data[[paste0(name, "_descr")]])) {
+  #   attr(object, "description") <- paste0("## Collaborative Filtering\n\nThis dataset contains predicted ratings and ranking based on collaborative filter applied to the ", attr(object, "dataset"), "dataset.")
+  # } else {
+  #   attr(object, "description") <- env$r_data[[paste0(name, "_descr")]]
+  # }
+
+  # env$r_data[[name]] <- object
+  # env$r_data[[paste0(name, "_descr")]] <- attr(object, "description")
+  # env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
 }

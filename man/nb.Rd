@@ -7,7 +7,7 @@
 nb(dataset, rvar, evar, laplace = 0, data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{rvar}{The response variable in the logit (probit) model}
 
@@ -27,7 +27,7 @@ Naive Bayes using e1071::naiveBayes
 See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
-result <- nb("titanic", "survived", c("pclass","sex","age"))
+result <- nb(titanic, "survived", c("pclass","sex","age"))
 
 }
 \seealso{

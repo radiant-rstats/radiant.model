@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset
 #' @param rvar The response variable in the model
 #' @param evar Explanatory variables in the model
 #' @param lev The level in the response variable defined as _success_
@@ -15,8 +15,8 @@
 #' @return A list with all variables defined in logistic as an object of class logistic
 #'
 #' @examples
-#' result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
-#' result <- logistic("titanic", "survived", c("pclass","sex"))
+#' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+#' result <- logistic(titanic, "survived", c("pclass", "sex"))
 #'
 #' @seealso \code{\link{summary.logistic}} to summarize the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
@@ -46,15 +46,16 @@ logistic <- function(
     vars <- c(rvar, evar, wtsname)
   }
 
-  dat <- getdata(dataset, vars, filt = data_filter)
-  if (!is_string(dataset)) {
-    dataset <- deparse(substitute(dataset)) %>%
-      set_attr("df", TRUE)
-  }
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  dataset <- getdata(dataset, vars, filt = data_filter)
+  # if (!is_string(dataset)) {
+  #   dataset <- deparse(substitute(dataset)) %>%
+  #     set_attr("df", TRUE)
+  # }
 
   if (missing(ci_type)) {
     ## Use profiling for smaller datasets
-    if (nrow(na.omit(dat)) < 5000) {
+    if (nrow(na.omit(dataset)) < 5000) {
       ci_type <- "profile"
     } else {
       ci_type <- "default"
@@ -63,12 +64,12 @@ logistic <- function(
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
-      wts <- dat[[wtsname]]
-      dat <- select_at(dat, .vars = setdiff(colnames(dat), wtsname))
+      wts <- dataset[[wtsname]]
+      dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), wtsname))
     }
-    if (length(wts) != nrow(dat)) {
+    if (length(wts) != nrow(dataset)) {
       return(
-        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dat), dec = 0), ")") %>%
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dataset), dec = 0), ")") %>%
           add_class("logistic")
       )
     }
@@ -79,12 +80,12 @@ logistic <- function(
     }
   }
 
-  if (any(summarise_all(dat, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
       add_class("logistic"))
   }
 
-  rv <- dat[[rvar]]
+  rv <- dataset[[rvar]]
   if (lev == "") {
     if (is.factor(rv)) {
       lev <- levels(rv)[1]
@@ -94,55 +95,55 @@ logistic <- function(
   }
 
   ## transformation to TRUE/FALSE depending on the selected level (lev)
-  dat[[rvar]] <- dat[[rvar]] == lev
+  dataset[[rvar]] <- dataset[[rvar]] == lev
 
   vars <- ""
-  var_check(evar, colnames(dat)[-1], int) %>% {
+  var_check(evar, colnames(dataset)[-1], int) %>% {
     vars <<- .$vars
     evar <<- .$ev
     int <<- .$intv
   }
 
   ## add minmax attributes to data
-  mmx <- minmax(dat)
+  mmx <- minmax(dataset)
 
   ## scale data
   if ("standardize" %in% check) {
-    dat <- scaledf(dat, wts = wts)
+    dataset <- scaledf(dataset, wts = wts)
   } else if ("center" %in% check) {
-    dat <- scaledf(dat, scale = FALSE, wts = wts)
+    dataset <- scaledf(dataset, scale = FALSE, wts = wts)
   }
 
   form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
   form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
-    ## use k = 2 for AIC, use k = log(nrow(dat)) for BIC
-    model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
+    ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
+    model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dataset)) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
 
     ## adding full data even if all variables are not significant
-    model$model <- dat
+    model$model <- dataset
   } else if ("stepwise-forward" %in% check) {
-    model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
+    model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dataset)) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
 
     ## adding full data even if all variables are not significant
-    model$model <- dat
+    model$model <- dataset
   } else if ("stepwise-both" %in% check) {
-    model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dat)) %>%
+    model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dataset)) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
 
     ## adding full data even if all variables are not significant
-    model$model <- dat
+    model$model <- dataset
   } else {
-    model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dat))
+    model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dataset))
   }
 
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
-    attr(model$model, "ms") <- attr(dat, "ms")
-    attr(model$model, "sds") <- attr(dat, "sds")
+    attr(model$model, "ms") <- attr(dataset, "ms")
+    attr(model$model, "sds") <- attr(dataset, "sds")
   }
 
   attr(model$model, "min") <- mmx[["min"]]
@@ -151,7 +152,7 @@ logistic <- function(
   coeff <- tidy(model)
   # colnames(coeff) <- c("  ", "coefficient", "std.error", "z.value", "p.value")
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
-  hasLevs <- sapply(select(dat, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
+  hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
       # coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
@@ -174,7 +175,7 @@ logistic <- function(
   coeff <- coeff[, c("label", "OR", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
 
   ## remove elements no longer needed
-  rm(dat, hasLevs, form_lower, form_upper)
+  rm(dataset, hasLevs, form_lower, form_upper)
 
   as.list(environment()) %>% add_class(c("logistic", "model"))
 }
@@ -191,11 +192,11 @@ logistic <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- logistic("titanic", "survived", "pclass", lev = "Yes")
+#' result <- logistic(titanic, "survived", "pclass", lev = "Yes")
 #' summary(result, test_var = "pclass")
-#' res <- logistic("titanic", "survived", c("pclass","sex"), int="pclass:sex", lev="Yes")
-#' summary(res, sum_check = c("vif","confint","odds"))
-#' titanic %>% logistic("survived", c("pclass","sex","age"), lev = "Yes") %>% summary("vif")
+#' res <- logistic(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")
+#' summary(res, sum_check = c("vif", "confint", "odds"))
+#' titanic %>% logistic("survived", c("pclass", "sex", "age"), lev = "Yes") %>% summary("vif")
 #'
 #' @seealso \code{\link{logistic}} to generate the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
@@ -227,7 +228,7 @@ summary.logistic <- function(
   }
 
   cat("Logistic regression (GLM)")
-  cat("\nData                 :", object$dataset)
+  cat("\nData                 :", object$df_name)
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
@@ -256,7 +257,7 @@ summary.logistic <- function(
   p.small <- coeff$p.value < .001
   coeff[, 2:6] %<>% formatdf(dec)
   coeff$p.value[p.small] <- "< .001"
-  rename(coeff, `  ` = label, ` ` = sig_star) %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
+  rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
   logit_fit <- glance(object$model)
@@ -439,7 +440,7 @@ summary.logistic <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' plot(result, plots = "coef")
 #'
 #' @seealso \code{\link{logistic}} to generate results
@@ -613,12 +614,12 @@ plot.logistic <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- logistic("titanic", "survived", c("pclass","sex"), lev = "Yes")
+#' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #'  predict(result, pred_cmd = "pclass = levels(pclass)")
-#' logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") %>%
+#' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
 #'   predict(pred_cmd = "sex = c('male','female')")
-#' logistic("titanic", "survived", c("pclass","sex"), lev = "Yes") %>%
-#'  predict(pred_data = "titanic")
+#' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
+#'  predict(pred_data = titanic)
 #'
 #' @seealso \code{\link{logistic}} to generate the result
 #' @seealso \code{\link{summary.logistic}} to summarize results
@@ -697,25 +698,6 @@ predict.logistic <- function(
 print.logistic.predict <- function(x, ..., n = 10)
   print_predict_model(x, ..., n = n, header = "Logistic regression (GLM)")
 
-#' Deprecated function to store logistic regression residuals and predictions
-#'
-#' @details Use \code{\link{store.model.predict}} or \code{\link{store.model}} instead
-#'
-#' @param object Return value from \code{\link{logistic}} or \code{\link{predict.logistic}}
-#' @param data Dataset name
-#' @param type Residuals ("residuals") or predictions ("predictions"). For predictions the dataset name must be provided
-#' @param name Variable name assigned to the residuals or predicted values
-#'
-#' @export
-store_glm <- function(object, data = object$dataset,
-                      type = "residuals", name = paste0(type, "_logit")) {
-  if (type == "residuals") {
-    store.model(object, data = data, name = name)
-  } else {
-    store.model.predict(object, data = data, name = name)
-  }
-}
-
 #' Confidence interval for robust estimators
 #'
 #' @details Wrapper for confint with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
@@ -750,17 +732,17 @@ confint_robust <- function(
 
 #' Calculate min and max before standardization
 #'
-#' @param dat Data frame
+#' @param dataset Data frame
 #' @return Data frame min and max attributes
 #'
 #' @export
-minmax <- function(dat) {
-  isNum <- sapply(dat, is.numeric)
-  if (sum(isNum) == 0) return(dat)
+minmax <- function(dataset) {
+  isNum <- sapply(dataset, is.numeric)
+  if (sum(isNum) == 0) return(dataset)
   cn <- names(isNum)[isNum]
 
-  mn <- summarise_at(dat, .vars = cn, .funs = funs(min(., na.rm = TRUE)))
-  mx <- summarise_at(dat, .vars = cn, .funs = funs(max(., na.rm = TRUE)))
+  mn <- summarise_at(dataset, .vars = cn, .funs = funs(min(., na.rm = TRUE)))
+  mx <- summarise_at(dataset, .vars = cn, .funs = funs(max(., na.rm = TRUE)))
 
   list(min = mn, max = mx)
 }

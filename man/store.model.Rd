@@ -4,23 +4,25 @@
 \alias{store.model}
 \title{Store residuals from a model}
 \usage{
-\method{store}{model}(object, ..., name = "residuals")
+\method{store}{model}(dataset, object, name = "residuals", ...)
 }
 \arguments{
+\item{dataset}{Dataset to append residuals to}
+
 \item{object}{Return value from a model function}
 
-\item{...}{Additional arguments}
+\item{name}{Variable name(s) assigned to model residuals}
 
-\item{name}{Variable name(s) assigned to predicted values}
+\item{...}{Additional arguments}
 }
 \description{
 Store residuals from a model
 }
 \details{
-See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+The store method for objects of class "model". Adds model residuals to the dataset while handling missing values and filters. See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-regress(diamonds, rvar = "price", evar = c("carat","cut")) \%>\%
-  store \%>\% head
+model <- regress(diamonds, rvar = "price", evar = c("carat","cut"), data_filter = "price > 1000")
+diamonds <- store(diamonds, model, name = "resid")
 
 }

@@ -4,10 +4,12 @@
 \alias{repeater}
 \title{Repeated simulation}
 \usage{
-repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
-  fun = "sum_rm", form = "", seed = NULL, name = "", sim = "")
+repeater(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
+  byvar = "sim", fun = "sum_rm", form = "", seed = NULL, name = "")
 }
 \arguments{
+\item{dataset}{Return value from the simulater function}
+
 \item{nr}{Number times to repeat the simulation}
 
 \item{vars}{Variables to use in repeated simulation}
@@ -24,15 +26,13 @@ repeater(nr = 12, vars = "", grid = "", sum_vars = "", byvar = "sim",
 
 \item{seed}{Seed for the repeated simulation}
 
-\item{name}{Name for data.frame with the repeated simulation data (optional)}
-
-\item{sim}{Return value from the simulater function (data.frame or data.frame name)}
+\item{name}{Deprecated argument}
 }
 \description{
 Repeated simulation
 }
 \examples{
-result <- simulater(
+simdat <- simulater(
   const = c("var_cost 5","fixed_cost 1000"), 
   norm = "E 0 100;",
   discrete = "price 6 8 .3 .7;",
@@ -45,13 +45,13 @@ result <- simulater(
 )
 
 repeater(
+  simdat,
   nr = 12, 
   vars = c("E","price"), 
   sum_vars = "profit", 
   byvar = "sim", 
   form = "profit_365 = profit < 36500", 
   seed = 1234, 
-  sim = result
-) \%>\% head
+) \%>\% head()
 
 }

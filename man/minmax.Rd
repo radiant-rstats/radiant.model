@@ -4,10 +4,10 @@
 \alias{minmax}
 \title{Calculate min and max before standardization}
 \usage{
-minmax(dat)
+minmax(dataset)
 }
 \arguments{
-\item{dat}{Data frame}
+\item{dataset}{Data frame}
 }
 \value{
 Data frame min and max attributes

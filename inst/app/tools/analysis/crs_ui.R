@@ -61,6 +61,11 @@ output$ui_crs_rate <- renderUI({
   )
 })
 
+output$ui_crs_store_pred_name <- renderUI({
+  req(input$dataset)
+  textInput("crs_store_pred_name", NULL, "", placeholder = "Provide data name")
+})
+
 observe({
   ## dep on most inputs
   input$data_filter
@@ -94,9 +99,12 @@ output$ui_crs <- renderUI({
         uiOutput("ui_crs_prod"),
         uiOutput("ui_crs_pred"),
         uiOutput("ui_crs_rate"),
+        HTML("<label>Store recommendations:</label>"), 
         tags$table(
-          tags$td(textInput("crs_store_pred_name", "Store recommendations:", paste0(input$dataset, "_cf"))),
-          tags$td(actionButton("crs_store_pred", "Store"), style = "padding-top:30px;")
+          # tags$td(textInput("crs_store_pred_name", "Store recommendations:", paste0(input$dataset, "_cf"))),
+          tags$td(uiOutput("ui_crs_store_pred_name")),
+          # tags$td(actionButton("crs_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
+          tags$td(actionButton("crs_store_pred", "Store", icon = icon("plus")), style = "padding-top:5px;")
         )
       )
     ),
@@ -156,7 +164,7 @@ output$crs <- renderUI({
 .crs <- eventReactive(input$crs_run, {
   if (is_empty(input$crs_id)) {
     "This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>% 
-      suggest_data("cf")
+      suggest_data("ratings")
   } else if (!input$show_filter || is_empty(input$data_filter)) {
     "A data filter must be set to generate recommendations using\ncollaborative filtering. Add a filter in the Data > View tab.\nNote that the users in the training sample should not overlap\nwith the users in the validation sample." %>% 
       add_class("crs")
@@ -178,7 +186,7 @@ output$crs <- renderUI({
     "** Press the Estimate button to generate recommendations **"
   } else if (is_empty(input$crs_id)) {
     "This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>% 
-      suggest_data("cf")
+      suggest_data("ratings")
   } else {
     summary(.crs())
   }
@@ -211,11 +219,12 @@ observeEvent(input$crs_report, {
   } else {
     inp_out <- list("", "")
   }
-  xcmd <- paste0("# store(result, name = \"", input$crs_store_pred_name, "\")")
-  # if (getOption("radiant.local", default = FALSE)) {
-  #   pdir <- getOption("radiant.write_dir", default = "~/")
-  #   xcmd <- paste0(xcmd, "\n# readr::write_csv(result$recommendations, path = \"", pdir, "recommendations_crs.csv\")")
-  # }
+  if (!is_empty(input$crs_store_pred_name)) {
+    xcmd <- input$crs_store_pred_name %>% 
+      paste0(., " <- result$recommendations\nregister(\"", ., "\")")
+  } else {
+    xcmd <- ""
+  }
 
   update_report(
     inp_main = clean_args(crs_inputs(), crs_args),
@@ -231,18 +240,22 @@ observeEvent(input$crs_report, {
 
 ## Store results
 observeEvent(input$crs_store_pred, {
+  req(input$crs_store_pred_name)
   pred <- .crs()
   if (!is.data.frame(pred$recommendations)) {
     return("No data selected to generate recommendations")
   }
-  store(pred, input$crs_store_pred_name)
+  name <- input$crs_store_pred_name
+  # store(pred, input$crs_store_pred_name)
+  r_data[[name]] <- pred$recommendations
+  register(name)
 
   ## See https://shiny.rstudio.com/reference/shiny/latest/modalDialog.html
   showModal(
     modalDialog(
       title = "Data Stored",
       span(
-        paste0("Dataset '", input$crs_store_pred_name, "' was successfully added 
+        paste0("Dataset '", name, "' was successfully added 
                 to the datasets dropdown. Add code to Report > Rmd or 
                 Report > R to (re)create the dataset by clicking the 
                 report icon on the bottom left of your screen.")

@@ -7,7 +7,7 @@
 simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
   binom = "", pois = "", sequ = "", grid = "", data = "", form = "",
   seed = NULL, nexact = FALSE, ncorr = NULL, name = "", nr = 1000,
-  dat = NULL)
+  dataset = NULL)
 }
 \arguments{
 \item{const}{A character vector listing the constants to include in the analysis (e.g., c("cost = 3", "size = 4"))}
@@ -28,7 +28,7 @@ simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
 
 \item{grid}{A character vector listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations}
 
-\item{data}{Name of a dataset to be used in the calculations}
+\item{data}{Dataset to be used in the calculations}
 
 \item{form}{A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")}
 
@@ -38,11 +38,11 @@ simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
 
 \item{ncorr}{A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables simulated}
 
-\item{name}{Name used to store the simulated data (optional)}
+\item{name}{Deprecated argument}
 
 \item{nr}{Number of simulations}
 
-\item{dat}{Data list from previous simulation. Used by repeater function}
+\item{dataset}{Data list from previous simulation. Used by repeater function}
 }
 \value{
 A data.frame with the simulated data
@@ -54,7 +54,7 @@ Simulate data for decision analysis
 See \url{https://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 }
 \examples{
-result <- simulater(
+simdat <- simulater(
   const = "cost 3", 
   norm = "demand 2000 1000", 
   discrete = "price 5 8 .3 .7", 

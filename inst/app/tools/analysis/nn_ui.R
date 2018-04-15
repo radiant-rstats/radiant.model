@@ -146,10 +146,9 @@ output$ui_nn_wts <- renderUI({
 })
 
 output$ui_nn_store_pred_name <- renderUI({
-  init <- state_init("nn_store_pred_name", "predict_nn") %>%
+  init <- state_init("nn_store_pred_name", "pred_nn") %>%
     sub("\\d{1,}$", "", .) %>%
     paste0(., ifelse(is_empty(input$nn_size), "", input$nn_size))
-
   textInput(
     "nn_store_pred_name",
     "Store predictions:",
@@ -158,15 +157,8 @@ output$ui_nn_store_pred_name <- renderUI({
 })
 
 output$ui_nn_store_res_name <- renderUI({
-  init <- state_init("nn_store_res_name", "residuals_nn") %>%
-    sub("\\d{1,}$", "", .) %>%
-    paste0(., ifelse(is_empty(input$nn_size), "", input$nn_size))
-
-  textInput(
-    "nn_store_res_name",
-    "Store residuals:",
-    init
-  )
+  req(input$dataset)
+  textInput("nn_store_res_name", "Store residuals:", "", placeholder = "Provide variable name")
 })
 
 ## reset prediction and plot settings when the dataset changes
@@ -294,9 +286,8 @@ output$ui_nn <- renderUI({
         conditionalPanel(
           "input.nn_predict == 'data' | input.nn_predict == 'datacmd'",
           tags$table(
-            # tags$td(textInput("nn_store_pred_name", "Store predictions:", state_init("nn_store_pred_name", "predict_nn"))),
             tags$td(uiOutput("ui_nn_store_pred_name")),
-            tags$td(actionButton("nn_store_pred", "Store"), style = "padding-top:30px;")
+            tags$td(actionButton("nn_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
           )
         )
       ),
@@ -312,7 +303,7 @@ output$ui_nn <- renderUI({
         condition = "input.tabs_nn == 'Summary'",
         tags$table(
           tags$td(uiOutput("ui_nn_store_res_name")),
-          tags$td(actionButton("nn_store_res", "Store"), style = "padding-top:30px;")
+          tags$td(actionButton("nn_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
         )
       )
     ),
@@ -499,23 +490,27 @@ nn_available <- reactive({
   }
 })
 
-observeEvent(input$nn_store_pred, {
-  req(!is_empty(input$nn_pred_data), pressed(input$nn_run))
-  pred <- .predict_nn()
-  if (is.null(pred)) return()
-  withProgress(
-    message = "Storing predictions", value = 1,
-    store(pred, data = input$nn_pred_data, name = input$nn_store_pred_name)
-  )
-})
-
 observeEvent(input$nn_store_res, {
   req(pressed(input$nn_run))
   robj <- .nn()
   if (!is.list(robj)) return()
   withProgress(
     message = "Storing residuals", value = 1,
-    store(robj, name = input$nn_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$nn_store_res_name)
+  )
+})
+
+observeEvent(input$nn_store_pred, {
+  req(!is_empty(input$nn_pred_data), pressed(input$nn_run))
+  pred <- .predict_nn()
+  if (is.null(pred)) return()
+  withProgress(
+    message = "Storing predictions", value = 1,
+    # store(pred, data = input$nn_pred_data, name = input$nn_store_pred_name)
+    r_data[[input$nn_pred_data]] <- store(
+      r_data[[input$nn_pred_data]], pred, 
+      name = input$nn_store_pred_name
+    )
   )
 })
 
@@ -524,7 +519,6 @@ observeEvent(input$nn_report, {
 
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE), "")
-  xcmd <- ""
   figs <- FALSE
 
   if (!is_empty(input$nn_plots, "none")) {
@@ -537,25 +531,41 @@ observeEvent(input$nn_report, {
     figs <- TRUE
   }
 
+  if (!is_empty(input$nn_store_res_name)) {
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$nn_store_res_name, "\")\n")
+  } else {
+    xcmd <- ""
+  }
+
   if (!is_empty(input$nn_predict, "none") &&
     (!is_empty(input$nn_pred_data) || !is_empty(input$nn_pred_cmd))) {
     pred_args <- clean_args(nn_pred_inputs(), nn_pred_args[-1])
-    if (!is_empty(pred_args[["pred_cmd"]])) {
-      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+
+    # if (!is_empty(pred_args[["pred_cmd"]])) {
+    #   pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    # }
+
+    if (!is_empty(pred_args$pred_cmd)) {
+      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     }
+    if (!is_empty(pred_args$pred_data)) {
+      pred_args$pred_data <- as.symbol(pred_args$pred_data)
+    } 
+
     inp_out[[2 + figs]] <- pred_args
-
     outputs <- c(outputs, "pred <- predict")
-
-    xcmd <- paste0(xcmd, "\nprint(pred, n = 10)")
+    xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$nn_predict %in% c("data", "datacmd")) {
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$nn_pred_data, "\", name = \"", input$nn_store_pred_name, "\")")
+      # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$nn_pred_data, "\", name = \"", input$nn_store_pred_name, "\")")
+      xcmd <- paste0(xcmd, "\n", input$nn_pred_data, " <- store(", 
+        input$nn_pred_data, ", pred, name = \"", input$nn_store_pred_name, "\")"
+      )
     }
 
-    if (getOption("radiant.local", default = FALSE)) {
-      pdir <- getOption("radiant.write_dir", default = "~/")
-      xcmd <- paste0(xcmd, "\n# readr::write_csv(pred, path = \"", pdir, "nn", input$nn_size, "_predictions.csv\")")
-    }
+    # if (getOption("radiant.local", default = FALSE)) {
+    #   pdir <- getOption("radiant.write_dir", default = "~/")
+    #   xcmd <- paste0(xcmd, "\n# readr::write_csv(pred, path = \"", pdir, "nn", input$nn_size, "_predictions.csv\")")
+    # }
 
     if (input$nn_pred_plot && !is_empty(input$nn_xvar)) {
       inp_out[[3 + figs]] <- clean_args(nn_pred_plot_inputs(), nn_pred_plot_args[-1])

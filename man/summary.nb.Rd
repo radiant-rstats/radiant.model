@@ -20,7 +20,7 @@ Summary method for the nb function
 See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 }
 \examples{
-result <- nb("titanic", "survived", c("pclass","sex","age"))
+result <- nb(titanic, "survived", c("pclass","sex","age"))
 summary(result)
 
 }

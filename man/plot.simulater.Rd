@@ -24,13 +24,13 @@ Plot method for the simulater function
 See \url{https://radiant-rstats.github.io/docs/model/simulater} for an example in Radiant
 }
 \examples{
-result <- simulater(
+simdat <- simulater(
   const = "cost 3", 
   norm = "demand 2000 1000", 
   discrete = "price 5 8 .3 .7", 
   form = "profit = demand * (price - cost)"
 )
-plot(result, bins = 25)
+plot(simdat, bins = 25)
 
 }
 \seealso{

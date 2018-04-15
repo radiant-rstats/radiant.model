@@ -24,10 +24,10 @@
 Plot method for nb.predict function
 }
 \examples{
-result <- nb("titanic", "survived", c("pclass","sex","age"))
-pred <- predict(result, pred_cmd="pclass=levels(pclass), sex=levels(sex), age=seq(0,100,20)")
+result <- nb(titanic, "survived", c("pclass", "sex", "age"))
+pred <- predict(result, pred_cmd="pclass = levels(pclass), sex = levels(sex), age=seq(0, 100, 20)")
 plot(pred, xvar = "age", facet_col = "sex", facet_row = "pclass")
-pred <- predict(result, pred_data="titanic")
+pred <- predict(result, pred_data = titanic)
 plot(pred, xvar = "age", facet_col = "sex")
 
 }

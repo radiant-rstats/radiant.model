@@ -22,8 +22,8 @@ Summary method for the evalbin function
 See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
-evalbin("titanic", "age", "survived") \%>\% summary
-evalbin("titanic", c("age","fare"), "survived") \%>\% summary
+evalbin(titanic, "age", "survived") \%>\% summary
+evalbin(titanic, c("age", "fare"), "survived") \%>\% summary
 
 }
 \seealso{

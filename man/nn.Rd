@@ -9,7 +9,7 @@ nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
   data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{rvar}{The response variable in the model}
 
@@ -41,9 +41,9 @@ Neural Networks
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 }
 \examples{
-result <- nn("titanic", "survived", c("pclass","sex"), lev = "Yes")
-result <- nn("titanic", "survived", c("pclass","sex"))
-result <- nn("diamonds", "price", c("carat","clarity"), type = "regression")
+result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+result <- nn(titanic, "survived", c("pclass", "sex"))
+result <- nn(diamonds, "price", c("carat", "clarity"), type = "regression")
 
 }
 \seealso{

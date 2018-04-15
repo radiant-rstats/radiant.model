@@ -139,6 +139,11 @@ output$ui_crtree_width <- renderUI({
   )
 })
 
+output$ui_crtree_store_res_name <- renderUI({
+  req(input$dataset)
+  textInput("crtree_store_res_name", "Store residuals:", "", placeholder = "Provide variable name")
+})
+
 observe({
   ## dep on most inputs
   input$data_filter
@@ -227,8 +232,9 @@ output$ui_crtree <- renderUI({
         conditionalPanel(
           condition = "input.tabs_crtree == 'Summary'",
           tags$table(
-            tags$td(textInput("crtree_store_res_name", "Store residuals:", state_init("crtree_store_res_name", "residuals_crtree"))),
-            tags$td(actionButton("crtree_store_res", "Store"), style = "padding-top:30px;")
+            # tags$td(textInput("crtree_store_res_name", "Store residuals:", state_init("crtree_store_res_name", "residuals_crtree"))),
+            tags$td(uiOutput("ui_crtree_store_res_name")),
+            tags$td(actionButton("crtree_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
           )
         )
       ),
@@ -267,8 +273,8 @@ output$ui_crtree <- renderUI({
         conditionalPanel(
           "input.crtree_predict == 'data' | input.crtree_predict == 'datacmd'",
           tags$table(
-            tags$td(textInput("crtree_store_pred_name", "Store predictions:", state_init("crtree_store_pred_name", "predict_crtree"))),
-            tags$td(actionButton("crtree_store_pred", "Store"), style = "padding-top:30px;")
+            tags$td(textInput("crtree_store_pred_name", "Store predictions:", state_init("crtree_store_pred_name", "pred_crtree"))),
+            tags$td(actionButton("crtree_store_pred", "Store", icon("plus")), style = "padding-top:30px;")
           )
         )
       ),
@@ -452,23 +458,27 @@ crtree_available <- reactive({
   }
 })
 
-observeEvent(input$crtree_store_pred, {
-  req(!is_empty(input$crtree_pred_data), pressed(input$crtree_run))
-  pred <- .predict_crtree()
-  if (is.null(pred)) return()
-  withProgress(
-    message = "Storing predictions", value = 1,
-    store(pred, data = input$crtree_pred_data, name = input$crtree_store_pred_name)
-  )
-})
-
 observeEvent(input$crtree_store_res, {
   req(pressed(input$crtree_run))
   robj <- .crtree()
   if (!is.list(robj)) return()
   withProgress(
     message = "Storing residuals", value = 1,
-    store(robj, name = input$crtree_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$crtree_store_res_name)
+  )
+})
+
+observeEvent(input$crtree_store_pred, {
+  req(!is_empty(input$crtree_pred_data), pressed(input$crtree_run))
+  pred <- .predict_crtree()
+  if (is.null(pred)) return()
+  withProgress(
+    message = "Storing predictions", value = 1,
+    # store(pred, data = input$crtree_pred_data, name = input$crtree_store_pred_name)
+    r_data[[input$crtree_pred_data]] <- store(
+      r_data[[input$crtree_pred_data]], pred, 
+      name = input$crtree_store_pred_name
+    )
   )
 })
 
@@ -490,20 +500,39 @@ observeEvent(input$crtree_report, {
 
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE), "")
-  xcmd <- ""
   figs <- FALSE
+
+  if (!is_empty(input$crtree_store_res_name)) {
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$crtree_store_res_name, "\")\n")
+  } else {
+    xcmd <- ""
+  }
+
   if (!is_empty(input$crtree_predict, "none") &&
     (!is_empty(input$crtree_pred_data) || !is_empty(input$crtree_pred_cmd))) {
     pred_args <- clean_args(crtree_pred_inputs(), crtree_pred_args[-1])
-    if (!is_empty(pred_args[["pred_cmd"]])) {
-      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+
+    # if (!is_empty(pred_args[["pred_cmd"]])) {
+    #   pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    # }
+
+    if (!is_empty(pred_args$pred_cmd)) {
+      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     }
+    if (!is_empty(pred_args$pred_data)) {
+      pred_args$pred_data <- as.symbol(pred_args$pred_data)
+    } 
+
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$crtree_predict %in% c("data", "datacmd")) {
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$crtree_pred_data, "\", name = \"", input$crtree_store_pred_name, "\")")
+      # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$crtree_pred_data, "\", name = \"", input$crtree_store_pred_name, "\")")
+      xcmd <- paste0(xcmd, "\n", input$crtree_pred_data, " <- store(", 
+        input$crtree_pred_data, ", pred, name = \"", input$crtree_store_pred_name, "\")"
+      )
     }
+
     # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/crtree_predictions.csv\", row.names = FALSE)\n")
 
     if (input$crtree_pred_plot && !is_empty(input$crtree_xvar)) {

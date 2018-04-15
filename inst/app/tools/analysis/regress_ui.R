@@ -299,8 +299,8 @@ output$ui_regress <- renderUI({
         conditionalPanel(
           "input.reg_predict == 'data' | input.reg_predict == 'datacmd'",
           tags$table(
-            tags$td(textInput("reg_store_pred_name", "Store predictions:", state_init("reg_store_pred_name", "predict_reg"))),
-            tags$td(actionButton("reg_store_pred", "Store"), style = "padding-top:30px;")
+            tags$td(textInput("reg_store_pred_name", "Store predictions:", state_init("reg_store_pred_name", "pred_reg"))),
+            tags$td(actionButton("reg_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
           )
         )
       ),
@@ -448,6 +448,7 @@ reg_available <- eventReactive(input$reg_run, {
 })
 
 .regress <- eventReactive(input$reg_run, {
+  # print(reg_inputs())
   withProgress(message = "Estimating model", value = 1, {
     do.call(regress, reg_inputs())
   })
@@ -519,7 +520,6 @@ observeEvent(input$regress_report, {
   inp_out[[1]] <- clean_args(reg_sum_inputs(), reg_sum_args[-1])
   figs <- FALSE
   if (!is_empty(input$reg_plots, "none")) {
-
     rpi <- reg_plot_inputs()
     if (!input$reg_plots %in% c("correlations", "scatter", "dashboard", "resid_pred")) {
       rpi$nrobs <- NULL
@@ -533,9 +533,8 @@ observeEvent(input$regress_report, {
     figs <- TRUE
   }
 
-
   if (!is_empty(input$reg_store_res_name)) {
-    xcmd <- paste0("store(result, name = \"", input$reg_store_res_name, "\")")
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$reg_store_res_name, "\")\n")
   } else {
     xcmd <- ""
   }
@@ -544,22 +543,26 @@ observeEvent(input$regress_report, {
      (!is_empty(input$reg_pred_data) || !is_empty(input$reg_pred_cmd))) {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
 
-    if (!is_empty(pred_args[["pred_cmd"]])) {
-      pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
+    if (!is_empty(pred_args$pred_cmd)) {
+      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     }
+    if (!is_empty(pred_args$pred_data)) {
+      pred_args$pred_data <- as.symbol(pred_args$pred_data)
+    } 
 
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
-
-    xcmd <- paste0(xcmd, "\nprint(pred, n = 10)")
+    xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$reg_predict %in% c("data", "datacmd")) {
       name <- input$reg_store_pred_name
       if (!is_empty(name)) {
-        name <- unlist(strsplit(input$reg_store_pred_name, ",")) %>%
+        name <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
           gsub("\\s", "", .) %>%
           deparse(., control = "keepNA", width.cutoff = 500L)
       }
-      xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$reg_pred_data, "\", name = ", name, ")")
+      xcmd <- paste0(xcmd, "\n", input$reg_pred_data, " <- store(", 
+        input$reg_pred_data, ", pred, name = ", name, ")"
+      )
     }
     # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
 
@@ -588,7 +591,7 @@ observeEvent(input$reg_store_res, {
   if (!is.list(robj)) return()
   withProgress(
     message = "Storing residuals", value = 1,
-    store(robj, name = input$reg_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$reg_store_res_name)
   )
 })
 
@@ -597,8 +600,11 @@ observeEvent(input$reg_store_pred, {
   pred <- .predict_regress()
   if (is.null(pred)) return()
   withProgress(
-    message = "Storing predictions", value = 1,
-    store(pred, data = input$reg_pred_data, name = input$reg_store_pred_name)
+    message = "storing predictions", value = 1,
+    r_data[[input$reg_pred_data]] <- store(
+      r_data[[input$reg_pred_data]], pred, 
+      name = input$reg_store_pred_name
+    )
   )
 })
 

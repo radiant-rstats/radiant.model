@@ -4,17 +4,16 @@
 \alias{store.model.predict}
 \title{Store predicted values generated in model functions}
 \usage{
-\method{store}{model.predict}(object, ..., data = attr(object, "pred_data"),
-  name = "prediction")
+\method{store}{model.predict}(dataset, object, name = "prediction", ...)
 }
 \arguments{
+\item{dataset}{Dataset to add predictions to}
+
 \item{object}{Return value from model function}
 
-\item{...}{Additional arguments}
-
-\item{data}{Data or dataset name (e.g., data = mtcars or data = "mtcars")}
-
 \item{name}{Variable name(s) assigned to predicted values}
+
+\item{...}{Additional arguments}
 }
 \description{
 Store predicted values generated in model functions
@@ -23,8 +22,8 @@ Store predicted values generated in model functions
 See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-regress(diamonds, rvar = "price", evar = c("carat","cut"))  \%>\%
-  predict(diamonds) \%>\%
-  store(name = "pred, pred_low, pred_high") \%>\% head
+model <- regress(diamonds, rvar = "price", evar = c("carat","cut"))
+pred <- predict(model, pred_data = diamonds)
+diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high")) 
 
 }

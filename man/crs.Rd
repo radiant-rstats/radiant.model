@@ -7,7 +7,7 @@
 crs(dataset, id, prod, pred, rate, data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{id}{String with name of the variable containing user ids}
 

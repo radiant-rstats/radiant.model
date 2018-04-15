@@ -7,7 +7,7 @@
 regress(dataset, rvar, evar, int = "", check = "", data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{rvar}{The response variable in the regression}
 
@@ -29,8 +29,8 @@ Linear regression using OLS
 See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-result <- regress("diamonds", "price", c("carat","clarity"))
-result <- regress("diamonds", "price", c("carat","clarity"), check = "standardize")
+result <- regress(diamonds, "price", c("carat","clarity"))
+result <- regress(diamonds, "price", c("carat","clarity"), check = "standardize")
 
 }
 \seealso{
