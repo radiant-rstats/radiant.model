@@ -4,7 +4,7 @@
 \alias{predict_model}
 \title{Predict method for model functions}
 \usage{
-predict_model(object, pfun, mclass, pred_data = "", pred_cmd = "",
+predict_model(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
   conf_lev = 0.95, se = FALSE, dec = 3, ...)
 }
 \arguments{
@@ -14,7 +14,7 @@ predict_model(object, pfun, mclass, pred_data = "", pred_cmd = "",
 
 \item{mclass}{Model class to attach}
 
-\item{pred_data}{Name of the dataset to use for prediction}
+\item{pred_data}{Dataset to use for prediction}
 
 \item{pred_cmd}{Command used to generate data for prediction (e.g., 'carat = 1:10')}
 

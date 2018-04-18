@@ -572,14 +572,18 @@ plot.crtree <- function(
 #'
 #' @export
 predict.crtree <- function(
-  object, pred_data = "", pred_cmd = "", conf_lev = 0.95, 
+  object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95, 
   se = FALSE, dec = 3, ...
 ) {
   
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) {
+  # if (!is.character(pred_data)) {
+  #   attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+  # }
+
+  if (!is_empty(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 

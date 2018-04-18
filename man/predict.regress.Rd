@@ -4,13 +4,13 @@
 \alias{predict.regress}
 \title{Predict method for the regress function}
 \usage{
-\method{predict}{regress}(object, pred_data = "", pred_cmd = "",
+\method{predict}{regress}(object, pred_data = NULL, pred_cmd = "",
   conf_lev = 0.95, se = TRUE, interval = "confidence", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}
 
-\item{pred_data}{Name of the dataset to use for prediction}
+\item{pred_data}{Provide the dataframe to generate predictions (e.g., diamonds). The dataset must contain all columns used in the estimation}
 
 \item{pred_cmd}{Command used to generate data for prediction}
 

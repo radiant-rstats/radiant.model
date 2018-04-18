@@ -554,17 +554,13 @@ observeEvent(input$regress_report, {
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$reg_predict %in% c("data", "datacmd")) {
-      name <- input$reg_store_pred_name
-      if (!is_empty(name)) {
-        name <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
-          gsub("\\s", "", .) %>%
-          deparse(., control = "keepNA", width.cutoff = 500L)
-      }
-      xcmd <- paste0(xcmd, "\n", input$reg_pred_data, " <- store(", 
+      name <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
+        gsub("\\s", "", .) %>%
+        deparse(., control = "keepNA", width.cutoff = 500L)
+      xcmd <- paste0(xcmd, "\n", input$reg_pred_data , " <- store(", 
         input$reg_pred_data, ", pred, name = ", name, ")"
       )
     }
-    # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/reg_predictions.csv\", row.names = FALSE)")
 
     if (input$reg_pred_plot && !is_empty(input$reg_xvar)) {
       inp_out[[3 + figs]] <- clean_args(reg_pred_plot_inputs(), reg_pred_plot_args[-1])
@@ -573,6 +569,7 @@ observeEvent(input$regress_report, {
       figs <- TRUE
     }
   }
+
   update_report(
     inp_main = clean_args(reg_inputs(), reg_args),
     fun_name = "regress",

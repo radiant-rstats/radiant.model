@@ -565,18 +565,11 @@ observeEvent(input$logistic_report, {
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
 
-    xcmd <- paste0("print(pred, n = 10)")
+    xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$logit_predict %in% c("data", "datacmd")) {
-      name <- input$logit_store_pred_name
-      if (!is_empty(name)) {
-        name <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
-          gsub("\\s", "", .) %>%
-          deparse(., control = "keepNA", width.cutoff = 500L)
-        # name <- unlist(strsplit(input$logit_store_pred_name, ",")) %>%
-          # gsub("\\s", "", .) %>%
-          # deparse(., control = "keepNA", width.cutoff = 500L)
-      }
-      # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$logit_pred_data, "\", name = ", name, ")")
+      name <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
+        gsub("\\s", "", .) %>%
+        deparse(., control = "keepNA", width.cutoff = 500L)
       xcmd <- paste0(xcmd, "\n", input$logit_pred_data, " <- store(", 
         input$logit_pred_data, ", pred, name = ", name, ")"
       )

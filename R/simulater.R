@@ -682,11 +682,11 @@ summary.repeater <- function(object, dec = 4, ...) {
   rc <- attr(object, "rep_call")
 
   ## legacy
-  if (is.null(rc)) {
-    rc <- list()
-    rc[c("nr", "byvar", "fun", "seed", "sim", "name", "form")] <- ""
-    rc$sc <- list(nr = "")
-  }
+  # if (is.null(rc)) {
+  #   rc <- list()
+  #   rc[c("nr", "byvar", "fun", "seed", "sim", "name", "form")] <- ""
+  #   rc$sc <- list(nr = "")
+  # }
 
   clean <- function(x) {
     paste0(x, collapse = ";") %>%
@@ -699,7 +699,7 @@ summary.repeater <- function(object, dec = 4, ...) {
   cat("Repeated simulation\n")
   cat("Simulations   :", ifelse(is_empty(rc$sc$nr), "", formatnr(rc$sc$nr, dec = 0)), "\n")
   cat("Repetitions   :", formatnr(ifelse(is_empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
-  if (length(rc$vars) > 0) {
+  if (!is_empty(rc$vars)) {
     cat("Re-simulated  :", paste0(rc$vars, collapse = ", "), "\n")
   }
   cat("Group by      :", ifelse(rc$byvar == "rep", "Repeat", "Simulation"), "\n")
@@ -716,7 +716,7 @@ summary.repeater <- function(object, dec = 4, ...) {
     cat("Repeat  data  :", rc$name, "\n")
   }
 
-  if (rc$byvar == "rep" && !is_empty(rc$grid)) {
+  if (isTRUE(rc$byvar == "rep") && !is_empty(rc$grid)) {
     cat("Grid search.  :", clean(rc$grid))
   }
 
@@ -754,8 +754,8 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   rc <- attr(x, "rep_call")
 
   ## legacy 
-  if (is.null(rc)) rc <- formals("repeater")
-  if (identical(rc$sum_vars, "")) return(invisible())
+  # if (is.null(rc)) rc <- formals("repeater")
+  # if (identical(rc$sum_vars, "")) return(invisible())
 
   cfun <- sub("_rm$", "", rc$fun)
   plot_list <- list()

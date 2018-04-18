@@ -455,7 +455,7 @@ observeEvent(input$nb_report, {
           deparse(., control = "keepNA", width.cutoff = 500L)
       }
       xcmd <- paste0(xcmd, "\n", input$nb_pred_data, " <- store(", 
-        input$nb_pred_data, ", pred, name = ", name, ")"
+        input$nb_pred_data, ", pred, name = \"", name, "\")"
       )
     }
 

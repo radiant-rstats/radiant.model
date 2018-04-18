@@ -4,12 +4,12 @@
 \alias{plot.nb}
 \title{Plot method for the nb function}
 \usage{
-\method{plot}{nb}(x, plots = "", lev = "All levels", ...)
+\method{plot}{nb}(x, plots = "correlations", lev = "All levels", ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{nb}}}
 
-\item{plots}{Plots to produce for the specified model. Use "" to avoid showing any plots (default). Use "vimp" for variable importance or "correlations" to examine conditional independence}
+\item{plots}{Plots to produce for the specified model. Use "" to avoid showing any plots. Use "vimp" for variable importance or "correlations" to examine conditional independence}
 
 \item{lev}{The level(s) in the response variable used as the basis for plots (defaults to "All levels")}
 

@@ -605,7 +605,7 @@ plot.logistic <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{logistic}}
-#' @param pred_data Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation
+#' @param pred_data Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
@@ -628,7 +628,7 @@ plot.logistic <- function(
 #'
 #' @export
 predict.logistic <- function(
-  object, pred_data = "", pred_cmd = "",
+  object, pred_data = NULL, pred_cmd = "",
   conf_lev = 0.95, se = TRUE, interval = "confidence",
   dec = 3, ...
 ) {
@@ -645,7 +645,7 @@ predict.logistic <- function(
   }
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) {
+  if (!is_empty(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 

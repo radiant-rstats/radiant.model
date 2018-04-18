@@ -31,10 +31,6 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   dataset <- getdata(dataset, c(rvar, evar), filt = data_filter)
-  # if (!is_string(dataset)) {
-  #   dataset <- deparse(substitute(dataset)) %>%
-  #     set_attr("df", TRUE)
-  # }
 
   if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
@@ -574,7 +570,7 @@ plot.regress <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{regress}}
-#' @param pred_data Name of the dataset to use for prediction
+#' @param pred_data Provide the dataframe to generate predictions (e.g., diamonds). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
@@ -595,7 +591,7 @@ plot.regress <- function(
 #'
 #' @export
 predict.regress <- function(
-  object, pred_data = "", pred_cmd = "", conf_lev = 0.95,
+  object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95,
   se = TRUE, interval = "confidence", dec = 3, ...
 ) {
 
@@ -610,8 +606,7 @@ predict.regress <- function(
     se <- FALSE
   }
 
-  ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) {
+  if (!is_empty(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 
@@ -653,7 +648,7 @@ predict.regress <- function(
 #' @param object Return value from \code{\link{regress}}
 #' @param pfun Function to use for prediction
 #' @param mclass Model class to attach
-#' @param pred_data Name of the dataset to use for prediction
+#' @param pred_data Dataset to use for prediction
 #' @param pred_cmd Command used to generate data for prediction (e.g., 'carat = 1:10')
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
@@ -664,7 +659,7 @@ predict.regress <- function(
 #'
 #' @export
 predict_model <- function(
-  object, pfun, mclass, pred_data = "", pred_cmd = "",
+  object, pfun, mclass, pred_data = NULL, pred_cmd = "",
   conf_lev = 0.95, se = FALSE, dec = 3, ...
 ) {
 
@@ -782,7 +777,7 @@ predict_model <- function(
       pred_type <- "data"
     }
 
-    na.omit(pred)
+    pred <- na.omit(pred)
   }
 
   if ("crtree" %in% class(object)) {
@@ -832,7 +827,9 @@ predict_model <- function(
     }
 
     ## adding attributes used by other methods
-    # pred <- set_attr(pred, "dataset", object$dataset) %>%
+    if (!is_empty(pred_data)) {
+      pred_data <- deparse(substitute(pred_data))
+    }
     pred <- set_attr(pred, "df_name", object$df_name) %>%
       set_attr("data_filter", object$data_filter) %>%
       set_attr("rvar", object$rvar) %>%
@@ -866,9 +863,9 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   vars <- attr(x, "vars")
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
-  if (!is.character(pred_data)) {
-    pred_data <- attr(pred_data, "pred_data")
-  }
+  # if (!is.character(pred_data)) {
+  #   pred_data <- attr(pred_data, "pred_data")
+  # }
 
   pred_cmd <- gsub("\\s*([\\=\\+\\*-])\\s*", " \\1 ", attr(x, "pred_cmd")) %>%
     gsub("(\\s*[;,]\\s*)", "\\1 ", .) %>%
@@ -965,17 +962,18 @@ plot.model.predict <- function(
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
-  object <- x; rm(x)
-  if (is.character(object)) return(object)
+  if (is.character(x)) return(x)
+  # object <- x; rm(x)
+  # if (is.character(object)) return(object)
 
-  cn <- colnames(object)
+  cn <- colnames(x)
   pvars <- "Prediction"
   cnpred <- which(cn == pvars)
   if (length(cn) > cnpred) {
     pvars <- c(pvars, "ymin", "ymax")
     cn[cnpred + 1] <- pvars[2]
     cn[cnpred + 2] <- pvars[3]
-    colnames(object) <- cn
+    colnames(x) <- cn
   }
 
   byvar <- NULL
@@ -990,11 +988,11 @@ plot.model.predict <- function(
 
   tbv <- if (is.null(byvar)) xvar else c(xvar, byvar)
 
-  if (any(!tbv %in% colnames(object))) {
+  if (any(!tbv %in% colnames(x))) {
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
   }
 
-  tmp <- object %>%
+  tmp <- x %>%
     group_by_at(.vars = tbv) %>%
     select_at(.vars = c(tbv, pvars)) %>%
     summarise_all(funs(mean))
@@ -1044,9 +1042,7 @@ plot.model.predict <- function(
 #' diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high")) 
 #'
 #' @export
-store.model.predict <- function(
-  dataset, object, name = "prediction", ... 
-) {
+store.model.predict <- function(dataset, object, name = "prediction", ...) {
 
   if (is_empty(name)) name <- "prediction"
 
@@ -1066,8 +1062,8 @@ store.model.predict <- function(
     df <- object[, "Prediction", drop = FALSE]
   }
 
-  vars <- colnames(object)[1:(ind - 1)]
-  indr <- indexr(dataset, vars, "", cmd = attr(object, "pred_cmd"))
+  vars <- colnames(object)[seq_len(ind - 1)]
+  indr <- indexr(dataset, vars = vars, filt = "", cmd = attr(object, "pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 
@@ -1085,18 +1081,14 @@ store.model.predict <- function(
 #' @param ... Additional arguments
 #'
 #' @examples
-#' model <- regress(diamonds, rvar = "price", evar = c("carat","cut"), data_filter = "price > 1000")
+#' model <- regress(diamonds, rvar = "price", evar = c("carat", "cut"), data_filter = "price > 1000")
 #' diamonds <- store(diamonds, model, name = "resid")
 #'
 #' @export
 store.model <- function(dataset, object, name = "residuals", ...) {
-  if (is_empty(name)) name <- "residuals"
-  # dat <- if (length(attr(object$dataset, "df")) > 0) object$model$model else object$dataset
-  indr <- indexr(dataset, c(object$rvar, object$evar), object$data_filter)
+  indr <- indexr(dataset, vars = c(object$rvar, object$evar), filt = object$data_filter)
   res <- rep(NA, indr$nr)
   res[indr$ind] <- object$model$residuals
-  # changedata(dat, vars = res, var_names = name)
-  # dataset[[name]] <- res
   dataset[[name]] <- res
   dataset
 }

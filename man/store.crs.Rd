@@ -2,7 +2,7 @@
 % Please edit documentation in R/crs.R
 \name{store.crs}
 \alias{store.crs}
-\title{Deprecates: Store method for the crs function}
+\title{Deprecated: Store method for the crs function}
 \usage{
 \method{store}{crs}(dataset, object, name, ...)
 }
@@ -16,7 +16,7 @@
 \item{...}{further arguments passed to or from other methods}
 }
 \description{
-Deprecates: Store method for the crs function
+Deprecated: Store method for the crs function
 }
 \details{
 Return recommendations See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant

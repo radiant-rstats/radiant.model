@@ -416,6 +416,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 #' @param object Return value from \code{\link{simulater}}
 #' @param input Print decision tree input
 #' @param output Print decision tree output
+#' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
 #'
 #' @importFrom data.tree Traverse Get FormatPercent
@@ -425,7 +426,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
+summary.dtree <- function(
+  object, input = TRUE, output = FALSE, 
+  dec = 2, ...
+) {
   if (is.character(object)) return(cat(object))
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
@@ -433,12 +437,11 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
   print_money <- function(x) {
     x %>% 
       {if (isNum(.)) . else ""} %>%
-      format(
-        digits = 10, 
-        nsmall = 2, 
+      formatC(
+        digits = dec, 
         decimal.mark = ".", 
         big.mark = ",", 
-        scientific = FALSE
+        format = "f"
       )
   }
 
@@ -449,11 +452,9 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
   }
 
   rm_terminal <- function(x)
-    x %>% {
-      if (is.na(.)) "" else .
-    } %>% {
-      if (. == "terminal") "" else .
-    }
+    x %>% 
+      {if (is.na(.)) "" else .} %>% 
+      {if (. == "terminal") "" else .}
 
   format_dtree <- function(jl) {
     ## set parent type
@@ -471,7 +472,8 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
         stringsAsFactors = FALSE
       )
     } %>% 
-    {.[[" "]] <- format(.[[" "]], justify = "left"); .}
+      {.[[" "]] <- format(.[[" "]], justify = "left"); .} %>%
+      formatdf(mark = ",", dec = dec)
   }
 
   if (input) {
@@ -481,7 +483,7 @@ summary.dtree <- function(object, input = TRUE, output = FALSE, ...) {
   }
 
   if (all(object$vars != "") && output) {
-    cat("Input values:\n")
+    cat("Variable input values:\n")
     print(as.data.frame(object$vars, stringsAsFactors = FALSE) %>% set_names(""))
   }
 

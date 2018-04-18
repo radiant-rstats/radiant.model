@@ -111,7 +111,7 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{nb}}
-#' @param plots Plots to produce for the specified model. Use "" to avoid showing any plots (default). Use "vimp" for variable importance or "correlations" to examine conditional independence
+#' @param plots Plots to produce for the specified model. Use "" to avoid showing any plots. Use "vimp" for variable importance or "correlations" to examine conditional independence
 #' @param lev The level(s) in the response variable used as the basis for plots (defaults to "All levels")
 #' @param ... further arguments passed to or from other methods
 #'
@@ -126,12 +126,9 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @seealso \code{\link{predict.nb}} for prediction
 #'
 #' @export
-plot.nb <- function(x, plots = "", lev = "All levels", ...) {
-  # object <- x; rm(x)
+plot.nb <- function(x, plots = "correlations", lev = "All levels", ...) {
   if (is.character(x)) return(x)
-  if (is_empty(plots[1])) {
-    return("Please select a naive Bayes plot from the drop-down menu")
-  }
+  if (is_empty(plots[1])) return(invisible())
 
   evar <- mutate_all(select(x$model$model, -1), funs(as_numeric))
   rvar <- x$model$model[[1]]
@@ -215,14 +212,14 @@ plot.nb <- function(x, plots = "", lev = "All levels", ...) {
 #'
 #' @export
 predict.nb <- function(
-  object, pred_data = "", pred_cmd = "",
+  object, pred_data = NULL, pred_cmd = "",
   pred_names = "", dec = 3, ...
 ) {
   
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
-  if (!is.character(pred_data)) {
+  if (!is_empty(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 

@@ -4,13 +4,13 @@
 \alias{predict.logistic}
 \title{Predict method for the logistic function}
 \usage{
-\method{predict}{logistic}(object, pred_data = "", pred_cmd = "",
+\method{predict}{logistic}(object, pred_data = NULL, pred_cmd = "",
   conf_lev = 0.95, se = TRUE, interval = "confidence", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{logistic}}}
 
-\item{pred_data}{Provide the name of a dataframe to generate predictions (e.g., "titanic"). The dataset must contain all columns used in the estimation}
+\item{pred_data}{Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation}
 
 \item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')}
 

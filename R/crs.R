@@ -257,7 +257,7 @@ plot.crs <- function(x, ...) {
   sshhr(p)
 }
 
-#' Deprecates: Store method for the crs function
+#' Deprecated: Store method for the crs function
 #'
 #' @details Return recommendations See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
@@ -280,25 +280,4 @@ store.crs <- function(dataset, object, name, ...) {
       call. = FALSE
     )
   }
-
-  # if (exists("r_environment")) {
-  #   env <- r_environment
-  # # } else if (exists("r_data")) {
-  #   # env <- pryr::where("r_data")
-  # } else {
-  #   assign(name, object, envir = envir)
-  #   message("Dataset ", name, " created in ", environmentName(envir), " environment")
-  #   return(invisible())
-  # }
-
-  # # ## use data description from the original if available
-  # if (is_empty(env$r_data[[paste0(name, "_descr")]])) {
-  #   attr(object, "description") <- paste0("## Collaborative Filtering\n\nThis dataset contains predicted ratings and ranking based on collaborative filter applied to the ", attr(object, "dataset"), "dataset.")
-  # } else {
-  #   attr(object, "description") <- env$r_data[[paste0(name, "_descr")]]
-  # }
-
-  # env$r_data[[name]] <- object
-  # env$r_data[[paste0(name, "_descr")]] <- attr(object, "description")
-  # env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
 }
