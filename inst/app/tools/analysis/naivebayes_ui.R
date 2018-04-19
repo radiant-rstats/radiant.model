@@ -436,26 +436,18 @@ observeEvent(input$nb_report, {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } 
     inp_out[[2 + figs]] <- pred_args
-    print(inp_out)
-
     outputs <- c(outputs, "pred <- predict")
-    # dataset <- if (input$nb_predict %in% c("data", "datacmd")) input$nb_pred_data else input$dataset
-
     xcmd <- paste0("print(pred, n = 10)")
-    # if (input$nb_predict %in% c("data", "datacmd")) {
-    #   xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$nb_pred_data, "\", name = \"", input$nb_store_pred_name, "\")")
-    # }
-    # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/nb_predictions.csv\", row.names = FALSE)")
-
     if (input$nb_predict %in% c("data", "datacmd")) {
       name <- input$nb_store_pred_name
       if (!is_empty(name)) {
         name <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
           gsub("\\s", "", .) %>%
+          make.names() %>%
           deparse(., control = "keepNA", width.cutoff = 500L)
       }
       xcmd <- paste0(xcmd, "\n", input$nb_pred_data, " <- store(", 
-        input$nb_pred_data, ", pred, name = \"", name, "\")"
+        input$nb_pred_data, ", pred, name = ", name, ")"
       )
     }
 

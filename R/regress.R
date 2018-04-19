@@ -662,13 +662,13 @@ predict_model <- function(
 ) {
 
   if (is.character(object)) return(object)
-  if (!is.data.frame(pred_data) && is_empty(pred_cmd)) {
+  if (is_empty(pred_data) && is_empty(pred_cmd)) {
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
   }
 
   pred_type <- "cmd"
   vars <- object$evar
-  if (!is.data.frame(pred_data) && !is_empty(pred_cmd)) {
+  if (!is_empty(pred_cmd) && is_empty(pred_data)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")
@@ -745,7 +745,6 @@ predict_model <- function(
   } else {
     ## generate predictions for all observations in the dataset
     pred <- getdata(pred_data, filt = "", na.rm = FALSE)
-    # pred_names <- names(pred)
     pred_names <- colnames(pred)
     pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 

@@ -246,7 +246,6 @@ observeEvent(input$crs_store_pred, {
     return("No data selected to generate recommendations")
   }
   name <- input$crs_store_pred_name
-  # store(pred, input$crs_store_pred_name)
   r_data[[name]] <- pred$recommendations
   register(name)
 
