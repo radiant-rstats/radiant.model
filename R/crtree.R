@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset 
 #' @param rvar The response variable in the model
 #' @param evar Explanatory variables in the model
 #' @param type Model type (i.e., "classification" or "regression")
@@ -64,9 +64,8 @@ crtree <- function(
     vars <- c(rvar, evar, wtsname)
   }
 
-  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- getdata(dataset, vars, filt = data_filter)
-  # if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
@@ -577,13 +576,7 @@ predict.crtree <- function(
 ) {
   
   if (is.character(object)) return(object)
-
-  ## ensure you have a name for the prediction dataset
-  # if (!is.character(pred_data)) {
-  #   attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
-  # }
-
-  if (!is_empty(pred_data)) {
+  if (is.data.frame(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 

@@ -4,11 +4,11 @@
 \alias{scaledf}
 \title{Center or standardize variables in a data frame}
 \usage{
-scaledf(dat, center = TRUE, scale = TRUE, sf = 2, wts = NULL,
+scaledf(dataset, center = TRUE, scale = TRUE, sf = 2, wts = NULL,
   calc = TRUE)
 }
 \arguments{
-\item{dat}{Data frame}
+\item{dataset}{Data frame}
 
 \item{center}{Center data (TRUE or FALSE)}
 

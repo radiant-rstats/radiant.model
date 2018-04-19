@@ -327,7 +327,7 @@ confusion <- function(
     break_even <- cost / margin
   }
 
-  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
@@ -340,8 +340,6 @@ confusion <- function(
   } else {
     dat_list[["All"]] <- getdata(dataset, vars, filt = "")
   }
-
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   pdat <- list()
   for (i in names(dat_list)) {

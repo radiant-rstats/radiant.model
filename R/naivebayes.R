@@ -219,7 +219,7 @@ predict.nb <- function(
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
-  if (!is_empty(pred_data)) {
+  if (is.data.frame(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 
@@ -294,7 +294,6 @@ plot.nb.predict <- function(
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
-  # object <- x; rm(x)
   if (is.character(x)) return(x)
 
   pvars <- setdiff(attr(x, "vars"), attr(x, "evar"))

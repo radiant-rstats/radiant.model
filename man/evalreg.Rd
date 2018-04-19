@@ -7,7 +7,7 @@
 evalreg(dataset, pred, rvar, train = "", data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{pred}{Predictions or predictors}
 

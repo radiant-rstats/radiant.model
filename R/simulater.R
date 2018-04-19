@@ -376,11 +376,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 #' @export
 plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
-    # if (x[1] == "error") {
-      return(invisible())
-    # } else {
-      # stop("To generate plots please provide a simulated dataset as input", call. = FALSE)
-    # }
+    return(invisible())
   } 
   if (nrow(x) == 0) return(invisible())
   plot_list <- list()
@@ -446,7 +442,6 @@ repeater <- function(
   name = ""
 ) {
 
-  # if (!is_empty(name)) message("Use of the 'name' argument is deprecated. Please remove it from the call to 'repeater'")
   if (byvar == "sim") grid <- ""
   if (is_empty(nr)) {
     if (is_empty(grid)) {
@@ -457,14 +452,12 @@ repeater <- function(
     }
   }
 
-  # dat <- sim; rm(sim)
   if (is_string(dataset)) {
     df_name <- dataset
     dataset <- getdata(dataset)
   } else {
     df_name <- deparse(substitute(dataset)) 
   }
-  # if (is_string(dataset)) dataset <- getdata(dataset)
   if (!is_empty(seed)) set.seed(as_numeric(seed))
 
   if (identical(vars, "") && identical(grid, "")) {

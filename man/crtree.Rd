@@ -10,7 +10,7 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
   cost = NA, margin = NA, check = "", data_filter = "")
 }
 \arguments{
-\item{dataset}{Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant}
+\item{dataset}{Dataset}
 
 \item{rvar}{The response variable in the model}
 

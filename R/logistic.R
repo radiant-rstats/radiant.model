@@ -46,12 +46,8 @@ logistic <- function(
     vars <- c(rvar, evar, wtsname)
   }
 
-  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- getdata(dataset, vars, filt = data_filter)
-  # if (!is_string(dataset)) {
-  #   dataset <- deparse(substitute(dataset)) %>%
-  #     set_attr("df", TRUE)
-  # }
 
   if (missing(ci_type)) {
     ## Use profiling for smaller datasets
@@ -150,12 +146,10 @@ logistic <- function(
   attr(model$model, "max") <- mmx[["max"]]
 
   coeff <- tidy(model)
-  # colnames(coeff) <- c("  ", "coefficient", "std.error", "z.value", "p.value")
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      # coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
       coeff$label %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
@@ -169,7 +163,6 @@ logistic <- function(
     coeff$p.value <- 2 * pnorm(abs(coeff$z.value), lower.tail = FALSE)
   }
 
-  # coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$sig_star <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$OR <- exp(coeff$coefficient)
   coeff <- coeff[, c("label", "OR", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
@@ -252,7 +245,6 @@ summary.logistic <- function(
   cat("\n")
 
   coeff <- object$coeff
-  # coeff$`  ` %<>% format(justify = "left")
   coeff$label %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
   coeff[, 2:6] %<>% formatdf(dec)
@@ -334,7 +326,6 @@ summary.logistic <- function(
           {.$`+/-` <- (.$High - .$coefficient)} %>%
           formatdf(dec) %>%
           set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
-          # set_rownames(object$coeff$`  `) %>%
           set_rownames(object$coeff$label) %>%
           print()
         cat("\n")
@@ -350,7 +341,6 @@ summary.logistic <- function(
       exp(ci_tab[-1, ]) %>%
         formatdf(dec) %>%
         set_colnames(c(orlab, ci_perc[1], ci_perc[2])) %>%
-        # set_rownames(object$coeff$`  `[-1]) %>%
         set_rownames(object$coeff$label[-1]) %>%
         print()
       cat("\n")
@@ -519,7 +509,6 @@ plot.logistic <- function(
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(x$coeff, 2), .) %>%
-      # set_rownames(x$coeff$`  `) %>%
       set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
@@ -645,7 +634,7 @@ predict.logistic <- function(
   }
 
   ## ensure you have a name for the prediction dataset
-  if (!is_empty(pred_data)) {
+  if (is.data.frame(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 

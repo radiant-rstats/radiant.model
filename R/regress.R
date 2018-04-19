@@ -29,7 +29,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
       add_class("regress"))
   }
 
-  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- getdata(dataset, c(rvar, evar), filt = data_filter)
 
   if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
@@ -166,7 +166,6 @@ summary.regress <- function(
   }
 
   cat("Linear regression (OLS)\n")
-  # cat("Data     :", object$dataset, "\n")
   cat("Data     :", object$df_name, "\n")
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
@@ -401,23 +400,22 @@ plot.regress <- function(
   custom = FALSE, ...
 ) {
 
-  object <- x; rm(x)
-  if (is.character(object)) return(object)
+  if (is.character(x)) return(x)
 
-  ## checking object size
-  if (inherits(object$model, "lm")) {
-    model <- ggplot2::fortify(object$model)
-  } else if (inherits(object, "nn")) {
-    model <- object$model$model
-    model$pred <- predict(object, object$model$model)$Prediction
-    model <- lm(formula(paste0(object$rvar, " ~ ", "pred")), data = model) %>%
+  ## checking x size
+  if (inherits(x$model, "lm")) {
+    model <- ggplot2::fortify(x$model)
+  } else if (inherits(x, "nn")) {
+    model <- x$model$model
+    model$pred <- predict(x, x$model$model)$Prediction
+    model <- lm(formula(paste0(x$rvar, " ~ ", "pred")), data = model) %>%
       ggplot2::fortify()
   } else {
-    return(object)
+    return(x)
   }
 
-  rvar <- object$rvar
-  evar <- object$evar
+  rvar <- x$rvar
+  evar <- x$evar
   vars <- c(rvar, evar)
 
   flines <- sub("loess", "", lines) %>% sub("line", "", .)
@@ -504,23 +502,23 @@ plot.regress <- function(
   if ("coef" %in% plots) {
     nrCol <- 1
 
-    if (nrow(object$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
+    if (nrow(x$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
 
-    yl <- if ("standardize" %in% object$check) "Coefficient (standardized)" else "Coefficient"
+    yl <- if ("standardize" %in% x$check) "Coefficient (standardized)" else "Coefficient"
 
-    if ("robust" %in% object$check) {
+    if ("robust" %in% x$check) {
       cnfint <- radiant.model::confint_robust
     } else {
       cnfint <- confint
     }
 
-    plot_list[["coef"]] <- cnfint(object$model, level = conf_lev, dist = "t") %>%
+    plot_list[["coef"]] <- cnfint(x$model, level = conf_lev, dist = "t") %>%
       data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
-      cbind(select(object$coeff, 2), .) %>%
-      # set_rownames(object$coeff$`  `) %>%
-      set_rownames(object$coeff$label) %>%
+      cbind(select(x$coeff, 2), .) %>%
+      # set_rownames(x$coeff$`  `) %>%
+      set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
@@ -531,22 +529,22 @@ plot.regress <- function(
       geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
       labs(y = yl, x = "") +
       scale_x_discrete(limits = {
-        # if (intercept) rev(object$coeff$`  `) else rev(object$coeff$`  `[-1])
-        if (intercept) rev(object$coeff$label) else rev(object$coeff$label[-1])
+        # if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])
+        if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])
       }) +
       coord_flip() +
       theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("correlations" %in% plots) {
-    return(radiant.basics:::plot.correlation(object$model$model, nrobs = nrobs))
+    return(radiant.basics:::plot.correlation(x$model$model, nrobs = nrobs))
   }
 
   # if ("leverage" %in% plots) {
   #   ## no plots if aliased coefficients present
-  #   if (anyNA(object$model$coeff))
+  #   if (anyNA(x$model$coeff))
   #     return("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nLeverage plot will not be shown")
-  #   return(car::leveragePlots(object$model, main = "", ask=FALSE, id.n = 1,
+  #   return(car::leveragePlots(x$model, main = "", ask=FALSE, id.n = 1,
   #          layout = c(ceiling(length(evar)/2),2)))
   # }
 
@@ -606,7 +604,7 @@ predict.regress <- function(
     se <- FALSE
   }
 
-  if (!is_empty(pred_data)) {
+  if (is.data.frame(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 
@@ -664,13 +662,13 @@ predict_model <- function(
 ) {
 
   if (is.character(object)) return(object)
-  if (is_empty(pred_data) && is_empty(pred_cmd)) {
+  if (!is.data.frame(pred_data) && is_empty(pred_cmd)) {
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
   }
 
   pred_type <- "cmd"
   vars <- object$evar
-  if (is_empty(pred_data) && !is_empty(pred_cmd)) {
+  if (!is.data.frame(pred_data) && !is_empty(pred_cmd)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")
@@ -747,11 +745,11 @@ predict_model <- function(
   } else {
     ## generate predictions for all observations in the dataset
     pred <- getdata(pred_data, filt = "", na.rm = FALSE)
-    pred_names <- names(pred)
+    # pred_names <- names(pred)
+    pred_names <- colnames(pred)
     pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 
     if (is(pred, "try-error")) {
-      # return(paste0("Model variables: ", paste0(vars, collapse = ", "), "\nProfile variables to be added: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
       return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
     }
 
@@ -827,7 +825,7 @@ predict_model <- function(
     }
 
     ## adding attributes used by other methods
-    if (!is_empty(pred_data)) {
+    if (is.data.frame(pred_data)) {
       pred_data <- deparse(substitute(pred_data))
     }
     pred <- set_attr(pred, "df_name", object$df_name) %>%
@@ -863,9 +861,6 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   vars <- attr(x, "vars")
   pred_type <- attr(x, "pred_type")
   pred_data <- attr(x, "pred_data")
-  # if (!is.character(pred_data)) {
-  #   pred_data <- attr(pred_data, "pred_data")
-  # }
 
   pred_cmd <- gsub("\\s*([\\=\\+\\*-])\\s*", " \\1 ", attr(x, "pred_cmd")) %>%
     gsub("(\\s*[;,]\\s*)", "\\1 ", .) %>%
@@ -955,16 +950,12 @@ plot.model.predict <- function(
   conf_lev = .95, ...
 ) {
 
+  if (is.character(x)) return(x)
   ## should work with req in regress_ui but doesn't
   if (is_empty(xvar)) return(invisible())
-
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
   }
-
-  if (is.character(x)) return(x)
-  # object <- x; rm(x)
-  # if (is.character(object)) return(object)
 
   cn <- colnames(x)
   pvars <- "Prediction"
@@ -1092,16 +1083,6 @@ store.model <- function(dataset, object, name = "residuals", ...) {
   dataset[[name]] <- res
   dataset
 }
-
-## pre MRB
-# store.model <- function(object, ..., name = "residuals") {
-#   if (is_empty(name)) name <- "residuals"
-#   dat <- if (length(attr(object$dataset, "df")) > 0) object$model$model else object$dataset
-#   indr <- indexr(dat, c(object$rvar, object$evar), object$data_filter)
-#   res <- rep(NA, indr$nr)
-#   res[indr$ind] <- object$model$residuals
-#   changedata(dat, vars = res, var_names = name)
-# }
 
 #' Check if main effects for all interaction effects are included in the model
 #' If ':' is used to select a range _evar_ is updated

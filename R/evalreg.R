@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
-#' @param dataset Dataset name (string). This can be a dataframe in the global environment or an element in an r_data list from Radiant
+#' @param dataset Dataset 
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalreg
@@ -25,6 +25,7 @@ evalreg <- function(
 
   # Add an option to exponentiate predictions in case of log regression
 
+  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
@@ -37,8 +38,6 @@ evalreg <- function(
   } else {
     dat_list[["All"]] <- getdata(dataset, vars, filt = "")
   }
-
-  if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   pdat <- list()
   for (i in names(dat_list)) {
@@ -80,7 +79,7 @@ evalreg <- function(
 summary.evalreg <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
   cat("Evaluate predictions for regression models\n")
-  cat("Data        :", object$dataset, "\n")
+  cat("Data        :", object$df_name, "\n")
   if (object$data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
   }
@@ -103,13 +102,11 @@ summary.evalreg <- function(object, dec = 3, ...) {
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #'
 #' @export
-plot.evalreg <- function(x, 
-                         vars = c("Rsq", "RMSE", "MAE"), 
-                         ...) {
-  object <- x; rm(x)
-  if (is.character(object) || is.null(object)) return(invisible())
+plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
 
-  dat <- gather(object$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
+  if (is.character(x) || is.null(x)) return(invisible())
+
+  dat <- gather(x$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
   ## what data was used in evaluation? All, Training, Validation, or Both

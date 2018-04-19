@@ -54,9 +54,8 @@ nn <- function(
     vars <- c(rvar, evar, wtsname)
   }
 
-  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- getdata(dataset, vars, filt = data_filter)
-  # if (!is_string(dataset)) dataset <- deparse(substitute(dataset)) %>% set_attr("df", TRUE)
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
@@ -150,7 +149,7 @@ nn <- function(
 
 #' Center or standardize variables in a data frame
 #'
-#' @param dat Data frame
+#' @param dataset Data frame
 #' @param center Center data (TRUE or FALSE)
 #' @param scale Scale data (TRUE or FALSE)
 #' @param sf Scaling factor (default is 2)
@@ -163,52 +162,52 @@ nn <- function(
 #'
 #' @export
 scaledf <- function(
-  dat, center = TRUE, scale = TRUE, 
+  dataset, center = TRUE, scale = TRUE, 
   sf = 2, wts = NULL, calc = TRUE
 ) {
 
-  isNum <- sapply(dat, function(x) is.numeric(x))
-  if (sum(isNum) == 0) return(dat)
+  isNum <- sapply(dataset, function(x) is.numeric(x))
+  if (sum(isNum) == 0) return(dataset)
   cn <- names(isNum)[isNum]
 
   ## remove set_attr calls when dplyr removes and keep attributes appropriately
-  desc <- attr(dat, "description")
+  desc <- attr(dataset, "description")
   if (calc) {
     if (length(wts) == 0) {
-      ms <- summarise_at(dat, .vars = cn, .funs = funs(mean(., na.rm = TRUE))) %>%
+      ms <- summarise_at(dataset, .vars = cn, .funs = funs(mean(., na.rm = TRUE))) %>%
         set_attr("description", NULL)
       if (scale) {
-        sds <- summarise_at(dat, .vars = cn, .funs = funs(sd(., na.rm = TRUE))) %>%
+        sds <- summarise_at(dataset, .vars = cn, .funs = funs(sd(., na.rm = TRUE))) %>%
           set_attr("description", NULL)
       }
     } else {
-      ms <- summarise_at(dat, .vars = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE))) %>%
+      ms <- summarise_at(dataset, .vars = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE))) %>%
         set_attr("description", NULL)
       if (scale) {
-        sds <- summarise_at(dat, .vars = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE))) %>%
+        sds <- summarise_at(dataset, .vars = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE))) %>%
           set_attr("description", NULL)
       }
     }
   } else {
-    ms <- attr(dat, "ms")
-    sds <- attr(dat, "sds")
-    if (is.null(ms) && is.null(sds)) return(dat)
+    ms <- attr(dataset, "ms")
+    sds <- attr(dataset, "sds")
+    if (is.null(ms) && is.null(sds)) return(dataset)
   }
   if (center && scale) {
-    mutate_at(dat, .vars = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
+    mutate_at(dataset, .vars = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
       set_attr("ms", ms) %>%
       set_attr("sds", sds) %>%
       set_attr("description", desc)
   } else if (center) {
-    mutate_at(dat, .vars = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
+    mutate_at(dataset, .vars = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
       set_attr("ms", ms) %>%
       set_attr("description", desc)
   } else if (scale) {
-    mutate_at(dat, .vars = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
+    mutate_at(dataset, .vars = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
       set_attr("sds", sds) %>%
       set_attr("description", desc)
   } else {
-    dat
+    dataset
   }
 }
 
@@ -313,7 +312,6 @@ plot.nn <- function(
 ) {
 
   if (is.character(x)) return(x)
-  # object <- x; rm(x)
   plot_list <- list()
   ncol <- 1
 
@@ -389,7 +387,7 @@ predict.nn <- function(
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
-  if (!is_empty(pred_data)) {
+  if (is.data.frame(pred_data)) {
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 
