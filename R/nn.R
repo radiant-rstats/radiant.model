@@ -388,7 +388,9 @@ predict.nn <- function(
 
   ## ensure you have a name for the prediction dataset
   if (is.data.frame(pred_data)) {
-    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+    df_name <- deparse(substitute(pred_data))
+  } else {
+    df_name <- pred_data
   }
 
   pfun <- function(model, pred, se, conf_lev) {
@@ -403,7 +405,8 @@ predict.nn <- function(
     pred_val
   }
 
-  predict_model(object, pfun, "nn.predict", pred_data, pred_cmd, conf_lev = 0.95, se = FALSE, dec)
+  predict_model(object, pfun, "nn.predict", pred_data, pred_cmd, conf_lev = 0.95, se = FALSE, dec) %>%
+    set_attr("pred_data", df_name)
 }
 
 #' Print method for predict.nn

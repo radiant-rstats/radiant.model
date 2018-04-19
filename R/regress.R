@@ -605,7 +605,9 @@ predict.regress <- function(
   }
 
   if (is.data.frame(pred_data)) {
-    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+    df_name <- deparse(substitute(pred_data))
+  } else {
+    df_name <- pred_data
   }
 
   pfun <- function(model, pred, se, conf_lev) {
@@ -636,7 +638,8 @@ predict.regress <- function(
   }
 
   predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
-    set_attr("interval", interval)
+    set_attr("interval", interval) %>%
+    set_attr("pred_data", df_name)
 }
 
 #' Predict method for model functions
@@ -824,9 +827,9 @@ predict_model <- function(
     }
 
     ## adding attributes used by other methods
-    if (is.data.frame(pred_data)) {
-      pred_data <- deparse(substitute(pred_data))
-    }
+    # if (is.data.frame(pred_data)) {
+    #   pred_data <- deparse(substitute(pred_data))
+    # }
     pred <- set_attr(pred, "df_name", object$df_name) %>%
       set_attr("data_filter", object$data_filter) %>%
       set_attr("rvar", object$rvar) %>%
@@ -836,7 +839,7 @@ predict_model <- function(
       set_attr("vars", vars) %>%
       set_attr("dec", dec) %>%
       set_attr("pred_type", pred_type) %>%
-      set_attr("pred_data", pred_data) %>%
+      # set_attr("pred_data", pred_data) %>%
       set_attr("pred_cmd", pred_cmd)
 
     return(add_class(pred, c(mclass, "model.predict")))
@@ -866,7 +869,6 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     gsub("\\s+=\\s+=\\s+", " == ", .)
 
   cat(header)
-  # cat("\nData                 :", attr(x, "dataset"), "\n")
   cat("\nData                 :", attr(x, "df_name"), "\n")
   if (data_filter %>% gsub("\\s", "", .) != "") {
     cat("Filter               :", gsub("\\n", "", data_filter), "\n")

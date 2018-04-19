@@ -635,7 +635,9 @@ predict.logistic <- function(
 
   ## ensure you have a name for the prediction dataset
   if (is.data.frame(pred_data)) {
-    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
+    df_name <- deparse(substitute(pred_data))
+  } else {
+    df_name <- pred_data
   }
 
   pfun <- function(model, pred, se, conf_lev) {
@@ -674,7 +676,8 @@ predict.logistic <- function(
   }
 
   predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
-    set_attr("interval", interval)
+    set_attr("interval", interval) %>%
+    set_attr("pred_data", df_name)
 }
 
 #' Print method for logistic.predict

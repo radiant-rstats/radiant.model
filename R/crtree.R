@@ -580,6 +580,12 @@ predict.crtree <- function(
     attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
   }
 
+  if (is.data.frame(pred_data)) {
+    df_name <- deparse(substitute(pred_data))
+  } else {
+    df_name <- pred_data
+  }
+
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
@@ -593,7 +599,8 @@ predict.crtree <- function(
     pred_val
   }
 
-  predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec)
+  predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
+    set_attr("pred_data", df_name)
 }
 
 #' Print method for predict.crtree
