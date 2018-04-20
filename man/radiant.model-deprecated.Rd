@@ -3,14 +3,11 @@
 \docType{package}
 \name{radiant.model-deprecated}
 \alias{radiant.model-deprecated}
-\alias{regression}
-\alias{glm_reg}
-\alias{performance}
 \alias{ann}
 \alias{radiant.model-deprecated-package}
 \title{Deprecated function(s) in the radiant.model package}
 \usage{
-regression(...)
+ann(...)
 }
 \arguments{
 \item{...}{Parameters to be passed to the updated functions}
@@ -22,9 +19,6 @@ radiant. They will eventually be  removed.
 \section{Details}{
 
 \tabular{rl}{
-  \code{regression} is now a synonym for \code{\link{regress}}\cr
-  \code{glm_reg} is now a synonym for \code{\link{logistic}}\cr
-  \code{performance} is now a synonym for \code{\link{evalbin}}\cr
   \code{ann} is now a synonym for \code{\link{nn}}\cr
 }
 }

@@ -6,28 +6,13 @@
 #' @name radiant.model-deprecated
 #' @param ... Parameters to be passed to the updated functions
 #' @docType package
-#' @export  regression glm_reg performance ann
-#' @aliases regression glm_reg performance ann
+#' @export  ann
+#' @aliases ann
 #' @section Details:
 #' \tabular{rl}{
-#'   \code{regression} is now a synonym for \code{\link{regress}}\cr
-#'   \code{glm_reg} is now a synonym for \code{\link{logistic}}\cr
-#'   \code{performance} is now a synonym for \code{\link{evalbin}}\cr
 #'   \code{ann} is now a synonym for \code{\link{nn}}\cr
 #' }
 #'
-regression <- function(...) {
-  .Deprecated("regress", package = "radiant.model")
-  regress(...)
-}
-glm_reg <- function(...) {
-  .Deprecated("logistic", package = "radiant.model")
-  logistic(...)
-}
-performance <- function(...) {
-  .Deprecated("evalbin", package = "radiant.model")
-  evalbin(...)
-}
 ann <- function(...) {
   .Deprecated("nn", package = "radiant.model")
   nn(...)
