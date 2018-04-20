@@ -24,7 +24,7 @@ dtree_max_min <- c("Max" = "max", "Min" = "min")
 
 output$ui_dtree_list <- renderUI({
   dtree_list <- r_data$dtree_list
-  if (length(dtree_list) == 0) return(invisible())
+  req(dtree_list)
   selectInput(
     inputId = "dtree_list", label = NULL,
     choices = dtree_list, selected = state_init("dtree_list", dtree_list[1]),
@@ -106,27 +106,6 @@ observeEvent(input$dtree_sense_del, {
   var_remover("dtree_sense")
 })
 
-# dtree_inputs <- reactive({
-#   # input$dtree_edit
-#   # input$dtree_opt
-# })
-
-# observe({
-#   ## dep on most inputs
-#   # input$dtree_edit
-#   # input$dtree_opt
-
-#   ## notify user when the regression needs to be updated
-#   ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-#   if (pressed(input$dtree_run)) {
-#     if (isTRUE(attr(dtree_inputs, "observable")$.invalidated)) {
-#       updateActionButton(session, "dtree_run", "Re-calculate tree", icon = icon("refresh", class = "fa-spin"))
-#     } else {
-#       updateActionButton(session, "dtree_run", "Calculate tree", icon = icon("play"))
-#     }
-#   }
-# })
-
 output$dtree <- renderUI({
   tabsetPanel(
     id = "tabs_dtree",
@@ -168,7 +147,7 @@ output$dtree <- renderUI({
         hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
         tabSize = 4,
         showInvisibles = TRUE,
-        useSoftTabs = FALSE,
+        useSoftTabs = TRUE,
         autoComplete = "live",
         setBehavioursEnabled = FALSE
       ),
@@ -247,7 +226,6 @@ tree_types <- c("name:", "variables:", "type:", "cost:", "payoff:", "p:")
 ## Create auto complete list
 observe({
   req(input$dtree_name)
-  req(r_data[[input$dtree_name]])
   comps <- list(
     `tree-input` = c("name:", "variables:", "type: decision", "type: chance", "cost: 000", "payoff: 000", "p: 0.5")
   )
@@ -259,6 +237,9 @@ observe({
     comps[["dtree_list"]] <- paste0("dtree('", trees, "')")
   }
 
+  ## 'live' updating of the active tree input
+  r_data[[input$dtree_name]] <- input$dtree_edit
+
   for (tree in trees) {
     rows <- strsplit(r_data[[tree]], "\n")[[1]]
     comps[[tree]] <- gsub("\\s*([^#]+:).*", "\\1", rows) %>%
@@ -269,6 +250,7 @@ observe({
       .[!grepl("^#", .)]
   }
 
+  ## only using 'static' auto-completion (i.e., not local ('text') or R-language ('rlang'))
   shinyAce::updateAceEditor(
     session, "dtree_edit",
     autoCompleters = "static",
@@ -413,6 +395,7 @@ observeEvent(input$dtree_load_yaml, {
 
   dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name)
   r_data[[dtree_name]] <- yaml_file
+  shiny::makeReactiveBinding(dtree_name, env = r_data)
   r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   shinyAce::updateAceEditor(session, "dtree_edit", value = gsub("\t", "    ", yaml_file))
@@ -426,7 +409,6 @@ observeEvent(input$dtree_list, {
   r_data[[dtree_name]] <- input$dtree_edit
 
   yl <- r_data[[input$dtree_list[1]]]
-
   if (is.list(yl)) {
     yl <- yaml::as.yaml(yl, indent = 4)
   }
