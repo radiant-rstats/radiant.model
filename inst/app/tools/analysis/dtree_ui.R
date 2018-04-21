@@ -457,7 +457,12 @@ observeEvent(input$dtree_remove, {
   inp_out <- list(list(input = TRUE, output = FALSE), "")
   figs <- FALSE
   if (!is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
-    inp_out[[2]] <- list(vars = gsub("\n+", "", input$dtree_sense), decs = input$dtree_sense_decision, custom = FALSE)
+    vars <- strsplit(input$dtree_sense, ";")[[1]] %>% gsub("\n+", "", .) 
+    inp_out[[2]] <- list(
+      vars = vars, 
+      decs = input$dtree_sense_decision, 
+      custom = FALSE
+    )
     outputs <- c(outputs, "sensitivity")
     figs <- TRUE
   }
