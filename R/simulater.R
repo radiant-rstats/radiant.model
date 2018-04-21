@@ -36,7 +36,7 @@
 #' @export
 simulater <- function(
   const = "", lnorm = "", norm = "", unif = "", discrete = "",
-  binom = "", pois = "", sequ = "", grid = "", data = "", 
+  binom = "", pois = "", sequ = "", grid = "", data = NULL, 
   form = "", seed = NULL, nexact = FALSE, ncorr = NULL, 
   name = "", nr = 1000, dataset = NULL
 ) {
@@ -55,8 +55,7 @@ simulater <- function(
     s <- grid %>% sim_splitter()
       for (i in 1:length(s)) {
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
-      s[[i]] %>% 
-        {dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))}
+      s[[i]] %>% {dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), as.numeric(.[4]))}
     }
     dataset <- as.list(expand.grid(dataset) %>% as.data.frame(stringsAsFactors = FALSE))
     nr <- length(dataset[[1]])
@@ -72,9 +71,7 @@ simulater <- function(
   if (const != "") {
     s <- const %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {
-        dataset[[.[1]]] <<- as.numeric(.[2]) %>% rep(nr)
-      }
+      s[[i]] %>% {dataset[[.[1]]] <<- as.numeric(.[2]) %>% rep(nr)}
   }
 
   ## parsing uniform
@@ -82,9 +79,7 @@ simulater <- function(
   if (unif != "") {
     s <- unif %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {
-        dataset[[.[1]]] <<- runif(nr, as.numeric(.[2]), as.numeric(.[3]))
-      }
+      s[[i]] %>% {dataset[[.[1]]] <<- runif(nr, as.numeric(.[2]), as.numeric(.[3]))}
   }
 
   ## parsing log normal
@@ -97,9 +92,7 @@ simulater <- function(
         mess <- c("error", paste0("All log-normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
-      s[[i]] %>% {
-        dataset[[.[1]]] <<- rlnorm(nr, as.numeric(.[2]), sdev)
-      }
+      s[[i]] %>% {dataset[[.[1]]] <<- rlnorm(nr, as.numeric(.[2]), sdev)}
     }
   }
 
@@ -162,9 +155,7 @@ simulater <- function(
   if (binom != "") {
     s <- binom %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {
-        dataset[[.[1]]] <<- rbinom(nr, as_integer(.[2]), as_numeric(.[3]))
-      }
+      s[[i]] %>% {dataset[[.[1]]] <<- rbinom(nr, as_integer(.[2]), as_numeric(.[3]))}
   }
 
   ## parsing poisson
@@ -172,9 +163,7 @@ simulater <- function(
   if (pois != "") {
     s <- pois %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {
-        dataset[[.[1]]] <<- rpois(nr, as_integer(.[2]))
-      }
+      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, as_integer(.[2]))}
   }
 
   ## parsing sequence
@@ -182,16 +171,14 @@ simulater <- function(
   if (sequ != "") {
     s <- sequ %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {
-        dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), length.out = as.numeric(nr))
-      }
+      s[[i]] %>% {dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), length.out = as.numeric(nr))}
   }
 
   ## adding data to dataset list
-  if (data != "" && data != "none") {
-    sdat <- getdata(data)
-    for (i in colnames(sdat))
-      dataset[[i]] <- sdat[[i]]
+  if (is.data.frame(data)) {
+    for (i in colnames(data)) {
+      dataset[[i]] <- data[[i]]
+    }
   }
 
   ## parsing discrete
@@ -221,7 +208,7 @@ simulater <- function(
       gsub("\\s+", "", .) %>% 
       sim_splitter("=")
     for (i in 1:length(s)) {
-      if (grepl("^\\s*#", s[[i]][1], perl = TRUE)) next
+      if (grepl("^\\s*?#", s[[i]][1], perl = TRUE)) next
       obj <- s[[i]][1]
       fobj <- s[[i]][-1]
       if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
@@ -230,15 +217,21 @@ simulater <- function(
         dataset[[obj]] <- out
       } else {
         dataset[[obj]] <- NA
-        mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message))
+        mess <- c(
+            "error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% 
+            unlist() %>% 
+            paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message)
+        )
         return(add_class(mess, "simulater"))
       }
     }
   }
 
   ## removing data from dataset list
-  if (!data %in% c("", "none")) {
-    dataset[colnames(sdat)] <- NULL
+  if (is.data.frame(data)) {
+    dataset[colnames(data)] <- NULL
+    # print(deparse(substitute(data)))
+    # attr(dataset, "df_name") <- deparse(substitute(data))
   }
 
   ## convert list to a data.frame
@@ -246,42 +239,22 @@ simulater <- function(
 
   ## capturing the function call for use in repeat
   sc <- formals()
-  smc <- lapply(match.call()[-1], eval)
+  smc <- lapply(match.call()[-1], eval, envir = parent.frame())
   sc[names(smc)] <- smc
   sc$nr <- nr
   sc$ncorr <- ncorr
   sc$nexact <- nexact
   attr(dataset, "sim_call") <- sc
+  attr(dataset, "df_name") <- deparse(substitute(data))
 
   if (nrow(dataset) == 0) {
     mess <- c("error", paste0("The simulated data set has 0 rows"))
     return(add_class(mess, "simulater"))
   }
 
-  # name %<>% gsub(" ", "", .)
-  # if (name != "") {
-  #   if (exists("r_environment")) {
-  #     env <- r_environment
-  #   # } else if (exists("r_data")) {
-  #     # env <- pryr::where("r_data")
-  #   } else {
-  #     return(add_class(dataset, "simulater"))
-  #   }
-
-  #   form <- gsub("*", "\\*", form, fixed = TRUE) %>%
-  #     gsub(";", "\n\n", .)
-
-  #   mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
-
-  #   env$r_data[[name]] <- dataset
-  #   env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
-  #   env$r_data[[paste0(name, "_descr")]] <- mess
-  #   return(add_class(name, "simulater"))
-  # }
-
- form <- gsub("*", "\\*", form, fixed = TRUE) %>%
-   gsub("[;\n]\\s*\\#+[^\\#]", ";#####", .) %>%
-   gsub(";", "\n\n", .)
+  form <- gsub("*", "\\*", form, fixed = TRUE) %>%
+    gsub("[;\n]\\s*?\\#+[^\\#]", "; ##### # ", .) %>%
+    gsub(";", "\n\n", .)
 
   mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
 
@@ -328,7 +301,6 @@ summary.simulater <- function(object, dec = 4, ...) {
   } else {
     cat("Sim data   :", sc$name, "\n")
   }
-  # cat("Sim data   :", sc$name, "\n")
   if (!is_empty(sc$binom)) cat("Binomial   :", clean(sc$binom))
   if (!is_empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
   if (!is_empty(sc$lnorm)) cat("Log normal :", clean(sc$lnorm))
@@ -336,7 +308,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (!is_empty(sc$unif)) cat("Uniform    :", clean(sc$unif))
   if (!is_empty(sc$pois)) cat("Poisson    :", clean(sc$pois))
   if (!is_empty(sc$const)) cat("Constant   :", clean(sc$const))
-  if (!is_empty(sc$data)) cat("Data       :", clean(sc$data))
+  if (is.data.frame(sc$data)) cat("Data       :", attr(object, "df_name"), "\n")
   if (!is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
   if (!is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
   if (!is_empty(sc$form)) cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
@@ -599,7 +571,7 @@ repeater <- function(
     }
   }
 
-  ## tbl_df seems to remove attributes
+  ## tbl_df remove attributes so use as.data.frame for now
   ret <- as.data.frame(ret, stringsAsFactors = FALSE)
 
   ## capturing the function call for use in summary and plot
@@ -611,44 +583,15 @@ repeater <- function(
   attr(ret, "rep_call") <- rc
   attr(ret, "df_name") <- df_name
 
-  ## allow methods to work on repeater data.frame
-  # ret <- add_class(ret, "repeater")
-
-  # name %<>% gsub(" ", "", .)
-  # if (name != "") {
-  #   if (exists("r_environment")) {
-  #     env <- r_environment
-  #   # } else if (exists("r_data")) {
-  #     # env <- pryr::where("r_data")
-  #   } else {
-  #     return(ret)
-  #   }
-
-    # mess <- paste0(
-    #   "\n### Repeated simulation data\n\nFormula:\n\n",
-    #   gsub("*", "\\*", sc$form, fixed = TRUE) %>%
-    #     gsub("\n", "\n\n", .) %>%
-    #     gsub(";", "\n\n", .),
-    #   "\n\nDate: ",
-    #   lubridate::now()
-    # )
-
-  #   env$r_data[[name]] <- ret
-  #   env$r_data[["datasetlist"]] <- c(name, env$r_data[["datasetlist"]]) %>% unique()
-  #   env$r_data[[paste0(name, "_descr")]] <- mess
-  #   return(add_class(name, "repeater"))
-  # }
-
   mess <- paste0(
     "\n### Repeated simulation data\n\nFormula:\n\n",
     gsub("*", "\\*", sc$form, fixed = TRUE) %>%
-      gsub("\n", "\n\n", .) %>%
+      gsub("[;\n]\\s*?\\#+[^\\#]", "; ##### # ", .) %>%
       gsub(";", "\n\n", .),
     "\n\nDate: ",
     lubridate::now()
   )
 
-  # ret
   add_class(set_attr(ret, "description", mess), "repeater")
 }
 
@@ -665,21 +608,11 @@ summary.repeater <- function(object, dec = 4, ...) {
     if (length(object) == 2 && object[1] == "error") {
       return(cat(object[2]))
     } 
-    # else {
-      # object <- getdata(object)
-    # }
     stop("To generate summary statistics please provide a simulated dataset as input", call. = FALSE)
   }
 
   ## getting the repeater call
   rc <- attr(object, "rep_call")
-
-  ## legacy
-  # if (is.null(rc)) {
-  #   rc <- list()
-  #   rc[c("nr", "byvar", "fun", "seed", "sim", "name", "form")] <- ""
-  #   rc$sc <- list(nr = "")
-  # }
 
   clean <- function(x) {
     paste0(x, collapse = ";") %>%
