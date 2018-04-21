@@ -577,10 +577,6 @@ predict.crtree <- function(
   
   if (is.character(object)) return(object)
   if (is.data.frame(pred_data)) {
-    attr(pred_data, "pred_data") <- deparse(substitute(pred_data))
-  }
-
-  if (is.data.frame(pred_data)) {
     df_name <- deparse(substitute(pred_data))
   } else {
     df_name <- pred_data
