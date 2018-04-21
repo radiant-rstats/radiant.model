@@ -826,10 +826,6 @@ predict_model <- function(
       vars <- c(object$evar, colnames(pred_val))
     }
 
-    ## adding attributes used by other methods
-    # if (is.data.frame(pred_data)) {
-    #   pred_data <- deparse(substitute(pred_data))
-    # }
     pred <- set_attr(pred, "df_name", object$df_name) %>%
       set_attr("data_filter", object$data_filter) %>%
       set_attr("rvar", object$rvar) %>%
@@ -839,7 +835,6 @@ predict_model <- function(
       set_attr("vars", vars) %>%
       set_attr("dec", dec) %>%
       set_attr("pred_type", pred_type) %>%
-      # set_attr("pred_data", pred_data) %>%
       set_attr("pred_cmd", pred_cmd)
 
     return(add_class(pred, c(mclass, "model.predict")))
