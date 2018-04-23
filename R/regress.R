@@ -594,14 +594,15 @@ predict.regress <- function(
 ) {
 
   if (is.character(object)) return(object)
-  if ("center" %in% object$check || "standardize" %in% object$check) {
-    message("Standard error calculations not supported when coefficients are centered or standardized")
-    se <- FALSE
-  }
-  if (!isTRUE(se)) {
+  if (isTRUE(se)) {
+    if (isTRUE(interval == "none")) {
+      se <- FALSE
+    } else if ("center" %in% object$check || "standardize" %in% object$check) {
+      message("Standard error calculations not supported when coefficients are centered or standardized")
+      se <- FALSE; interval <- "none"
+    } 
+  } else {
     interval <- "none"
-  } else if (isTRUE(interval == "none")) {
-    se <- FALSE
   }
 
   if (is.data.frame(pred_data)) {
