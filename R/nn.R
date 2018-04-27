@@ -171,7 +171,7 @@ scaledf <- function(
   cn <- names(isNum)[isNum]
 
   ## remove set_attr calls when dplyr removes and keep attributes appropriately
-  desc <- attr(dataset, "description")
+  descr <- attr(dataset, "description")
   if (calc) {
     if (length(wts) == 0) {
       ms <- summarise_at(dataset, .vars = cn, .funs = funs(mean(., na.rm = TRUE))) %>%
@@ -197,15 +197,15 @@ scaledf <- function(
     mutate_at(dataset, .vars = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
       set_attr("ms", ms) %>%
       set_attr("sds", sds) %>%
-      set_attr("description", desc)
+      set_attr("description", descr)
   } else if (center) {
     mutate_at(dataset, .vars = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
       set_attr("ms", ms) %>%
-      set_attr("description", desc)
+      set_attr("description", descr)
   } else if (scale) {
     mutate_at(dataset, .vars = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
       set_attr("sds", sds) %>%
-      set_attr("description", desc)
+      set_attr("description", descr)
   } else {
     dataset
   }
