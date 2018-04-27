@@ -273,8 +273,10 @@ output$ui_regress <- renderUI({
           "input.reg_predict == 'data' | input.reg_predict == 'datacmd'",
           selectizeInput(
             inputId = "reg_pred_data", label = "Prediction data:",
-            choices = c("None" = "", r_data$datasetlist),
-            selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), 
+            # choices = c("None" = "", r_data$datasetlist),
+            choices = c("None" = "", r_info[["datasetlist"]]),
+            # selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), 
+            selected = state_single("reg_pred_data", c("None" = "", r_info[["datasetlist"]])), 
             multiple = FALSE
           )
         ),

@@ -248,8 +248,11 @@ output$ui_crtree <- renderUI({
           "input.crtree_predict == 'data' | input.crtree_predict == 'datacmd'",
           selectizeInput(
             inputId = "crtree_pred_data", label = "Prediction data:",
-            choices = c("None" = "", r_data$datasetlist),
-            selected = state_single("crtree_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
+            # choices = c("None" = "", r_data$datasetlist),
+            choices = c("None" = "", r_info[["datasetlist"]]),
+            # selected = state_single("crtree_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
+            selected = state_single("crtree_pred_data", c("None" = "", r_info[["datasetlist"]])), 
+            multiple = FALSE
           )
         ),
         conditionalPanel(

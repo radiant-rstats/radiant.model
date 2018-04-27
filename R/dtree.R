@@ -190,8 +190,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
   ## getting variables from base if available
   if (!is.null(yl$variables) && is.character(yl$variables[1])) {
-    if (exists("r_data") && !is.null(r_data$dtree_list)) {
-      if (!yl$variables %in% r_data$dtree_list) {
+    # if (exists("r_data") && !is.null(r_data$dtree_list)) {
+    if (exists("r_data") && !is.null(r_info[["dtree_list"]])) {
+      # if (!yl$variables %in% r_data$dtree_list) {
+      if (!yl$variables %in% r_info[["dtree_list"]]) {
         err <- "**\nThe tree referenced in the 'variables:' section is not available.\nPlease correct the name and try again.\n**"
         return(add_class(err, "dtree"))
       }
@@ -238,7 +240,8 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     for (i in vn) {
       if (grepl("dtree\\(.*\\)", vars[i])) {
         tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*", "\\1", vars[i]) %>% gsub("[\"\']", "", .)
-        if (exists("r_data") && !is.null(r_data$dtree_list) && tree %in% r_data$dtree_list) {
+        # if (exists("r_data") && !is.null(r_data$dtree_list) && tree %in% r_data$dtree_list) {
+        if (exists("r_info") && !is.null(r_info[["dtree_list"]]) && tree %in% r_info[["dtree_list"]]) {
           cmd <- gsub("\\)\\s*$", paste0(", base = ", list(vars[!grepl("dtree\\(.*\\)", vars)]), "\\)"), vars[i])
           ret <- try(eval(parse(text = cmd)), silent = TRUE)
 

@@ -23,7 +23,8 @@ Sign with TV Network:
 dtree_max_min <- c("Max" = "max", "Min" = "min")
 
 output$ui_dtree_list <- renderUI({
-  dtree_list <- r_data$dtree_list
+  # dtree_list <- r_data$dtree_list
+  dtree_list <- r_info[["dtree_list"]]
   req(dtree_list)
   selectInput(
     inputId = "dtree_list", label = NULL,
@@ -40,7 +41,8 @@ output$ui_dtree_name <- renderUI({
 })
 
 output$ui_dtree_remove <- renderUI({
-  req(length(r_data[["dtree_list"]]) > 1)
+  # req(length(r_data[["dtree_list"]]) > 1)
+  req(length(r_info[["dtree_list"]]) > 1)
   actionButton("dtree_remove", "Remove", icon = icon("trash"), class = "btn-danger")
 })
 
@@ -230,7 +232,8 @@ observe({
     `tree-input` = c("name:", "variables:", "type: decision", "type: chance", "cost: 000", "payoff: 000", "p: 0.5")
   )
 
-  trees <- r_data$dtree_list
+  # trees <- r_data$dtree_list
+  trees <- r_info[["dtree_list"]]
   if (length(trees) < 2) {
     trees <- input$dtree_name
   } else {
@@ -396,7 +399,8 @@ observeEvent(input$dtree_load_yaml, {
   dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name)
   r_data[[dtree_name]] <- yaml_file
   shiny::makeReactiveBinding(dtree_name, env = r_data)
-  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
+  # r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
+  r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   shinyAce::updateAceEditor(session, "dtree_edit", value = gsub("\t", "    ", yaml_file))
 })
@@ -439,7 +443,8 @@ dtree_namer <- reactive({
   if (is_empty(dtree_name)) dtree_name <- dtree_name()
 
   r_data[[dtree_name]] <- input$dtree_edit
-  r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
+  # r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
+  r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   dtree_name
 })
@@ -447,7 +452,9 @@ dtree_namer <- reactive({
 ## remove yaml input
 observeEvent(input$dtree_remove, {
   dtree_name <- input$dtree_list[1]
-  r_data[["dtree_list"]] <- setdiff(r_data[["dtree_list"]], dtree_name)
+  # r_data[["dtree_list"]] <- setdiff(r_data[["dtree_list"]], dtree_name)
+  # r_data[[dtree_name]] <- NULL
+  r_info[["dtree_list"]] <- setdiff(r_info[["dtree_list"]], dtree_name)
   r_data[[dtree_name]] <- NULL
 })
 

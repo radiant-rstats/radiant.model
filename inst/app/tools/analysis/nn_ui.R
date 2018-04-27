@@ -261,8 +261,11 @@ output$ui_nn <- renderUI({
           "input.nn_predict == 'data' | input.nn_predict == 'datacmd'",
           selectizeInput(
             inputId = "nn_pred_data", label = "Prediction data:",
-            choices = c("None" = "", r_data$datasetlist),
-            selected = state_single("nn_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
+            # choices = c("None" = "", r_data$datasetlist),
+            choices = c("None" = "", r_info[["datasetlist"]]),
+            # selected = state_single("nn_pred_data", c("None" = "", r_data$datasetlist)), 
+            selected = state_single("nn_pred_data", c("None" = "", r_info[["datasetlist"]])), 
+            multiple = FALSE
           )
         ),
         conditionalPanel(

@@ -301,8 +301,10 @@ output$ui_logistic <- renderUI({
           "input.logit_predict == 'data' | input.logit_predict == 'datacmd'",
           selectizeInput(
             inputId = "logit_pred_data", label = "Prediction data:",
-            choices = c("None" = "", r_data$datasetlist),
-            selected = state_single("logit_pred_data", c("None" = "", r_data$datasetlist)), 
+            # choices = c("None" = "", r_data$datasetlist),
+            choices = c("None" = "", r_info[["datasetlist"]]),
+            # selected = state_single("logit_pred_data", c("None" = "", r_data$datasetlist)), 
+            selected = state_single("logit_pred_data", c("None" = "", r_info[["datasetlist"]])), 
             multiple = FALSE
           )
         ),
