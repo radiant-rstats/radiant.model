@@ -492,7 +492,8 @@ repeater <- function(
   summarize_sim <- function(object) {
     if (fun != "none") {
       object <- group_by_at(object, byvar) %>%
-        summarise_at(.vars = sum_vars, .funs = make_funs(fun)) %>%
+        summarise_at(.vars = sum_vars, .funs = fun, na.rm = TRUE) %>%
+        # summarise_at(.vars = sum_vars, .funs = make_funs(fun)) %>%
         set_colnames(c(byvar, sum_vars))
     } else {
       object <- select_at(object, .vars = c("rep", "sim", sum_vars))
@@ -753,9 +754,10 @@ sim_summary <- function(dataset, dc = getclass(dataset), fun = "", dec = 4) {
         group_by_at(.vars = "variable") %>%
         summarise_all(
           funs(
-            n = length, mean = mean_rm, sd = sd_rm, min = min_rm,
-            `25%` = p25, median = median_rm, `75%` = p75, max = max_rm
-          )
+            n_obs = n_obs, mean = mean, sd = sd, min = min,
+            `25%` = p25, median = median, `75%` = p75, max = max
+          ),
+          na.rm = TRUE
         ) %>%
         {if (fun == "" || fun == "none") { . } else { .[[1]] <- paste0(fun, " of ", .[[1]]) }; .} %>%
         {.[[1]] <- format(.[[1]], justify = "left"); .} %>%

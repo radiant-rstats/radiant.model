@@ -774,7 +774,7 @@ write.coeff <- function(
   frm <- formula(object$model$terms)
   mm <- model.matrix(frm, object$model$model)
   cms <- colMeans(mm, na.rm = TRUE)[-1]
-  csds <- apply(mm, 2, sd_rm)[-1]
+  csds <- apply(mm, 2, sd, na.rm = TRUE)[-1]
   cmn <- cms * 0
   cmx <- cmn + 1
   mn <- attr(object$model$model, "min")
