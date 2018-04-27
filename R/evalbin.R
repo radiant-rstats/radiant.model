@@ -150,8 +150,8 @@ evalbin <- function(
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' evalbin(titanic, "age", "survived") %>% summary
-#' evalbin(titanic, c("age", "fare"), "survived") %>% summary
+#' evalbin(titanic, "age", "survived") %>% summary()
+#' evalbin(titanic, c("age", "fare"), "survived") %>% summary()
 #'
 #' @export
 summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {

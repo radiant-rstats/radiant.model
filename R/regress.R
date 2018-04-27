@@ -135,7 +135,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
 #' summary(result, sum_check = c("rmse","sumsquares","vif","confint"), test_var = "clarity")
 #' result <- regress(ideal, "y", c("x1","x2"))
 #' summary(result, test_var = "x2")
-#' ideal %>% regress("y", "x1:x3") %>% summary
+#' ideal %>% regress("y", "x1:x3") %>% summary()
 #'
 #' @seealso \code{\link{regress}} to generate the results
 #' @seealso \code{\link{plot.regress}} to plot results
