@@ -1,13 +1,11 @@
 language: r
-cache: packages
 warnings_are_errors: true
 sudo: required
 dist: trusty
 
-repos:
-  minicran: https://radiant-rstats.github.io/minicran
-  CRAN: https://cloud.r-project.org
+r_packages:
+  - devtools
 
 r_github_packages:
-  - radiant-rstats/radiant.data@MRB
-  - radiant-rstats/radiant.basics@MRB
+  - radiant-rstats/radiant.data
+  - radiant-rstats/radiant.basics
