@@ -129,7 +129,6 @@ output$ui_sim_types <- renderUI({
 })
 
 output$ui_sim_data <- renderUI({
-  # choices <- c("None" = "none", r_data$datasetlist)
   choices <- c("None" = "none", r_info[["datasetlist"]])
   selectizeInput(
     inputId = "sim_data", label = "Input data for calculations:",
@@ -218,15 +217,15 @@ output$ui_rep_byvar <- renderUI({
 
 output$ui_rep_fun <- renderUI({
   choices <- list(
-    "sum" = "sum_rm", "mean" = "mean_rm", "median" = "median_rm",
-    "min" = "min_rm", "max" = "max_rm", "first" = "first", 
+    "sum" = "sum", "mean" = "mean", "median" = "median",
+    "min" = "min", "max" = "max", "first" = "first", 
     "last" = "last", "none" = "none"
   )
 
   selectInput(
     "rep_fun", "Apply function:",
     choices = choices,
-    selected = state_single("rep_fun", choices, "sum_rm"),
+    selected = state_single("rep_fun", choices, "sum"),
     multiple = FALSE
   )
 })

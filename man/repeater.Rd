@@ -5,7 +5,7 @@
 \title{Repeated simulation}
 \usage{
 repeater(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
-  byvar = "sim", fun = "sum_rm", form = "", seed = NULL, name = "")
+  byvar = "sim", fun = "sum", form = "", seed = NULL, name = "")
 }
 \arguments{
 \item{dataset}{Return value from the simulater function}

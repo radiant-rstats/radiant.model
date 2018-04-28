@@ -410,7 +410,7 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @export
 repeater <- function(
   dataset, nr = 12, vars = "", grid = "", sum_vars = "", 
-  byvar = "sim", fun = "sum_rm", form = "", seed = NULL, 
+  byvar = "sim", fun = "sum", form = "", seed = NULL, 
   name = ""
 ) {
 
@@ -490,13 +490,16 @@ repeater <- function(
   sc$dataset <- as.list(dataset)
 
   summarize_sim <- function(object) {
-    if (fun != "none") {
+    if (fun == "none") {
+      object <- select_at(object, .vars = c("rep", "sim", sum_vars))
+    } else if (fun %in% c("first", "last")) {
       object <- group_by_at(object, byvar) %>%
-        summarise_at(.vars = sum_vars, .funs = fun, na.rm = TRUE) %>%
-        # summarise_at(.vars = sum_vars, .funs = make_funs(fun)) %>%
+        summarise_at(.vars = sum_vars, .funs = fun) %>%
         set_colnames(c(byvar, sum_vars))
     } else {
-      object <- select_at(object, .vars = c("rep", "sim", sum_vars))
+      object <- group_by_at(object, byvar) %>%
+        summarise_at(.vars = sum_vars, .funs = fun, na.rm = TRUE) %>%
+        set_colnames(c(byvar, sum_vars))
     }
     object
   }
@@ -630,8 +633,7 @@ summary.repeater <- function(object, dec = 4, ...) {
     cat("Re-simulated  :", paste0(rc$vars, collapse = ", "), "\n")
   }
   cat("Group by      :", ifelse(rc$byvar == "rep", "Repeat", "Simulation"), "\n")
-  cfun <- sub("_rm$", "", rc$fun)
-  cat("Function      :", cfun, "\n")
+  cat("Function      :", rc$fun, "\n")
   cat("Random  seed  :", rc$seed, "\n")
   if (is.data.frame(rc$sim)) {
     rc$sim <- attr(rc$sim, "sim_call")$name
@@ -659,7 +661,7 @@ summary.repeater <- function(object, dec = 4, ...) {
   }
   cat("\n")
 
-  sim_summary(select(object, -1), fun = cfun, dec = ifelse(is.na(dec), 4, dec))
+  sim_summary(select(object, -1), fun = rc$fun, dec = ifelse(is.na(dec), 4, dec))
 }
 
 #' Plot repeated simulation
@@ -679,12 +681,6 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 
   ## getting the repeater call
   rc <- attr(x, "rep_call")
-
-  ## legacy 
-  # if (is.null(rc)) rc <- formals("repeater")
-  # if (identical(rc$sum_vars, "")) return(invisible())
-
-  cfun <- sub("_rm$", "", rc$fun)
   plot_list <- list()
   for (i in colnames(x)[-1]) {
     dat <- select_at(x, .vars = i)
@@ -693,8 +689,8 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
     plot_list[[i]] <- select_at(x, .vars = i) %>%
       visualize(xvar = i, bins = bins, custom = TRUE)
 
-    if (i %in% rc$sum_vars && !is_empty(cfun, "none")) {
-      plot_list[[i]] <- plot_list[[i]] + labs(x = paste0(cfun, " of ", i))
+    if (i %in% rc$sum_vars && !is_empty(rc$fun, "none")) {
+      plot_list[[i]] <- plot_list[[i]] + labs(x = paste0(rc$fun, " of ", i))
     }
   }
 
@@ -771,7 +767,7 @@ sim_summary <- function(dataset, dc = getclass(dataset), fun = "", dec = 4) {
   if (sum(isLogic) > 0) {
     cat("Logicals:\n")
     select(dataset, which(isLogic)) %>%
-      summarise_all(funs(sum, mean)) %>%
+      summarise_all(funs(sum, mean), na.rm = TRUE) %>%
       round(dec) %>%
       matrix(ncol = 2) %>%
       set_colnames(c("TRUE (nr)  ", "TRUE (prop)")) %>%
