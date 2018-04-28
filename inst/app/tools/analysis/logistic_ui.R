@@ -301,9 +301,7 @@ output$ui_logistic <- renderUI({
           "input.logit_predict == 'data' | input.logit_predict == 'datacmd'",
           selectizeInput(
             inputId = "logit_pred_data", label = "Prediction data:",
-            # choices = c("None" = "", r_data$datasetlist),
             choices = c("None" = "", r_info[["datasetlist"]]),
-            # selected = state_single("logit_pred_data", c("None" = "", r_data$datasetlist)), 
             selected = state_single("logit_pred_data", c("None" = "", r_info[["datasetlist"]])), 
             multiple = FALSE
           )
@@ -512,7 +510,10 @@ logit_available <- reactive({
   if (input$logit_predict == "cmd" && is_empty(input$logit_pred_cmd)) {
     return(invisible())
   }
-  do.call(plot, c(list(x = .predict_logistic()), logit_pred_plot_inputs()))
+
+  withProgress(message = "Generating prediction plot", value = 1, {
+    do.call(plot, c(list(x = .predict_logistic()), logit_pred_plot_inputs()))
+  })
 })
 
 .plot_logistic <- reactive({

@@ -168,7 +168,7 @@ output$crs <- renderUI({
   } else if (!input$show_filter || is_empty(input$data_filter)) {
     "A data filter must be set to generate recommendations using\ncollaborative filtering. Add a filter in the Data > View tab.\nNote that the users in the training sample should not overlap\nwith the users in the validation sample." %>% 
       add_class("crs")
-  } else if (!is_empty(r_data$filter_error)) {
+  } else if (!is_empty(r_info[["filter_error"]])) {
     "An invalid filter has been set for this dataset. Please\nadjust the filter in the Data > View tab and try again" %>% 
       add_class("crs")
   } else if (length(input$crs_pred) < 1) {

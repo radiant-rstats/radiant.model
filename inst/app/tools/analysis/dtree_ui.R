@@ -23,7 +23,6 @@ Sign with TV Network:
 dtree_max_min <- c("Max" = "max", "Min" = "min")
 
 output$ui_dtree_list <- renderUI({
-  # dtree_list <- r_data$dtree_list
   dtree_list <- r_info[["dtree_list"]]
   req(dtree_list)
   selectInput(
@@ -232,7 +231,6 @@ observe({
     `tree-input` = c("name:", "variables:", "type: decision", "type: chance", "cost: 000", "payoff: 000", "p: 0.5")
   )
 
-  # trees <- r_data$dtree_list
   trees <- r_info[["dtree_list"]]
   if (length(trees) < 2) {
     trees <- input$dtree_name

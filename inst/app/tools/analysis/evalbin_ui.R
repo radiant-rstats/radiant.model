@@ -212,7 +212,7 @@ output$evalbin <- renderUI({
 })
 
 .evalbin <- eventReactive(input$ebin_run, {
-  if (!is_empty(r_data$filter_error)) {
+  if (!is_empty(r_info[["filter_error"]])) {
     "An invalid filter has been set for this dataset. Please\nadjust the filter in the Data > View tab and try again" %>%
       add_class("evalbin") 
   } else {

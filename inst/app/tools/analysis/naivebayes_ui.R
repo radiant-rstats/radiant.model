@@ -187,9 +187,7 @@ output$ui_nb <- renderUI({
           "input.nb_predict == 'data' | input.nb_predict == 'datacmd'",
           selectizeInput(
             inputId = "nb_pred_data", label = "Prediction data:",
-            # choices = c("None" = "", r_data$datasetlist),
             choices = c("None" = "", r_info[["datasetlist"]]),
-            # selected = state_single("nb_pred_data", c("None" = "", r_data$datasetlist)), 
             selected = state_single("nb_pred_data", c("None" = "", r_info[["datasetlist"]])), 
             multiple = FALSE
           )
@@ -371,7 +369,9 @@ nb_available <- reactive({
     return(invisible())
   }
 
-  do.call(plot, c(list(x = .predict_nb()), nb_pred_plot_inputs()))
+  withProgress(message = "Generating prediction plot", value = 1, {
+    do.call(plot, c(list(x = .predict_nb()), nb_pred_plot_inputs()))
+  })
 })
 
 .plot_nb <- reactive({

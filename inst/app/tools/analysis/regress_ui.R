@@ -273,9 +273,7 @@ output$ui_regress <- renderUI({
           "input.reg_predict == 'data' | input.reg_predict == 'datacmd'",
           selectizeInput(
             inputId = "reg_pred_data", label = "Prediction data:",
-            # choices = c("None" = "", r_data$datasetlist),
             choices = c("None" = "", r_info[["datasetlist"]]),
-            # selected = state_single("reg_pred_data", c("None" = "", r_data$datasetlist)), 
             selected = state_single("reg_pred_data", c("None" = "", r_info[["datasetlist"]])), 
             multiple = FALSE
           )
@@ -436,7 +434,6 @@ output$regress <- renderUI({
   )
 })
 
-# reg_available <- reactive({
 reg_available <- eventReactive(input$reg_run, {
   if (not_available(input$reg_rvar)) {
     "This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% 
@@ -450,7 +447,6 @@ reg_available <- eventReactive(input$reg_run, {
 })
 
 .regress <- eventReactive(input$reg_run, {
-  # print(reg_inputs())
   withProgress(message = "Estimating model", value = 1, {
     do.call(regress, reg_inputs())
   })
@@ -493,7 +489,10 @@ reg_available <- eventReactive(input$reg_run, {
   if (input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd)) {
     return(invisible())
   }
-  do.call(plot, c(list(x = .predict_regress()), reg_pred_plot_inputs()))
+
+  withProgress(message = "Generating prediction plot", value = 1, {
+    do.call(plot, c(list(x = .predict_regress()), reg_pred_plot_inputs()))
+  })
 })
 
 .plot_regress <- reactive({

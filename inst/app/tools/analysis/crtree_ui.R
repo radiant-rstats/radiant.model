@@ -86,7 +86,6 @@ output$ui_crtree_lev <- renderUI({
 })
 
 output$ui_crtree_evar <- renderUI({
-  # if (not_available(input$crtree_rvar)) return()
   req(available(input$crtree_rvar))
   vars <- varnames()
   if (length(vars) > 0) {
@@ -232,7 +231,6 @@ output$ui_crtree <- renderUI({
         conditionalPanel(
           condition = "input.tabs_crtree == 'Summary'",
           tags$table(
-            # tags$td(textInput("crtree_store_res_name", "Store residuals:", state_init("crtree_store_res_name", "residuals_crtree"))),
             tags$td(uiOutput("ui_crtree_store_res_name")),
             tags$td(actionButton("crtree_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
           )
@@ -248,9 +246,7 @@ output$ui_crtree <- renderUI({
           "input.crtree_predict == 'data' | input.crtree_predict == 'datacmd'",
           selectizeInput(
             inputId = "crtree_pred_data", label = "Prediction data:",
-            # choices = c("None" = "", r_data$datasetlist),
             choices = c("None" = "", r_info[["datasetlist"]]),
-            # selected = state_single("crtree_pred_data", c("None" = "", r_data$datasetlist)), multiple = FALSE
             selected = state_single("crtree_pred_data", c("None" = "", r_info[["datasetlist"]])), 
             multiple = FALSE
           )
@@ -446,7 +442,9 @@ crtree_available <- reactive({
     return(invisible())
   }
 
-  do.call(plot, c(list(x = .predict_crtree()), crtree_pred_plot_inputs()))
+  withProgress(message = "Generating prediction plot", value = 1, {
+    do.call(plot, c(list(x = .predict_crtree()), crtree_pred_plot_inputs()))
+  })
 })
 
 .plot_crtree <- reactive({
