@@ -1,0 +1,14 @@
+---
+title: "Model > Simulate"
+author: "Vincent R. Nijs</br>Rady School of Management (UCSD)"
+---
+
+```{r include = FALSE}
+library(dplyr)
+library(magrittr)
+```
+
+```{r child = "_simulater.Rmd"}
+```
+
+&copy; Vincent Nijs (2018) <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank"><img alt="Creative Commons License" style="border-width: 0" src="./images/by-nc-sa.png"/></a>
