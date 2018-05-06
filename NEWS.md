@@ -31,7 +31,7 @@
 
 * Require `shinyAce` 0.3.0 in `radiant.data` and `useSoftTabs` for _Model > Decision Analysis_
 
-# radiant.model 0.9.1
+# radiant.model 0.9.1.0
 
 ## Major changes
 
@@ -143,7 +143,7 @@
 
 * Fix in `crs` when a tibble is passed
 
-# radiant.model 0.8.3
+# radiant.model 0.8.3.0
 
 ## Major change
 * Added option to use robust standard errors in _Linear regression_ and _Logistic regression_. The `HC1` covariance matrix is used to produce results consistent with Stata
@@ -157,7 +157,7 @@
 * Fixed RSME typo
 * Don't calculate VIFs when stepwise regression selects only one explanatory variable
 
-# radiant.model 0.8.0
+# radiant.model 0.8.0.0
 
 ## Major changes
 
