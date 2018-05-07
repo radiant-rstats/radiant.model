@@ -504,7 +504,7 @@ plot.logistic <- function(
     }
 
     plot_list[["coef"]] <- cnfint(x$model, level = conf_lev, vcov = x$vcov) %>%
-      exp() %>%
+      exp(.) %>%
       data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%

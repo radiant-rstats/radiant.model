@@ -380,7 +380,7 @@ plot.crtree <- function(
           gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\1", x), 
           gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\2", x) %>% 
             as.numeric() %>%
-            ceiling()
+            ceiling(.)
         )
       }
       int_ind <- df$var %in% isInt

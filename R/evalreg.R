@@ -52,7 +52,7 @@ evalreg <- function(
       n = nrow(dat[pred]),
       # Rsq = cor(rv, dat[pred])^2 %>% .[1, ],
       Rsq = cor(rv, select_at(dat, pred))^2 %>% .[1, ],
-      RMSE = summarise_at(dat, .vars = pred, .funs = funs(mean((rv - .) ^ 2, na.rm = TRUE) %>% sqrt())) %>% unlist(),
+      RMSE = summarise_at(dat, .vars = pred, .funs = funs(mean((rv - .) ^ 2, na.rm = TRUE) %>% sqrt(.))) %>% unlist(),
       MAE = summarise_at(dat, .vars = pred, .funs = funs(mean(abs(rv - .), na.rm = TRUE))) %>% unlist(),
       stringsAsFactors = FALSE
     )

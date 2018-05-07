@@ -223,7 +223,7 @@ summary.regress <- function(
 
   if ("rmse" %in% sum_check) {
     mean(object$model$residuals ^ 2, na.rm = TRUE) %>%
-      sqrt() %>%
+      sqrt(.) %>%
       round(dec) %>%
       cat("Prediction error (RMSE): ", ., "\n")
     cat("Residual st.dev   (RSD): ", reg_fit$sigma, "\n\n")
