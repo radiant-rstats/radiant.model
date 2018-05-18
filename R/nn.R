@@ -55,7 +55,7 @@ nn <- function(
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- getdata(dataset, vars, filt = data_filter)
+  dataset <- get_data(dataset, vars, filt = data_filter)
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
@@ -64,7 +64,7 @@ nn <- function(
     }
     if (length(wts) != nrow(dataset)) {
       return(
-        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dataset), dec = 0), ")") %>%
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", format_nr(length(wts), dec = 0), " vs ", format_nr(nrow(dataset), dec = 0), ")") %>%
           add_class("nn")
       )
     }
@@ -260,9 +260,9 @@ summary.nn <- function(object, prn = TRUE, ...) {
   cat("Network              :", network, "with", nweights, "weights\n")
 
   if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
-    cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n")
+    cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
-    cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n")
+    cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n")
   }
 
   if (object$model$convergence != 0) {
@@ -291,7 +291,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
 #' @param size Font size used
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples

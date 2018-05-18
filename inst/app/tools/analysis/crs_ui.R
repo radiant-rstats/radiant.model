@@ -35,7 +35,7 @@ output$ui_crs_prod <- renderUI({
 output$ui_crs_pred <- renderUI({
   req(input$crs_prod)
   if (available(input$crs_prod)) {
-    levs <- .getdata()[[input$crs_prod]] %>% as.factor() %>% levels()
+    levs <- .get_data()[[input$crs_prod]] %>% as.factor() %>% levels()
   } else {
     levs <- c()
   }

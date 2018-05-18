@@ -294,7 +294,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   }
 
   cat("Simulation\n")
-  cat("Simulations:", formatnr(nrow(object), dec = 0), "\n")
+  cat("Simulations:", format_nr(nrow(object), dec = 0), "\n")
   cat("Random seed:", sc$seed, "\n")
   if (is_empty(sc$name)) {
     cat("Sim data   :", deparse(substitute(object)), "\n")
@@ -320,7 +320,7 @@ summary.simulater <- function(object, dec = 4, ...) {
     cat("\n")
   }
 
-  sim_summary(object, dec = ifelse(is_empty(dec), 4, dec))
+  sim_summary(object, dec = ifelse(is_empty(dec), 4, round(dec, 0)))
 }
 
 #' Plot method for the simulater function
@@ -426,7 +426,7 @@ repeater <- function(
 
   if (is_string(dataset)) {
     df_name <- dataset
-    dataset <- getdata(dataset)
+    dataset <- get_data(dataset)
   } else {
     df_name <- deparse(substitute(dataset)) 
   }
@@ -627,8 +627,8 @@ summary.repeater <- function(object, dec = 4, ...) {
 
   ## show results
   cat("Repeated simulation\n")
-  cat("Simulations   :", ifelse(is_empty(rc$sc$nr), "", formatnr(rc$sc$nr, dec = 0)), "\n")
-  cat("Repetitions   :", formatnr(ifelse(is_empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
+  cat("Simulations   :", ifelse(is_empty(rc$sc$nr), "", format_nr(rc$sc$nr, dec = 0)), "\n")
+  cat("Repetitions   :", format_nr(ifelse(is_empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
   if (!is_empty(rc$vars)) {
     cat("Re-simulated  :", paste0(rc$vars, collapse = ", "), "\n")
   }
@@ -669,7 +669,7 @@ summary.repeater <- function(object, dec = 4, ...) {
 #' @param x Return value from \code{\link{repeater}}
 #' @param bins Number of bins used for histograms (1 - 50)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @export
@@ -716,7 +716,7 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @param dec Number of decimals to show
 #'
 #' @export
-sim_summary <- function(dataset, dc = getclass(dataset), fun = "", dec = 4) {
+sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
   isFct <- "factor" == dc
   isNum <- dc %in% c("numeric", "integer", "Duration")
   isChar <- "character" == dc
@@ -758,7 +758,7 @@ sim_summary <- function(dataset, dc = getclass(dataset), fun = "", dec = 4) {
         {if (fun == "" || fun == "none") { . } else { .[[1]] <- paste0(fun, " of ", .[[1]]) }; .} %>%
         {.[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE, stringsAsFactors = FALSE) %>%
-        formatdf(., dec = dec, mark = ",") %>%
+        format_df(., dec = dec, mark = ",") %>%
         print(row.names = FALSE)
       cat("\n")
     }

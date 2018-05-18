@@ -373,7 +373,7 @@ output$plot_dtree_sensitivity <- renderPlot({
 
 observeEvent(input$dtree_load_yaml, {
   ## loading yaml file from disk
-  if (isTRUE(getOption("radiant.launch", "browser") == "viewer")) {
+  if (!isTRUE(getOption("radiant.launch", "browser") == "browser")) {
     path <- rstudioapi::selectFile(
       caption = "Select .yaml",
       filter = "Select .yaml (*.yaml)",

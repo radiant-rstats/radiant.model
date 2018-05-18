@@ -62,7 +62,7 @@ output$ui_crtree_rvar <- renderUI({
     if (input$crtree_type == "classification") {
       vars <- two_level_vars()
     } else {
-      isNum <- .getclass() %in% c("numeric", "integer")
+      isNum <- .get_class() %in% c("numeric", "integer")
       vars <- varnames()[isNum]
     }
   })
@@ -75,7 +75,7 @@ output$ui_crtree_rvar <- renderUI({
 output$ui_crtree_lev <- renderUI({
   req(input$crtree_type == "classification")
   req(available(input$crtree_rvar))
-  levs <- .getdata()[[input$crtree_rvar]] %>% 
+  levs <- .get_data()[[input$crtree_rvar]] %>% 
     as.factor() %>% 
     levels()
 
@@ -101,7 +101,7 @@ output$ui_crtree_evar <- renderUI({
 })
 
 output$ui_crtree_wts <- renderUI({
-  isNum <- .getclass() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("numeric", "integer")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
     vars <- setdiff(vars, input$crtree_evar)

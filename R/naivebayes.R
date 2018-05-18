@@ -27,7 +27,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
   }
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  dataset <- getdata(dataset, c(rvar, evar), filt = data_filter)
+  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter)
 
   if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
@@ -52,7 +52,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
 
   ## nb doesn't indlude model terms, needed for predict_model
   # model$terms <- colnames(dataset)
-  # attr(model$term, "dataClasses") <- getclass(dataset)
+  # attr(model$term, "dataClasses") <- get_class(dataset)
 
   ## nb model object does not include the data by default
   model$model <- dataset
@@ -90,7 +90,7 @@ summary.nb <- function(object, dec = 3, ...) {
   cat("\nLevels               :", paste0(object$lev, collapse = ", "), "in", object$rvar)
   cat("\nExplanatory variables:", paste0(object$evar, collapse = ", "))
   cat("\nLaplace              :", object$laplace)
-  cat("\nNr obs               :", formatnr(nrow(object$model$model), dec = 0), "\n")
+  cat("\nNr obs               :", format_nr(nrow(object$model$model), dec = 0), "\n")
 
   cat("\nA-priori probabilities:\n")
   apriori <- object$model$apriori %>% {. / sum(.)}

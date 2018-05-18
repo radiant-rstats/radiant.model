@@ -38,7 +38,7 @@ output$ui_ebin_rvar <- renderUI({
 
 output$ui_ebin_lev <- renderUI({
   req(available(input$ebin_rvar))
-  levs <- .getdata()[[input$ebin_rvar]] %>% 
+  levs <- .get_data()[[input$ebin_rvar]] %>% 
     as.factor() %>% 
     levels()
   selectInput(
@@ -49,7 +49,7 @@ output$ui_ebin_lev <- renderUI({
 })
 
 output$ui_ebin_pred <- renderUI({
-  isNum <- .getclass() %in% c("integer", "numeric")
+  isNum <- .get_class() %in% c("integer", "numeric")
   vars <- varnames()[isNum]
   selectInput(
     inputId = "ebin_pred", label = "Select stored predictions:", choices = vars,

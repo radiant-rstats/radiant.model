@@ -68,7 +68,7 @@ output$ui_nn_rvar <- renderUI({
     if (input$nn_type == "classification") {
       vars <- two_level_vars()
     } else {
-      vars <- varnames()[.getclass() %in% c("numeric", "integer")]
+      vars <- varnames()[.get_class() %in% c("numeric", "integer")]
     }
   })
 
@@ -90,7 +90,7 @@ output$ui_nn_rvar <- renderUI({
 output$ui_nn_lev <- renderUI({
   req(input$nn_type == "classification")
   req(available(input$nn_rvar))
-  levs <- .getdata()[[input$nn_rvar]] %>%
+  levs <- .get_data()[[input$nn_rvar]] %>%
     as_factor() %>%
     levels()
 
@@ -129,7 +129,7 @@ output$ui_nn_evar <- renderUI({
 })
 
 output$ui_nn_wts <- renderUI({
-  vars <- varnames()[.getclass() %in% c("numeric", "integer")]
+  vars <- varnames()[.get_class() %in% c("numeric", "integer")]
   if (length(vars) > 0 && any(vars %in% input$nn_evar)) {
     vars <- setdiff(vars, input$nn_evar)
     names(vars) <- varnames() %>%
@@ -189,7 +189,7 @@ output$ui_nn_plots <- renderUI({
 })
 
 output$ui_nn_nrobs <- renderUI({
-  nrobs <- nrow(.getdata())
+  nrobs <- nrow(.get_data())
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(

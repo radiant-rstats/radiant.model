@@ -10,14 +10,14 @@
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{plot.dtree}} to plot results
 #'
-#' @importFrom radiant.data fixMS
+#' @importFrom radiant.data fix_smart
 #'
 #' @export
 dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
-  yl <- fixMS(yl) %>% 
+  yl <- fix_smart(yl) %>% 
     gsub("[\x80-\xFF]", "", .) %>% 
     gsub("\t", "    ", .)
 
@@ -159,7 +159,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     ## get input file from r_data
     if (!grepl("\\n", yl)) {
-      yl <- getdata(yl)
+      yl <- get_data(yl)
       if (is.list(yl)) {
         yl <- yaml::as.yaml(yl, indent = 4)
       }
@@ -196,7 +196,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
         return(add_class(err, "dtree"))
       }
       yl$variables <-
-        getdata(yl$variables) %>%
+        get_data(yl$variables) %>%
         dtree_parser() %>%
         {yaml::yaml.load(.)} %>%
         .$variables %>%
@@ -473,7 +473,7 @@ summary.dtree <- function(
       )
     } %>% 
       {.[[" "]] <- format(.[[" "]], justify = "left"); .} %>%
-      formatdf(mark = ",", dec = dec)
+      format_df(mark = ",", dec = dec)
   }
 
   if (input) {
@@ -568,9 +568,9 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
     } else if (node$parent$type == "decision") {
       lbl <- node$name
     } else if (node$parent$type == "chance") {
-      lbl <- paste0(node$name, ": ", formatnr(as.numeric(node$p), dec = dec + 2))
+      lbl <- paste0(node$name, ": ", format_nr(as.numeric(node$p), dec = dec + 2))
     } else if (node$type == "terminal") {
-      lbl <- paste0(node$name, ": ", formatnr(as.numeric(node$p), dec = dec + 2))
+      lbl <- paste0(node$name, ": ", format_nr(as.numeric(node$p), dec = dec + 2))
     }
 
     if (length(node$parent$decision) > 0 && length(node$name) > 0 && node$name == node$parent$decision) {
@@ -582,7 +582,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 
   FormatPayoff <- function(payoff) {
     if (!isNum(payoff)) payoff <- 0
-    formatnr(payoff, paste0("\"", symbol, "\""), dec = dec)
+    format_nr(payoff, paste0("\"", symbol, "\""), dec = dec)
   }
 
   ToLabel <- function(node) {
@@ -609,10 +609,10 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
   ToolTip <- function(node) {
     if (final == TRUE && !is.null(node$cost)) {
       sym <- ifelse(node$cost < 0, " + ", " - ")
-      paste0(formatnr(node$payoff + node$cost, symbol, dec = dec), sym, formatnr(abs(node$cost), symbol, dec = dec)) %>%
+      paste0(format_nr(node$payoff + node$cost, symbol, dec = dec), sym, format_nr(abs(node$cost), symbol, dec = dec)) %>%
         paste0("click ", node$id, " callback \"", ., "\"")
     } else if (!is.null(node$cost)) {
-      paste0("Cost: ", formatnr(node$cost, symbol, dec = dec)) %>%
+      paste0("Cost: ", format_nr(node$cost, symbol, dec = dec)) %>%
         paste0("click ", node$id, " callback \"", ., "\"")
     } else {
       NA
@@ -673,7 +673,7 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #' @param vars Variables to include in the sensitivity analysis
 #' @param decs Decisions to include in the sensitivity analysis
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... Additional arguments
 #'
 #' @seealso \code{\link{dtree}} to generate the result

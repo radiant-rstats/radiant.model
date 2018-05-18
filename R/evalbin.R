@@ -41,14 +41,14 @@ evalbin <- function(
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- getdata(dataset, vars, filt = data_filter)
-    dat_list[["Validation"]] <- getdata(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
+    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else if (train == "Training") {
-    dat_list[["Training"]] <- getdata(dataset, vars, filt = data_filter)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
   } else if (train == "Validation") {
-    dat_list[["Validation"]] <- getdata(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else {
-    dat_list[["All"]] <- getdata(dataset, vars, filt = "")
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "")
   }
 
   qnt_name <- "bins"
@@ -171,7 +171,7 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 
   if (prn) {
     as.data.frame(object$dataset, stringsAsFactors = FALSE) %>%
-      formatdf(dec = dec, mark = ",") %>%
+      format_df(dec = dec, mark = ",") %>%
       print(row.names = FALSE)
   }
 }
@@ -184,7 +184,7 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 #' @param plots Plots to return
 #' @param size Font size used
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalbin}} to generate results
@@ -331,14 +331,14 @@ confusion <- function(
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- getdata(dataset, vars, filt = data_filter)
-    dat_list[["Validation"]] <- getdata(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
+    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else if (train == "Training") {
-    dat_list[["Training"]] <- getdata(dataset, vars, filt = data_filter)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
   } else if (train == "Validation") {
-    dat_list[["Validation"]] <- getdata(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else {
-    dat_list[["All"]] <- getdata(dataset, vars, filt = "")
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "")
   }
 
   pdat <- list()
@@ -486,11 +486,11 @@ summary.confusion <- function(object, dec = 3, ...) {
   cat("\n")
 
   as.data.frame(object$dataset[, 1:11], stringsAsFactors = FALSE) %>%
-    formatdf(dec = dec, mark = ",") %>%
+    format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
   cat("\n")
   as.data.frame(object$dataset[, c(1, 2, 12:18)], stringsAsFactors = FALSE) %>%
-    formatdf(dec = dec, mark = ",") %>%
+    format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
 }
 

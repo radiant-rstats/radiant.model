@@ -735,7 +735,7 @@ sim_plot_height <- function() {
   }
   # if (is.character(sim)) {
   #   if (sim[1] == "error") return(300)
-  #   # sim <- getdata(sim)
+  #   # sim <- get_data(sim)
   #   if (dim(sim)[1] == 0) {
   #     300
   #   } else {

@@ -75,7 +75,7 @@ nb_pred_plot_inputs <- reactive({
 
 output$ui_nb_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-    isFct <- "factor" == .getclass()
+    isFct <- "factor" == .get_class()
     vars <- varnames()[isFct]
   })
 
@@ -88,7 +88,7 @@ output$ui_nb_rvar <- renderUI({
 
 output$ui_nb_lev <- renderUI({
   req(available(input$nb_rvar))
-  levs <- .getdata()[[input$nb_rvar]] %>% 
+  levs <- .get_data()[[input$nb_rvar]] %>% 
     as.factor() %>% 
     levels() %>%
     c("All levels", .)
@@ -101,7 +101,7 @@ output$ui_nb_lev <- renderUI({
 
 output$ui_nb_evar <- renderUI({
   req(available(input$nb_rvar))
-  notVar <- .getclass() != "date"
+  notVar <- .get_class() != "date"
   vars <- varnames()[notVar]
   if (length(vars) > 0 && input$nb_rvar %in% vars) {
     vars <- vars[-which(vars == input$nb_rvar)]
@@ -127,7 +127,7 @@ observeEvent(input$dataset, {
 
 output$ui_nb_store_pred_name <- renderUI({
   req(input$nb_rvar)
-  levs <- .getdata()[[input$nb_rvar]] %>% 
+  levs <- .get_data()[[input$nb_rvar]] %>% 
     as.factor() %>% 
     levels() %>%
     paste(collapse = ", ")

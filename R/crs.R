@@ -18,8 +18,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   vars <- c(id, prod, rate)
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  uid <- getdata(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
-  dataset <- getdata(dataset, vars, na.rm = FALSE)
+  uid <- get_data(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
+  dataset <- get_data(dataset, vars, na.rm = FALSE)
 
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets
@@ -168,7 +168,7 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
   cat("\nProduct id :", object$prod)
   cat("\nPredict for:", paste0(object$pred, collapse = ", "), "\n")
   if (nrow(object$recommendations) > n) {
-    cat("Rows shown :", n, "out of", formatnr(nrow(object$recommendations), dec = 0), "\n")
+    cat("Rows shown :", n, "out of", format_nr(nrow(object$recommendations), dec = 0), "\n")
   }
 
   if (nrow(object$act) > 0 && !any(is.na(object$act))) {
@@ -178,44 +178,44 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
     ## best based on highest average rating
     best <- which(object$ravg == 1)
     ar1 <- mean(object$ract[, best + 1] == 1)
-    cat("\n- Average rating picks the best product", formatnr(ar1, dec = 1, perc = TRUE), "of the time")
+    cat("\n- Average rating picks the best product", format_nr(ar1, dec = 1, perc = TRUE), "of the time")
 
     ## best based on cf
     best <- which(object$rcf == 1, arr.ind = TRUE)
     cf1 <- mean(object$ract[best] == 1)
-    cat("\n- Collaborative filtering picks the best product", formatnr(cf1, dec = 1, perc = TRUE), "of the time")
+    cat("\n- Collaborative filtering picks the best product", format_nr(cf1, dec = 1, perc = TRUE), "of the time")
 
     ## best based on highest average rating in top 3
     best <- which(object$ravg == 1)
     ar3 <- mean(object$ract[, best + 1] < 4)
-    cat("\n- Pick based on average rating is in the top 3 products", formatnr(ar3, dec = 1, perc = TRUE), "of the time")
+    cat("\n- Pick based on average rating is in the top 3 products", format_nr(ar3, dec = 1, perc = TRUE), "of the time")
 
     ## best based on cf in top 3
     best <- which(object$rcf == 1, arr.ind = TRUE)
     cf3 <- mean(object$ract[best] < 4)
-    cat("\n- Pick based on collaborative filtering is in the top 3 products", formatnr(cf3, dec = 1, perc = TRUE), "of the time")
+    cat("\n- Pick based on collaborative filtering is in the top 3 products", format_nr(cf3, dec = 1, perc = TRUE), "of the time")
 
     ## best 3 based on highest average rating contains best product
     best <- which(object$ravg < 4)
     inar3 <- mean(rowSums(object$ract[, best + 1, drop = FALSE] == 1) > 0)
-    cat("\n- Top 3 based on average ratings contains the best product", formatnr(inar3, dec = 1, perc = TRUE), "of the time")
+    cat("\n- Top 3 based on average ratings contains the best product", format_nr(inar3, dec = 1, perc = TRUE), "of the time")
 
     ## best 3 based on cf contains best product
     best <- which(!object$rcf[, -1, drop = FALSE] < 4, arr.ind = TRUE)
     best[, "col"] <- best[, "col"] + 1 
     object$ract[best] <- NA
     incf3 <- mean(rowSums(object$ract == 1, na.rm = TRUE) > 0)
-    cat("\n- Top 3 based on collaborative filtering contains the best product", formatnr(incf3, dec = 1, perc = TRUE), "of the time\n")
+    cat("\n- Top 3 based on collaborative filtering contains the best product", format_nr(incf3, dec = 1, perc = TRUE), "of the time\n")
   }
 
   object$recommendations[is.na(object$recommendations)] <- ""
   cat("\nRecommendations:\n\n")
   if (n == -1) {
     cat("\n")
-    print(formatdf(object$recommendations, dec = dec), row.names = FALSE)
+    print(format_df(object$recommendations, dec = dec), row.names = FALSE)
   } else {
     head(object$recommendations, n) %>% 
-      formatdf(dec = dec) %>% 
+      format_df(dec = dec) %>% 
       print(row.names = FALSE)
   }
 }

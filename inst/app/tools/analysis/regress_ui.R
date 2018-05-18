@@ -113,7 +113,7 @@ reg_pred_plot_inputs <- reactive({
 
 output$ui_reg_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-    isNum <- .getclass() %in% c("numeric", "integer")
+    isNum <- .get_class() %in% c("numeric", "integer")
     vars <- varnames()[isNum]
   })
   selectInput(
@@ -198,7 +198,7 @@ output$ui_reg_predict_plot <- renderUI({
 })
 
 output$ui_reg_nrobs <- renderUI({
-  nrobs <- nrow(.getdata())
+  nrobs <- nrow(.get_data())
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(

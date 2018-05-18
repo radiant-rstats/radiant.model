@@ -47,7 +47,7 @@ logistic <- function(
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- getdata(dataset, vars, filt = data_filter)
+  dataset <- get_data(dataset, vars, filt = data_filter)
 
   if (missing(ci_type)) {
     ## Use profiling for smaller datasets
@@ -65,7 +65,7 @@ logistic <- function(
     }
     if (length(wts) != nrow(dataset)) {
       return(
-        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dataset), dec = 0), ")") %>%
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", format_nr(length(wts), dec = 0), " vs ", format_nr(nrow(dataset), dec = 0), ")") %>%
           add_class("logistic")
       )
     }
@@ -247,7 +247,7 @@ summary.logistic <- function(
   coeff <- object$coeff
   coeff$label %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
-  coeff[, 2:6] %<>% formatdf(dec)
+  coeff[, 2:6] %<>% format_df(dec)
   coeff$p.value[p.small] <- "< .001"
   rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
@@ -274,7 +274,7 @@ summary.logistic <- function(
     "\nChi-squared: ", with(logit_fit, null.deviance - deviance) %>% round(dec), " df(",
     with(logit_fit, df.null - df.residual), "), p.value ", chi_pval
   ), "\n")
-  cat("Nr obs:", formatnr(nobs, dec = 0), "\n\n")
+  cat("Nr obs:", format_nr(nobs, dec = 0), "\n\n")
 
   if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")
@@ -324,7 +324,7 @@ summary.logistic <- function(
       if ("confint" %in% sum_check) {
         ci_tab %T>%
           {.$`+/-` <- (.$High - .$coefficient)} %>%
-          formatdf(dec) %>%
+          format_df(dec) %>%
           set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
           set_rownames(object$coeff$label) %>%
           print()
@@ -339,7 +339,7 @@ summary.logistic <- function(
     } else {
       orlab <- if ("standardize" %in% object$check) "std odds ratio" else "odds ratio"
       exp(ci_tab[-1, ]) %>%
-        formatdf(dec) %>%
+        format_df(dec) %>%
         set_colnames(c(orlab, ci_perc[1], ci_perc[2])) %>%
         set_rownames(object$coeff$label[-1]) %>%
         print()
@@ -426,7 +426,7 @@ summary.logistic <- function(
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -752,7 +752,7 @@ minmax <- function(dataset) {
 #' @examples
 #' regress(diamonds, rvar = "price", evar = "carat:x", check = "standardize") %>%
 #'   write.coeff(sort = TRUE) %>%
-#'   formatdf(dec = 3)
+#'   format_df(dec = 3)
 #'
 #' @export
 write.coeff <- function(

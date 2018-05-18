@@ -29,14 +29,14 @@ evalreg <- function(
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- getdata(dataset, vars, filt = data_filter)
-    dat_list[["Validation"]] <- getdata(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
+    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else if (train == "Training") {
-    dat_list[["Training"]] <- getdata(dataset, vars, filt = data_filter)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
   } else if (train == "Validation") {
-    dat_list[["Validation"]] <- getdata(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else {
-    dat_list[["All"]] <- getdata(dataset, vars, filt = "")
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "")
   }
 
   pdat <- list()
@@ -86,7 +86,7 @@ summary.evalreg <- function(object, dec = 3, ...) {
   cat("Results for :", object$train, "\n")
   cat("Predictors  :", paste0(object$pred, collapse = ", "), "\n")
   cat("Response    :", object$rvar, "\n\n")
-  formatdf(object$dat, dec = dec, mark = ",") %>%
+  format_df(object$dat, dec = dec, mark = ",") %>%
     print(row.names = FALSE)
 }
 

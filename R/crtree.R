@@ -65,7 +65,7 @@ crtree <- function(
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- getdata(dataset, vars, filt = data_filter)
+  dataset <- get_data(dataset, vars, filt = data_filter)
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
@@ -74,7 +74,7 @@ crtree <- function(
     }
     if (length(wts) != nrow(dataset)) {
       return(
-        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", formatnr(length(wts), dec = 0), " vs ", formatnr(nrow(dataset), dec = 0), ")") %>%
+        paste0("Length of the weights variable is not equal to the number of rows in the dataset (", format_nr(length(wts), dec = 0), " vs ", format_nr(nrow(dataset), dec = 0), ")") %>%
           add_class("crtree")
       )
     }
@@ -279,9 +279,9 @@ summary.crtree <- function(
     cat("Adjusted prob.       :", object$adjprob, "\n")
   }
   if (!is_empty(object$wts, "None") && class(object$wts) == "integer") {
-    cat("Nr obs               :", formatnr(sum(object$wts), dec = 0), "\n\n")
+    cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n\n")
   } else {
-    cat("Nr obs               :", formatnr(length(object$rv), dec = 0), "\n\n")
+    cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n\n")
   }
 
   ## extra output
@@ -306,7 +306,7 @@ summary.crtree <- function(
 #' @param labs Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)
 #' @param dec Decimal places to round results to
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -353,7 +353,7 @@ plot.crtree <- function(
     }
 
     if (type == "class") {
-      df$yval <- formatnr(df$yval2[, 4], dec = dec, perc = TRUE)
+      df$yval <- format_nr(df$yval2[, 4], dec = dec, perc = TRUE)
       pre <- "<b>p:</b> "
     } else {
       df$yval <- round(df$yval, dec)
@@ -408,7 +408,7 @@ plot.crtree <- function(
 
     df$to_lab <- NA
     to_lab <- sapply(df$to[non_leafs], function(x) which(x == df$id))[1, ]
-    df$to_lab[non_leafs] <- paste0("id", df$to[non_leafs], "[", ifelse(df$var[to_lab] == "<leaf>", "", paste0(df$var[to_lab], "<br>")), "<b>n:</b> ", formatnr(df$n[to_lab], dec = 0), "<br>", pre, df$yval[to_lab], "]")
+    df$to_lab[non_leafs] <- paste0("id", df$to[non_leafs], "[", ifelse(df$var[to_lab] == "<leaf>", "", paste0(df$var[to_lab], "<br>")), "<b>n:</b> ", format_nr(df$n[to_lab], dec = 0), "<br>", pre, df$yval[to_lab], "]")
     df <- na.omit(df)
 
     leafs <- paste0("id", setdiff(df$to, df$id))
@@ -448,7 +448,7 @@ plot.crtree <- function(
 
     ttip_ind <- 1:(nrow(df) / 2)
     ttip <- df[ttip_ind, , drop = FALSE] %>%
-      {paste0("click id", .$id, " callback \"<b>n:</b> ", formatnr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
+      {paste0("click id", .$id, " callback \"<b>n:</b> ", format_nr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
 
     ## try to link a tooltip directly to an edge using mermaid
     ## see https://github.com/rich-iannone/DiagrammeR/issues/267

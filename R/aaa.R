@@ -3,7 +3,7 @@ globalVariables(c(
   ".", "n", ".resid", "null.deviance", "r_environment", ".fitted", "Predictor",
   "total", "TN", "FN", "FP", "TP", "total", "profit", "precision", "ROME",
   "TPR", "nr_resp", "nr_obs", "cum_resp", "cum_resp_rate", "pred",
-  "cum_prop", "cum_gains", "obs", "everything", "r_data", "r_info", "fixMS"
+  "cum_prop", "cum_gains", "obs", "everything", "r_data", "r_info", "fix_smart"
 ))
 
 #' radiant.model

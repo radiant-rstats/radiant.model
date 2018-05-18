@@ -30,7 +30,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- getdata(dataset, c(rvar, evar), filt = data_filter)
+  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter)
 
   if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
@@ -195,7 +195,7 @@ summary.regress <- function(
     return()
   } else {
     p.small <- coeff$p.value < .001
-    coeff[, 2:5] %<>% formatdf(dec)
+    coeff[, 2:5] %<>% format_df(dec)
     coeff$p.value[p.small] <- "< .001"
     print(rename(coeff, `  ` = "label", ` ` = "sig_star"), row.names = FALSE)
   }
@@ -215,7 +215,7 @@ summary.regress <- function(
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
   cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df - df_int, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
-  cat("\nNr obs:", formatnr(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
+  cat("\nNr obs:", format_nr(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
 
   if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")
@@ -374,7 +374,7 @@ summary.regress <- function(
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This opion can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -703,7 +703,7 @@ predict_model <- function(
     if (!is.null(object$model$term)) {
       dat_classes <- attr(object$model$term, "dataClasses")[-1]
     } else {
-      dat_classes <- getclass(dat)
+      dat_classes <- get_class(dat)
     }
 
     ## weights mess-up data manipulation below so remove from
@@ -748,7 +748,7 @@ predict_model <- function(
     }
   } else {
     ## generate predictions for all observations in the dataset
-    pred <- getdata(pred_data, filt = "", na.rm = FALSE)
+    pred <- get_data(pred_data, filt = "", na.rm = FALSE)
     pred_names <- colnames(pred)
     pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 
@@ -893,15 +893,15 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   if (n == -1) {
     cat("\n")
-    formatdf(x[, vars, drop = FALSE], attr(x, "dec")) %>%
+    format_df(x[, vars, drop = FALSE], attr(x, "dec")) %>%
       print(row.names = FALSE)
   } else {
     if (nrow(x) > n) {
-      cat("Rows shown           :", n, "of", formatnr(nrow(x), dec = 0), "\n")
+      cat("Rows shown           :", n, "of", format_nr(nrow(x), dec = 0), "\n")
     }
     cat("\n")
     head(x[, vars, drop = FALSE], n) %>%
-      formatdf(attr(x, "dec")) %>%
+      format_df(attr(x, "dec")) %>%
       print(row.names = FALSE)
   }
 }

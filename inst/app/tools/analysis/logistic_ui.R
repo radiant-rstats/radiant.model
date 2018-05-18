@@ -121,7 +121,7 @@ output$ui_logit_rvar <- renderUI({
 
 output$ui_logit_lev <- renderUI({
   req(available(input$logit_rvar))
-  levs <- .getdata()[[input$logit_rvar]] %>% 
+  levs <- .get_data()[[input$logit_rvar]] %>% 
     as.factor() %>% 
     levels()
   selectInput(
@@ -146,7 +146,7 @@ output$ui_logit_evar <- renderUI({
 
 output$ui_logit_wts <- renderUI({
   req(available(input$logit_rvar), available(input$logit_evar))
-  isNum <- .getclass() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("numeric", "integer")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$logit_evar)) {
     vars <- setdiff(vars, input$logit_evar)
@@ -224,7 +224,7 @@ output$ui_logit_predict_plot <- renderUI({
 })
 
 output$ui_logit_nrobs <- renderUI({
-  nrobs <- nrow(.getdata())
+  nrobs <- nrow(.get_data())
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(

@@ -4,7 +4,7 @@
 \alias{sim_summary}
 \title{Print simulation summary}
 \usage{
-sim_summary(dataset, dc = getclass(dataset), fun = "", dec = 4)
+sim_summary(dataset, dc = get_class(dataset), fun = "", dec = 4)
 }
 \arguments{
 \item{dataset}{Simulated data}
