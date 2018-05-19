@@ -309,7 +309,7 @@ output$dtree_print <- renderPrint({
 dtree_plot_args <- as.list(if (exists("plot.dtree")) {
   formals(plot.dtree)
 } else {
-  formals(radiant:::plot.dtree)
+  formals(radiant.model:::plot.dtree)
 })
 
 ## list of function inputs selected by user
@@ -476,13 +476,12 @@ observeEvent(input$dtree_remove, {
   dtree_name <- dtree_namer()
   id <- sample(seq_len(1000000), 1)
   xcmd <- clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
-    deparse(control = c("keepNA"), width.cutoff = 500L) %>%
-    {
-      if (. == "list()") {
-        "plot(result) %>% render()"
-      } else {
-        paste0(sub("list(", "plot(result, ", ., fixed = TRUE), " %>% render()")
-      }
+    deparse(control = getOption("dctrl"), width.cutoff = 500L) %>%
+    {if (. == "list()") {
+       "plot(result) %>% render()"
+     } else {
+       paste0(sub("list(", "plot(result, ", ., fixed = TRUE), " %>% render()")
+     }
     } %>%
     gsub("[\"\']TRUE[\'\"]", "TRUE", .)
 

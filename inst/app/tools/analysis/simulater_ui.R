@@ -73,7 +73,7 @@ rep_inputs <- reactive({
 rep_sum_args <- as.list(if (exists("summary.repeater")) {
   formals(summary.repeater)
 } else {
-  formals(radiant:::summary.repeater)
+  formals(radiant.model:::summary.repeater)
 } )
 
 ## list of function inputs selected by user
@@ -87,7 +87,7 @@ rep_sum_inputs <- reactive({
 rep_plot_args <- as.list(if (exists("plot.repeater")) {
   formals(plot.repeater)
 } else {
-  formals(radiant:::plot.repeater)
+  formals(radiant.model:::plot.repeater)
 } )
 
 ## list of function inputs selected by user
