@@ -113,6 +113,7 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @param x Return value from \code{\link{nb}}
 #' @param plots Plots to produce for the specified model. Use "" to avoid showing any plots. Use "vimp" for variable importance or "correlations" to examine conditional independence
 #' @param lev The level(s) in the response variable used as the basis for plots (defaults to "All levels")
+#' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -126,7 +127,7 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @seealso \code{\link{predict.nb}} for prediction
 #'
 #' @export
-plot.nb <- function(x, plots = "correlations", lev = "All levels", ...) {
+plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000, ...) {
   if (is.character(x)) return(x)
   if (is_empty(plots[1])) return(invisible())
 
@@ -135,9 +136,9 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", ...) {
 
   if ("correlations" %in% plots) {
     if (lev == "All levels") {
-      return(radiant.basics:::plot.correlation(evar, nrobs = 1000))
+      return(radiant.basics:::plot.correlation(evar, nrobs = nrobs))
     } else {
-      return(radiant.basics:::plot.correlation(filter(evar, rvar == lev), nrobs = 1000))
+      return(radiant.basics:::plot.correlation(filter(evar, rvar == lev), nrobs = nrobs))
     }
   }
 
@@ -154,7 +155,7 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", ...) {
   if (k == 2) {
     ## with two variables one of them would be set to 0 by caret::varImp
     ## reporting auc for each variable
-    vimp <- data.frame(auc = apply(evar, 2, auc, rvar), vars = names(x), stringsAsFactors = FALSE) %>%
+    vimp <- data.frame(auc = apply(evar, 2, auc, rvar), vars = colnames(evar), stringsAsFactors = FALSE) %>%
       arrange_at(.vars = "auc")
     vimp$vars <- factor(vimp$vars, levels = vimp$vars)
     p <- visualize(vimp, yvar = "auc", xvar = "vars", type = "bar", custom = TRUE) +
@@ -173,7 +174,7 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", ...) {
     colnames(vimp) <- names(evar)
     vimp$Predict <- apply(cmb, 2, paste0, collapse = " vs ")
     vimp$Predict <- factor(vimp$Predict, levels = unique(rev(vimp$Predict)))
-    vimp <- gather(vimp, "vars", "auc", !! names(evar), factor_key = TRUE)
+    vimp <- gather(vimp, "vars", "auc", !! colnames(evar), factor_key = TRUE)
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
       guides(fill = guide_legend(title = "")) +
@@ -351,7 +352,6 @@ store.nb.predict <- function(dataset, object, name = "pred_nb", ...) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name
-    # name <- unlist(strsplit(name, ",")) %>% gsub("\\s", "", .)
     name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
       gsub("\\s", "", .)
     if (length(name) < length(pvars)) {
