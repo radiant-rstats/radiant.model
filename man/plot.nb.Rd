@@ -4,7 +4,8 @@
 \alias{plot.nb}
 \title{Plot method for the nb function}
 \usage{
-\method{plot}{nb}(x, plots = "correlations", lev = "All levels", ...)
+\method{plot}{nb}(x, plots = "correlations", lev = "All levels",
+  nrobs = 1000, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{nb}}}
@@ -12,6 +13,8 @@
 \item{plots}{Plots to produce for the specified model. Use "" to avoid showing any plots. Use "vimp" for variable importance or "correlations" to examine conditional independence}
 
 \item{lev}{The level(s) in the response variable used as the basis for plots (defaults to "All levels")}
+
+\item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
 
 \item{...}{further arguments passed to or from other methods}
 }

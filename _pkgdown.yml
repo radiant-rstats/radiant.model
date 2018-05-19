@@ -1,0 +1,149 @@
+url: https://radiant-rstats.github.io/radiant.model
+
+template:
+  params:
+    docsearch:
+      api_key: 1234
+      index_name: radiant_model
+
+reference:
+- title: Model > Linear regression (OLS)
+  desc: Estimate linear regression models
+  contents:
+    - regress
+    - summary.regress
+    - predict.regress
+    - print.regress.predict
+    - plot.regress
+- title: Model > Logistic regression
+  desc: Estimate logistic regression models
+  contents:
+    - logistic
+    - summary.logistic
+    - predict.logistic
+    - print.logistic.predict
+    - plot.logistic
+    - confint_robust
+- title: Model > Neural network
+  desc: Estimate neural network models
+  contents:
+    - nn
+    - summary.nn
+    - predict.nn
+    - print.nn.predict
+    - plot.nn
+- title: Model > Naive Bayes
+  desc: Estimate naive Bayes models
+  contents:
+    - nb
+    - summary.nb
+    - predict.nb
+    - print.nb.predict
+    - plot.nb.predict
+    - store.nb.predict
+    - plot.nb
+- title: Model > Classification and Regression Trees
+  desc: Estimate classification and regression trees
+  contents:
+    - crtree
+    - summary.crtree
+    - predict.crtree
+    - print.crtree.predict
+    - plot.crtree
+- title: Model > Evaluate regression
+  desc: Evaluate regression models
+  contents:
+    - evalreg
+    - summary.evalreg
+    - plot.evalreg
+- title: Model > Evaluate classification
+  desc: Evaluate binary classification models
+  contents:
+    - evalbin
+    - summary.evalbin
+    - plot.evalbin
+    - confusion
+    - summary.confusion
+    - plot.confusion
+    - auc
+- title: Model > Collaborative filtering
+  desc: Esitmate collaborative filtering models
+  contents:
+    - crs
+    - summary.crs
+    - plot.crs
+    - store.crs
+- title: Model > Decision analysis
+  desc: Create and evaluate decision trees
+  contents:
+    - dtree
+    - summary.dtree
+    - plot.dtree
+    - sensitivity
+    - sensitivity.dtree
+    - dtree_parser
+- title: Model > Simulate
+  desc: Create simulation models
+  contents:
+    - simulater
+    - summary.simulater
+    - plot.simulater
+    - repeater
+    - summary.repeater
+    - plot.repeater
+    - sim_summary
+    - sdw
+    - sim_cleaner
+    - sim_splitter
+    - sim_cor
+    - find_max
+    - find_min
+- title: General modeling functions
+  desc: General modeling functions
+  contents:
+    - plot.model.predict
+    - scaledf
+    - minmax
+    - predict_model
+    - print_predict_model
+    - store.model
+    - store.model.predict
+    - render.DiagrammeR
+    - write.coeff
+- title: Convenience functions
+  desc: Convenience functions
+  contents:
+    - test_specs
+    - var_check
+- title: Starting radiant.model
+  desc: Functions used to start radiant shiny apps
+  contents:
+    - radiant.model
+    - radiant.model_viewer
+    - radiant.model_window
+- title: Data sets
+  desc: Data sets bundled with radiant.model
+  contents:
+    - catalog
+    - dvd
+    - direct_marketing
+    - houseprices
+    - ideal
+    - ratings
+- title: Deprecated
+  desc: Deprecated
+  contents:
+    - ann
+articles:
+- title: Model Menu
+  contents:
+    - pkgdown/regress
+    - pkgdown/logistic
+    - pkgdown/nn
+    - pkgdown/nb
+    - pkgdown/crtree
+    - pkgdown/evalreg
+    - pkgdown/evalbin
+    - pkgdown/crs
+    - pkgdown/dtree
+    - pkgdown/simulater

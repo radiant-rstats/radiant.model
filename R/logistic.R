@@ -513,16 +513,16 @@ plot.logistic <- function(
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
       ggplot() +
-      geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
-      geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
-      labs(y = yl, x = "") +
-      ## can't use coord_trans together with coord_flip
-      ## http://stackoverflow.com/a/26185278/1974918
-      # scale_x_discrete(limits = {if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])}) +
-      scale_x_discrete(limits = {if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])}) +
-      scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
-      coord_flip() +
-      theme(axis.text.y = element_text(hjust = 0))
+        geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
+        geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
+        labs(y = yl, x = "") +
+        ## can't use coord_trans together with coord_flip
+        ## http://stackoverflow.com/a/26185278/1974918
+        # scale_x_discrete(limits = {if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])}) +
+        scale_x_discrete(limits = {if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])}) +
+        scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
+        coord_flip() +
+        theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("scatter" %in% plots) {
