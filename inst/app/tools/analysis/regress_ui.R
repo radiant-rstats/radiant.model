@@ -385,7 +385,7 @@ reg_plot_height <- function()
   reg_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
 reg_pred_plot_height <- function()
-  if (input$reg_pred_plot) 500 else 0
+  if (input$reg_pred_plot) 500 else 1
 
 # output is called from the main radiant ui.R
 output$regress <- renderUI({
@@ -479,16 +479,23 @@ reg_available <- eventReactive(input$reg_run, {
 })
 
 .predict_plot_regress <- reactive({
-  if (not_pressed(input$reg_run)) return(invisible())
-  if (reg_available() != "available") return(reg_available())
-  req(input$reg_pred_plot, available(input$reg_xvar))
-  if (is_empty(input$reg_predict, "none")) return(invisible())
-  if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && is_empty(input$reg_pred_data)) {
-    return(invisible())
-  }
-  if (input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd)) {
-    return(invisible())
-  }
+  req(
+    pressed(input$reg_run), input$reg_pred_plot, 
+    available(input$reg_xvar),
+    !is_empty(input$reg_predict, "none")
+  )
+
+  ## needs more testing ...
+  # if (not_pressed(input$reg_run)) return(invisible())
+  # if (reg_available() != "available") return(reg_available())
+  # req(input$reg_pred_plot, available(input$reg_xvar))
+  # if (is_empty(input$reg_predict, "none")) return(invisible())
+  # if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && is_empty(input$reg_pred_data)) {
+  #   return(invisible())
+  # }
+  # if (input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd)) {
+  #   return(invisible())
+  # }
 
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_regress()), reg_pred_plot_inputs()))
@@ -557,7 +564,7 @@ observeEvent(input$regress_report, {
     if (input$reg_predict %in% c("data", "datacmd")) {
       name <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
         gsub("\\s", "", .) %>%
-        deparse(., control = "keepNA", width.cutoff = 500L)
+        deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       xcmd <- paste0(xcmd, "\n", input$reg_pred_data , " <- store(", 
         input$reg_pred_data, ", pred, name = ", name, ")"
       )

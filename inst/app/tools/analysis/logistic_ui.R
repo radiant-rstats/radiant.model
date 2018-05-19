@@ -402,7 +402,7 @@ logit_plot_height <- function()
   logit_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
 logit_pred_plot_height <- function()
-  if (input$logit_pred_plot) 500 else 0
+  if (input$logit_pred_plot) 500 else 1
 
 ## output is called from the main radiant ui.R
 output$logistic <- renderUI({
@@ -500,16 +500,22 @@ logit_available <- reactive({
 })
 
 .predict_plot_logistic <- reactive({
-  if (not_pressed(input$logit_run)) return(invisible())
-  if (logit_available() != "available") return(logit_available())
-  req(input$logit_pred_plot, available(input$logit_xvar))
-  if (is_empty(input$logit_predict, "none")) return(invisible())
-  if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && is_empty(input$logit_pred_data)) {
-    return(invisible())
-  }
-  if (input$logit_predict == "cmd" && is_empty(input$logit_pred_cmd)) {
-    return(invisible())
-  }
+  req(
+    pressed(input$logit_run), input$logit_pred_plot, 
+    available(input$logit_xvar),
+    !is_empty(input$logit_predict, "none")
+  )
+
+  # if (not_pressed(input$logit_run)) return(invisible())
+  # if (logit_available() != "available") return(logit_available())
+  # req(input$logit_pred_plot, available(input$logit_xvar))
+  # if (is_empty(input$logit_predict, "none")) return(invisible())
+  # if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && is_empty(input$logit_pred_data)) {
+  #   return(invisible())
+  # }
+  # if (input$logit_predict == "cmd" && is_empty(input$logit_pred_cmd)) {
+  #   return(invisible())
+  # }
 
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_logistic()), logit_pred_plot_inputs()))
@@ -572,7 +578,7 @@ observeEvent(input$logistic_report, {
     if (input$logit_predict %in% c("data", "datacmd")) {
       name <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
         gsub("\\s", "", .) %>%
-        deparse(., control = "keepNA", width.cutoff = 500L)
+        deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       xcmd <- paste0(xcmd, "\n", input$logit_pred_data, " <- store(", 
         input$logit_pred_data, ", pred, name = ", name, ")"
       )

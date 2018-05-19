@@ -338,7 +338,7 @@ nn_plot_height <- function()
   nn_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
 nn_pred_plot_height <- function()
-  if (input$nn_pred_plot) 500 else 0
+  if (input$nn_pred_plot) 500 else 1
 
 ## output is called from the main radiant ui.R
 output$nn <- renderUI({
@@ -451,16 +451,22 @@ nn_available <- reactive({
 })
 
 .predict_plot_nn <- reactive({
-  if (not_pressed(input$nn_run)) return(invisible())
-  if (nn_available() != "available") return(nn_available())
-  req(input$nn_pred_plot, available(input$nn_xvar))
-  if (is_empty(input$nn_predict, "none")) return(invisible())
-  if ((input$nn_predict == "data" || input$nn_predict == "datacmd") && is_empty(input$nn_pred_data)) {
-    return(invisible())
-  }
-  if (input$nn_predict == "cmd" && is_empty(input$nn_pred_cmd)) {
-    return(invisible())
-  }
+  req(
+    pressed(input$nn_run), input$nn_pred_plot, 
+    available(input$nn_xvar),
+    !is_empty(input$nn_predict, "none")
+  )
+
+  # if (not_pressed(input$nn_run)) return(invisible())
+  # if (nn_available() != "available") return(nn_available())
+  # req(input$nn_pred_plot, available(input$nn_xvar))
+  # if (is_empty(input$nn_predict, "none")) return(invisible())
+  # if ((input$nn_predict == "data" || input$nn_predict == "datacmd") && is_empty(input$nn_pred_data)) {
+  #   return(invisible())
+  # }
+  # if (input$nn_predict == "cmd" && is_empty(input$nn_pred_cmd)) {
+  #   return(invisible())
+  # }
 
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_nn()), nn_pred_plot_inputs()))

@@ -404,9 +404,13 @@ crtree_available <- reactive({
 })
 
 .summary_crtree <- reactive({
-  if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
-  if (crtree_available() != "available") return(crtree_available())
-  summary(.crtree())
+  if (not_pressed(input$crtree_run)) {
+    "** Press the Estimate button to estimate the model **"
+  } else if (crtree_available() != "available") {
+    crtree_available()
+  } else {
+    summary(.crtree())
+  }
 })
 
 .predict_crtree <- reactive({
@@ -431,16 +435,22 @@ crtree_available <- reactive({
 })
 
 .predict_plot_crtree <- reactive({
-  if (not_pressed(input$crtree_run)) return(invisible())
-  if (crtree_available() != "available") return(crtree_available())
-  req(input$crtree_pred_plot, available(input$crtree_xvar))
-  if (is_empty(input$crtree_predict, "none")) return(invisible())
-  if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && is_empty(input$crtree_pred_data)) {
-    return(invisible())
-  }
-  if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
-    return(invisible())
-  }
+  req(
+    pressed(input$crtree_run), input$crtree_pred_plot, 
+    available(input$crtree_xvar),
+    !is_empty(input$crtree_predict, "none")
+  )
+
+  # if (not_pressed(input$crtree_run)) return(invisible())
+  # if (crtree_available() != "available") return(crtree_available())
+  # req(input$crtree_pred_plot, available(input$crtree_xvar))
+  # if (is_empty(input$crtree_predict, "none")) return(invisible())
+  # if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && is_empty(input$crtree_pred_data)) {
+  #   return(invisible())
+  # }
+  # if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
+  #   return(invisible())
+  # }
 
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_crtree()), crtree_pred_plot_inputs()))

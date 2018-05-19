@@ -266,7 +266,8 @@ nb_plot_width <- function()
 nb_plot_height <- function()
   nb_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
-nb_pred_plot_height <- function() if (input$nb_pred_plot) 500 else 0
+nb_pred_plot_height <- function() 
+  if (input$nb_pred_plot) 500 else 1
 
 ## output is called from the main radiant ui.R
 output$nb <- renderUI({
@@ -358,16 +359,23 @@ nb_available <- reactive({
 })
 
 .predict_plot_nb <- reactive({
-  if (nb_available() != "available") return(nb_available())
-  req(input$nb_pred_plot, available(input$nb_xvar))
-  if (not_pressed(input$nb_run)) return(invisible())
-  if (is_empty(input$nb_predict, "none")) return(invisible())
-  if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && is_empty(input$nb_pred_data)) {
-    return(invisible())
-  }
-  if (input$nb_predict == "cmd" && is_empty(input$nb_pred_cmd)) {
-    return(invisible())
-  }
+  req(
+    pressed(input$nb_run), input$nb_pred_plot, 
+    available(input$nb_xvar),
+    !is_empty(input$nb_predict, "none")
+  )
+
+  ## needs more testing ...
+  # if (nb_available() != "available") return(nb_available())
+  # # req(input$nb_pred_plot, available(input$nb_xvar))
+  # if (not_pressed(input$nb_run)) return(invisible())
+  # if (is_empty(input$nb_predict, "none")) return(invisible())
+  # if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && is_empty(input$nb_pred_data)) {
+  #   return(invisible())
+  # }
+  # if (input$nb_predict == "cmd" && is_empty(input$nb_pred_cmd)) {
+  #   return(invisible())
+  # }
 
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_nb()), nb_pred_plot_inputs()))
@@ -386,7 +394,7 @@ nb_available <- reactive({
   if (input$nb_plots == "correlations") {
     capture_plot(do.call(plot, c(list(x = .nb()), nb_plot_inputs())))
   } else {
-    if (input$nb_plots %in% c("correlations", "scatter")) req(input$nb_nrobs)
+    # if (input$nb_plots %in% c("correlations", "scatter")) req(input$nb_nrobs)
     withProgress(message = "Generating plots", value = 1, {
       do.call(plot, c(list(x = .nb()), nb_plot_inputs(), shiny = TRUE))
     })
@@ -446,8 +454,8 @@ observeEvent(input$nb_report, {
       if (!is_empty(name)) {
         name <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
           gsub("\\s", "", .) %>%
-          make.names() %>%
-          deparse(., control = "keepNA", width.cutoff = 500L)
+          fix_names() %>%
+          deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       }
       xcmd <- paste0(xcmd, "\n", input$nb_pred_data, " <- store(", 
         input$nb_pred_data, ", pred, name = ", name, ")"
