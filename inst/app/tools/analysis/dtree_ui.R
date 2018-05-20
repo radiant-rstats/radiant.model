@@ -396,7 +396,9 @@ observeEvent(input$dtree_load_yaml, {
 
   dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name)
   r_data[[dtree_name]] <- yaml_file
-  shiny::makeReactiveBinding(dtree_name, env = r_data)
+  if (!bindingIsActive(as.symbol(dtree_name), env = r_data)) {
+    shiny::makeReactiveBinding(dtree_name, env = r_data)
+  }
   # r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)

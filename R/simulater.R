@@ -253,10 +253,11 @@ simulater <- function(
   }
 
   form <- gsub("*", "\\*", form, fixed = TRUE) %>%
+    gsub("^\\s*?\\#+[^\\#]", "##### # ", .) %>%
     gsub("[;\n]\\s*?\\#+[^\\#]", "; ##### # ", .) %>%
-    gsub(";", "\n\n", .)
+    gsub(";\\s*", "\n\n", .)
 
-  mess <- paste0("\n### Simulated data\n\nFormula:\n\n", form, "\n\nDate: ", lubridate::now())
+  mess <- paste0("\n### Simulated data\n\nFormulas:\n\n", form, "\n\nDate: ", lubridate::now())
 
   add_class(set_attr(dataset, "description", mess), "simulater")
 }
