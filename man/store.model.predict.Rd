@@ -24,6 +24,6 @@ See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an exampl
 \examples{
 model <- regress(diamonds, rvar = "price", evar = c("carat","cut"))
 pred <- predict(model, pred_data = diamonds)
-diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high")) 
+diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high"))
 
 }

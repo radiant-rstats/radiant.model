@@ -12,8 +12,8 @@
 #' @return A list of all variables variables used in the regress function as an object of class regress
 #'
 #' @examples
-#' result <- regress(diamonds, "price", c("carat","clarity"))
-#' result <- regress(diamonds, "price", c("carat","clarity"), check = "standardize")
+#' regress(diamonds, "price", c("carat","clarity"), check = "standardize") %>% summary()
+#' regress(diamonds, "price", c("carat","clarity")) %>% str()
 #'
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{plot.regress}} to plot results
@@ -38,7 +38,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   }
 
   vars <- ""
-  var_check(evar, colnames(dataset)[-1], int) %>% 
+  var_check(evar, colnames(dataset)[-1], int) %>%
     {vars <<- .$vars; evar <<- .$ev; int <<- .$intv}
 
   ## add minmax attributes to data
@@ -600,7 +600,7 @@ predict.regress <- function(
     } else if ("center" %in% object$check || "standardize" %in% object$check) {
       message("Standard error calculations not supported when coefficients are centered or standardized")
       se <- FALSE; interval <- "none"
-    } 
+    }
   } else {
     interval <- "none"
   }
@@ -616,8 +616,8 @@ predict.regress <- function(
       try(
         sshhr(
           predict(
-            model, pred, 
-            interval = ifelse(se, interval, "none"), 
+            model, pred,
+            interval = ifelse(se, interval, "none"),
             level = conf_lev
           )
         ),
@@ -1027,7 +1027,7 @@ plot.model.predict <- function(
 #' @examples
 #' model <- regress(diamonds, rvar = "price", evar = c("carat","cut"))
 #' pred <- predict(model, pred_data = diamonds)
-#' diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high")) 
+#' diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high"))
 #'
 #' @export
 store.model.predict <- function(dataset, object, name = "prediction", ...) {
