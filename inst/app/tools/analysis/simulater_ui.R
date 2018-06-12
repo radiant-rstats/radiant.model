@@ -164,7 +164,7 @@ output$ui_rep_vars <- renderUI({
       if (grepl(s[[i]][1], s[[i]][2])) next
       svars <- c(svars, s[[i]][1])
     }
-    if (length(svars) > 0) vars <- setdiff(vars, svars)
+    if (length(svars) > 0) vars <- base::setdiff(vars, svars)
   }
 
   selectizeInput(

@@ -40,7 +40,6 @@ output$ui_dtree_name <- renderUI({
 })
 
 output$ui_dtree_remove <- renderUI({
-  # req(length(r_data[["dtree_list"]]) > 1)
   req(length(r_info[["dtree_list"]]) > 1)
   actionButton("dtree_remove", "Remove", icon = icon("trash"), class = "btn-danger")
 })
@@ -144,7 +143,7 @@ output$dtree <- renderUI({
         debounce = 100,
         height = "auto",
         value = state_init("dtree_edit", dtree_example) %>% gsub("\t", "    ", .),
-        vimKeyBinding = getOption("radiant.vim.keys", default = FALSE),
+        vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
         hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
         tabSize = 4,
         showInvisibles = TRUE,
@@ -294,6 +293,7 @@ dtree_run <- eventReactive(vals_dtree$dtree_hotkey > 1, {
 
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
+
   if (input$dtree_edit != "") {
     withProgress(message = "Creating decision tree", value = 1, {
       dtree(input$dtree_edit, opt = input$dtree_opt)
@@ -443,8 +443,10 @@ dtree_namer <- reactive({
   if (is_empty(dtree_name)) dtree_name <- dtree_name()
 
   r_data[[dtree_name]] <- input$dtree_edit
-  # r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
+  if (!bindingIsActive(as.symbol(dtree_name), env = r_data)) {
+    shiny::makeReactiveBinding(dtree_name, env = r_data)
+  }
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   dtree_name
 })
@@ -452,9 +454,7 @@ dtree_namer <- reactive({
 ## remove yaml input
 observeEvent(input$dtree_remove, {
   dtree_name <- input$dtree_list[1]
-  # r_data[["dtree_list"]] <- setdiff(r_data[["dtree_list"]], dtree_name)
-  # r_data[[dtree_name]] <- NULL
-  r_info[["dtree_list"]] <- setdiff(r_info[["dtree_list"]], dtree_name)
+  r_info[["dtree_list"]] <- base::setdiff(r_info[["dtree_list"]], dtree_name)
   r_data[[dtree_name]] <- NULL
 })
 

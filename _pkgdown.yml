@@ -6,6 +6,39 @@ template:
       api_key: 1234
       index_name: radiant_model
 
+navbar:
+  title: "radiant.model"
+  left:
+    - icon: fa-home fa-lg
+      href: index.html
+    - text: "Reference"
+      href: reference/index.html
+    - text: "Articles"
+      href: articles/index.html
+    - text: "Changelog"
+      href: news/index.html
+    - text: "Other Packages"
+      menu:
+        - text: "radiant"
+          href: https://radiant-rstats.github.io/radiant/
+        - text: "radiant.data"
+          href: https://radiant-rstats.github.io/radiant.data/
+        - text: "radiant.design"
+          href: https://radiant-rstats.github.io/radiant.design/
+        - text: "radiant.basics"
+          href: https://radiant-rstats.github.io/radiant.basics/
+        - text: "radiant.model"
+          href: https://radiant-rstats.github.io/radiant.model/
+        - text: "radiant.multivariate"
+          href: https://radiant-rstats.github.io/radiant.multivariate/
+        - text: "docker"
+          href: https://github.com/radiant-rstats/docker
+  right:
+   - icon: fa-twitter fa-lg
+     href: https://twitter.com/vrnijs
+   - icon: fa-github fa-lg
+     href: https://github.com/radiant-rstats
+
 reference:
 - title: Model > Linear regression (OLS)
   desc: Estimate linear regression models
@@ -42,7 +75,7 @@ reference:
     - plot.nb.predict
     - store.nb.predict
     - plot.nb
-- title: Model > Classification and Regression Trees
+- title: Model > Classification and regression trees
   desc: Estimate classification and regression trees
   contents:
     - crtree
@@ -72,7 +105,6 @@ reference:
     - crs
     - summary.crs
     - plot.crs
-    - store.crs
 - title: Model > Decision analysis
   desc: Create and evaluate decision trees
   contents:
@@ -109,12 +141,9 @@ reference:
     - store.model
     - store.model.predict
     - render.DiagrammeR
-    - write.coeff
-- title: Convenience functions
-  desc: Convenience functions
-  contents:
     - test_specs
     - var_check
+    - write.coeff
 - title: Starting radiant.model
   desc: Functions used to start radiant shiny apps
   contents:
@@ -129,13 +158,17 @@ reference:
     - direct_marketing
     - houseprices
     - ideal
+    - movie_contract
     - ratings
 - title: Deprecated
   desc: Deprecated
   contents:
     - ann
+    - store.crs
 articles:
 - title: Model Menu
+  desc: >
+    These vignettes provide an introduction to the Model menu in radiant
   contents:
     - pkgdown/regress
     - pkgdown/logistic

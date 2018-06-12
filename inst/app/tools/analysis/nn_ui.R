@@ -131,7 +131,7 @@ output$ui_nn_evar <- renderUI({
 output$ui_nn_wts <- renderUI({
   vars <- varnames()[.get_class() %in% c("numeric", "integer")]
   if (length(vars) > 0 && any(vars %in% input$nn_evar)) {
-    vars <- setdiff(vars, input$nn_evar)
+    vars <- base::setdiff(vars, input$nn_evar)
     names(vars) <- varnames() %>%
       {.[match(vars, .)]} %>%
       names()

@@ -104,7 +104,7 @@ output$ui_crtree_wts <- renderUI({
   isNum <- .get_class() %in% c("numeric", "integer")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
-    vars <- setdiff(vars, input$crtree_evar)
+    vars <- base::setdiff(vars, input$crtree_evar)
     names(vars) <- varnames() %>% 
       {.[match(vars, .)]} %>% 
       names()

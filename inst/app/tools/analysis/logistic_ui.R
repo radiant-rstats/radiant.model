@@ -149,7 +149,7 @@ output$ui_logit_wts <- renderUI({
   isNum <- .get_class() %in% c("numeric", "integer")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$logit_evar)) {
-    vars <- setdiff(vars, input$logit_evar)
+    vars <- base::setdiff(vars, input$logit_evar)
     names(vars) <- varnames() %>% 
       {.[match(vars, .)]} %>% 
       names()
