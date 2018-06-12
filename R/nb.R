@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
-#' @param dataset Dataset 
+#' @param dataset Dataset
 #' @param rvar The response variable in the logit (probit) model
 #' @param evar Explanatory variables in the model
 #' @param laplace Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
@@ -11,7 +11,8 @@
 #' @return A list with all variables defined in nb as an object of class nb
 #'
 #' @examples
-#' result <- nb(titanic, "survived", c("pclass","sex","age"))
+#' nb(titanic, "survived", c("pclass", "sex", "age")) %>% summary()
+#' nb(titanic, "survived", c("pclass", "sex", "age")) %>% str()
 #'
 #' @seealso \code{\link{summary.nb}} to summarize results
 #' @seealso \code{\link{plot.nb}} to plot results
@@ -70,7 +71,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb(titanic, "survived", c("pclass","sex","age"))
+#' result <- nb(titanic, "survived", c("pclass", "sex", "age"))
 #' summary(result)
 #'
 #' @seealso \code{\link{nb}} to generate results
@@ -117,9 +118,9 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb(titanic, "survived", c("pclass","sex"))
+#' result <- nb(titanic, "survived", c("pclass", "sex"))
 #' plot(result)
-#' result <- nb(titanic, "pclass", c("sex","age"))
+#' result <- nb(titanic, "pclass", c("sex", "age"))
 #' plot(result)
 #'
 #' @seealso \code{\link{nb}} to generate results
@@ -144,7 +145,7 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
 
   if (lev != "All levels") {
     rvar <- factor(
-      ifelse(rvar == lev, lev, paste0("not_", lev)), 
+      ifelse(rvar == lev, lev, paste0("not_", lev)),
       levels = c(lev, paste0("not_", lev))
     )
     x$lev <- c(lev, paste0("not_", lev))
@@ -206,7 +207,6 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
 #' predict(result, pred_data = titanic)
 #' predict(result, pred_data = titanic, pred_names = c("1st", "2nd", "3rd"))
 #' predict(result, pred_data = titanic, pred_names = "")
-#' predict(result, pred_data = titanic, pred_names = NA)
 #'
 #' @seealso \code{\link{nb}} to generate the result
 #' @seealso \code{\link{summary.nb}} to summarize results
@@ -216,7 +216,7 @@ predict.nb <- function(
   object, pred_data = NULL, pred_cmd = "",
   pred_names = "", dec = 3, ...
 ) {
-  
+
   if (is.character(object)) return(object)
 
   ## ensure you have a name for the prediction dataset
@@ -278,7 +278,10 @@ print.nb.predict <- function(x, ..., n = 10)
 #'
 #' @examples
 #' result <- nb(titanic, "survived", c("pclass", "sex", "age"))
-#' pred <- predict(result, pred_cmd="pclass = levels(pclass), sex = levels(sex), age=seq(0, 100, 20)")
+#' pred <- predict(
+#'   result,
+#'   pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = seq(0, 100, 20)")
+#' )
 #' plot(pred, xvar = "age", facet_col = "sex", facet_row = "pclass")
 #' pred <- predict(result, pred_data = titanic)
 #' plot(pred, xvar = "age", facet_col = "sex")
@@ -300,7 +303,7 @@ plot.nb.predict <- function(
 
   if (is.character(x)) return(x)
 
-  pvars <- setdiff(attr(x, "vars"), attr(x, "evar"))
+  pvars <- base::setdiff(attr(x, "vars"), attr(x, "evar"))
   rvar <- attr(x, "rvar")
   x %<>% gather(".class", "Prediction", !! pvars)
 
@@ -343,7 +346,7 @@ plot.nb.predict <- function(
 store.nb.predict <- function(dataset, object, name = "pred_nb", ...) {
 
   ## extract the names of the variables predicted
-  pvars <- setdiff(attr(object, "vars"), attr(object, "evar"))
+  pvars <- base::setdiff(attr(object, "vars"), attr(object, "evar"))
 
   ## as.vector removes all attributes from df
   df <- as.vector(object[, pvars])
