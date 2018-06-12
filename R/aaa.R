@@ -78,3 +78,12 @@ NULL
 #' @usage data(ratings)
 #' @format A data frame with 110 rows and 4 variables
 NULL
+
+#' Movie contract decision tree
+#' @details Use decision analysis to create a decision tree for an actor facing a contract decision
+#' @docType data
+#' @keywords datasets
+#' @name movie_contract
+#' @usage data(movie_contract)
+#' @format A nested list for decision and chance nodes, probabilities and payoffs
+NULL
