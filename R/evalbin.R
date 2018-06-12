@@ -1,11 +1,11 @@
-#' Model evalbin
+#' Evaluate the performance of different (binary) classification models
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details Evaluate different (binary) classification models based on predictions. See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
-#' @param dataset Dataset 
+#' @param dataset Dataset
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
-#' @param lev The level in the response variable defined as _success_
+#' @param lev The level in the response variable defined as success
 #' @param qnt Number of bins to create
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
@@ -18,13 +18,15 @@
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' result <- evalbin(titanic, c("age", "fare"), "survived")
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   evalbin(c("pred1", "pred2"), "buy") %>%
+#'   str()
 #'
 #' @export
 evalbin <- function(
   dataset, pred, rvar, lev = "",
   qnt = 10, cost = 1, margin = 2,
-  train = "", data_filter = ""
+  train = "All", data_filter = ""
 ) {
 
   ## in case no inputs were provided
@@ -61,6 +63,14 @@ evalbin <- function(
     lg_list <- list()
     pl <- c()
     dataset <- dat_list[[i]]
+
+    if (nrow(dataset) == 0) {
+      return(
+        paste0("Data for ", i, " has zero rows. Please correct the filter used and try again") %>%
+          add_class("evalbin")
+      )
+    }
+
     rv <- dataset[[rvar]]
     if (is.factor(rv)) {
       levs <- levels(rv)
@@ -131,8 +141,8 @@ evalbin <- function(
   names(prof_list) <- names(auc_list)
 
   list(
-    dataset = dataset, df_name = df_name, data_filter = data_filter, 
-    train = train, pred = pred, rvar = rvar, lev = lev, 
+    dataset = dataset, df_name = df_name, data_filter = data_filter,
+    train = train, pred = pred, rvar = rvar, lev = lev,
     qnt = qnt, cost = cost, margin = margin
   ) %>% add_class("evalbin")
 }
@@ -150,8 +160,9 @@ evalbin <- function(
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' evalbin(titanic, "age", "survived") %>% summary()
-#' evalbin(titanic, c("age", "fare"), "survived") %>% summary()
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   evalbin(c("pred1", "pred2"), "buy") %>%
+#'   summary()
 #'
 #' @export
 summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
@@ -184,21 +195,21 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 #' @param plots Plots to return
 #' @param size Font size used
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{evalbin}} to generate results
 #' @seealso \code{\link{summary.evalbin}} to summarize results
 #'
 #' @examples
-#' evalbin(titanic, "age", "survived") %>% plot()
-#' evalbin(titanic, c("age", "fare"), "survived") %>% plot()
-#' evalbin(titanic, c("age", "fare"), "survived") %>% summary()
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   evalbin(c("pred1", "pred2"), "buy") %>%
+#'   plot()
 #'
 #' @export
 plot.evalbin <- function(
-  x, plots = c("lift", "gains"), 
-  size = 13, shiny = FALSE, 
+  x, plots = c("lift", "gains"),
+  size = 13, shiny = FALSE,
   custom = FALSE, ...
 ) {
 
@@ -243,11 +254,11 @@ plot.evalbin <- function(
     dataset <- bind_rows(init, dataset) %>% arrange(pred, obs)
 
     plot_list[["profit"]] <- visualize(
-      dataset, 
-      xvar = "cum_prop", 
-      yvar = "profit", 
-      type = "line", 
-      color = "pred", 
+      dataset,
+      xvar = "cum_prop",
+      yvar = "profit",
+      type = "line",
+      color = "pred",
       custom = TRUE
     ) +
       geom_point() +
@@ -257,11 +268,11 @@ plot.evalbin <- function(
 
   if ("rome" %in% plots) {
     plot_list[["rome"]] <- visualize(
-      x$dataset, 
-      xvar = "cum_prop", 
-      yvar = "ROME", 
-      type = "line", 
-      color = "pred", 
+      x$dataset,
+      xvar = "cum_prop",
+      yvar = "ROME",
+      type = "line",
+      color = "pred",
       custom = TRUE
     ) +
       geom_point() +
@@ -274,7 +285,7 @@ plot.evalbin <- function(
     if (length(x$pred) < 2 && x$train != "Both") {
       plot_list[[i]] <- plot_list[[i]] + theme(legend.position = "none")
     } else {
-      plot_list[[i]] <- plot_list[[i]] + labs(colour = "Predictor")
+      plot_list[[i]] <- plot_list[[i]] + labs(color = "Predictor")
     }
   }
 
@@ -282,19 +293,19 @@ plot.evalbin <- function(
     if (length(plot_list) == 1) return(plot_list[[1]]) else return(plot_list)
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% 
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
     {if (shiny) . else print(.)}
 }
 
 
 #' Confusion matrix
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#' @details Confusion matrix and additional metrics to evaluate binary classification models. See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
 #' @param dataset Dataset
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
-#' @param lev The level in the response variable defined as _success_
+#' @param lev The level in the response variable defined as success
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
@@ -306,12 +317,17 @@ plot.evalbin <- function(
 #' @seealso \code{\link{summary.confusion}} to summarize results
 #' @seealso \code{\link{plot.confusion}} to plot results
 #'
+#' @examples
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   confusion(c("pred1", "pred2"), "buy") %>%
+#'   str()
+#'
 #' @importFrom psych cohen.kappa
 #'
 #' @export
 confusion <- function(
-  dataset, pred, rvar, lev = "", cost = 1, margin = 2, 
-  train = "", data_filter = "", ...
+  dataset, pred, rvar, lev = "", cost = 1, margin = 2,
+  train = "All", data_filter = "", ...
 ) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
@@ -436,11 +452,7 @@ confusion <- function(
 
   for (i in 1:nrow(dataset)) {
     tmp <- slice(dataset, i)
-    ## sent prof. Revelle an email about warning message on 2/18/2018
-    ## will be fixed in next psych release
-    dataset$kappa[i] <- sshhr(
-      psych::cohen.kappa(matrix(with(tmp, c(TN, FP, FN, TP)), ncol = 2))[["kappa"]]
-    )
+    dataset$kappa[i] <- psych::cohen.kappa(matrix(with(tmp, c(TN, FP, FN, TP)), ncol = 2))[["kappa"]]
   }
 
   dataset <- select_at(
@@ -468,6 +480,11 @@ confusion <- function(
 #'
 #' @seealso \code{\link{confusion}} to generate results
 #' @seealso \code{\link{plot.confusion}} to visualize result
+#'
+#' @examples
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   confusion(c("pred1", "pred2"), "buy") %>%
+#'   summary()
 #'
 #' @export
 summary.confusion <- function(object, dec = 3, ...) {
@@ -506,6 +523,11 @@ summary.confusion <- function(object, dec = 3, ...) {
 #'
 #' @seealso \code{\link{confusion}} to generate results
 #' @seealso \code{\link{summary.confusion}} to summarize results
+#'
+#' @examples
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   confusion(c("pred1", "pred2"), "buy") %>%
+#'   plot()
 #'
 #' @export
 plot.confusion <- function(
@@ -554,7 +576,7 @@ plot.confusion <- function(
 #'
 #' @param pred Prediction or predictor
 #' @param rvar Response variable
-#' @param lev The level in the response variable defined as _success_
+#' @param lev The level in the response variable defined as success
 #'
 #' @return AUC statistic
 #'
@@ -563,7 +585,8 @@ plot.confusion <- function(
 #' @seealso \code{\link{plot.evalbin}} to plot results
 #'
 #' @examples
-#' auc(runif(nrow(mtcars)), mtcars$vs, 1)
+#' auc(runif(20000), dvd$buy, "yes")
+#' auc(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes")
 #'
 #' @export
 auc <- function(pred, rvar, lev) {

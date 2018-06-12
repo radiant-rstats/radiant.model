@@ -5,7 +5,7 @@
 \title{Confusion matrix}
 \usage{
 confusion(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
-  train = "", data_filter = "", ...)
+  train = "All", data_filter = "", ...)
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -14,7 +14,7 @@ confusion(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
 
 \item{rvar}{Response variable}
 
-\item{lev}{The level in the response variable defined as _success_}
+\item{lev}{The level in the response variable defined as success}
 
 \item{cost}{Cost for each connection (e.g., email or mailing)}
 
@@ -33,7 +33,13 @@ A list of results
 Confusion matrix
 }
 \details{
-See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+Confusion matrix and additional metrics to evaluate binary classification models. See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+}
+\examples{
+data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) \%>\%
+  confusion(c("pred1", "pred2"), "buy") \%>\%
+  str()
+
 }
 \seealso{
 \code{\link{summary.confusion}} to summarize results

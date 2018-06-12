@@ -16,7 +16,7 @@
 
 \item{facet_col}{Create horizontally arranged subplots for each level of the selected factor variable}
 
-\item{color}{Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different colour}
+\item{color}{Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different color}
 
 \item{conf_lev}{Confidence level to use for prediction intervals (.95 is the default)}
 
@@ -26,13 +26,10 @@
 Plot method for model.predict functions
 }
 \examples{
-regress(diamonds, "price", c("carat","clarity")) \%>\%
+regress(diamonds, "price", c("carat", "clarity")) \%>\%
   predict(pred_cmd = "carat = 1:10") \%>\%
   plot(xvar = "carat")
-logistic(titanic, "survived", c("pclass","sex","age"), lev = "Yes") \%>\%
-  predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) \%>\%
-  plot(xvar = "age", color = "sex", facet_col = "pclass")
-logistic(titanic, "survived", c("pclass","sex","age"), lev = "Yes") \%>\%
+logistic(titanic, "survived", c("pclass", "sex", "age"), lev = "Yes") \%>\%
   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) \%>\%
   plot(xvar = "age", color = "sex", facet_col = "pclass")
 

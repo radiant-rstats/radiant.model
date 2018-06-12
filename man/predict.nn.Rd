@@ -25,7 +25,7 @@ Predict method for the nn function
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 }
 \examples{
-result <- nn(titanic, "survived", c("pclass","sex"), lev = "Yes")
+result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 predict(result, pred_cmd = "pclass = levels(pclass)")
 result <- nn(diamonds, "price", "carat:color", type = "regression")
 predict(result, pred_cmd = "carat = 1:3")

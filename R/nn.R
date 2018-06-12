@@ -8,7 +8,7 @@
 #' @param type Model type (i.e., "classification" or "regression")
 #' @param lev The level in the response variable defined as _success_
 #' @param size Number of units (nodes) in the hidden layer
-#' @param decay Paramater decay
+#' @param decay Parameter decay
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
 #' @param check Optional estimation parameters ("standardize" is the default)
@@ -17,9 +17,9 @@
 #' @return A list with all variables defined in nn as an object of class nn
 #'
 #' @examples
-#' result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
-#' result <- nn(titanic, "survived", c("pclass", "sex"))
-#' result <- nn(diamonds, "price", c("carat", "clarity"), type = "regression")
+#' nn(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
+#' nn(titanic, "survived", c("pclass", "sex")) %>% str()
+#' nn(diamonds, "price", c("carat", "clarity"), type = "regression") %>% summary()
 #'
 #' @seealso \code{\link{summary.nn}} to summarize results
 #' @seealso \code{\link{plot.nn}} to plot results
@@ -32,7 +32,7 @@ nn <- function(
   dataset, rvar, evar,
   type = "classification", lev = "",
   size = 1, decay = .5, wts = "None",
-  seed = NA, check = "standardize", 
+  seed = NA, check = "standardize",
   data_filter = ""
 ) {
 
@@ -60,7 +60,7 @@ nn <- function(
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
-      dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), wtsname))
+      dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
     }
     if (length(wts) != nrow(dataset)) {
       return(
@@ -131,7 +131,7 @@ nn <- function(
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      coefnames %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+      coefnames %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
     rm(i, hasLevs)
@@ -158,11 +158,11 @@ nn <- function(
 #'
 #' @return Scaled data frame
 #'
-#' @seealso \code{\link{copy_attr}} to copy attributes from a traning to a validation dataset
+#' @seealso \code{\link{copy_attr}} to copy attributes from a training to a validation dataset
 #'
 #' @export
 scaledf <- function(
-  dataset, center = TRUE, scale = TRUE, 
+  dataset, center = TRUE, scale = TRUE,
   sf = 2, wts = NULL, calc = TRUE
 ) {
 
@@ -291,12 +291,13 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
 #' @param size Font size used
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
 #' result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
-#' plot(result, plots = c("olden", "net"))
+#' plot(result, plots = "net")
+#' plot(result, plots = "olden")
 #'
 #' @seealso \code{\link{nn}} to generate results
 #' @seealso \code{\link{summary.nn}} to summarize results
@@ -369,7 +370,7 @@ plot.nn <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nn(titanic, "survived", c("pclass","sex"), lev = "Yes")
+#' result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' result <- nn(diamonds, "price", "carat:color", type = "regression")
 #' predict(result, pred_cmd = "carat = 1:3")
@@ -380,7 +381,7 @@ plot.nn <- function(
 #'
 #' @export
 predict.nn <- function(
-  object, pred_data = NULL, pred_cmd = "", 
+  object, pred_data = NULL, pred_cmd = "",
   dec = 3, ...
 ) {
 

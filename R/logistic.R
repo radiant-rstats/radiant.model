@@ -9,14 +9,14 @@
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
-#' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitely set
+#' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitly set
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
 #'
 #' @examples
-#' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
-#' result <- logistic(titanic, "survived", c("pclass", "sex"))
+#' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
+#' logistic(titanic, "survived", c("pclass", "sex")) %>% str()
 #'
 #' @seealso \code{\link{summary.logistic}} to summarize the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
@@ -61,7 +61,7 @@ logistic <- function(
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
-      dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), wtsname))
+      dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
     }
     if (length(wts) != nrow(dataset)) {
       return(
@@ -150,7 +150,7 @@ logistic <- function(
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      coeff$label %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>% 
+      coeff$label %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
     rm(i)
@@ -361,7 +361,7 @@ summary.logistic <- function(
         vars <- c(vars, object$int)
       }
 
-      not_selected <- setdiff(vars, test_var)
+      not_selected <- base::setdiff(vars, test_var)
       if (length(not_selected) > 0) sub_form <- paste(object$rvar, "~", paste(not_selected, collapse = " + "))
       ## update with logit_sub NOT working when called from radiant - strange
       # logit_sub <- update(object$model, sub_form, data = object$model$model)
@@ -426,7 +426,7 @@ summary.logistic <- function(
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -441,7 +441,7 @@ summary.logistic <- function(
 #' @export
 plot.logistic <- function(
   x, plots = "", conf_lev = .95,
-  intercept = FALSE, nrobs = -1, 
+  intercept = FALSE, nrobs = -1,
   shiny = FALSE, custom = FALSE, ...
 ) {
 
@@ -604,11 +604,11 @@ plot.logistic <- function(
 #'
 #' @examples
 #' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
-#'  predict(result, pred_cmd = "pclass = levels(pclass)")
+#'   predict(result, pred_cmd = "pclass = levels(pclass)")
 #' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
 #'   predict(pred_cmd = "sex = c('male','female')")
 #' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
-#'  predict(pred_data = titanic)
+#'   predict(pred_data = titanic)
 #'
 #' @seealso \code{\link{logistic}} to generate the result
 #' @seealso \code{\link{summary.logistic}} to summarize results
@@ -629,7 +629,7 @@ predict.logistic <- function(
     } else if ("center" %in% object$check || "standardize" %in% object$check) {
       message("Standard error calculations not supported when coefficients are centered or standardized")
       se <- FALSE; interval <- "none"
-    } 
+    }
   } else {
     interval <- "none"
   }
@@ -742,7 +742,7 @@ minmax <- function(dataset) {
 
 #' Write coefficient table for linear and logistic regression
 #'
-#' @details Write coefficients and importance scores to csv
+#' @details Write coefficients and importance scores to csv or or return as a data.frame 
 #'
 #' @param object A fitted model object of class regress or logistic
 #' @param file A character string naming a file. "" indicates output to the console
@@ -750,7 +750,7 @@ minmax <- function(dataset) {
 #' @param intercept Include the intercept in the output (TRUE or FALSE). TRUE is the default
 #'
 #' @examples
-#' regress(diamonds, rvar = "price", evar = "carat:x", check = "standardize") %>%
+#' regress(diamonds, rvar = "price", evar = c("carat", "clarity", "x"), check = "standardize") %>%
 #'   write.coeff(sort = TRUE) %>%
 #'   format_df(dec = 3)
 #'
@@ -809,6 +809,7 @@ write.coeff <- function(
     object$OR[1] <- 0
   } else {
     object$importance <- abs(object$coeff)
+    object$OR <- NULL
   }
 
   object$importance[1] <- 0

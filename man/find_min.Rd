@@ -4,16 +4,23 @@
 \alias{find_min}
 \title{Find minimum value of a vector}
 \usage{
-find_min(var, val = "")
+find_min(x, y)
 }
 \arguments{
-\item{var}{Variable to find the minimum for}
+\item{x}{Variable to find the minimum for}
 
-\item{val}{Variable to find the value for at the maxium of var}
+\item{y}{Variable to find the value for at the maximum of var}
 }
 \value{
 Value of val at the minimum of var
 }
 \description{
 Find minimum value of a vector
+}
+\details{
+Find the value of y at the minimum value of x
+}
+\examples{
+find_min(1:10, 20:30)
+
 }

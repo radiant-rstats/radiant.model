@@ -49,7 +49,7 @@ dtree_parser <- function(yl) {
   type_cid <- yl %>% grepl("^\\s*type\\s*:\\s*((chance)|(decision)|())\\s*$", ., perl = TRUE) %>% which()
 
   if (!identical(type_id, type_cid)) {
-    err <- c(err, paste0("Node type should be 'type: chance', or 'type: decision' in line(s): ", paste0(setdiff(type_id, type_cid), collapse = ", ")))
+    err <- c(err, paste0("Node type should be 'type: chance', or 'type: decision' in line(s): ", paste0(base::setdiff(type_id, type_cid), collapse = ", ")))
   }
 
   ## can't have # signs anywhere if line is not a comment
@@ -150,8 +150,15 @@ dtree_parser <- function(yl) {
 #' @seealso \code{\link{plot.dtree}} to plot results
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
+#' @examples
+#' yaml::as.yaml(movie_contract) %>% cat()
+#' dtree(movie_contract, opt = "max") %>% summary(output = TRUE)
+#'
 #' @export
 dtree <- function(yl, opt = "max", base = character(0)) {
+
+  ## calculations will be effected is scientific notation is used
+  options(scipen = max(getOption("scipen"), 100))
 
   ## Adapted from https://github.com/gluc/useR15/blob/master/01_showcase/02_decision_tree.R
   ## load yaml string-id if list not provide
@@ -259,7 +266,6 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     for (i in 2:max(2, length(vn))) {
       vars <- gsub(vn[i - 1], paste0("(", vars[[i - 1]], ")"), vars, fixed = TRUE)
-      # vars <- gsub(paste0("\b", vn[i - 1], "\b"), paste0("(", vars[[i - 1]], ")"), vars, fixed = TRUE)
       vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+", x), x, eval(parse(text = x))))
     }
     names(vars) <- vn
@@ -269,7 +275,6 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     if (length(isNot) > 0) {
       cat("Not all variables could be resolved to a numeric value.\n")
       print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
-      # return("\nUpdate the tree input and try again." %>% add_class("dtree"))
     }
 
     ## cycle through a nested list recursively
@@ -287,7 +292,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     }
 
     ## based on http://stackoverflow.com/a/14656351/1974918
-    tmp <- as.relistable(yl[setdiff(names(yl), "variables")]) %>% unlist()
+    tmp <- as.relistable(yl[base::setdiff(names(yl), "variables")]) %>% unlist()
     for (i in seq_along(vn)) tmp <- gsub(vn[i], vars[[i]], tmp, fixed = TRUE)
 
     ## any characters left in p, payoff, or cost fields?
@@ -303,7 +308,6 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     ## convert payoff, probabilities, and costs to numeric
     tmp <- relist(tmp)
-    # toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(eval(parse(text = x)))
     toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(x)
 
     tmp <- nlapply(tmp, toNum)
@@ -340,8 +344,6 @@ dtree <- function(yl, opt = "max", base = character(0)) {
   chance_payoff <- function(node) {
     if (!isNum(node$payoff) || !isNum(node$p)) {
       0
-      # } else if (isNum(node$cost)) {
-      # (node$payoff - node$cost) * node$p
     } else {
       node$payoff * node$p
     }
@@ -349,7 +351,6 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
   decision_payoff <- function(node) {
     if (!isNum(node$payoff)) 0 else node$payoff
-    # if (isNum(node$cost)) node$payoff - node$cost
   }
 
   prob_checker <- function(node)
@@ -418,6 +419,10 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 #' @param output Print decision tree output
 #' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
+#'
+#' @examples
+#' dtree(movie_contract, opt = "max") %>% summary(input = TRUE)
+#' dtree(movie_contract, opt = "max") %>% summary(input = FALSE, output = TRUE)
 #'
 #' @importFrom data.tree Traverse Get FormatPercent
 #'
@@ -519,6 +524,10 @@ summary.dtree <- function(
 #' @param width Plot width in pixels (default is "900px")
 #' @param ... further arguments passed to or from other methods
 #'
+#' @examples
+#' dtree(movie_contract, opt = "max") %>% plot()
+#' dtree(movie_contract, opt = "max") %>% plot(final = TRUE, orient = "TD")
+#'
 #' @importFrom data.tree Traverse Get isNotRoot
 #' @importFrom DiagrammeR DiagrammeR mermaid
 #'
@@ -549,11 +558,6 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 
   ## create start labels
   FromLabel <- function(node) {
-
-    ## testing
-    # if (node$isRoot) return (node$id)
-    ## testing
-
     if (node$parent$isRoot) {
       ToLabel(node$parent)
     } else {
@@ -673,16 +677,27 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #' @param vars Variables to include in the sensitivity analysis
 #' @param decs Decisions to include in the sensitivity analysis
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... Additional arguments
+
+#' @examples
+#' dtree(movie_contract, opt = "max") %>% 
+#'   sensitivity(
+#'     vars = "legal fees 0 100000 10000", 
+#'     decs = c("Sign with Movie Company", "Sign with TV Network"), 
+#'     custom = FALSE
+#'   )
 #'
 #' @seealso \code{\link{dtree}} to generate the result
 #' @seealso \code{\link{plot.dtree}} to summarize results
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #'
 #' @export
-sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
-                              shiny = FALSE, custom = FALSE, ...) {
+sensitivity.dtree <- function(
+  object, vars = NULL, decs = NULL,
+  shiny = FALSE, custom = FALSE, ...
+) {
+
   yl <- object$yl
 
   if (is_empty(vars)) return("** No variables were specified **")
@@ -718,7 +733,7 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
 
   plot_list <- list()
   for (i in names(ret)) {
-    dat <- gather(ret[[i]], "decisions", "payoffs", !! setdiff(names(ret[[i]]), "values"))
+    dat <- gather(ret[[i]], "decisions", "payoffs", !! base::setdiff(names(ret[[i]]), "values"))
     plot_list[[i]] <-
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
       geom_line() + geom_point() +

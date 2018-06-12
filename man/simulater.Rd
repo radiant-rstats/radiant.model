@@ -54,12 +54,13 @@ Simulate data for decision analysis
 See \url{https://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 }
 \examples{
-simdat <- simulater(
+simulater(
   const = "cost 3", 
   norm = "demand 2000 1000", 
   discrete = "price 5 8 .3 .7", 
   form = "profit = demand * (price - cost)",
-)
+  seed = 1234
+) \%>\% str()
 
 }
 \seealso{

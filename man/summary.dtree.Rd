@@ -24,6 +24,11 @@ Summary method for the dtree function
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
+\examples{
+dtree(movie_contract, opt = "max") \%>\% summary(input = TRUE)
+dtree(movie_contract, opt = "max") \%>\% summary(input = FALSE, output = TRUE)
+
+}
 \seealso{
 \code{\link{dtree}} to generate the results
 

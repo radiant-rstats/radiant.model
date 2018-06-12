@@ -14,3 +14,6 @@ sensitivity(object, ...)
 \description{
 Method to evaluate sensitivity of an analysis
 }
+\seealso{
+\code{\link{sensitivity.dtree}} to plot results
+}

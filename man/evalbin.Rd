@@ -2,10 +2,10 @@
 % Please edit documentation in R/evalbin.R
 \name{evalbin}
 \alias{evalbin}
-\title{Model evalbin}
+\title{Evaluate the performance of different (binary) classification models}
 \usage{
 evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
-  train = "", data_filter = "")
+  train = "All", data_filter = "")
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -14,7 +14,7 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
 
 \item{rvar}{Response variable}
 
-\item{lev}{The level in the response variable defined as _success_}
+\item{lev}{The level in the response variable defined as success}
 
 \item{qnt}{Number of bins to create}
 
@@ -30,13 +30,15 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1, margin = 2,
 A list of results
 }
 \description{
-Model evalbin
+Evaluate the performance of different (binary) classification models
 }
 \details{
-See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+Evaluate different (binary) classification models based on predictions. See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
-result <- evalbin(titanic, c("age", "fare"), "survived")
+data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) \%>\%
+  evalbin(c("pred1", "pred2"), "buy") \%>\%
+  str()
 
 }
 \seealso{

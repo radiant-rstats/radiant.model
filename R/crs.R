@@ -11,6 +11,13 @@
 #'
 #' @return A data.frame with the original data and a new column with predicted ratings
 #'
+#' @seealso \code{\link{summary.crs}} to summarize results
+#' @seealso \code{\link{plot.crs}} to plot results if the actual ratings are available
+#'
+#' @examples
+#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"), 
+#'     rate = "Ratings", data_filter = "training == 1") %>% str()
+#'
 #' @importFrom dplyr distinct_
 #'
 #' @export
@@ -27,7 +34,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## make sure spread doesn't complain
   cn <- colnames(dataset)
-  nr <- distinct_(dataset, .dots = setdiff(cn, rate), .keep_all = TRUE) %>% 
+  nr <- distinct_(dataset, .dots = base::setdiff(cn, rate), .keep_all = TRUE) %>% 
     nrow()
   if (nr < nrow(dataset)) {
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
@@ -38,7 +45,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   idv <- select_at(dataset, .vars = id)
   uid <- seq_len(nrow(dataset))[idv[[1]] %in% uid[[1]]]
-  dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), id))
+  dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), id))
 
   ## can use : for long sets of products to predict for
   if (any(grepl(":", pred))) {
@@ -65,7 +72,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ## average scores and rankings
   avg <- dataset[uid, , drop = FALSE] %>%
     select(nind) %>%
-    summarise_all(funs(mean_rm))
+    summarise_all(funs(mean), na.rm = TRUE)
   ravg <- avg
   ravg[1, ] <- min_rank(desc(avg))
   ravg <- mutate_all(ravg, funs(as.integer))
@@ -138,7 +145,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
     arrange_at(.vars = c(id, "product")) %>%
     select_at(.vars = c(id, "product", "rating", "average", "cf", "ranking", "avg_rank", "cf_rank"))
 
-  rm(dataset, ms, sds, srate, cors, dnom, wts, cn, ind, nind)
+  rm(dataset, ms, sds, srate, cors, dnom, wts, cn, ind, nind, nr, uid, idv)
 
   as.list(environment()) %>% add_class("crs")
 }
@@ -153,7 +160,11 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @seealso \code{\link{crs}} to generate the results
-#' @seealso \code{\link{plot.crs}} to plot results
+#' @seealso \code{\link{plot.crs}} to plot results if the actual ratings are available
+#'
+#' @examples
+#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"), 
+#'     rate = "Ratings", data_filter = "training == 1") %>% summary()
 #'
 #' @export
 summary.crs <- function(object, n = 36, dec = 2, ...) {
@@ -222,7 +233,7 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 
 #' Plot method for the crs function
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+#' @details Plot that compares actual to predicted ratings. See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{crs}}
 #' @param ... further arguments passed to or from other methods

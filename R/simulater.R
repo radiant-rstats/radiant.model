@@ -23,12 +23,13 @@
 #' @return A data.frame with the simulated data
 #'
 #' @examples
-#' simdat <- simulater(
+#' simulater(
 #'   const = "cost 3", 
 #'   norm = "demand 2000 1000", 
 #'   discrete = "price 5 8 .3 .7", 
 #'   form = "profit = demand * (price - cost)",
-#' )
+#'   seed = 1234
+#' ) %>% str()
 #'
 #' @seealso \code{\link{summary.simulater}} to summarize results
 #' @seealso \code{\link{plot.simulater}} to plot results
@@ -50,7 +51,7 @@ simulater <- function(
     nr <- attr(dataset, "sim_call")$nr
   }
 
-  grid %<>% sim_cleaner
+  grid %<>% sim_cleaner()
   if (grid != "" && length(dataset) == 0) {
     s <- grid %>% sim_splitter()
       for (i in 1:length(s)) {
@@ -67,7 +68,7 @@ simulater <- function(
   }
 
   ## parsing constant
-  const %<>% sim_cleaner
+  const %<>% sim_cleaner()
   if (const != "") {
     s <- const %>% sim_splitter()
     for (i in 1:length(s))
@@ -75,7 +76,7 @@ simulater <- function(
   }
 
   ## parsing uniform
-  unif %<>% sim_cleaner
+  unif %<>% sim_cleaner()
   if (unif != "") {
     s <- unif %>% sim_splitter()
     for (i in 1:length(s))
@@ -83,7 +84,7 @@ simulater <- function(
   }
 
   ## parsing log normal
-  lnorm %<>% sim_cleaner
+  lnorm %<>% sim_cleaner()
   if (lnorm != "") {
     s <- lnorm %>% sim_splitter()
     for (i in 1:length(s)) {
@@ -97,7 +98,7 @@ simulater <- function(
   }
 
   ## parsing normal
-  norm %<>% sim_cleaner
+  norm %<>% sim_cleaner()
   if (norm != "") {
     s <- norm %>% sim_splitter()
     means <- sds <- nms <- c()
@@ -151,7 +152,7 @@ simulater <- function(
   }
 
   ## parsing binomial
-  binom %<>% sim_cleaner
+  binom %<>% sim_cleaner()
   if (binom != "") {
     s <- binom %>% sim_splitter()
     for (i in 1:length(s))
@@ -159,7 +160,7 @@ simulater <- function(
   }
 
   ## parsing poisson
-  pois %<>% sim_cleaner
+  pois %<>% sim_cleaner()
   if (pois != "") {
     s <- pois %>% sim_splitter()
     for (i in 1:length(s))
@@ -167,7 +168,7 @@ simulater <- function(
   }
 
   ## parsing sequence
-  sequ %<>% sim_cleaner
+  sequ %<>% sim_cleaner()
   if (sequ != "") {
     s <- sequ %>% sim_splitter()
     for (i in 1:length(s))
@@ -182,7 +183,7 @@ simulater <- function(
   }
 
   ## parsing discrete
-  discrete %<>% sim_cleaner
+  discrete %<>% sim_cleaner()
   if (discrete != "") {
     s <- discrete %>% sim_splitter()
     for (i in 1:length(s)) {
@@ -202,7 +203,7 @@ simulater <- function(
     }
   }
 
-  form %<>% sim_cleaner
+  form %<>% sim_cleaner()
   if (form != "") {
     s <- form %>% 
       gsub("\\s+", "", .) %>% 
@@ -271,8 +272,8 @@ simulater <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- simulater(norm = "demand 2000 1000")
-#' summary(result)
+#' simdat <- simulater(norm = "demand 2000 1000", seed = 1234)
+#' summary(simdat)
 #'
 #' @seealso \code{\link{simulater}} to generate the results
 #' @seealso \code{\link{plot.simulater}} to plot results
@@ -331,7 +332,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 #' @param x Return value from \code{\link{simulater}}
 #' @param bins Number of bins used for histograms (1 - 50)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -339,7 +340,8 @@ summary.simulater <- function(object, dec = 4, ...) {
 #'   const = "cost 3", 
 #'   norm = "demand 2000 1000", 
 #'   discrete = "price 5 8 .3 .7", 
-#'   form = "profit = demand * (price - cost)"
+#'   form = "profit = demand * (price - cost)",
+#'   seed = 1234
 #' )
 #' plot(simdat, bins = 25)
 #'
@@ -398,7 +400,7 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'   seed = 1234
 #' )
 #'
-#' repeater(
+#' repdat <- repeater(
 #'   simdat,
 #'   nr = 12, 
 #'   vars = c("E","price"), 
@@ -406,7 +408,14 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'   byvar = "sim", 
 #'   form = "profit_365 = profit < 36500", 
 #'   seed = 1234, 
-#' ) %>% head()
+#' ) 
+#' 
+#' head(repdat)
+#' summary(repdat)
+#' plot(repdat)
+#'
+#' @seealso \code{\link{summary.repeater}} to summarize results from repeated simulation
+#' @seealso \code{\link{plot.repeater}} to plot results from repeated simulation
 #'
 #' @export
 repeater <- function(
@@ -442,7 +451,7 @@ repeater <- function(
 
   grid_list <- list()
   if (!identical(grid, "")) {
-    grid %<>% sim_cleaner
+    grid %<>% sim_cleaner()
     if (grid != "") {
       s <- grid %>% sim_splitter()
       for (i in 1:length(s)) {
@@ -557,7 +566,7 @@ repeater <- function(
     }
   }
 
-  form %<>% sim_cleaner
+  form %<>% sim_cleaner()
   if (form != "") {
     s <- form %>% gsub("\\s+", "", .) %>% sim_splitter("=")
     for (i in 1:length(s)) {
@@ -584,7 +593,7 @@ repeater <- function(
   rmc <- lapply(match.call()[-1], eval, envir = parent.frame())
   rc[names(rmc)] <- rmc
 
-  rc$sc <- sc[setdiff(names(sc), "dat")]
+  rc$sc <- sc[base::setdiff(names(sc), "dat")]
   attr(ret, "rep_call") <- rc
   attr(ret, "df_name") <- df_name
 
@@ -605,6 +614,9 @@ repeater <- function(
 #' @param object Return value from \code{\link{repeater}}
 #' @param dec Number of decimals to show
 #' @param ... further arguments passed to or from other methods
+#'
+#' @seealso \code{\link{repeater}} to run a repeated simulation
+#' @seealso \code{\link{plot.repeater}} to plot results from repeated simulation
 #'
 #' @export
 summary.repeater <- function(object, dec = 4, ...) {
@@ -651,7 +663,7 @@ summary.repeater <- function(object, dec = 4, ...) {
   }
 
   if (!is_empty(rc$form)) {
-    rc$form %<>% sim_cleaner
+    rc$form %<>% sim_cleaner()
     paste0(
       "Formulas      :\n\t", 
       paste0(rc$form, collapse = ";") %>% 
@@ -670,8 +682,11 @@ summary.repeater <- function(object, dec = 4, ...) {
 #' @param x Return value from \code{\link{repeater}}
 #' @param bins Number of bins used for histograms (1 - 50)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
+#'
+#' @seealso \code{\link{repeater}} to run a repeated simulation
+#' @seealso \code{\link{summary.repeater}} to summarize results from repeated simulation
 #'
 #' @export
 plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
@@ -715,6 +730,18 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @param dc Variable classes
 #' @param fun Summary function to apply
 #' @param dec Number of decimals to show
+#'
+#' @seealso \code{\link{simulater}} to run a simulation
+#' @seealso \code{\link{repeater}} to run a repeated simulation
+#'
+#' @examples
+#' simulater(
+#'   const = "cost 3", 
+#'   norm = "demand 2000 1000", 
+#'   discrete = "price 5 8 .3 .7", 
+#'   form = c("profit = demand * (price - cost)", "profit5K = profit > 5000"),
+#'   seed = 1234
+#' ) %>% sim_summary()
 #'
 #' @export
 sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
@@ -816,34 +843,42 @@ sim_splitter <- function(x, symbol = " ") {
     strsplit(., symbol)
 }
 
-#' Find maxium value of a vector
+#' Find maximum value of a vector
 #'
-#' @param var Variable to find the maximum for
-#' @param val Variable to find the value for at the maxium of var
+#' @details Find the value of y at the maximum value of x
+#' @param x Variable to find the maximum for
+#' @param y Variable to find the value for at the maximum of var
 #'
 #' @return Value of val at the maximum of var
 #'
+#' @examples
+#' find_min(1:10, 20:30)
+#'
 #' @export
-find_max <- function(var, val = "") {
-  if (is_empty(val)) {
+find_max <- function(x, y) {
+  if (missing(y)) {
     stop("Error in find_max (2 inputs required)\nSpecify the variable to evaluate at the maximum of the first input")
   }
-  val[which.max(var)]
+  y[which.max(x)]
 }
 
 #' Find minimum value of a vector
 #'
-#' @param var Variable to find the minimum for
-#' @param val Variable to find the value for at the maxium of var
+#' @details Find the value of y at the minimum value of x
+#' @param x Variable to find the minimum for
+#' @param y Variable to find the value for at the maximum of var
 #'
 #' @return Value of val at the minimum of var
 #'
+#' @examples
+#' find_min(1:10, 20:30)
+#'
 #' @export
-find_min <- function(var, val = "") {
-  if (is_empty(val)) {
+find_min <- function(x, y) {
+  if (missing(y)) {
     stop("Error in find_min (2 inputs required)\nSpecify the variable to evaluate at the minimum of the first input")
   }
-  val[which.min(var)]
+  y[which.min(x)]
 }
 
 #' Standard deviation of weighted sum of variables
@@ -870,6 +905,11 @@ sdw <- function(...) {
 #' @param exact A logical that indicates if the inputs should be interpreted as population of sample characteristics
 #'
 #' @return A data.frame with the simulated data
+#'
+#' @examples
+#' sim <- sim_cor(100, .74, c(0, 10), c(1, 5), exact = TRUE)
+#' cor(sim)
+#' sim_summary(sim)
 #'
 #' @export
 sim_cor <- function(n, rho, means, sds, exact = FALSE) {

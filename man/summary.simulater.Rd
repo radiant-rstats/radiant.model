@@ -20,8 +20,8 @@ Summary method for the simulater function
 See \url{https://radiant-rstats.github.io/docs/model/simulater.html} for an example in Radiant
 }
 \examples{
-result <- simulater(norm = "demand 2000 1000")
-summary(result)
+simdat <- simulater(norm = "demand 2000 1000", seed = 1234)
+summary(simdat)
 
 }
 \seealso{

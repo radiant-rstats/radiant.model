@@ -12,8 +12,8 @@
 #' @return A list of all variables variables used in the regress function as an object of class regress
 #'
 #' @examples
-#' regress(diamonds, "price", c("carat","clarity"), check = "standardize") %>% summary()
-#' regress(diamonds, "price", c("carat","clarity")) %>% str()
+#' regress(diamonds, "price", c("carat", "clarity"), check = "standardize") %>% summary()
+#' regress(diamonds, "price", c("carat", "clarity")) %>% str()
 #'
 #' @seealso \code{\link{summary.regress}} to summarize results
 #' @seealso \code{\link{plot.regress}} to plot results
@@ -131,9 +131,9 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress(diamonds, "price", c("carat","clarity"))
-#' summary(result, sum_check = c("rmse","sumsquares","vif","confint"), test_var = "clarity")
-#' result <- regress(ideal, "y", c("x1","x2"))
+#' result <- regress(diamonds, "price", c("carat", "clarity"))
+#' summary(result, sum_check = c("rmse", "sumsquares", "vif", "confint"), test_var = "clarity")
+#' result <- regress(ideal, "y", c("x1", "x2"))
 #' summary(result, test_var = "x2")
 #' ideal %>% regress("y", "x1:x3") %>% summary()
 #'
@@ -185,7 +185,6 @@ summary.regress <- function(
   }
 
   coeff <- object$coeff
-  # coeff$`  ` %<>% format(justify = "left")
   coeff$label %<>% format(justify = "left")
   cat("\n")
   if (all(object$coeff$p.value == "NaN")) {
@@ -288,7 +287,6 @@ summary.regress <- function(
         {.$`+/-` <- (.$High - .$Low) / 2; .} %>%
         mutate_all(funs(sprintf(paste0("%.", dec, "f"), .))) %>%
         cbind(coeff[[2]], .) %>%
-        # set_rownames(object$coeff$`  `) %>%
         set_rownames(object$coeff$label) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %T>%
         print
@@ -309,7 +307,7 @@ summary.regress <- function(
         vars <- c(vars, object$int)
       }
 
-      not_selected <- setdiff(vars, test_var)
+      not_selected <- base::setdiff(vars, test_var)
       if (length(not_selected) > 0) sub_form <- paste(". ~", paste(not_selected, collapse = " + "))
       sub_mod <- update(object$model, sub_form, data = object$model$model) %>%
         anova(object$model, test = "F")
@@ -369,22 +367,22 @@ summary.regress <- function(
 #'
 #' @param x Return value from \code{\link{regress}}
 #' @param plots Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "dist" to shows histograms (or frequency bar plots) of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals. "leverage" to show leverage plots for each explanatory variable
-#' @param lines Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line","loess")
+#' @param lines Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line", "loess")
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress(diamonds, "price", c("carat","clarity"))
+#' result <- regress(diamonds, "price", c("carat", "clarity"))
 #' plot(result, plots = "coef", conf_lev = .99, intercept = TRUE)
-#' plot(result, plots = "dist")
 #' \dontrun{
-#' plot(result, plots = "scatter", lines = c("line","loess"))
+#' plot(result, plots = "dist")
+#' plot(result, plots = "scatter", lines = c("line", "loess"))
 #' plot(result, plots = "resid_pred", lines = "line")
-#' plot(result, plots = "dashboard", lines = c("line","loess"))
+#' plot(result, plots = "dashboard", lines = c("line", "loess"))
 #' }
 #' @seealso \code{\link{regress}} to generate the results
 #' @seealso \code{\link{summary.regress}} to summarize results
@@ -462,7 +460,7 @@ plot.regress <- function(
       for (i in paste0("dash", c(1, 4)))
         plot_list[[i]] <- plot_list[[i]] + geom_abline(linetype = "dotdash")
       for (i in paste0("dash", 2:3))
-        plot_list[[i]] <- plot_list[[i]] + sshhr(geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", colour = "black"))
+        plot_list[[i]] <- plot_list[[i]] + sshhr(geom_smooth(method = "lm", se = FALSE, size = .75, linetype = "dotdash", color = "black"))
     }
   }
 
@@ -577,11 +575,11 @@ plot.regress <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- regress(diamonds, "price", c("carat","clarity"))
+#' result <- regress(diamonds, "price", c("carat", "clarity"))
 #' predict(result, pred_cmd = "carat = 1:10")
 #' predict(result, pred_cmd = "clarity = levels(clarity)")
-#' result <- regress(diamonds, "price", c("carat","clarity"), int = c("carat:clarity"))
-#' predict(result, pred_data = slice(diamonds, 1:10))
+#' result <- regress(diamonds, "price", c("carat", "clarity"), int = "carat:clarity")
+#' predict(result, pred_data = diamonds) %>% head()
 #'
 #' @seealso \code{\link{regress}} to generate the result
 #' @seealso \code{\link{summary.regress}} to summarize results
@@ -922,18 +920,15 @@ print.regress.predict <- function(x, ..., n = 10)
 #' @param xvar Variable to display along the X-axis of the plot
 #' @param facet_row Create vertically arranged subplots for each level of the selected factor variable
 #' @param facet_col Create horizontally arranged subplots for each level of the selected factor variable
-#' @param color Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different colour
+#' @param color Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different color
 #' @param conf_lev Confidence level to use for prediction intervals (.95 is the default)
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' regress(diamonds, "price", c("carat","clarity")) %>%
+#' regress(diamonds, "price", c("carat", "clarity")) %>%
 #'   predict(pred_cmd = "carat = 1:10") %>%
 #'   plot(xvar = "carat")
-#' logistic(titanic, "survived", c("pclass","sex","age"), lev = "Yes") %>%
-#'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) %>%
-#'   plot(xvar = "age", color = "sex", facet_col = "pclass")
-#' logistic(titanic, "survived", c("pclass","sex","age"), lev = "Yes") %>%
+#' logistic(titanic, "survived", c("pclass", "sex", "age"), lev = "Yes") %>%
 #'   predict(pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = 0:100")) %>%
 #'   plot(xvar = "age", color = "sex", facet_col = "pclass")
 #'
@@ -1025,9 +1020,10 @@ plot.model.predict <- function(
 #' @param ... Additional arguments
 #'
 #' @examples
-#' model <- regress(diamonds, rvar = "price", evar = c("carat","cut"))
-#' pred <- predict(model, pred_data = diamonds)
-#' diamonds <- store(diamonds, pred, name = c("pred", "pred_low", "pred_high"))
+#' regress(diamonds, rvar = "price", evar = c("carat", "cut")) %>%
+#'   predict(pred_data = diamonds) %>%
+#'   store(diamonds, ., name = c("pred", "pred_low", "pred_high")) %>%
+#'   head()
 #'
 #' @export
 store.model.predict <- function(dataset, object, name = "prediction", ...) {
@@ -1069,8 +1065,9 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
 #' @param ... Additional arguments
 #'
 #' @examples
-#' model <- regress(diamonds, rvar = "price", evar = c("carat", "cut"), data_filter = "price > 1000")
-#' diamonds <- store(diamonds, model, name = "resid")
+#' regress(diamonds, rvar = "price", evar = c("carat", "cut"), data_filter = "price > 1000") %>%
+#'   store(diamonds, ., name = "resid") %>%
+#'   head()
 #'
 #' @export
 store.model <- function(dataset, object, name = "residuals", ...) {
@@ -1082,14 +1079,14 @@ store.model <- function(dataset, object, name = "residuals", ...) {
 }
 
 #' Check if main effects for all interaction effects are included in the model
-#' If ':' is used to select a range _evar_ is updated
-#' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+#' 
+#' @details If ':' is used to select a range evar is updated. See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
-#' @param ev List of explanatory variables provided to _regress_ or _logistic_
-#' @param cn Column names for all explanatory variables in _dat_
+#' @param ev List of explanatory variables provided to \code{\link{regress}} or \code{\link{logistic}}
+#' @param cn Column names for all explanatory variables in the dataset
 #' @param intv Interaction terms specified
 #'
-#' @return 'vars' is a vector of right-hand side variables, possibly with interactions, 'iv' is the list of explanatory variables, and intv are interaction terms
+#' @return \code{vars} is a vector of right-hand side variables, possibly with interactions, \code{iv} is the list of explanatory variables, and \code{intv} are interaction terms
 #'
 #' @examples
 #' var_check("a:d", c("a","b","c","d"))

@@ -28,6 +28,11 @@ Plot method for the dtree function
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
+\examples{
+dtree(movie_contract, opt = "max") \%>\% plot()
+dtree(movie_contract, opt = "max") \%>\% plot(final = TRUE, orient = "TD")
+
+}
 \seealso{
 \code{\link{dtree}} to generate the result
 

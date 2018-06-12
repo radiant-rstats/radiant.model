@@ -22,6 +22,11 @@ Create a decision tree
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
+\examples{
+yaml::as.yaml(movie_contract) \%>\% cat()
+dtree(movie_contract, opt = "max") \%>\% summary(output = TRUE)
+
+}
 \seealso{
 \code{\link{summary.dtree}} to summarize results
 

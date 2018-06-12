@@ -19,6 +19,12 @@ Summary method for the evalreg function
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 }
+\examples{
+data.frame(price = diamonds$price, pred1 = rnorm(3000), pred2 = diamonds$price) \%>\%
+  evalreg(pred = c("pred1", "pred2"), "price") \%>\%
+  summary()
+
+}
 \seealso{
 \code{\link{evalreg}} to summarize results
 

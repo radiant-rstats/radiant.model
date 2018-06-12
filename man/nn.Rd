@@ -21,7 +21,7 @@ nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
 
 \item{size}{Number of units (nodes) in the hidden layer}
 
-\item{decay}{Paramater decay}
+\item{decay}{Parameter decay}
 
 \item{wts}{Weights to use in estimation}
 
@@ -41,9 +41,9 @@ Neural Networks
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 }
 \examples{
-result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
-result <- nn(titanic, "survived", c("pclass", "sex"))
-result <- nn(diamonds, "price", c("carat", "clarity"), type = "regression")
+nn(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
+nn(titanic, "survived", c("pclass", "sex")) \%>\% str()
+nn(diamonds, "price", c("carat", "clarity"), type = "regression") \%>\% summary()
 
 }
 \seealso{

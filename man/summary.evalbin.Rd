@@ -22,8 +22,9 @@ Summary method for the evalbin function
 See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
-evalbin(titanic, "age", "survived") \%>\% summary()
-evalbin(titanic, c("age", "fare"), "survived") \%>\% summary()
+data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) \%>\%
+  evalbin(c("pred1", "pred2"), "buy") \%>\%
+  summary()
 
 }
 \seealso{

@@ -273,7 +273,7 @@ print.nb.predict <- function(x, ..., n = 10)
 #' @param xvar Variable to display along the X-axis of the plot
 #' @param facet_row Create vertically arranged subplots for each level of the selected factor variable
 #' @param facet_col Create horizontally arranged subplots for each level of the selected factor variable
-#' @param color Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different colour
+#' @param color Adds color to a scatter plot to generate a heat map. For a line plot one line is created for each group and each is assigned a different color
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples

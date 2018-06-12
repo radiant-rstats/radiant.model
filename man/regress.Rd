@@ -29,8 +29,8 @@ Linear regression using OLS
 See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-regress(diamonds, "price", c("carat","clarity"), check = "standardize") \%>\% summary()
-regress(diamonds, "price", c("carat","clarity")) \%>\% str()
+regress(diamonds, "price", c("carat", "clarity"), check = "standardize") \%>\% summary()
+regress(diamonds, "price", c("carat", "clarity")) \%>\% str()
 
 }
 \seealso{

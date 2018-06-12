@@ -2,27 +2,25 @@
 % Please edit documentation in R/regress.R
 \name{var_check}
 \alias{var_check}
-\title{Check if main effects for all interaction effects are included in the model
-If ':' is used to select a range _evar_ is updated}
+\title{Check if main effects for all interaction effects are included in the model}
 \usage{
 var_check(ev, cn, intv = "")
 }
 \arguments{
-\item{ev}{List of explanatory variables provided to _regress_ or _logistic_}
+\item{ev}{List of explanatory variables provided to \code{\link{regress}} or \code{\link{logistic}}}
 
-\item{cn}{Column names for all explanatory variables in _dat_}
+\item{cn}{Column names for all explanatory variables in the dataset}
 
 \item{intv}{Interaction terms specified}
 }
 \value{
-'vars' is a vector of right-hand side variables, possibly with interactions, 'iv' is the list of explanatory variables, and intv are interaction terms
+\code{vars} is a vector of right-hand side variables, possibly with interactions, \code{iv} is the list of explanatory variables, and \code{intv} are interaction terms
 }
 \description{
 Check if main effects for all interaction effects are included in the model
-If ':' is used to select a range _evar_ is updated
 }
 \details{
-See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
+If ':' is used to select a range evar is updated. See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
 var_check("a:d", c("a","b","c","d"))

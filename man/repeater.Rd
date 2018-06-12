@@ -44,7 +44,7 @@ simdat <- simulater(
   seed = 1234
 )
 
-repeater(
+repdat <- repeater(
   simdat,
   nr = 12, 
   vars = c("E","price"), 
@@ -52,6 +52,15 @@ repeater(
   byvar = "sim", 
   form = "profit_365 = profit < 36500", 
   seed = 1234, 
-) \%>\% head()
+) 
 
+head(repdat)
+summary(repdat)
+plot(repdat)
+
+}
+\seealso{
+\code{\link{summary.repeater}} to summarize results from repeated simulation
+
+\code{\link{plot.repeater}} to plot results from repeated simulation
 }

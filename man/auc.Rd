@@ -11,7 +11,7 @@ auc(pred, rvar, lev)
 
 \item{rvar}{Response variable}
 
-\item{lev}{The level in the response variable defined as _success_}
+\item{lev}{The level in the response variable defined as success}
 }
 \value{
 AUC statistic
@@ -23,7 +23,8 @@ Area Under the Curve (AUC)
 See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
 \examples{
-auc(runif(nrow(mtcars)), mtcars$vs, 1)
+auc(runif(20000), dvd$buy, "yes")
+auc(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes")
 
 }
 \seealso{

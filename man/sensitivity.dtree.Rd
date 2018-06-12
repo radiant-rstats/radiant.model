@@ -16,7 +16,7 @@
 
 \item{shiny}{Did the function call originate inside a shiny app}
 
-\item{custom}{Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.}
+\item{custom}{Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.}
 
 \item{...}{Additional arguments}
 }
@@ -25,6 +25,15 @@ Evaluate sensitivity of the decision tree
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
+}
+\examples{
+dtree(movie_contract, opt = "max") \%>\% 
+  sensitivity(
+    vars = "legal fees 0 100000 10000", 
+    decs = c("Sign with Movie Company", "Sign with TV Network"), 
+    custom = FALSE
+  )
+
 }
 \seealso{
 \code{\link{dtree}} to generate the result

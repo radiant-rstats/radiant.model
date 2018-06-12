@@ -23,3 +23,9 @@ A data.frame with the simulated data
 \description{
 Simulate correlated normally distributed data
 }
+\examples{
+sim <- sim_cor(100, .74, c(0, 10), c(1, 5), exact = TRUE)
+cor(sim)
+sim_summary(sim)
+
+}

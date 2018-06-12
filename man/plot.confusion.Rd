@@ -24,6 +24,12 @@ Plot method for the confusion matrix
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 }
+\examples{
+data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) \%>\%
+  confusion(c("pred1", "pred2"), "buy") \%>\%
+  plot()
+
+}
 \seealso{
 \code{\link{confusion}} to generate results
 

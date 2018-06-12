@@ -21,8 +21,13 @@ Summary method for Collaborative Filter
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }
+\examples{
+crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"), 
+    rate = "Ratings", data_filter = "training == 1") \%>\% summary()
+
+}
 \seealso{
 \code{\link{crs}} to generate the results
 
-\code{\link{plot.crs}} to plot results
+\code{\link{plot.crs}} to plot results if the actual ratings are available
 }

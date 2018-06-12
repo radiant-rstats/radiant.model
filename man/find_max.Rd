@@ -2,18 +2,25 @@
 % Please edit documentation in R/simulater.R
 \name{find_max}
 \alias{find_max}
-\title{Find maxium value of a vector}
+\title{Find maximum value of a vector}
 \usage{
-find_max(var, val = "")
+find_max(x, y)
 }
 \arguments{
-\item{var}{Variable to find the maximum for}
+\item{x}{Variable to find the maximum for}
 
-\item{val}{Variable to find the value for at the maxium of var}
+\item{y}{Variable to find the value for at the maximum of var}
 }
 \value{
 Value of val at the maximum of var
 }
 \description{
-Find maxium value of a vector
+Find maximum value of a vector
+}
+\details{
+Find the value of y at the maximum value of x
+}
+\examples{
+find_min(1:10, 20:30)
+
 }

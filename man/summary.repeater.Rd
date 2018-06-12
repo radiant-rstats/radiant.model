@@ -16,3 +16,8 @@
 \description{
 Summarize repeated simulation
 }
+\seealso{
+\code{\link{repeater}} to run a repeated simulation
+
+\code{\link{plot.repeater}} to plot results from repeated simulation
+}

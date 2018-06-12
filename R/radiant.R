@@ -41,6 +41,8 @@ radiant.model_viewer <- function() radiant.data::launch(package = "radiant.model
 #' @param object Object of relevant class for which to evaluate sensitivity
 #' @param ... Additional arguments
 #'
+#' @seealso \code{\link{sensitivity.dtree}} to plot results
+#'
 #' @export
 sensitivity <- function(object, ...) UseMethod("sensitivity", object)
 

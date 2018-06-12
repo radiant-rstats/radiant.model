@@ -1,26 +1,31 @@
-#' Model evalreg
+#' Evaluate the performance of different regression models
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
+#' @details Evaluate different regression models based on predictions. See \url{https://radiant-rstats.github.io/docs/model/evalreg.html} for an example in Radiant
 #'
-#' @param dataset Dataset 
+#' @param dataset Dataset
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
 #' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalreg
-#' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
 #'
 #' @return A list of results
 #'
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #' @seealso \code{\link{plot.evalreg}} to plot results
 #'
+#' @examples
+#' data.frame(price = diamonds$price, pred1 = rnorm(3000), pred2 = diamonds$price) %>%
+#'   evalreg(pred = c("pred1", "pred2"), "price") %>%
+#'   str()
+#'
 #' @export
 evalreg <- function(
   dataset, pred, rvar,
-  train = "", data_filter = ""
+  train = "All", data_filter = ""
 ) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
-    return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("confusion"))
+    return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalreg"))
   }
 
   # Add an option to exponentiate predictions in case of log regression
@@ -58,7 +63,7 @@ evalreg <- function(
   }
 
   dat <- bind_rows(pdat) %>% as.data.frame(stringsAsFactors = FALSE)
-  rm(pdat, dat_list)
+  rm(pdat, dat_list, i)
 
   as.list(environment()) %>% add_class("evalreg")
 }
@@ -73,6 +78,11 @@ evalreg <- function(
 #'
 #' @seealso \code{\link{evalreg}} to summarize results
 #' @seealso \code{\link{plot.evalreg}} to plot results
+#'
+#' @examples
+#' data.frame(price = diamonds$price, pred1 = rnorm(3000), pred2 = diamonds$price) %>%
+#'   evalreg(pred = c("pred1", "pred2"), "price") %>%
+#'   summary()
 #'
 #' @export
 summary.evalreg <- function(object, dec = 3, ...) {
@@ -100,6 +110,11 @@ summary.evalreg <- function(object, dec = 3, ...) {
 #' @seealso \code{\link{evalreg}} to generate results
 #' @seealso \code{\link{summary.evalreg}} to summarize results
 #'
+#' @examples
+#' data.frame(price = diamonds$price, pred1 = rnorm(3000), pred2 = diamonds$price) %>%
+#'   evalreg(pred = c("pred1", "pred2"), "price") %>%
+#'   plot()
+#'
 #' @export
 plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
 
@@ -120,17 +135,18 @@ plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
     fill = "Type",
     axes = "scale_y",
     custom = TRUE
-  ) + 
+  ) +
     labs(
-      title = paste0("Regression performance plots (", paste0(type, collapse = ", "), ")"),
-      y = "", 
+      # title = paste0("Regression performance plots (", paste0(type, collapse = ", "), ")"),
+      title = glue('Regression performance plots ({glue_collapse(type, ", ")})'),
+      y = "",
       x = "Predictor",
       fill = ""
     )
 
   if (length(type) < 2) {
-    p <- p + theme(legend.position = "none")
+    p + theme(legend.position = "none")
+  } else {
+    p
   }
-
-  p 
 }

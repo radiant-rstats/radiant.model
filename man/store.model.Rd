@@ -22,7 +22,8 @@ Store residuals from a model
 The store method for objects of class "model". Adds model residuals to the dataset while handling missing values and filters. See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
-model <- regress(diamonds, rvar = "price", evar = c("carat", "cut"), data_filter = "price > 1000")
-diamonds <- store(diamonds, model, name = "resid")
+regress(diamonds, rvar = "price", evar = c("carat", "cut"), data_filter = "price > 1000") \%>\%
+  store(diamonds, ., name = "resid") \%>\%
+  head()
 
 }

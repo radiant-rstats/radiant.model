@@ -15,7 +15,7 @@
 Plot method for the crs function
 }
 \details{
-See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
+Plot that compares actual to predicted ratings. See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 }
 \seealso{
 \code{\link{crs}} to generate results

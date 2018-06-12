@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 #'
-#' @param dataset Dataset 
+#' @param dataset Dataset
 #' @param rvar The response variable in the model
 #' @param evar Explanatory variables in the model
 #' @param type Model type (i.e., "classification" or "regression")
@@ -25,9 +25,9 @@
 #' @return A list with all variables defined in crtree as an object of class tree
 #'
 #' @examples
-#' result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
-#' result <- crtree(titanic, "survived", c("pclass","sex"))
-#' result <- crtree(diamonds, "price", c("carat","clarity"), type = "regression")
+#' crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
+#' result <- crtree(titanic, "survived", c("pclass", "sex")) %>% summary()
+#' result <- crtree(diamonds, "price", c("carat", "clarity"), type = "regression") %>% str()
 #'
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #' @seealso \code{\link{plot.crtree}} to plot results
@@ -70,7 +70,7 @@ crtree <- function(
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
-      dataset <- select_at(dataset, .vars = setdiff(colnames(dataset), wtsname))
+      dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
     }
     if (length(wts) != nrow(dataset)) {
       return(
@@ -194,7 +194,7 @@ crtree <- function(
     # over_frac <- prior
     p <- model$frame$yval2[, 4]
     bp <- mean(dataset[[rvar]] == lev)
-    
+
     ## note that this adjustment will reset the prior in the print out
     ## to the original prior using the 'SAS approach'
     # model$frame$yval2[, 4] <- 1 / (1 + (1 / bp - 1) / (1 / prior - 1) * (1 / p - 1))
@@ -202,7 +202,7 @@ crtree <- function(
 
     ## when prior = 0.5 can use pp <- p / (p + (1 - p) * (1 - bp) / bp)
     ## more generally, use Theorem 2 from "The Foundations of Cost-Sensitive Learning" by Charles Elkan
-    ## in the equation below prior equivalent of b 
+    ## in the equation below prior equivalent of b
     # model$frame$yval2[, 4] <- bp * (p - p * b) / (b - p * b + bp * p - b * bp)
     model$frame$yval2[, 4] <- bp * (p - p * prior) / (prior - p * prior + bp * p - prior * bp)
     model$frame$yval2[, 5] <- 1 - model$frame$yval2[, 4]
@@ -230,9 +230,9 @@ crtree <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
+#' result <- crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' summary(result)
-#' result <- crtree(diamonds, "price", c("carat","color"), type = "regression")
+#' result <- crtree(diamonds, "price", c("carat", "color"), type = "regression")
 #' summary(result)
 #'
 #' @seealso \code{\link{crtree}} to generate results
@@ -241,7 +241,7 @@ crtree <- function(
 #'
 #' @export
 summary.crtree <- function(
-  object, prn = TRUE, cptab = FALSE, 
+  object, prn = TRUE, cptab = FALSE,
   modsum = FALSE, ...
 ) {
 
@@ -306,15 +306,15 @@ summary.crtree <- function(
 #' @param labs Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)
 #' @param dec Decimal places to round results to
 #' @param shiny Did the function call originate inside a shiny app
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org/} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- crtree(titanic, "survived", c("pclass","sex"), lev = "Yes")
+#' result <- crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' plot(result)
-#' result <- crtree(diamonds, "price", c("carat","clarity", "cut"))
+#' result <- crtree(diamonds, "price", c("carat", "clarity", "cut"))
 #' plot(result, plots = "prune")
-#' result <- crtree(dvd, "buy", c("coupon","purch", "last"), cp = .01)
+#' result <- crtree(dvd, "buy", c("coupon", "purch", "last"), cp = .01)
 #' plot(result, plots = "imp")
 #'
 #' @importFrom DiagrammeR DiagrammeR mermaid
@@ -377,8 +377,8 @@ plot.crtree <- function(
       # inspired by https://stackoverflow.com/a/35556288/1974918
       int_labs <- function(x) {
         paste(
-          gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\1", x), 
-          gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\2", x) %>% 
+          gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\1", x),
+          gsub("(>=|<)\\s*(-{0,1}[0-9]+.*)", "\\2", x) %>%
             as.numeric() %>%
             ceiling(.)
         )
@@ -411,9 +411,9 @@ plot.crtree <- function(
     df$to_lab[non_leafs] <- paste0("id", df$to[non_leafs], "[", ifelse(df$var[to_lab] == "<leaf>", "", paste0(df$var[to_lab], "<br>")), "<b>n:</b> ", format_nr(df$n[to_lab], dec = 0), "<br>", pre, df$yval[to_lab], "]")
     df <- na.omit(df)
 
-    leafs <- paste0("id", setdiff(df$to, df$id))
+    leafs <- paste0("id", base::setdiff(df$to, df$id))
 
-    ## still need the below setup to keep the "chance" class 
+    ## still need the below setup to keep the "chance" class
     ## when a decision analysis plot is in the report
     # style <- paste0(
     #   "classDef default fill:none, bg:none, stroke-width:0px;
@@ -421,7 +421,7 @@ plot.crtree <- function(
     #   class ", paste(leafs, collapse = ","), " leaf;"
     # )
 
-    ## still need this to keep the "chance" class 
+    ## still need this to keep the "chance" class
     ## when a decision analysis plot is in the report
     style <- paste0(
       "classDef default fill:none, bg:none, stroke-width:0px;
@@ -571,10 +571,10 @@ plot.crtree <- function(
 #'
 #' @export
 predict.crtree <- function(
-  object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95, 
+  object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95,
   se = FALSE, dec = 3, ...
 ) {
-  
+
   if (is.character(object)) return(object)
   if (is.data.frame(pred_data)) {
     df_name <- deparse(substitute(pred_data))
