@@ -1,3 +1,8 @@
+# radiant.model 0.9.6.0
+
+* Replace non-ASCII characters in example datasets
+* Remove `rstudioapi` as a direct import
+
 # radiant.model 0.9.5.0
 
 ## Major changes
