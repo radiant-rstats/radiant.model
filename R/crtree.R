@@ -585,7 +585,7 @@ predict.crtree <- function(
   pfun <- function(model, pred, se, conf_lev) {
     pred_val <- try(sshhr(predict(model, pred)), silent = TRUE)
 
-    if (!is(pred_val, "try-error")) {
+    if (!inherits(pred_val, "try-error")) {
       pred_val %<>%
         as.data.frame(stringsAsFactors = FALSE) %>%
         select(1) %>%

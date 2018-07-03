@@ -139,7 +139,7 @@ simulater <- function(
       # corr_mat[lower.tri(corr_mat, diag = FALSE)] <- ncorr
       # print(corr_mat)
       df <- try(sim_cor(nr, ncorr, means, sds, exact = nexact), silent = TRUE)
-      if (is(df, "try-error")) {
+      if (inherits(df, "try-error")) {
         mess <- c("error", paste0("Data with the specified correlation structure could not be generated.\nPlease review the input and try again"))
         return(add_class(mess, "simulater"))
       }
@@ -191,7 +191,7 @@ simulater <- function(
       asNum <- function(x) ifelse(length(x) > 1, as.numeric(x[1]) / as.numeric(x[2]), as.numeric(x[1]))
       dpar <- sshhr(try(sapply(dpar, asNum) %>% matrix(ncol = 2), silent = TRUE))
 
-      if (is(dpar, "try-error") || any(is.na(dpar))) {
+      if (inherits(dpar, "try-error") || any(is.na(dpar))) {
         mess <- c("error", paste0("Input for discrete variable # ", i, " contains an error. Please review the input carefully"))
         return(add_class(mess, "simulater"))
       } else if (sum(dpar[, 2]) != 1) {
@@ -214,7 +214,7 @@ simulater <- function(
       fobj <- s[[i]][-1]
       if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
       out <- try(do.call(with, list(dataset, parse(text = fobj))), silent = TRUE)
-      if (!is(out, "try-error")) {
+      if (!inherits(out, "try-error")) {
         dataset[[obj]] <- out
       } else {
         dataset[[obj]] <- NA
@@ -575,7 +575,7 @@ repeater <- function(
       fobj <- s[[i]][-1]
       if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
       out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
-      if (!is(out, "try-error")) {
+      if (!inherits(out, "try-error")) {
         ret[[obj]] <- out
       } else {
         ret[[obj]] <- NA

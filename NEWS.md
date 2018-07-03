@@ -1,4 +1,4 @@
-# radiant.model 0.9.6.0
+# radiant.model 0.9.6.1
 
 ## Major changes
 
@@ -8,6 +8,8 @@
 
 * Replace non-ASCII characters in example datasets
 * Remove `rstudioapi` as a direct import
+* Revert from `svg` to `png` for plots in `_Report > Rmd_ and _Report > R_. `svg` scatter plots with many point get to big for practical use on servers that have to transfer images to a local browser
+* Removed depency on `methods` package
 
 # radiant.model 0.9.5.0
 

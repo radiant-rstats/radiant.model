@@ -243,7 +243,7 @@ predict.nb <- function(
     fix <- sapply(colnames(pred), set_levels)
     pred_val <- try(sshhr(predict(model, pred, type = "raw")), silent = TRUE)
 
-    if (!is(pred_val, "try-error")) {
+    if (!inherits(pred_val, "try-error")) {
       pred_val %<>% as.data.frame(stringsAsFactors = FALSE)
       if (all(is_empty(pred_names))) pred_names <- colnames(pred_val)
       pred_val %<>% select(1:min(ncol(pred_val), length(pred_names))) %>%

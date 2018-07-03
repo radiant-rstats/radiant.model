@@ -179,7 +179,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
     yl <- try(yaml::yaml.load(yl), silent = TRUE)
 
     ## used when a string is provided
-    if (is(yl, "try-error")) {
+    if (inherits(yl, "try-error")) {
       err_line <- stringr::str_match(attr(yl, "condition")$message, "^Scanner error:.*line\\s([0-9]*),")[2]
       if (is.na(err_line)) {
         err <- paste0("**\nError reading the tree input:\n", attr(yl, "condition")$message, "\n\nPlease try again. Examples are shown in the help file (?)\n**")
@@ -249,7 +249,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
           cmd <- gsub("\\)\\s*$", paste0(", base = ", list(vars[!grepl("dtree\\(.*\\)", vars)]), "\\)"), vars[i])
           ret <- try(eval(parse(text = cmd)), silent = TRUE)
 
-          if (is(ret, "try-error") || !is.list(ret)) {
+          if (inherits(ret, "try-error") || !is.list(ret)) {
             return("**\nThe reference to another tree was not succesful. It is possible\nthis was caused by a problem earlier in the 'variables:' section\nor because of a typo in the name of the tree you are trying to\nreference. Please check any messages about issues in the 'variables:'\nsection and try again\n**" %>% add_class("dtree"))
           } else {
             if (!is.null(ret$jl)) {
@@ -384,7 +384,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
   err <- try(jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf), silent = TRUE)
 
-  if (is(err, "try-error")) {
+  if (inherits(err, "try-error")) {
     err <- paste0("**\nThere was an error calculating payoffs associated with a chance or decision\nnode. Please check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
     return(err %>% add_class("dtree"))
   }
@@ -397,7 +397,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
   err <- try(jl$Do(decision, filterFun = function(x) !is.null(x$type) && x$type == "decision"), silent = TRUE)
 
-  if (is(err, "try-error")) {
+  if (inherits(err, "try-error")) {
     err <- paste0("**\nThere was an error calculating payoffs associated with a decision node.\nPlease check that each terminal node has a payoff\n**")
     return(err %>% add_class("dtree"))
   }

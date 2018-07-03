@@ -654,7 +654,7 @@ predict.logistic <- function(
         silent = TRUE
       )
 
-    if (!is(pred_val, "try-error")) {
+    if (!inherits(pred_val, "try-error")) {
 
       if (se) {
         ## based on https://www.fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/

@@ -622,7 +622,7 @@ predict.regress <- function(
         silent = TRUE
       )
 
-    if (!is(pred_val, "try-error")) {
+    if (!inherits(pred_val, "try-error")) {
       if (se) {
         pred_val %<>% data.frame(stringsAsFactors = FALSE) %>% mutate(diff = .[, 3] - .[, 1])
         ci_perc <- ci_label(cl = conf_lev)
@@ -691,7 +691,7 @@ predict_model <- function(
       gsub(";", ",", .)
 
     pred <- try(eval(parse(text = paste0("with(dat, expand.grid(", pred_cmd, "))"))), silent = TRUE)
-    if (is(pred, "try-error")) {
+    if (inherits(pred, "try-error")) {
       return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
     }
 
@@ -750,7 +750,7 @@ predict_model <- function(
     pred_names <- colnames(pred)
     pred <- try(select_at(pred, .vars = vars), silent = TRUE)
 
-    if (is(pred, "try-error")) {
+    if (inherits(pred, "try-error")) {
       return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
     }
 
@@ -768,7 +768,7 @@ predict_model <- function(
         set_names(vars)
 
       pred <- try(mutate(pred, !!! dots), silent = TRUE)
-      if (is(pred, "try-error")) {
+      if (inherits(pred, "try-error")) {
         return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
       pred_type <- "datacmd"
@@ -801,7 +801,7 @@ predict_model <- function(
     pred_val <- pfun(object$model, pred, se = se, conf_lev = conf_lev)
   }
 
-  if (!is(pred_val, "try-error")) {
+  if (!inherits(pred_val, "try-error")) {
     ## scale rvar for regression models
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")[[object$rvar]]
