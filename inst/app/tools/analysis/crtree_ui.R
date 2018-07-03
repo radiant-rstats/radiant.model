@@ -599,15 +599,17 @@ dl_crtree_pred <- function(path) {
 download_handler(
   id = "dl_crtree_pred", 
   fun = dl_crtree_pred, 
-  fn = paste0(input$dataset, "_crtree_pred.csv"),
-  caption = "Download crtree predictions"
+  fn = function() paste0(input$dataset, "_crtree_pred"),
+  type = "csv",
+  caption = "Save crtree predictions"
 )
 
 download_handler(
   id = "dlp_crtree_pred", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_crtree_pred.png"),
-  caption = "Download decision tree prediction plot",
+  fn = function() paste0(input$dataset, "_crtree_pred"),
+  type = "png",
+  caption = "Save decision tree prediction plot",
   plot = .predict_plot_crtree,
   width = plot_width,
   height = crtree_pred_plot_height
@@ -616,8 +618,9 @@ download_handler(
 download_handler(
   id = "dlp_crtree", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_crtree.png"),
-  caption = "Download decision tree plot",
+  fn = function() paste0(input$dataset, "_crtree"),
+  type = "png",
+  caption = "Save decision tree plot",
   plot = .plot_crtree,
   width = crtree_plot_width,
   height = crtree_plot_height

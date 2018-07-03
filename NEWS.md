@@ -1,5 +1,11 @@
 # radiant.model 0.9.6.0
 
+## Major changes
+
+* Using [`shinyFiles`](https://github.com/thomasp85/shinyFiles) to provide convenient access to data located on a server
+
+## Minor changes
+
 * Replace non-ASCII characters in example datasets
 * Remove `rstudioapi` as a direct import
 

@@ -192,7 +192,6 @@ output$evalbin <- renderUI({
     ),
     tabPanel(
       "Confusion",
-      #downloadLink("dl_confusion_tab", "", class = "fa fa-download alignright"), br(),
       download_link("dl_confusion_tab"), br(),
       verbatimTextOutput("summary_confusion"),
       conditionalPanel(
@@ -335,8 +334,9 @@ dl_ebin_tab <- function(path) {
 download_handler(
   id = "dl_ebin_tab", 
   fun = dl_ebin_tab, 
-  fn = paste0(input$dataset, "_evalbin.csv"),
-  caption = "Download model evaluations"
+  fn = function() paste0(input$dataset, "_evalbin"),
+  type = "csv",
+  caption = "Save model evaluations"
 )
 
 dl_confusion_tab <- function(path) {
@@ -347,15 +347,17 @@ dl_confusion_tab <- function(path) {
 download_handler(
   id = "dl_confusion_tab", 
   fun = dl_confusion_tab, 
-  fn = paste0(input$dataset, "_confusion.csv"),
-  caption = "Download model performance metrics"
+  fn = function() paste0(input$dataset, "_confusion"),
+  type = "csv",
+  caption = "Save model performance metrics"
 )
 
 download_handler(
   id = "dlp_evalbin", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_evalbin.png"),
-  caption = "Download model evaluation plot",
+  fn = function() paste0(input$dataset, "_evalbin"),
+  type = "png", 
+  caption = "Save model evaluation plot",
   plot = .plot_evalbin,
   width = ebin_plot_width,
   height = ebin_plot_height
@@ -364,8 +366,9 @@ download_handler(
 download_handler(
   id = "dlp_confusion", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_confusion.png"),
-  caption = "Download confusion plots",
+  fn = function() paste0(input$dataset, "_confusion"),
+  type = "png", 
+  caption = "Save confusion plots",
   plot = .plot_confusion,
   width = confusion_plot_width,
   height = confusion_plot_height

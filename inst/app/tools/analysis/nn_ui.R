@@ -612,15 +612,17 @@ dl_nn_pred <- function(path) {
 download_handler(
   id = "dl_nn_pred", 
   fun = dl_nn_pred, 
-  fn = paste0(input$dataset, "_nn_pred.csv"),
-  caption = "Download predictions"
+  fn = function() paste0(input$dataset, "_nn_pred"),
+  type = "csv",
+  caption = "Save predictions"
 )
 
 download_handler(
   id = "dlp_nn_pred", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_nn_pred.png"),
-  caption = "Download neural network prediction plot",
+  fn = function() paste0(input$dataset, "_nn_pred"),
+  type = "png",
+  caption = "Save neural network prediction plot",
   plot = .predict_plot_nn,
   width = plot_width,
   height = nn_pred_plot_height
@@ -629,8 +631,9 @@ download_handler(
 download_handler(
   id = "dlp_nn", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_nn.png"),
-  caption = "Download neural network plot",
+  fn = function() paste0(input$dataset, "_nn"),
+  type = "png",
+  caption = "Save neural network plot",
   plot = .plot_nn,
   width = nn_plot_width,
   height = nn_plot_height

@@ -624,8 +624,9 @@ dl_reg_coef <- function(path) {
 download_handler(
   id = "dl_reg_coef", 
   fun = dl_reg_coef, 
-  fn = paste0(input$dataset, "_reg_coef.csv"),
-  caption = "Download coefficients"
+  fn = function() paste0(input$dataset, "_reg_coef"),
+  type = "csv",
+  caption = "Save coefficients"
 )
 
 dl_reg_pred <- function(path) {
@@ -639,15 +640,17 @@ dl_reg_pred <- function(path) {
 download_handler(
   id = "dl_reg_pred", 
   fun = dl_reg_pred, 
-  fn = paste0(input$dataset, "_reg_pred.csv"),
-  caption = "Download regression predictions"
+  fn = function() paste0(input$dataset, "_reg_pred"),
+  type = "csv",
+  caption = "Save regression predictions"
 )
 
 download_handler(
   id = "dlp_reg_pred", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_reg_pred.png"),
-  caption = "Download regression prediction plot",
+  fn = paste0(input$dataset, "_reg_pred"),
+  type = "png", 
+  caption = "Save regression prediction plot",
   plot = .predict_plot_regress,
   width = plot_width,
   height = reg_pred_plot_height
@@ -656,9 +659,9 @@ download_handler(
 download_handler(
   id = "dlp_regress", 
   fun = download_handler_plot, 
-  # fn = paste0(input$dataset, "_", input$reg_plots, "_regress.png"),
-  fn = paste0(input$dataset, "_regress.png"),
-  caption = "Download regression plot",
+  fn = function() paste0(input$dataset, "_", input$reg_plots, "_regress"),
+  type = "png",
+  caption = "Save regression plot",
   plot = .plot_regress,
   width = reg_plot_width,
   height = reg_plot_height

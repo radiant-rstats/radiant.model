@@ -129,9 +129,10 @@ output$dtree <- renderUI({
           td(uiOutput("ui_dtree_remove"), style = "padding-top:5px;"),
           td(file_upload_button(
             "dtree_load_yaml", label = NULL, accept = ".yaml",
-            buttonLabel = "Load input", class = "btn-primary"
+            buttonLabel = "Load input", title = "Load decision tree input file (.yaml)", 
+            class = "btn-primary"
           ), style = "padding-top:5px;"),
-          td(download_button("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
+          td(download_button("dtree_save_yaml", "Save input"), style = "padding-top:5px;"),
           td(download_button("dtree_save", "Save output"), style = "padding-top:5px;")
         )
       ),
@@ -373,16 +374,16 @@ output$plot_dtree_sensitivity <- renderPlot({
 
 observeEvent(input$dtree_load_yaml, {
   ## loading yaml file from disk
-  if (!isTRUE(getOption("radiant.launch", "browser") == "browser")) {
-    path <- rstudioapi::selectFile(
-      caption = "Select .yaml",
-      filter = "Select .yaml (*.yaml)",
-      path = getOption("radiant.launch_dir")
-    )
-    if (is(path, "try-error") || is_empty(path)) return()
+  if (getOption("radiant.shinyFiles", FALSE)) {
+    path <- shinyFiles::parseFilePaths(sf_volumes, input$dtree_load_yaml)
+    if (is(path, "try-error") || is_empty(path$datapath)) {
+      return()
+    } else {
+      path <- path$datapath
+    }
     inFile <- data.frame(
       name = basename(path),
-      datapath = path,
+      datapath = path, 
       stringsAsFactors = FALSE
     )
   } else {
@@ -510,15 +511,16 @@ dl_dtree_save <- function(path) {
 
 download_handler(
   id = "dtree_save",
+  label = "Save output",
   fun = dl_dtree_save,
-  # fn = ifelse(
-  #   is_empty(input$dtree_name),
-  #   "dtree.txt",
-  #   paste0(input$dtree_name, "_dtree.txt")
-  # ),
-  fn = "dtree_output.txt",
-  caption = "Download decision tree output",
-  type = "txt"
+  fn = function() ifelse(
+    is_empty(input$dtree_name),
+    "dtree",
+    paste0(input$dtree_name, "_dtree_output")
+  ),
+  type = "txt",
+  caption = "Save decision tree output",
+  btn = "button"
 )
 
 dl_dtree_save_yaml <- function(path) {
@@ -527,27 +529,28 @@ dl_dtree_save_yaml <- function(path) {
 
 download_handler(
   id = "dtree_save_yaml",
+  label = "Save input",
   fun = dl_dtree_save_yaml,
-  # fn = ifelse(
-  #   is_empty(input$dtree_name),
-  #   "dtree.yaml",
-  #   paste0(input$dtree_name, "_dtree.yaml")
-  # ),
-  fn = "dtree_input.yaml",
-  caption = "Download decision tree input",
-  type = "yaml"
+  fn = function() ifelse(
+    is_empty(input$dtree_name),
+    "dtree",
+    paste0(input$dtree_name, "_dtree_input")
+  ),
+  type = "yaml",
+  caption = "Save decision tree input",
+  btn = "button"
 )
 
 download_handler(
   id = "dlp_dtree_sensitivity",
   fun = download_handler_plot,
-  # fn = ifelse(
-  #   is_empty(input$dtree_name),
-  #   "dtree_sensitivity.png",
-  #   paste0(input$dtree_name, "_dtree_sensitivity.png")
-  # ),
-  fn = "dtree_sensitivity.png",
-  caption = "Download decision tree sensitivity plot",
+  fn = function() ifelse(
+    is_empty(input$dtree_name),
+    "dtree_sensitivity",
+    paste0(input$dtree_name, "_dtree_sensitivity")
+  ),
+  type = "png",
+  caption = "Save decision tree sensitivity plot",
   plot = .plot_dtree_sensitivity,
   width = dtree_sense_width,
   height = dtree_sense_height

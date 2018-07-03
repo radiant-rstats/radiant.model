@@ -493,15 +493,17 @@ dl_nb_pred <- function(path) {
 download_handler(
   id = "dl_nb_pred", 
   fun = dl_nb_pred, 
-  fn = paste0(input$dataset, "_nb_pred.csv"),
-  caption = "Download predictions"
+  fn = function() paste0(input$dataset, "_nb_pred"),
+  type = "csv",
+  caption = "Save predictions"
 )
 
 download_handler(
   id = "dlp_nb_pred", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_nb_pred.png"),
-  caption = "Download naive Bayes prediction plot",
+  fn = function() paste0(input$dataset, "_nb_pred"),
+  type = "png", 
+  caption = "Save naive Bayes prediction plot",
   plot = .predict_plot_nb,
   width = plot_width,
   height = nb_pred_plot_height
@@ -510,8 +512,9 @@ download_handler(
 download_handler(
   id = "dlp_nb", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_nb.png"),
-  caption = "Download naive Bayes plot",
+  fn = function() paste0(input$dataset, "_nb"),
+  type = "png", 
+  caption = "Save naive Bayes plot",
   plot = .plot_nb,
   width = nb_plot_width,
   height = nb_plot_height

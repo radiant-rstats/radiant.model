@@ -900,8 +900,9 @@ observeEvent(input$repeater_report, {
 download_handler(
   id = "dlp_simulate", 
   fun = download_handler_plot, 
-  fn = "simulate_sim.png",
-  caption = "Download simulation plots",
+  fn = function() paste0(input$sim_name, "_sim"),
+  type = "png",
+  caption = "Save simulation plots",
   plot = .plot_simulate,
   width = sim_plot_width,
   height = sim_plot_height
@@ -910,8 +911,9 @@ download_handler(
 download_handler(
   id = "dlp_repeat", 
   fun = download_handler_plot, 
-  fn = "simulate_repeat.png",
-  caption = "Download repeated simulation plots",
+  fn = function() paste0(input$rep_name, "_rep"),
+  type = "png",
+  caption = "Save repeated simulation plots",
   plot = .plot_repeat,
   width = rep_plot_width,
   height = rep_plot_height

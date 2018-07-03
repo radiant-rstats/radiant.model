@@ -650,8 +650,9 @@ dl_logit_coef <- function(path) {
 download_handler(
   id = "dl_logit_coef", 
   fun = dl_logit_coef, 
-  fn = paste0(input$dataset, "_logit_coef.csv"),
-  caption = "Download coefficients"
+  fn = function() paste0(input$dataset, "_logit_coef"),
+  type = "csv",
+  caption = "Save coefficients"
 )
 
 dl_logit_pred <- function(path) {
@@ -665,15 +666,17 @@ dl_logit_pred <- function(path) {
 download_handler(
   id = "dl_logit_pred", 
   fun = dl_logit_pred, 
-  fn = paste0(input$dataset, "_logit_pred.csv"),
-  caption = "Download predictions"
+  fn = function() paste0(input$dataset, "_logit_pred"),
+  type = "csv",
+  caption = "Save predictions"
 )
 
 download_handler(
   id = "dlp_logit_pred", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_logit_pred.png"),
-  caption = "Download logistic prediction plot",
+  fn = function() paste0(input$dataset, "_logit_pred"),
+  type = "png",
+  caption = "Save logistic prediction plot",
   plot = .predict_plot_logistic,
   width = plot_width,
   height = logit_pred_plot_height
@@ -682,8 +685,9 @@ download_handler(
 download_handler(
   id = "dlp_logistic", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_logistic.png"),
-  caption = "Download logistic plot",
+  fn = function() paste0(input$dataset, "_", input$logit_plots, "_logit"),
+  type = "png",
+  caption = "Save logistic plot",
   plot = .plot_logistic,
   width = logit_plot_width,
   height = logit_plot_height

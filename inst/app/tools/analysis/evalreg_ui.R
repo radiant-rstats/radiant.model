@@ -166,15 +166,17 @@ dl_ereg_tab <- function(path) {
 download_handler(
   id = "dl_ereg_tab", 
   fun = dl_ereg_tab, 
-  fn = paste0(input$dataset, "_evalreg.csv"),
-  caption = "Download model evaluations"
+  fn = function() paste0(input$dataset, "_evalreg"),
+  type = "csv",
+  caption = "Save model evaluations"
 )
 
 download_handler(
   id = "dlp_evalreg", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_evalreg.png"),
-  caption = "Download model evaluation plot",
+  fn = function() paste0(input$dataset, "_evalreg"),
+  type = "png", 
+  caption = "Save model evaluation plot",
   plot = .plot_evalreg,
   width = ereg_plot_width,
   height = ereg_plot_height

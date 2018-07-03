@@ -278,15 +278,17 @@ dl_crs_recommendations <- function(path) {
 download_handler(
   id = "dl_crs_recommendations", 
   fun = dl_crs_recommendations, 
-  fn = paste0(input$dataset, "_recommendations.csv"),
-  caption = "Download collaborative filtering recommendations"
+  fn = function() paste0(input$dataset, "_recommendations"),
+  type = "csv",
+  caption = "Save collaborative filtering recommendations"
 )
 
 download_handler(
   id = "dlp_crs", 
   fun = download_handler_plot, 
-  fn = paste0(input$dataset, "_recommendations.png"),
-  caption = "Download collaborative filtering plot",
+  fn = function() paste0(input$dataset, "_recommendations"),
+  type = "png",
+  caption = "Save collaborative filtering plot",
   plot = .plot_crs,
   width = crs_plot_width,
   height = crs_plot_height
