@@ -7,12 +7,6 @@
   width: 100%;
 }
 
-#state_download {
-  font-family: FontAwesome, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 25px;
-  color: black;
-}
-
 /* from: https://github.com/swarm-lab/editR/blob/master/inst/app/www/editR.css */
 #dtree_edit {
   position: absolute;
