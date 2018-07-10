@@ -1,5 +1,5 @@
 ## building radiant packages for mac and windows
-setwd("~/gh/")
+setwd("~/GitHub/")
 
 rv <- R.Version()
 rv <- paste0(rv$major, ".", strsplit(rv$minor, ".", fixed = TRUE)[[1]][1])
@@ -33,13 +33,13 @@ rem_old <- function(app) {
 sapply("radiant.model", rem_old)
 
 ## avoid 'loaded namespace' stuff when building for mac
-system(paste0(Sys.which("R"), " -e \"source('~/gh/radiant.model/build/build_mac.R')\""))
+system(paste0(Sys.which("R"), " -e \"source('~/GitHub/radiant.model/build/build_mac.R')\""))
 
 win <- readline(prompt = "Did you build on Windows? y/n: ")
 if (grepl("[yY]", win)) {
 
   ## move packages to radiant_miniCRAN. must package in Windows first
-  setwd("~/gh/")
+  setwd("~/GitHub/")
   sapply(list.files(".", pattern = "*.tar.gz"), file.copy, dirsrc)
   unlink("*.tar.gz")
   sapply(list.files(".", pattern = "*.tgz"), file.copy, dirmac)
@@ -52,10 +52,10 @@ if (grepl("[yY]", win)) {
   tools::write_PACKAGES(dirsrc, type = "source")
 
   # commit to repo
-  setwd("~/gh/minicran")
+  setwd("~/GitHub/minicran")
   system("git add --all .")
   mess <- paste0("radiant.model package update: ", format(Sys.Date(), format = "%m-%d-%Y"))
   system(paste0("git commit -m '", mess, "'"))
   system("git push")
-  setwd("~/gh/radiant.model")
+  setwd("~/GitHub/radiant.model")
 }

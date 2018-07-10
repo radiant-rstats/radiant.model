@@ -1,6 +1,6 @@
 ## build for mac
 app <- "radiant.model"
-path <- "~/gh"
+path <- "~/GitHub"
 devtools::install(file.path(path, app))
 f <- devtools::build(file.path(path, app))
 curr <- getwd()
