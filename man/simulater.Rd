@@ -4,10 +4,10 @@
 \alias{simulater}
 \title{Simulate data for decision analysis}
 \usage{
-simulater(const = "", lnorm = "", norm = "", unif = "", discrete = "",
-  binom = "", pois = "", sequ = "", grid = "", data = NULL,
-  form = "", seed = NULL, nexact = FALSE, ncorr = NULL, name = "",
-  nr = 1000, dataset = NULL)
+simulater(const = "", lnorm = "", norm = "", unif = "",
+  discrete = "", binom = "", pois = "", sequ = "", grid = "",
+  data = NULL, form = "", seed = NULL, nexact = FALSE,
+  ncorr = NULL, name = "", nr = 1000, dataset = NULL)
 }
 \arguments{
 \item{const}{A character vector listing the constants to include in the analysis (e.g., c("cost = 3", "size = 4"))}

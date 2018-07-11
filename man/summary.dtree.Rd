@@ -4,8 +4,8 @@
 \alias{summary.dtree}
 \title{Summary method for the dtree function}
 \usage{
-\method{summary}{dtree}(object, input = TRUE, output = FALSE, dec = 2,
-  ...)
+\method{summary}{dtree}(object, input = TRUE, output = FALSE,
+  dec = 2, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{simulater}}}
