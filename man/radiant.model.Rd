@@ -4,6 +4,7 @@
 \name{radiant.model}
 \alias{radiant.model}
 \alias{radiant.model-package}
+\alias{radiant.model}
 \title{radiant.model}
 \usage{
 radiant.model()

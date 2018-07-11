@@ -4,8 +4,7 @@
 \alias{plot.simulater}
 \title{Plot method for the simulater function}
 \usage{
-\method{plot}{simulater}(x, bins = 20, shiny = FALSE, custom = FALSE,
-  ...)
+\method{plot}{simulater}(x, bins = 20, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{simulater}}}
