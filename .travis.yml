@@ -15,6 +15,7 @@ r_github_packages:
   - radiant-rstats/radiant.data
   - radiant-rstats/radiant.basics
 
+## based on https://www.datacamp.com/community/tutorials/cd-package-docs-pkgdown-travis
 after_success:
   - Rscript -e 'pkgdown::build_site()'
 
