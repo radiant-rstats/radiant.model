@@ -89,7 +89,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   attr(model$model, "min") <- mmx[["min"]]
   attr(model$model, "max") <- mmx[["max"]]
 
-  coeff <- tidy(model)
+  coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")
 
   if ("robust" %in% check) {

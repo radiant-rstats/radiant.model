@@ -145,7 +145,7 @@ logistic <- function(
   attr(model$model, "min") <- mmx[["min"]]
   attr(model$model, "max") <- mmx[["max"]]
 
-  coeff <- tidy(model)
+  coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
