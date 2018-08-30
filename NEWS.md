@@ -6,6 +6,7 @@
 
 ## Minor changes
 
+* Fix for simulations that use a data set as part of the analysis
 * Replace non-ASCII characters in example datasets
 * Remove `rstudioapi` as a direct import
 * Revert from `svg` to `png` for plots in `_Report > Rmd_ and _Report > R_. `svg` scatter plots with many point get to big for practical use on servers that have to transfer images to a local browser
