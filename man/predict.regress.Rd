@@ -5,7 +5,8 @@
 \title{Predict method for the regress function}
 \usage{
 \method{predict}{regress}(object, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = TRUE, interval = "confidence", dec = 3, ...)
+  conf_lev = 0.95, se = TRUE, interval = "confidence", dec = 3,
+  ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}

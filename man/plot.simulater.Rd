@@ -4,7 +4,8 @@
 \alias{plot.simulater}
 \title{Plot method for the simulater function}
 \usage{
-\method{plot}{simulater}(x, bins = 20, shiny = FALSE, custom = FALSE, ...)
+\method{plot}{simulater}(x, bins = 20, shiny = FALSE, custom = FALSE,
+  ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{simulater}}}
@@ -25,9 +26,9 @@ See \url{https://radiant-rstats.github.io/docs/model/simulater} for an example i
 }
 \examples{
 simdat <- simulater(
-  const = "cost 3", 
-  norm = "demand 2000 1000", 
-  discrete = "price 5 8 .3 .7", 
+  const = "cost 3",
+  norm = "demand 2000 1000",
+  discrete = "price 5 8 .3 .7",
   form = "profit = demand * (price - cost)",
   seed = 1234
 )

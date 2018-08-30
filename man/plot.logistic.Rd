@@ -4,8 +4,9 @@
 \alias{plot.logistic}
 \title{Plot method for the logistic function}
 \usage{
-\method{plot}{logistic}(x, plots = "", conf_lev = 0.95, intercept = FALSE,
-  nrobs = -1, shiny = FALSE, custom = FALSE, ...)
+\method{plot}{logistic}(x, plots = "", conf_lev = 0.95,
+  intercept = FALSE, nrobs = -1, shiny = FALSE, custom = FALSE,
+  ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{logistic}}}
