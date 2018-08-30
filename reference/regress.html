@@ -67,7 +67,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.9.6.2</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.9.6.3</span>
       </span>
     </div>
 
@@ -245,17 +245,17 @@
 #&gt;   ..$ coefficients : Named num [1:9] -6781 8438 2791 3609 4250 ...
 #&gt;   .. ..- attr(*, "names")= chr [1:9] "(Intercept)" "carat" "claritySI2" "claritySI1" ...
 #&gt;   ..$ residuals    : Named num [1:3000] 199 954 630 -576 236 ...
-#&gt;   .. ..- attr(*, "names")= chr [1:3000] "7718" "27822" "23018" "29608" ...
+#&gt;   .. ..- attr(*, "names")= chr [1:3000] "1" "2" "3" "4" ...
 #&gt;   ..$ effects      : Named num [1:3000] -214005 200946 -26340 -18929 7642 ...
 #&gt;   .. ..- attr(*, "names")= chr [1:3000] "(Intercept)" "carat" "claritySI2" "claritySI1" ...
 #&gt;   ..$ rank         : int 9
 #&gt;   ..$ fitted.values: Named num [1:3000] 381.133 -303.531 0.322 1281.793 844.125 ...
-#&gt;   .. ..- attr(*, "names")= chr [1:3000] "7718" "27822" "23018" "29608" ...
+#&gt;   .. ..- attr(*, "names")= chr [1:3000] "1" "2" "3" "4" ...
 #&gt;   ..$ assign       : int [1:9] 0 1 2 2 2 2 2 2 2
 #&gt;   ..$ qr           :List of 5
 #&gt;   .. ..$ qr   : num [1:3000, 1:9] -54.7723 0.0183 0.0183 0.0183 0.0183 ...
 #&gt;   .. .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. .. ..$ : chr [1:3000] "7718" "27822" "23018" "29608" ...
+#&gt;   .. .. .. ..$ : chr [1:3000] "1" "2" "3" "4" ...
 #&gt;   .. .. .. ..$ : chr [1:9] "(Intercept)" "carat" "claritySI2" "claritySI1" ...
 #&gt;   .. .. ..- attr(*, "assign")= int [1:9] 0 1 2 2 2 2 2 2 2
 #&gt;   .. .. ..- attr(*, "contrasts")=List of 1
@@ -281,7 +281,7 @@
 #&gt;   .. .. ..- attr(*, "order")= int [1:2] 1 1
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xfa847f0&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x9984bb0&gt; 
 #&gt;   .. .. ..- attr(*, "predvars")= language list(price, carat, clarity)
 #&gt;   .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "numeric" "numeric" "factor"
 #&gt;   .. .. .. ..- attr(*, "names")= chr [1:3] "price" "carat" "clarity"
@@ -299,28 +299,24 @@
 #&gt;   .. .. .. ..- attr(*, "order")= int [1:2] 1 1
 #&gt;   .. .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0xfa847f0&gt; 
+#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x9984bb0&gt; 
 #&gt;   .. .. .. ..- attr(*, "predvars")= language list(price, carat, clarity)
 #&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "numeric" "numeric" "factor"
 #&gt;   .. .. .. .. ..- attr(*, "names")= chr [1:3] "price" "carat" "clarity"
-#&gt;   .. ..- attr(*, "min")='data.frame':	1 obs. of  2 variables:
+#&gt;   .. ..- attr(*, "min")=Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1 obs. of  2 variables:
 #&gt;   .. .. ..$ price: num 338
 #&gt;   .. .. ..$ carat: num 0.2
-#&gt;   .. .. ..- attr(*, "description")= chr "## Diamond prices\n\nPrices of 3,000 round cut diamonds\n\n### Description\n\nA dataset containing the prices a"| __truncated__
-#&gt;   .. ..- attr(*, "max")='data.frame':	1 obs. of  2 variables:
+#&gt;   .. ..- attr(*, "max")=Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1 obs. of  2 variables:
 #&gt;   .. .. ..$ price: num 18791
 #&gt;   .. .. ..$ carat: num 3
-#&gt;   .. .. ..- attr(*, "description")= chr "## Diamond prices\n\nPrices of 3,000 round cut diamonds\n\n### Description\n\nA dataset containing the prices a"| __truncated__
 #&gt;   ..- attr(*, "class")= chr "lm"
 #&gt;  $ mmx        :List of 2
-#&gt;   ..$ min:'data.frame':	1 obs. of  2 variables:
+#&gt;   ..$ min:Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1 obs. of  2 variables:
 #&gt;   .. ..$ price: num 338
 #&gt;   .. ..$ carat: num 0.2
-#&gt;   .. ..- attr(*, "description")= chr "## Diamond prices\n\nPrices of 3,000 round cut diamonds\n\n### Description\n\nA dataset containing the prices a"| __truncated__
-#&gt;   ..$ max:'data.frame':	1 obs. of  2 variables:
+#&gt;   ..$ max:Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1 obs. of  2 variables:
 #&gt;   .. ..$ price: num 18791
 #&gt;   .. ..$ carat: num 3
-#&gt;   .. ..- attr(*, "description")= chr "## Diamond prices\n\nPrices of 3,000 round cut diamonds\n\n### Description\n\nA dataset containing the prices a"| __truncated__
 #&gt;  $ vars       : chr [1:2] "carat" "clarity"
 #&gt;  $ df_name    : chr "diamonds"
 #&gt;  $ rvar       : chr "price"
