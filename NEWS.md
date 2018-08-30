@@ -1,4 +1,4 @@
-# radiant.model 0.9.6.1
+# radiant.model 0.9.6.2
 
 ## Major changes
 

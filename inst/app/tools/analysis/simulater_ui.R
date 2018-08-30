@@ -22,17 +22,17 @@
 
 sim_types <- list(
   `Probability distributions` = c(
-    "Binomial" = "binom", 
+    "Binomial" = "binom",
     "Discrete" = "discrete",
-    "Log normal" = "lnorm", 
-    "Normal" = "norm", 
-    "Poisson" = "pois", 
+    "Log normal" = "lnorm",
+    "Normal" = "norm",
+    "Poisson" = "pois",
     "Uniform" = "unif"
   ),
   `Deterministic` = c(
-    "Constant" = "const", 
-    "Data" = "data", 
-    "Grid search" = "grid", 
+    "Constant" = "const",
+    "Data" = "data",
+    "Grid search" = "grid",
     "Sequence" = "sequ"
   )
 )
@@ -52,7 +52,6 @@ sim_inputs <- reactive({
       if (!i %in% input$sim_types) sim_args[[i]] <- ""
   }
 
-  # sim_args$name <- NULL
   sim_args
 })
 
@@ -60,13 +59,11 @@ rep_args <- as.list(formals(repeater))
 
 ## list of function inputs selected by user
 rep_inputs <- reactive({
-  # rep_args[["dataset"]] <- input$sim_name
   ## loop needed because reactive values don't allow single bracket indexing
   rep_args$dataset <- input$sim_name
   for (i in r_drop(names(rep_args)))
     rep_args[[i]] <- input[[paste0("rep_", i)]]
 
-  # rep_args$name <- NULL
   rep_args
 })
 
@@ -112,8 +109,8 @@ textinput_maker <- function(
     rows = rows,
     placeholder = placeholder,
     autocomplete = "off",
-    autocorrect = "off", 
-    autocapitalize = "off", 
+    autocorrect = "off",
+    autocapitalize = "off",
     spellcheck = "false",
     class = "form-control"
   )
@@ -184,7 +181,7 @@ output$ui_rep_sum_vars <- renderUI({
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_sum_vars", vars, isolate(input$rep_sum_vars)),
     options = list(
-      placeholder = "Select variables", 
+      placeholder = "Select variables",
       plugins = list("remove_button", "drag_drop")
     )
   )
@@ -218,7 +215,7 @@ output$ui_rep_byvar <- renderUI({
 output$ui_rep_fun <- renderUI({
   choices <- list(
     "sum" = "sum", "mean" = "mean", "median" = "median",
-    "min" = "min", "max" = "max", "first" = "first", 
+    "min" = "min", "max" = "max", "first" = "first",
     "last" = "last", "none" = "none"
   )
 
@@ -749,7 +746,7 @@ sim_plot_height <- function() {
 .plot_simulate <- eventReactive(input$sim_run, {
   req(input$sim_show_plots)
   withProgress(message = "Generating simulation plots", value = 1, {
-    .simulater() %>% 
+    .simulater() %>%
       {if (is_empty(.)) invisible() else plot(., shiny = TRUE)}
   })
 })
@@ -808,8 +805,8 @@ rep_plot_height <- function() {
   object <- .repeater()
   if (is.null(object)) return(invisible())
   withProgress(message = "Generating repeated simulation plots", value = 1, {
-    rep_plot_inputs() %>% 
-      {.$shiny <- TRUE; .} %>% 
+    rep_plot_inputs() %>%
+      {.$shiny <- TRUE; .} %>%
       {do.call(plot, c(list(x = object), .))}
   })
 })
@@ -843,6 +840,11 @@ observeEvent(input$simulater_report, {
       inp[[i]] <- strsplit(inp[[i]], ";")[[1]]
     }
   }
+  if (is_empty(inp$data)) {
+    inp$data <- NULL
+  } else {
+    inp$data <- as.symbol(inp$data)
+  }
   inp$name <- NULL
   update_report(
     inp_main = inp,
@@ -851,7 +853,7 @@ observeEvent(input$simulater_report, {
     pre_cmd = paste0(input$sim_name, " <- "),
     xcmd = paste0("register(\"", input$sim_name, "\")"),
     outputs = outputs,
-    inp = input$sim_name, 
+    inp = input$sim_name,
     figs = figs,
     fig.width = sim_plot_width(),
     fig.height = sim_plot_height()
@@ -890,7 +892,7 @@ observeEvent(input$repeater_report, {
     pre_cmd = paste0(input$rep_name, " <- "),
     xcmd = paste0("register(\"", input$rep_name, "\")"),
     outputs = outputs,
-    inp = input$rep_name, 
+    inp = input$rep_name,
     figs = figs,
     fig.width = rep_plot_width(),
     fig.height = rep_plot_height()
@@ -898,8 +900,8 @@ observeEvent(input$repeater_report, {
 })
 
 download_handler(
-  id = "dlp_simulate", 
-  fun = download_handler_plot, 
+  id = "dlp_simulate",
+  fun = download_handler_plot,
   fn = function() paste0(input$sim_name, "_sim"),
   type = "png",
   caption = "Save simulation plots",
@@ -909,8 +911,8 @@ download_handler(
 )
 
 download_handler(
-  id = "dlp_repeat", 
-  fun = download_handler_plot, 
+  id = "dlp_repeat",
+  fun = download_handler_plot,
   fn = function() paste0(input$rep_name, "_rep"),
   type = "png",
   caption = "Save repeated simulation plots",

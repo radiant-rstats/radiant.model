@@ -13,7 +13,7 @@
 #' @param grid A character vector listing the start, end, and step for a set of sequences to include in the analysis (e.g., "trend 1 100 1"). The number of rows in the expanded will over ride the number of simulations
 #' @param data Dataset to be used in the calculations
 #' @param form A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")
-#' @param seed Optional seed used in simulation 
+#' @param seed Optional seed used in simulation
 #' @param nexact Logical to indicate if normally distributed random variables should be simulated to the exact specified values
 #' @param ncorr A string of correlations used for normally distributed random variables. The number of values should be equal to one or to the number of combinations of variables simulated
 #' @param name Deprecated argument
@@ -24,9 +24,9 @@
 #'
 #' @examples
 #' simulater(
-#'   const = "cost 3", 
-#'   norm = "demand 2000 1000", 
-#'   discrete = "price 5 8 .3 .7", 
+#'   const = "cost 3",
+#'   norm = "demand 2000 1000",
+#'   discrete = "price 5 8 .3 .7",
 #'   form = "profit = demand * (price - cost)",
 #'   seed = 1234
 #' ) %>% str()
@@ -37,8 +37,8 @@
 #' @export
 simulater <- function(
   const = "", lnorm = "", norm = "", unif = "", discrete = "",
-  binom = "", pois = "", sequ = "", grid = "", data = NULL, 
-  form = "", seed = NULL, nexact = FALSE, ncorr = NULL, 
+  binom = "", pois = "", sequ = "", grid = "", data = NULL,
+  form = "", seed = NULL, nexact = FALSE, ncorr = NULL,
   name = "", nr = 1000, dataset = NULL
 ) {
 
@@ -175,6 +175,11 @@ simulater <- function(
       s[[i]] %>% {dataset[[.[1]]] <<- seq(as.numeric(.[2]), as.numeric(.[3]), length.out = as.numeric(nr))}
   }
 
+  ## fetching data if needed
+  if (!is_empty(data) && is_string(data)) {
+    data <- get_data(data)
+  }
+
   ## adding data to dataset list
   if (is.data.frame(data)) {
     for (i in colnames(data)) {
@@ -205,8 +210,8 @@ simulater <- function(
 
   form %<>% sim_cleaner()
   if (form != "") {
-    s <- form %>% 
-      gsub("\\s+", "", .) %>% 
+    s <- form %>%
+      gsub("\\s+", "", .) %>%
       sim_splitter("=")
     for (i in 1:length(s)) {
       if (grepl("^\\s*?#", s[[i]][1], perl = TRUE)) next
@@ -219,8 +224,8 @@ simulater <- function(
       } else {
         dataset[[obj]] <- NA
         mess <- c(
-            "error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% 
-            unlist() %>% 
+            "error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>%
+            unlist() %>%
             paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message)
         )
         return(add_class(mess, "simulater"))
@@ -283,7 +288,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (is.character(object)) {
     if (length(object) == 2 && object[1] == "error") {
       return(cat(object[2]))
-    } 
+    }
     stop("To generate summary statistics please provide a simulated dataset as input", call. = FALSE)
   }
 
@@ -337,9 +342,9 @@ summary.simulater <- function(object, dec = 4, ...) {
 #'
 #' @examples
 #' simdat <- simulater(
-#'   const = "cost 3", 
-#'   norm = "demand 2000 1000", 
-#'   discrete = "price 5 8 .3 .7", 
+#'   const = "cost 3",
+#'   norm = "demand 2000 1000",
+#'   discrete = "price 5 8 .3 .7",
 #'   form = "profit = demand * (price - cost)",
 #'   seed = 1234
 #' )
@@ -352,7 +357,7 @@ summary.simulater <- function(object, dec = 4, ...) {
 plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     return(invisible())
-  } 
+  }
   if (nrow(x) == 0) return(invisible())
   plot_list <- list()
   for (i in colnames(x)) {
@@ -364,13 +369,13 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 
   if (custom) {
     if (length(plot_list) == 1) {
-      return(plot_list[[1]]) 
+      return(plot_list[[1]])
     } else {
       return(plot_list)
     }
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>% 
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>%
     {if (shiny) . else print(.)}
 }
 
@@ -389,27 +394,27 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'
 #' @examples
 #' simdat <- simulater(
-#'   const = c("var_cost 5","fixed_cost 1000"), 
+#'   const = c("var_cost 5","fixed_cost 1000"),
 #'   norm = "E 0 100;",
 #'   discrete = "price 6 8 .3 .7;",
 #'   form = c(
-#'     "demand = 1000 - 50*price + E", 
+#'     "demand = 1000 - 50*price + E",
 #'     "profit = demand*(price-var_cost) - fixed_cost",
 #'     "profit_small = profit < 100"
-#'   ), 
+#'   ),
 #'   seed = 1234
 #' )
 #'
 #' repdat <- repeater(
 #'   simdat,
-#'   nr = 12, 
-#'   vars = c("E","price"), 
-#'   sum_vars = "profit", 
-#'   byvar = "sim", 
-#'   form = "profit_365 = profit < 36500", 
-#'   seed = 1234, 
-#' ) 
-#' 
+#'   nr = 12,
+#'   vars = c("E","price"),
+#'   sum_vars = "profit",
+#'   byvar = "sim",
+#'   form = "profit_365 = profit < 36500",
+#'   seed = 1234,
+#' )
+#'
 #' head(repdat)
 #' summary(repdat)
 #' plot(repdat)
@@ -419,8 +424,8 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'
 #' @export
 repeater <- function(
-  dataset, nr = 12, vars = "", grid = "", sum_vars = "", 
-  byvar = "sim", fun = "sum", form = "", seed = NULL, 
+  dataset, nr = 12, vars = "", grid = "", sum_vars = "",
+  byvar = "sim", fun = "sum", form = "", seed = NULL,
   name = ""
 ) {
 
@@ -438,7 +443,7 @@ repeater <- function(
     df_name <- dataset
     dataset <- get_data(dataset)
   } else {
-    df_name <- deparse(substitute(dataset)) 
+    df_name <- deparse(substitute(dataset))
   }
   if (!is_empty(seed)) set.seed(as_numeric(seed))
 
@@ -518,8 +523,8 @@ repeater <- function(
     bind_cols(
       data.frame(rep = rep(rep_nr, nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
-    ) %>% 
-      na.omit() %>% 
+    ) %>%
+      na.omit() %>%
       sfun()
   }
 
@@ -540,8 +545,8 @@ repeater <- function(
     bind_cols(
       data.frame(rep = rep(paste(gval, collapse = "|"), nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
-    ) %>% 
-    na.omit() %>% 
+    ) %>%
+    na.omit() %>%
     sfun()
   }
 
@@ -624,7 +629,7 @@ summary.repeater <- function(object, dec = 4, ...) {
   if (is.character(object)) {
     if (length(object) == 2 && object[1] == "error") {
       return(cat(object[2]))
-    } 
+    }
     stop("To generate summary statistics please provide a simulated dataset as input", call. = FALSE)
   }
 
@@ -665,10 +670,10 @@ summary.repeater <- function(object, dec = 4, ...) {
   if (!is_empty(rc$form)) {
     rc$form %<>% sim_cleaner()
     paste0(
-      "Formulas      :\n\t", 
-      paste0(rc$form, collapse = ";") %>% 
-        gsub(";", "\n", .) %>% 
-        gsub("\n", "\n\t", .), 
+      "Formulas      :\n\t",
+      paste0(rc$form, collapse = ";") %>%
+        gsub(";", "\n", .) %>%
+        gsub("\n", "\n\t", .),
       "\n"
     ) %>% cat()
   }
@@ -714,13 +719,13 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 
   if (custom) {
     if (length(plot_list) == 1) {
-      return(plot_list[[1]]) 
+      return(plot_list[[1]])
     } else {
       return(plot_list)
     }
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>% 
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>%
     {if (shiny) . else print(.)}
 }
 
@@ -736,9 +741,9 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'
 #' @examples
 #' simulater(
-#'   const = "cost 3", 
-#'   norm = "demand 2000 1000", 
-#'   discrete = "price 5 8 .3 .7", 
+#'   const = "cost 3",
+#'   norm = "demand 2000 1000",
+#'   discrete = "price 5 8 .3 .7",
 #'   form = c("profit = demand * (price - cost)", "profit5K = profit > 5000"),
 #'   seed = 1234
 #' ) %>% sim_summary()
