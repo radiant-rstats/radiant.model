@@ -1,5 +1,5 @@
 ## based on https://gist.github.com/mages/1544009
-cdir <- setwd("~/GitHub/radiant.model/inst/app/tools/help")
+cdir <- setwd("./inst/app/tools/help")
 
 ## remove all local png files
 list.files("./figures/", pattern = "*.png")
