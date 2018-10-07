@@ -120,6 +120,10 @@ dtree_parser <- function(yl) {
   ## check indent of next line for node names
   indent_next <- yl[nn_id + 1] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
   indent_issue <- indent_name >= indent_next
+
+  ## can happen when last line in input is a node without a payoff or prob
+  indent_issue[is.na(indent_issue)] <- TRUE
+
   if (any(indent_issue)) {
     err <- c(err, paste0("Indent issue in line(s): ", paste0(nn_id[indent_issue] + 1, collapse = ", "), "\nAlways use the tab key to indent the line(s) after specifying a node name."))
   }
