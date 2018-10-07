@@ -21,4 +21,14 @@ $(document).keydown(function(event) {
   } else if ($("#crs_store_pred_name").is(":focus") && event.keyCode == 13) {
     $("#crs_store_pred").click();
   }
+
+  if ($("#dtree_load_yaml").is(":visible") && (event.metaKey || event.ctrlKey) &&
+      event.shiftKey === false && event.keyCode == 79) {
+    $("#dtree_load_yaml").click();
+    event.preventDefault();
+  } else if ($("#dtree_save_yaml").is(":visible") && (event.metaKey || event.ctrlKey) &&
+     event.shiftKey === false && event.keyCode == 83) {
+    $("#dtree_save_yaml").click();
+    event.preventDefault();
+  }
 });
