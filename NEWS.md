@@ -1,3 +1,9 @@
+# radiant.model 0.9.7.1
+
+* Don't  live-update the active tree input to make it easier to save edits to a new tree without adding edits to the existing tree (Model > Decision analysis)
+* Fix for NA error when last line of a decision analysis input is a node without a payoff or probability
+* Load input (CMD + O) and Save input (CMD + S) keyboard shortcuts for decision analysis
+
 # radiant.model 0.9.7.0
 
 ## Major changes

@@ -129,10 +129,10 @@ output$dtree <- renderUI({
           td(uiOutput("ui_dtree_remove"), style = "padding-top:5px;"),
           td(file_upload_button(
             "dtree_load_yaml", label = NULL, accept = ".yaml",
-            buttonLabel = "Load input", title = "Load decision tree input file (.yaml)", 
+            buttonLabel = "Load input", title = "Load decision tree input file (.yaml)",
             class = "btn-primary"
           ), style = "padding-top:5px;"),
-          td(download_button("dtree_save_yaml", "Save input"), style = "padding-top:5px;"),
+          td(download_button("dtree_save_yaml", "Save input", class = "btn-primary"), style = "padding-top:5px;"),
           td(download_button("dtree_save", "Save output"), style = "padding-top:5px;")
         )
       ),
@@ -226,9 +226,9 @@ output$dtree <- renderUI({
 tree_types <- c("name:", "variables:", "type:", "cost:", "payoff:", "p:")
 ## Create auto complete list
 observe({
-  req(input$dtree_name)
+  req(input$dtree_name, input$dtree_edit)
   comps <- list(
-    `tree-input` = c("name:", "variables:", "type: decision", "type: chance", "cost: 000", "payoff: 000", "p: 0.5")
+    `tree-input` = c("name:", "variables:", "type: decision", "type: chance", "cost: 0", "payoff: 0", "p: 0.5")
   )
 
   trees <- r_info[["dtree_list"]]
@@ -238,11 +238,15 @@ observe({
     comps[["dtree_list"]] <- paste0("dtree('", trees, "')")
   }
 
-  ## 'live' updating of the active tree input
-  r_data[[input$dtree_name]] <- input$dtree_edit
+  ## update active tree when session is stopped
+  session$onSessionEnded(function() {
+    isolate({
+      r_data[[input$dtree_name]] <- input$dtree_edit
+    })
+  })
 
   for (tree in trees) {
-    rows <- strsplit(r_data[[tree]], "\n")[[1]]
+    rows <- strsplit(input$dtree_edit, "\n")[[1]]
     comps[[tree]] <- gsub("\\s*([^#]+:).*", "\\1", rows) %>%
       gsub("^\\s+","", .) %>%
       unique() %>%
@@ -383,7 +387,7 @@ observeEvent(input$dtree_load_yaml, {
     }
     inFile <- data.frame(
       name = basename(path),
-      datapath = path, 
+      datapath = path,
       stringsAsFactors = FALSE
     )
   } else {
@@ -465,10 +469,10 @@ observeEvent(input$dtree_remove, {
   inp_out <- list(list(input = TRUE, output = FALSE), "")
   figs <- FALSE
   if (!is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
-    vars <- strsplit(input$dtree_sense, ";")[[1]] %>% gsub("\n+", "", .) 
+    vars <- strsplit(input$dtree_sense, ";")[[1]] %>% gsub("\n+", "", .)
     inp_out[[2]] <- list(
-      vars = vars, 
-      decs = input$dtree_sense_decision, 
+      vars = vars,
+      decs = input$dtree_sense_decision,
       custom = FALSE
     )
     outputs <- c(outputs, "sensitivity")
@@ -520,7 +524,7 @@ download_handler(
   ),
   type = "txt",
   caption = "Save decision tree output",
-  btn = "button"
+  btn = "button",
 )
 
 dl_dtree_save_yaml <- function(path) {
@@ -538,7 +542,8 @@ download_handler(
   ),
   type = "yaml",
   caption = "Save decision tree input",
-  btn = "button"
+  btn = "button",
+  class = "btn-primary"
 )
 
 download_handler(
