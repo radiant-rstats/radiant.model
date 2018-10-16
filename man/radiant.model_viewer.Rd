@@ -4,7 +4,10 @@
 \alias{radiant.model_viewer}
 \title{Launch radiant.model in the Rstudio viewer}
 \usage{
-radiant.model_viewer()
+radiant.model_viewer(state)
+}
+\arguments{
+\item{state}{Path to state file to load}
 }
 \description{
 Launch radiant.model in the Rstudio viewer

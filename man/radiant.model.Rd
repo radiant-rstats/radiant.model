@@ -6,7 +6,10 @@
 \alias{radiant.model-package}
 \title{radiant.model}
 \usage{
-radiant.model()
+radiant.model(state)
+}
+\arguments{
+\item{state}{Path to state file to load}
 }
 \description{
 radiant.model

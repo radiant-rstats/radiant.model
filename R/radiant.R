@@ -2,6 +2,8 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
+#' @param state Path to state file to load
+#'
 #' @importFrom radiant.data launch
 #'
 #' @examples
@@ -9,10 +11,13 @@
 #' radiant.model()
 #' }
 #' @export
-radiant.model <- function() radiant.data::launch(package = "radiant.model", run = "browser")
+radiant.model <- function(state) radiant.data::launch(package = "radiant.model", run = "browser", state)
 
 #' Launch radiant.model in an Rstudio window
+#'
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
+#'
+#' @param state Path to state file to load
 #'
 #' @importFrom radiant.data launch
 #'
@@ -21,11 +26,13 @@ radiant.model <- function() radiant.data::launch(package = "radiant.model", run 
 #' radiant.model_window()
 #' }
 #' @export
-radiant.model_window <- function() radiant.data::launch(package = "radiant.model", run = "window")
+radiant.model_window <- function(state) radiant.data::launch(package = "radiant.model", run = "window", state)
 
 #' Launch radiant.model in the Rstudio viewer
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
+#'
+#' @param state Path to state file to load
 #'
 #' @importFrom radiant.data launch
 #'
@@ -34,7 +41,7 @@ radiant.model_window <- function() radiant.data::launch(package = "radiant.model
 #' radiant.model_viewer()
 #' }
 #' @export
-radiant.model_viewer <- function() radiant.data::launch(package = "radiant.model", run = "viewer")
+radiant.model_viewer <- function(state) radiant.data::launch(package = "radiant.model", run = "viewer", state)
 
 #' Method to evaluate sensitivity of an analysis
 #'

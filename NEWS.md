@@ -1,5 +1,6 @@
-# radiant.model 0.9.7.1
+# radiant.model 0.9.7.2
 
+* Load a state file on startup by providing a (relative) file path or a url. For example, radiant.model::radiant.model("https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda") 
 * Don't  live-update the active tree input to make it easier to save edits to a new tree without adding edits to the existing tree (Model > Decision analysis)
 * Fix for NA error when last line of a decision analysis input is a node without a payoff or probability
 * Load input (CMD + O) and Save input (CMD + S) keyboard shortcuts for decision analysis
