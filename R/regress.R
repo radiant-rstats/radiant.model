@@ -256,7 +256,7 @@ summary.regress <- function(
       if (length(attributes(object$model$terms)$term.labels) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          {if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
+          {if (is.null(dim(.))) . else .[, "GVIF"]} %>% ## needed when factors are included
           data.frame("VIF" = ., "Rsq" = 1 - 1 / ., stringsAsFactors = FALSE) %>%
           round(dec) %>%
           .[order(.$VIF, decreasing = T), ] %>%
@@ -1079,7 +1079,7 @@ store.model <- function(dataset, object, name = "residuals", ...) {
 }
 
 #' Check if main effects for all interaction effects are included in the model
-#' 
+#'
 #' @details If ':' is used to select a range evar is updated. See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param ev List of explanatory variables provided to \code{\link{regress}} or \code{\link{logistic}}

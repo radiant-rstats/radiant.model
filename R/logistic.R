@@ -288,7 +288,7 @@ summary.logistic <- function(
       if (length(attributes(object$model$terms)$term.labels) > 1) {
         cat("Variance Inflation Factors\n")
         car::vif(object$model) %>%
-          {if (is.null(dim(.))) . else .[, "GVIF^(1/(2*Df))"]} %>% ## needed when factors are included
+          {if (is.null(dim(.))) . else .[, "GVIF"]} %>% ## needed when factors are included
           data.frame(VIF = ., Rsq = 1 - 1 / ., stringsAsFactors = FALSE) %>%
           .[order(.$VIF, decreasing = TRUE), ] %>% ## not using arrange to keep rownames
           round(dec) %>%
