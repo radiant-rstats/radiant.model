@@ -1,5 +1,6 @@
-# radiant.model 0.9.7.4
+# radiant.model 0.9.7.5
 
+* Avoid empty string showing up in auto-generated code for model prediction (i.e., `pred_data` or `pred_cmd`) 
 * Fix for VIF based on `car` for `regress` and `logistic`
 * Load a state file on startup by providing a (relative) file path or a url. For example, radiant.model::radiant.model("https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda") 
 * Don't  live-update the active tree input to make it easier to save edits to a new tree without adding edits to the existing tree (Model > Decision analysis)

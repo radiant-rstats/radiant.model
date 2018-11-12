@@ -523,15 +523,16 @@ observeEvent(input$crtree_report, {
     (!is_empty(input$crtree_pred_data) || !is_empty(input$crtree_pred_cmd))) {
     pred_args <- clean_args(crtree_pred_inputs(), crtree_pred_args[-1])
 
-    # if (!is_empty(pred_args[["pred_cmd"]])) {
-    #   pred_args[["pred_cmd"]] <- strsplit(pred_args[["pred_cmd"]], ";")[[1]]
-    # }
-
     if (!is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
+    } else {
+      pred_args$pred_cmd <- NULL
     }
+
     if (!is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
+    } else {
+      pred_args$pred_data <- NULL
     } 
 
     inp_out[[2 + figs]] <- pred_args

@@ -3,9 +3,9 @@
 ################################################################
 reg_show_interactions <- c("None" = "", "2-way" = 2, "3-way" = 3)
 reg_predict <- c(
-  "None" = "none", 
-  "Data" = "data", 
-  "Command" = "cmd", 
+  "None" = "none",
+  "Data" = "data",
+  "Command" = "cmd",
   "Data & Command" = "datacmd"
 )
 reg_check <- c(
@@ -79,13 +79,13 @@ reg_pred_inputs <- reactive({
 
   reg_pred_args$pred_cmd <- reg_pred_args$pred_data <- ""
   if (input$reg_predict == "cmd") {
-    reg_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$reg_pred_cmd) %>% 
+    reg_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$reg_pred_cmd) %>%
       gsub(";\\s+", ";", .) %>%
       gsub("\"", "\'", .)
   } else if (input$reg_predict == "data") {
     reg_pred_args$pred_data <- input$reg_pred_data
   } else if (input$reg_predict == "datacmd") {
-    reg_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$reg_pred_cmd) %>% 
+    reg_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$reg_pred_cmd) %>%
       gsub(";\\s+", ";", .) %>%
       gsub("\"", "\'", .)
     reg_pred_args$pred_data <- input$reg_pred_data
@@ -143,7 +143,7 @@ output$ui_reg_test_var <- renderUI({
   if (!is.null(input$reg_int)) vars <- c(vars, input$reg_int)
   selectizeInput(
     inputId = "reg_test_var", label = "Variables to test:",
-    choices = vars, 
+    choices = vars,
     selected = state_multiple("reg_test_var", vars, isolate(input$reg_test_var)),
     multiple = TRUE,
     options = list(placeholder = "None", plugins = list("remove_button"))
@@ -202,7 +202,7 @@ output$ui_reg_nrobs <- renderUI({
   choices <- c("1,000" = 1000, "5,000" = 5000, "10,000" = 10000, "All" = -1) %>%
     .[. < nrobs]
   selectInput(
-    "reg_nrobs", "Number of data points plotted:", 
+    "reg_nrobs", "Number of data points plotted:",
     choices = choices,
     selected = state_single("reg_nrobs", choices, 1000)
   )
@@ -222,7 +222,7 @@ observe({
   ## notify user when the model needs to be updated
   ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
   if (pressed(input$reg_run)) {
-    if (is.null(input$reg_evar)) { 
+    if (is.null(input$reg_evar)) {
       updateTabsetPanel(session, "tabs_regress ", selected = "Summary")
       updateActionButton(session, "reg_run", "Estimate model", icon = icon("play"))
     } else if (isTRUE(attr(reg_inputs, "observable")$.invalidated)) {
@@ -246,7 +246,7 @@ output$ui_regress <- renderUI({
         uiOutput("ui_reg_rvar"),
         uiOutput("ui_reg_evar"),
         conditionalPanel(
-          condition = "input.reg_evar != null", 
+          condition = "input.reg_evar != null",
           uiOutput("ui_reg_show_interactions"),
           conditionalPanel(
             condition = "input.reg_show_interactions != ''",
@@ -274,7 +274,7 @@ output$ui_regress <- renderUI({
           selectizeInput(
             inputId = "reg_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_info[["datasetlist"]]),
-            selected = state_single("reg_pred_data", c("None" = "", r_info[["datasetlist"]])), 
+            selected = state_single("reg_pred_data", c("None" = "", r_info[["datasetlist"]])),
             multiple = FALSE
           )
         ),
@@ -321,7 +321,7 @@ output$ui_regress <- renderUI({
                        input.reg_plots == 'resid_pred'",
           uiOutput("ui_reg_nrobs"),
           conditionalPanel(
-            condition = "input.reg_plots != 'correlations'", 
+            condition = "input.reg_plots != 'correlations'",
             checkboxGroupInput(
               "reg_lines", NULL, reg_lines,
               selected = state_group("reg_lines"), inline = TRUE
@@ -436,10 +436,10 @@ output$regress <- renderUI({
 
 reg_available <- eventReactive(input$reg_run, {
   if (not_available(input$reg_rvar)) {
-    "This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>% 
+    "This analysis requires a response variable of type integer\nor numeric and one or more explanatory variables.\nIf these variables are not available please select another dataset.\n\n" %>%
       suggest_data("diamonds")
   } else if (not_available(input$reg_evar)) {
-    "Please select one or more explanatory variables. Then press the Estimate\nbutton to estimate the model.\n\n" %>% 
+    "Please select one or more explanatory variables. Then press the Estimate\nbutton to estimate the model.\n\n" %>%
       suggest_data("diamonds")
   } else {
     "available"
@@ -474,13 +474,13 @@ reg_available <- eventReactive(input$reg_run, {
 })
 
 .predict_print_regress <- reactive({
-  .predict_regress() %>% 
+  .predict_regress() %>%
     {if (is.character(.)) cat(., "\n") else print(.)}
 })
 
 .predict_plot_regress <- reactive({
   req(
-    pressed(input$reg_run), input$reg_pred_plot, 
+    pressed(input$reg_run), input$reg_pred_plot,
     available(input$reg_xvar),
     !is_empty(input$reg_predict, "none")
   )
@@ -553,10 +553,14 @@ observeEvent(input$regress_report, {
 
     if (!is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
+    } else {
+      pred_args$pred_cmd <- NULL
     }
     if (!is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
-    } 
+    } else {
+      pred_args$pred_data <- NULL
+    }
 
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
@@ -565,7 +569,7 @@ observeEvent(input$regress_report, {
       name <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
         gsub("\\s", "", .) %>%
         deparse(., control = getOption("dctrl"), width.cutoff = 500L)
-      xcmd <- paste0(xcmd, "\n", input$reg_pred_data , " <- store(", 
+      xcmd <- paste0(xcmd, "\n", input$reg_pred_data , " <- store(",
         input$reg_pred_data, ", pred, name = ", name, ")"
       )
     }
@@ -607,7 +611,7 @@ observeEvent(input$reg_store_pred, {
   withProgress(
     message = "storing predictions", value = 1,
     r_data[[input$reg_pred_data]] <- store(
-      r_data[[input$reg_pred_data]], pred, 
+      r_data[[input$reg_pred_data]], pred,
       name = input$reg_store_pred_name
     )
   )
@@ -622,8 +626,8 @@ dl_reg_coef <- function(path) {
 }
 
 download_handler(
-  id = "dl_reg_coef", 
-  fun = dl_reg_coef, 
+  id = "dl_reg_coef",
+  fun = dl_reg_coef,
   fn = function() paste0(input$dataset, "_reg_coef"),
   type = "csv",
   caption = "Save coefficients"
@@ -638,18 +642,18 @@ dl_reg_pred <- function(path) {
 }
 
 download_handler(
-  id = "dl_reg_pred", 
-  fun = dl_reg_pred, 
+  id = "dl_reg_pred",
+  fun = dl_reg_pred,
   fn = function() paste0(input$dataset, "_reg_pred"),
   type = "csv",
   caption = "Save regression predictions"
 )
 
 download_handler(
-  id = "dlp_reg_pred", 
-  fun = download_handler_plot, 
+  id = "dlp_reg_pred",
+  fun = download_handler_plot,
   fn = paste0(input$dataset, "_reg_pred"),
-  type = "png", 
+  type = "png",
   caption = "Save regression prediction plot",
   plot = .predict_plot_regress,
   width = plot_width,
@@ -657,8 +661,8 @@ download_handler(
 )
 
 download_handler(
-  id = "dlp_regress", 
-  fun = download_handler_plot, 
+  id = "dlp_regress",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_", input$reg_plots, "_regress"),
   type = "png",
   caption = "Save regression plot",

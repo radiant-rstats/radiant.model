@@ -1,5 +1,5 @@
 nb_plots <- c(
-  "None" = "none", 
+  "None" = "none",
   "Variable importance" = "vimp",
   "Correlations" = "correlations"
 )
@@ -45,13 +45,13 @@ nb_pred_inputs <- reactive({
 
   nb_pred_args$pred_cmd <- nb_pred_args$pred_data <- ""
   if (input$nb_predict == "cmd") {
-    nb_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$nb_pred_cmd) %>% 
+    nb_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$nb_pred_cmd) %>%
       gsub(";\\s+", ";", .) %>%
       gsub("\"", "\'", .)
   } else if (input$nb_predict == "data") {
     nb_pred_args$pred_data <- input$nb_pred_data
   } else if (input$nb_predict == "datacmd") {
-    nb_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$nb_pred_cmd) %>% 
+    nb_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$nb_pred_cmd) %>%
       gsub(";\\s+", ";", .) %>%
       gsub("\"", "\'", .)
     nb_pred_args$pred_data <- input$nb_pred_data
@@ -88,8 +88,8 @@ output$ui_nb_rvar <- renderUI({
 
 output$ui_nb_lev <- renderUI({
   req(available(input$nb_rvar))
-  levs <- .get_data()[[input$nb_rvar]] %>% 
-    as.factor() %>% 
+  levs <- .get_data()[[input$nb_rvar]] %>%
+    as.factor() %>%
     levels() %>%
     c("All levels", .)
 
@@ -110,10 +110,10 @@ output$ui_nb_evar <- renderUI({
   ## initialize to variables selected for logistic regression
   init <- if (is_empty(input$logit_evar)) isolate(input$nb_evar) else input$logit_evar
   selectInput(
-    inputId = "nb_evar", label = "Explanatory variables:", 
+    inputId = "nb_evar", label = "Explanatory variables:",
     choices = vars,
     selected = state_multiple("nb_evar", vars, init),
-    multiple = TRUE, size = min(10, length(vars)), 
+    multiple = TRUE, size = min(10, length(vars)),
     selectize = FALSE
   )
 })
@@ -127,13 +127,13 @@ observeEvent(input$dataset, {
 
 output$ui_nb_store_pred_name <- renderUI({
   req(input$nb_rvar)
-  levs <- .get_data()[[input$nb_rvar]] %>% 
-    as.factor() %>% 
+  levs <- .get_data()[[input$nb_rvar]] %>%
+    as.factor() %>%
     levels() %>%
     paste(collapse = ", ")
   textInput(
-    "nb_store_pred_name", 
-    "Store predictions:", 
+    "nb_store_pred_name",
+    "Store predictions:",
     state_init("nb_store_pred_name", levs)
   )
 })
@@ -153,7 +153,7 @@ observe({
   ## notify user when the regression needs to be updated
   ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
   if (pressed(input$nb_run)) {
-    if (is.null(input$nb_evar)) { 
+    if (is.null(input$nb_evar)) {
       updateTabsetPanel(session, "tabs_nb ", selected = "Summary")
       updateActionButton(session, "nb_run", "Estimate model", icon = icon("play"))
     } else if (isTRUE(attr(nb_inputs, "observable")$.invalidated)) {
@@ -188,7 +188,7 @@ output$ui_nb <- renderUI({
           selectizeInput(
             inputId = "nb_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_info[["datasetlist"]]),
-            selected = state_single("nb_pred_data", c("None" = "", r_info[["datasetlist"]])), 
+            selected = state_single("nb_pred_data", c("None" = "", r_info[["datasetlist"]])),
             multiple = FALSE
           )
         ),
@@ -266,7 +266,7 @@ nb_plot_width <- function()
 nb_plot_height <- function()
   nb_plot() %>% {if (is.list(.)) .$plot_height else 500}
 
-nb_pred_plot_height <- function() 
+nb_pred_plot_height <- function()
   if (input$nb_pred_plot) 500 else 1
 
 ## output is called from the main radiant ui.R
@@ -298,7 +298,7 @@ output$nb <- renderUI({
       verbatimTextOutput("predict_nb")
     ),
     tabPanel(
-      "Plot", 
+      "Plot",
       download_link("dlp_nb"),
       plotOutput("plot_nb", width = "100%", height = "100%")
     )
@@ -360,7 +360,7 @@ nb_available <- reactive({
 
 .predict_plot_nb <- reactive({
   req(
-    pressed(input$nb_run), input$nb_pred_plot, 
+    pressed(input$nb_run), input$nb_pred_plot,
     available(input$nb_xvar),
     !is_empty(input$nb_predict, "none")
   )
@@ -419,7 +419,7 @@ observeEvent(input$nb_store_pred, {
     message = "Storing predictions", value = 1,
     # store(pred, data = input$nb_pred_data, name = input$nb_store_pred_name)
     r_data[[input$nb_pred_data]] <- store(
-      r_data[[input$nb_pred_data]], pred, 
+      r_data[[input$nb_pred_data]], pred,
       name = input$nb_store_pred_name
     )
   )
@@ -439,13 +439,19 @@ observeEvent(input$nb_report, {
   if (!is_empty(input$nb_predict, "none") &&
      (!is_empty(input$nb_pred_data) || !is_empty(input$nb_pred_cmd))) {
     pred_args <- clean_args(nb_pred_inputs(), nb_pred_args[-1])
-    print(pred_args)
+
     if (!is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
+    } else {
+      pred_args$pred_cmd <- NULL
     }
+
     if (!is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
-    } 
+    } else {
+      pred_args$pred_data <- NULL
+    }
+
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0("print(pred, n = 10)")
@@ -457,7 +463,7 @@ observeEvent(input$nb_report, {
           fix_names() %>%
           deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       }
-      xcmd <- paste0(xcmd, "\n", input$nb_pred_data, " <- store(", 
+      xcmd <- paste0(xcmd, "\n", input$nb_pred_data, " <- store(",
         input$nb_pred_data, ", pred, name = ", name, ")"
       )
     }
@@ -491,18 +497,18 @@ dl_nb_pred <- function(path) {
 }
 
 download_handler(
-  id = "dl_nb_pred", 
-  fun = dl_nb_pred, 
+  id = "dl_nb_pred",
+  fun = dl_nb_pred,
   fn = function() paste0(input$dataset, "_nb_pred"),
   type = "csv",
   caption = "Save predictions"
 )
 
 download_handler(
-  id = "dlp_nb_pred", 
-  fun = download_handler_plot, 
+  id = "dlp_nb_pred",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_nb_pred"),
-  type = "png", 
+  type = "png",
   caption = "Save naive Bayes prediction plot",
   plot = .predict_plot_nb,
   width = plot_width,
@@ -510,10 +516,10 @@ download_handler(
 )
 
 download_handler(
-  id = "dlp_nb", 
-  fun = download_handler_plot, 
+  id = "dlp_nb",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_nb"),
-  type = "png", 
+  type = "png",
   caption = "Save naive Bayes plot",
   plot = .plot_nb,
   width = nb_plot_width,
