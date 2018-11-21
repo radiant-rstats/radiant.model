@@ -4,10 +4,12 @@
 \alias{radiant.model_window}
 \title{Launch radiant.model in an Rstudio window}
 \usage{
-radiant.model_window(state)
+radiant.model_window(state, ...)
 }
 \arguments{
 \item{state}{Path to state file to load}
+
+\item{...}{additional arguments to pass to shiny::runApp (e.g, port = 8080)}
 }
 \description{
 Launch radiant.model in an Rstudio window

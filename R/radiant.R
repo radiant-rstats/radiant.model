@@ -3,6 +3,7 @@
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
 #' @param state Path to state file to load
+#' @param ... additional arguments to pass to shiny::runApp (e.g, port = 8080)
 #'
 #' @importFrom radiant.data launch
 #'
@@ -11,13 +12,14 @@
 #' radiant.model()
 #' }
 #' @export
-radiant.model <- function(state) radiant.data::launch(package = "radiant.model", run = "browser", state)
+radiant.model <- function(state, ...) radiant.data::launch(package = "radiant.model", run = "browser", state, ...)
 
 #' Launch radiant.model in an Rstudio window
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
 #' @param state Path to state file to load
+#' @param ... additional arguments to pass to shiny::runApp (e.g, port = 8080)
 #'
 #' @importFrom radiant.data launch
 #'
@@ -26,13 +28,14 @@ radiant.model <- function(state) radiant.data::launch(package = "radiant.model",
 #' radiant.model_window()
 #' }
 #' @export
-radiant.model_window <- function(state) radiant.data::launch(package = "radiant.model", run = "window", state)
+radiant.model_window <- function(state, ...) radiant.data::launch(package = "radiant.model", run = "window", state, ...)
 
 #' Launch radiant.model in the Rstudio viewer
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
 #' @param state Path to state file to load
+#' @param ... additional arguments to pass to shiny::runApp (e.g, port = 8080)
 #'
 #' @importFrom radiant.data launch
 #'
@@ -41,7 +44,7 @@ radiant.model_window <- function(state) radiant.data::launch(package = "radiant.
 #' radiant.model_viewer()
 #' }
 #' @export
-radiant.model_viewer <- function(state) radiant.data::launch(package = "radiant.model", run = "viewer", state)
+radiant.model_viewer <- function(state, ...) radiant.data::launch(package = "radiant.model", run = "viewer", state, ...)
 
 #' Method to evaluate sensitivity of an analysis
 #'
