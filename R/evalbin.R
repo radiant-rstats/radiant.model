@@ -592,12 +592,47 @@ plot.confusion <- function(
 auc <- function(pred, rvar, lev) {
   ## based on examples in colAUC at ...
   ## https://cran.r-project.org/web/packages/caTools/caTools.pdf
-  if (missing(lev) && is.factor(rvar)) lev <- levels(rvar)[1]
-  stopifnot(length(lev) == 1, lev %in% rvar)
+  lev <- check_lev(rvar, lev)
   x1 <- pred[rvar == lev]
   x2 <- pred[rvar != lev]
   ## need as.numeric to avoid integer-overflows
   denom <- as.numeric(length(x1)) * length(x2)
-  wt <- wilcox.test(x1, x2, exact = FALSE)$statistic / denom
-  ifelse(wt < .5, 1 - wt, wt)[["W"]]
+  wt <- unname(wilcox.test(x1, x2, exact = FALSE)$statistic / denom)
+  ifelse(wt < .5, 1 - wt, wt)
+}
+
+#' Calculate Profit based on cost:margin ratio
+#'
+#' @param pred Prediction or predictor
+#' @param rvar Response variable
+#' @param lev The level in the response variable defined as success
+#' @param cost Cost per treatment (e.g., mailing costs)
+#' @param margin Margin, or benefit, per 'success' (e.g., customer purchase). A cost:margin ratio of 1:2 implies
+#'   the cost of False Positive are equivalent to the benefits of a True Positive
+#'
+#' @return profit
+#'
+#' @examples
+#' profit(runif(20000), dvd$buy, "yes", cost = 1, margin = 2)
+#' profit(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes", cost = 1, margin = 20)
+#' profit(ifelse(dvd$buy == "yes", 1, 0), dvd$buy)
+#'
+#' @export
+profit <- function(pred, rvar, lev, cost = 1, margin = 2) {
+  lev <- check_lev(rvar, lev)
+  rvar <- rvar == lev
+  break_even = cost/margin
+  TP <- rvar & pred > break_even
+  FP <- !rvar & pred > break_even
+  margin * sum(TP) - cost * sum(TP, FP)
+}
+
+## check that a relevant value for 'lev' is available
+check_lev <- function(rvar, lev) {
+  if (missing(lev)) {
+    lev <- ifelse(is.factor(rvar), levels(rvar)[1], TRUE)
+  } else {
+    stopifnot(length(lev) == 1, lev %in% rvar | is.logical(lev))
+  }
+  lev
 }
