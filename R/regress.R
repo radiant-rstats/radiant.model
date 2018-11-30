@@ -701,9 +701,8 @@ predict_model <- function(
       dat_classes <- get_class(dat)
     }
 
-    ## weights mess-up data manipulation below so remove from
-    wid <- which(names(dat_classes) %in% "(weights)")
-    if (length(wid) > 0) dat_classes <- dat_classes[-wid]
+    ## weights and interaction terms mess-up data manipulation below so remove from
+    dat_classes <- dat_classes[!grepl("(^\\(weights\\)$)|(^I\\(.+\\^[0-9]+\\)$)", names(dat_classes))]
 
     isFct <- dat_classes == "factor"
     isChar <- dat_classes == "character"

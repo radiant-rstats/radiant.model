@@ -1,5 +1,5 @@
-# library(radiant.model)
-# library(testthat)
+library(radiant.model)
+library(testthat)
 trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 
 ######### tests ########
@@ -35,6 +35,18 @@ test_that("regress - predict", {
   expect_equal(res1, res2)
 })
 
+test_that("regress - predict with quadratic term", {
+  result <- regress(diamonds, "price", c("carat", "clarity"), int = "I(carat^2)")
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[17] %>% trim()
+  cat(paste0(res1, "\n"))
+  res2 <- "SI1     9 114304.420 104924.680 123684.159  9379.739"
+  expect_equal(res1, res2)
+
+  result <- regress(diamonds, "price", "carat:clarity", int = "I(carat^2)")
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[17] %>% trim()
+  expect_equal(res1, res2)
+})
+
 context("Logistic regression (logistic)")
 
 test_that("logistic", {
@@ -63,6 +75,23 @@ test_that("logistic - predict", {
   res1 <- capture.output(predict(result, pred_data = titanic))[11] %>% trim()
   cat(paste0(res1, "\n"))
   res2 <- "1st female      0.896 0.856 0.926"
+  expect_equal(res1, res2)
+})
+
+test_that("logistic - predict with quadratic term", {
+  result <- logistic(titanic, "survived", c("pclass", "sex", "age"), int = "I(age^2)")
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'; age = 1:100"))[11] %>% trim()
+  # cat(paste0(res1, "\n"))
+  res2 <- "1st female   1      0.976 0.952 0.988"
+  expect_equal(res1, res2)
+
+  result <- logistic(titanic, "survived", "pclass:age", int = "I(age^2)")
+  res1 <- capture.output(predict(result, pred_cmd = "pclass = levels(pclass); sex = 'female'; age = 1:100"))[11] %>% trim()
+  expect_equal(res1, res2)
+
+  res1 <- capture.output(predict(result, pred_data = titanic))[11] %>% trim()
+  cat(paste0(res1, "\n"))
+  res2 <- "1st female 29.000      0.919 0.880 0.945"
   expect_equal(res1, res2)
 })
 
