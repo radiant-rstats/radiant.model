@@ -68,7 +68,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.7</span>
       </span>
     </div>
 
@@ -163,7 +163,7 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>var_check</span>(<span class='no'>ev</span>, <span class='no'>cn</span>, <span class='kw'>intv</span> <span class='kw'>=</span> <span class='st'>""</span>)</pre>
+    <pre class="usage"><span class='fu'>var_check</span>(<span class='no'>ev</span>, <span class='no'>cn</span>, <span class='kw'>intv</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>())</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -199,16 +199,34 @@
 #&gt; [1] "a" "b" "c" "d"
 #&gt; 
 #&gt; $intv
-#&gt; [1] ""
+#&gt; NULL
 #&gt; </div><div class='input'><span class='fu'>var_check</span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>), <span class='st'>"a:c"</span>)</div><div class='output co'>#&gt; Interaction terms contain variables not selected as main effects.
-#&gt; Removing all interactions from the estimation</div><div class='output co'>#&gt; $vars
+#&gt; Removing interactions from the estimation</div><div class='output co'>#&gt; $vars
 #&gt; [1] "a" "b"
 #&gt; 
 #&gt; $ev
 #&gt; [1] "a" "b"
 #&gt; 
 #&gt; $intv
-#&gt; [1] ""
+#&gt; character(0)
+#&gt; </div><div class='input'><span class='fu'>var_check</span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>), <span class='st'>"a:c"</span>)</div><div class='output co'>#&gt; Interaction terms contain variables not selected as main effects.
+#&gt; Removing interactions from the estimation</div><div class='output co'>#&gt; $vars
+#&gt; [1] "a" "b"
+#&gt; 
+#&gt; $ev
+#&gt; [1] "a" "b"
+#&gt; 
+#&gt; $intv
+#&gt; character(0)
+#&gt; </div><div class='input'><span class='fu'>var_check</span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a:c"</span>, <span class='st'>"I(b^2)"</span>))</div><div class='output co'>#&gt; Interaction terms contain variables not selected as main effects.
+#&gt; Removing interactions from the estimation</div><div class='output co'>#&gt; $vars
+#&gt; [1] "a" "b"
+#&gt; 
+#&gt; $ev
+#&gt; [1] "a" "b"
+#&gt; 
+#&gt; $intv
+#&gt; [1] "I(b^2)"
 #&gt; </div><div class='input'>
 </div></pre>
   </div>

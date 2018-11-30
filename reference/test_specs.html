@@ -68,7 +68,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.7</span>
       </span>
     </div>
 
@@ -163,13 +163,13 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>test_specs</span>(<span class='no'>test_var</span>, <span class='no'>int</span>)</pre>
+    <pre class="usage"><span class='fu'>test_specs</span>(<span class='no'>tv</span>, <span class='no'>int</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>test_var</th>
+      <th>tv</th>
       <td><p>List of variables to use for testing for regress or logistic</p></td>
     </tr>
     <tr>
@@ -188,9 +188,15 @@
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>test_specs</span>(<span class='st'>"a"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a:b"</span>, <span class='st'>"b:c"</span>))</div><div class='output co'>#&gt; Interaction terms contain variables specified for testing.
+    <pre class="examples"><div class='input'><span class='fu'>test_specs</span>(<span class='st'>"a"</span>, <span class='st'>"a:b"</span>)</div><div class='output co'>#&gt; Interaction terms contain variables specified for testing.
 #&gt; Relevant interaction terms are included in the requested test.
-#&gt; </div><div class='output co'>#&gt; [1] "a"   "a:b"</div><div class='input'>
+#&gt; </div><div class='output co'>#&gt; [1] "a:b"</div><div class='input'><span class='fu'>test_specs</span>(<span class='st'>"a"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a:b"</span>, <span class='st'>"b:c"</span>))</div><div class='output co'>#&gt; Interaction terms contain variables specified for testing.
+#&gt; Relevant interaction terms are included in the requested test.
+#&gt; </div><div class='output co'>#&gt; [1] "a:b"</div><div class='input'><span class='fu'>test_specs</span>(<span class='st'>"a"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a:b"</span>, <span class='st'>"b:c"</span>, <span class='st'>"I(c^2)"</span>))</div><div class='output co'>#&gt; Interaction terms contain variables specified for testing.
+#&gt; Relevant interaction terms are included in the requested test.
+#&gt; </div><div class='output co'>#&gt; [1] "a:b"</div><div class='input'><span class='fu'>test_specs</span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a"</span>, <span class='st'>"b"</span>, <span class='st'>"c"</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"a:b"</span>, <span class='st'>"b:c"</span>, <span class='st'>"I(c^2)"</span>))</div><div class='output co'>#&gt; Interaction terms contain variables specified for testing.
+#&gt; Relevant interaction terms are included in the requested test.
+#&gt; </div><div class='output co'>#&gt; [1] "a:b" "b:c"</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

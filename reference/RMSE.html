@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Repeated simulation — repeater • radiant.model</title>
+<title>Root Mean Squared Error — RMSE • radiant.model</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -35,9 +35,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
 
-<meta property="og:title" content="Repeated simulation — repeater" />
+<meta property="og:title" content="Root Mean Squared Error — RMSE" />
 
-<meta property="og:description" content="Repeated simulation" />
+<meta property="og:description" content="Root Mean Squared Error" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -152,133 +152,45 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Repeated simulation</h1>
-    <small class="dont-index">Source: <a href='https://github.com/radiant-rstats/radiant.model/blob/master/R/simulater.R'><code>R/simulater.R</code></a></small>
-    <div class="hidden name"><code>repeater.Rd</code></div>
+    <h1>Root Mean Squared Error</h1>
+    <small class="dont-index">Source: <a href='https://github.com/radiant-rstats/radiant.model/blob/master/R/evalreg.R'><code>R/evalreg.R</code></a></small>
+    <div class="hidden name"><code>RMSE.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Repeated simulation</p>
+    <p>Root Mean Squared Error</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>repeater</span>(<span class='no'>dataset</span>, <span class='kw'>nr</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>vars</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>grid</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>sum_vars</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>byvar</span> <span class='kw'>=</span> <span class='st'>"sim"</span>, <span class='kw'>fun</span> <span class='kw'>=</span> <span class='st'>"sum"</span>, <span class='kw'>form</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>""</span>)</pre>
+    <pre class="usage"><span class='fu'>RMSE</span>(<span class='no'>pred</span>, <span class='no'>rvar</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>dataset</th>
-      <td><p>Return value from the simulater function</p></td>
+      <th>pred</th>
+      <td><p>Prediction (vector)</p></td>
     </tr>
     <tr>
-      <th>nr</th>
-      <td><p>Number times to repeat the simulation</p></td>
-    </tr>
-    <tr>
-      <th>vars</th>
-      <td><p>Variables to use in repeated simulation</p></td>
-    </tr>
-    <tr>
-      <th>grid</th>
-      <td><p>Character vector of expressions to use in grid search for constants</p></td>
-    </tr>
-    <tr>
-      <th>sum_vars</th>
-      <td><p>(Numeric) variables to summaries</p></td>
-    </tr>
-    <tr>
-      <th>byvar</th>
-      <td><p>Variable(s) to group data by before summarizing</p></td>
-    </tr>
-    <tr>
-      <th>fun</th>
-      <td><p>Functions to use for summarizing</p></td>
-    </tr>
-    <tr>
-      <th>form</th>
-      <td><p>A character vector with the formula to apply to the summarized data</p></td>
-    </tr>
-    <tr>
-      <th>seed</th>
-      <td><p>Seed for the repeated simulation</p></td>
-    </tr>
-    <tr>
-      <th>name</th>
-      <td><p>Deprecated argument</p></td>
+      <th>rvar</th>
+      <td><p>Response (vector)</p></td>
     </tr>
     </table>
     
-    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <div class='dont-index'><p><code>summary.repeater</code> to summarize results from repeated simulation</p>
-<p><code>plot.repeater</code> to plot results from repeated simulation</p></div>
+    <p>Root Mean Squared Error</p>
     
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>simdat</span> <span class='kw'>&lt;-</span> <span class='fu'>simulater</span>(
-  <span class='kw'>const</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"var_cost 5"</span>,<span class='st'>"fixed_cost 1000"</span>),
-  <span class='kw'>norm</span> <span class='kw'>=</span> <span class='st'>"E 0 100;"</span>,
-  <span class='kw'>discrete</span> <span class='kw'>=</span> <span class='st'>"price 6 8 .3 .7;"</span>,
-  <span class='kw'>form</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(
-    <span class='st'>"demand = 1000 - 50*price + E"</span>,
-    <span class='st'>"profit = demand*(price-var_cost) - fixed_cost"</span>,
-    <span class='st'>"profit_small = profit &lt; 100"</span>
-  ),
-  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>
-)
-
-<span class='no'>repdat</span> <span class='kw'>&lt;-</span> <span class='fu'>repeater</span>(
-  <span class='no'>simdat</span>,
-  <span class='kw'>nr</span> <span class='kw'>=</span> <span class='fl'>12</span>,
-  <span class='kw'>vars</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"E"</span>,<span class='st'>"price"</span>),
-  <span class='kw'>sum_vars</span> <span class='kw'>=</span> <span class='st'>"profit"</span>,
-  <span class='kw'>byvar</span> <span class='kw'>=</span> <span class='st'>"sim"</span>,
-  <span class='kw'>form</span> <span class='kw'>=</span> <span class='st'>"profit_365 = profit &lt; 36500"</span>,
-  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>,
-)
-
-<span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/head'>head</a></span>(<span class='no'>repdat</span>)</div><div class='output co'>#&gt;   sim   profit profit_365
-#&gt; 1   1 7998.972       TRUE
-#&gt; 2   2 7450.843       TRUE
-#&gt; 3   3 5747.208       TRUE
-#&gt; 4   4 2773.283       TRUE
-#&gt; 5   5 6401.404       TRUE
-#&gt; 6   6 6750.054       TRUE</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>repdat</span>)</div><div class='output co'>#&gt; Repeated simulation
-#&gt; Simulations   : 1,000 
-#&gt; Repetitions   : 12 
-#&gt; Re-simulated  : E, price 
-#&gt; Group by      : Simulation 
-#&gt; Function      : sum 
-#&gt; Random  seed  : 1234 
-#&gt; Simulated data: simdat 
-#&gt; Repeat  data  : repdat 
-#&gt; Formulas      :
-#&gt; 	profit_365 = profit &lt; 36500
-#&gt; 
-#&gt; Variables:
-#&gt;       variable n_obs       mean         sd       min        25%     median
-#&gt;  sum of profit 1,000 5,644.9274 2,007.1863 -223.6821 4,372.1464 5,741.6681
-#&gt;         75%         max
-#&gt;  7,043.5267 11,255.2636
-#&gt; 
-#&gt; Logicals:
-#&gt;            TRUE (nr)   TRUE (prop)
-#&gt; profit_365 1000        1          
-#&gt; </div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>repdat</span>)</div><div class='img'><img src='repeater-1.png' alt='' width='700' height='433' /></div><div class='input'>
-</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#see-also">See also</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+      <li><a href="#value">Value</a></li>
+          </ul>
 
   </div>
 </div>

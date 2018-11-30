@@ -4,6 +4,15 @@
     <loc>https://radiant-rstats.github.io/radiant.model/index.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/MAE.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/RMSE.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/Rsq.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/auc.html</loc>
   </url>
   <url>
@@ -20,6 +29,12 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/crtree.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/cv.crtree.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/cv.nn.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/direct_marketing.html</loc>
@@ -143,6 +158,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/print_predict_model.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/profit.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/radiant.model-deprecated.html</loc>

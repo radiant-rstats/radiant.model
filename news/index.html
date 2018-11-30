@@ -65,7 +65,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.7</span>
       </span>
     </div>
 
@@ -153,11 +153,14 @@
       <small>Source: <a href='https://github.com/radiant-rstats/radiant.model/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="radiant-model-0-9-7-6" class="section level1">
+    <div id="radiant-model-0-9-7-7" class="section level1">
 <h1 class="page-header">
-<a href="#radiant-model-0-9-7-6" class="anchor"></a>radiant.model 0.9.7.6<small> Unreleased </small>
+<a href="#radiant-model-0-9-7-7" class="anchor"></a>radiant.model 0.9.7.7<small> Unreleased </small>
 </h1>
 <ul>
+<li>Cross validation functions for decision trees (<code>cv.crtree</code>) and neural networks(<code>cv.nn</code>) that can use various performance metrics for during evaluation e.g., <code>auc</code> or <code>profit</code>
+</li>
+<li>Option to add square and cube terms in <em>Model &gt; Linear regression</em> and <em>Model &gt; Logistic regression</em>.</li>
 <li>Option to pass additional arguments to <code><a href="https://www.rdocumentation.org/packages/shiny/topics/runApp">shiny::runApp</a></code> when starting radiant such as the port to use. For example, radiant.model::radiant.model(“<a href="https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda" class="uri">https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda</a>”, port = 8080)</li>
 <li>Avoid empty string showing up in auto-generated code for model prediction (i.e., <code>pred_data</code> or <code>pred_cmd</code>)</li>
 <li>Fix for VIF based on <code>car</code> for <code>regress</code> and <code>logistic</code>
@@ -541,7 +544,7 @@
     <div id="tocnav">
       <h2>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-        <li><a href="#radiant-model-0-9-7-6">0.9.7.6</a></li>
+        <li><a href="#radiant-model-0-9-7-7">0.9.7.7</a></li>
         <li><a href="#radiant-model-0-9-7-0">0.9.7.0</a></li>
         <li><a href="#radiant-model-0-9-5-0">0.9.5.0</a></li>
         <li><a href="#radiant-model-0-9-2-3">0.9.2.3</a></li>
