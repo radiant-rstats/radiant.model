@@ -705,7 +705,6 @@ cv.crtree <- function(
       perf <- double(K * repeats)
       object$call[["cp"]] <- tune_grid[i, "cp"]
       if (trace) cat("Working on cp", format(tune_grid[i, "cp"], scientific = FALSE), "pcp", format(tune_grid[i, "pcp"], scientific = FALSE),"\n")
-      cat(paste("Working on cp", format(tune_grid[i, "cp"], scientific = FALSE), "pcp", format(tune_grid[i, "pcp"], scientific = FALSE),"\n"))
       for (j in seq_len(repeats)) {
         rand <- sample(K, nrow(m), replace = TRUE)
         for (k in seq_len(K)) {
@@ -750,7 +749,7 @@ cv.crtree <- function(
   object$call[["cp"]] <- out[1, "cp"]
   object$call[["data"]] <- m
   object <- rpart::prune(eval(object$call), out[1, "pcp"])
-  cat("\nGiven the provided tuning grid, the pruning complexity parameter\nshould be set to", out[1, "pcp"], "or the number of nodes set to" , max(object$cptable[,"nsplit"]) + 1, "nodes\n")
+  cat("\nGiven the provided tuning grid, the pruning complexity parameter\nshould be set to", out[1, "pcp"], "or the number of nodes set to" , max(object$cptable[,"nsplit"]) + 1, "\n")
   out
 }
 
