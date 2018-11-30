@@ -1,3 +1,5 @@
+import_fs("radiant.model", libs = "nnet", incl = "nnet.formula")
+
 ## urls for menu
 r_url_list <- getOption("radiant.url.list")
 r_url_list[["Linear regression (OLS)"]] <-

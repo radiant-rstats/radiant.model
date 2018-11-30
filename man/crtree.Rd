@@ -6,8 +6,8 @@
 \usage{
 crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
   minsplit = 2, minbucket = round(minsplit/3), cp = 0.001,
-  nodes = NA, K = 10, seed = 1234, split = "gini", prior = NA,
-  adjprob = TRUE, cost = NA, margin = NA, check = "",
+  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
+  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
   data_filter = "")
 }
 \arguments{
@@ -27,9 +27,11 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
 
 \item{minbucket}{the minimum number of observations in any terminal <leaf> node. If only one of minbucket or minsplit is specified, the code either sets minsplit to minbucket*3 or minbucket to minsplit/3, as appropriate.}
 
-\item{cp}{Minimum proportion of root node deviance required for split (default = 0.00001)}
+\item{cp}{Minimum proportion of root node deviance required for split (default = 0.001)}
 
-\item{nodes}{Maximum size of tree in number of nodes to return. If equal to NA no pruning is done}
+\item{pcp}{Complexity parameter to use for pruning}
+
+\item{nodes}{Maximum size of tree in number of nodes to return}
 
 \item{K}{Number of folds use in cross-validation}
 
@@ -41,9 +43,9 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
 
 \item{adjprob}{Setting a prior will rescale the predicted probabilities. Set adjprob to TRUE to adjust the probabilities back to their original scale after estimation}
 
-\item{cost}{Cost for each connection (e.g., email or mailing)}
+\item{cost}{Cost for each treatment (e.g., mailing)}
 
-\item{margin}{Margin on each customer purchase}
+\item{margin}{Margin associated with a successful treatment (e.g., a purchase)}
 
 \item{check}{Optional estimation parameters (e.g., "standardize")}
 

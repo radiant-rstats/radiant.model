@@ -150,3 +150,33 @@ plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
     p
   }
 }
+
+#' R-squared
+#'
+#' @param pred Prediction (vector)
+#' @param rvar Response (vector)
+#'
+#' @return R-squared
+#'
+#' @export
+Rsq <- function(pred, rvar) cor(pred, rvar)^2
+
+#' Root Mean Squared Error
+#'
+#' @param pred Prediction (vector)
+#' @param rvar Response (vector)
+#'
+#' @return Root Mean Squared Error
+#'
+#' @export
+RMSE <- function(pred, rvar) sqrt(mean(unlist((pred - rvar)^2)))
+
+#' Mean Absolute Error
+#'
+#' @param pred Prediction (vector)
+#' @param rvar Response (vector)
+#'
+#' @return Mean Absolute Error
+#'
+#' @export
+MAE <- function(pred, rvar) mean(unlist(abs(pred - rvar)))

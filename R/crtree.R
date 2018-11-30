@@ -10,15 +10,16 @@
 #' @param wts Weights to use in estimation
 #' @param minsplit The minimum number of observations that must exist in a node in order for a split to be attempted.
 #' @param minbucket the minimum number of observations in any terminal <leaf> node. If only one of minbucket or minsplit is specified, the code either sets minsplit to minbucket*3 or minbucket to minsplit/3, as appropriate.
-#' @param cp Minimum proportion of root node deviance required for split (default = 0.00001)
-#' @param nodes Maximum size of tree in number of nodes to return. If equal to NA no pruning is done
+#' @param cp Minimum proportion of root node deviance required for split (default = 0.001)
+#' @param pcp Complexity parameter to use for pruning
+#' @param nodes Maximum size of tree in number of nodes to return
 #' @param K Number of folds use in cross-validation
 #' @param seed Random seed used for cross-validation
 #' @param split Splitting criterion to use (i.e., "gini" or "information")
 #' @param prior Adjust the initial probability for the selected level (e.g., set to .5 in unbalanced samples)
 #' @param adjprob Setting a prior will rescale the predicted probabilities. Set adjprob to TRUE to adjust the probabilities back to their original scale after estimation
-#' @param cost Cost for each connection (e.g., email or mailing)
-#' @param margin Margin on each customer purchase
+#' @param cost Cost for each treatment (e.g., mailing)
+#' @param margin Margin associated with a successful treatment (e.g., a purchase)
 #' @param check Optional estimation parameters (e.g., "standardize")
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
@@ -39,8 +40,9 @@
 crtree <- function(
   dataset, rvar, evar, type = "", lev = "", wts = "None",
   minsplit = 2, minbucket = round(minsplit/3), cp = 0.001,
-  nodes = NA, K = 10, seed = 1234, split = "gini", prior = NA,
-  adjprob = TRUE, cost = NA, margin = NA, check = "", data_filter = ""
+  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
+  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
+  data_filter = ""
 ) {
 
   if (rvar %in% evar) {
@@ -147,10 +149,23 @@ crtree <- function(
   # loss <- c(6,.5); cost <- .5, margin <- 6
   if (type == "classification") {
     ind <- if (which(lev %in% levels(dataset[[rvar]])) == 1) c(1, 2) else c(2, 1)
+    if (!is_empty(prior) && !is_not(cost) && !is_not(cost)) {
+      return("Choose either a prior or cost and margin values but not both.\nPlease adjust your settings and try again" %>% add_class("crtree"))
+    }
 
     if (!is_not(cost) && !is_not(margin)) {
-      parms[["loss"]] <- c(as_numeric(margin), as_numeric(cost)) %>% .[ind] %>% {
-        matrix(c(0, .[1], .[2], 0), byrow = TRUE, nrow = 2)
+
+      loss2 <- as_numeric(cost)
+      loss1 <- as_numeric(margin) - loss2
+
+      if (loss1 <= 0) {
+        return("Cost must be smaller than the specied margin.\nPlease adjust the settings and try again" %>% add_class("crtree"))
+      } else if (loss2 <= 0) {
+        return("Cost must be larger than zero.\nPlease adjust the settings and try again" %>% add_class("crtree"))
+      } else {
+        parms[["loss"]] <- c(loss1, loss2) %>%
+          .[ind] %>%
+          {matrix(c(0, .[1], .[2], 0), byrow = TRUE, nrow = 2)}
       }
     } else if (!is_empty(prior)) {
       if (!is.numeric(prior)) {
@@ -165,14 +180,18 @@ crtree <- function(
     }
   }
 
-  model <- rpart::rpart(
-    as.formula(form),
+  ## using an input list with do.call ensure that a full "call" is available
+  ## for cross-validation
+  crtree_input <- list(
+    formula = as.formula(form),
     data = dataset,
     method = method,
     parms = parms,
     weights = wts,
     control = control
   )
+
+  model <- do.call(rpart::rpart, crtree_input)
 
   if (!is_not(nodes)) {
     unpruned <- model
@@ -182,6 +201,11 @@ crtree <- function(
       ind <- max(which(cptab$nodes <= nodes))
       model <- sshhr(rpart::prune.rpart(model, cp = cptab$CP[ind]))
     }
+  } else if (!is_not(pcp)) {
+    unpruned <- model
+    if (nrow(model$frame) > 1) {
+      model <- sshhr(rpart::prune.rpart(model, cp = pcp))
+    }
   }
 
   ## rpart::rpart does not return residuals by default
@@ -190,20 +214,11 @@ crtree <- function(
   if (is_not(cost) && is_not(margin) &&
       !is_empty(prior) && !is_empty(adjprob)) {
 
-    # org_frac <- mean(dataset[[rvar]] == lev)
-    # over_frac <- prior
-    p <- model$frame$yval2[, 4]
-    bp <- mean(dataset[[rvar]] == lev)
-
-    ## note that this adjustment will reset the prior in the print out
-    ## to the original prior using the 'SAS approach'
-    # model$frame$yval2[, 4] <- 1 / (1 + (1 / bp - 1) / (1 / prior - 1) * (1 / p - 1))
-    # model$frame$yval2[, 5] <- 1 - model$frame$yval2[, 4]
-
     ## when prior = 0.5 can use pp <- p / (p + (1 - p) * (1 - bp) / bp)
     ## more generally, use Theorem 2 from "The Foundations of Cost-Sensitive Learning" by Charles Elkan
     ## in the equation below prior equivalent of b
-    # model$frame$yval2[, 4] <- bp * (p - p * b) / (b - p * b + bp * p - b * bp)
+    p <- model$frame$yval2[, 4]
+    bp <- mean(dataset[[rvar]] == lev)
     model$frame$yval2[, 4] <- bp * (p - p * prior) / (prior - p * prior + bp * p - prior * bp)
     model$frame$yval2[, 5] <- 1 - model$frame$yval2[, 4]
   }
@@ -289,6 +304,7 @@ summary.crtree <- function(
     print(object$model$cptable)
 
   if (modsum) {
+    object$model$call <- NULL
     print(summary(object$model))
   } else if (prn) {
     cat(paste0(capture.output(print(object$model))[c(-1, -2)], collapse = "\n"))
@@ -460,51 +476,52 @@ plot.crtree <- function(
     # }
 
     paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to_lab), collapse = "\n"), style, ttip, sep = "\n") %>%
-      # DiagrammeR::mermaid(., width = "100%", height = "100%")
-      # DiagrammeR::mermaid(., width = width, height = "100%")
       DiagrammeR::mermaid(., width = width, height = "100%")
   } else {
+    if ("character" %in% class(x)) return(x)
     plot_list <- list()
     if ("prune" %in% plots) {
-      if (!is.null(x$unpruned)) {
-        df <- data.frame(x$unpruned$cptable, stringsAsFactors = FALSE)
-      } else {
+      if (is.null(x$unpruned)) {
         df <- data.frame(x$model$cptable, stringsAsFactors = FALSE)
+      } else {
+        df <- data.frame(x$unpruned$cptable, stringsAsFactors = FALSE)
       }
 
       if (nrow(df) < 2) {
         return("Evaluation of tree pruning not available for single node tree")
       }
 
-      # df$CP <- sqrt(df$CP * c(Inf, head(df$CP, -1))) # %>% round(5)
+      df$CP <- sqrt(df$CP * c(Inf, head(df$CP, -1))) %>% round(5)
       df$nsplit <- as.integer(df$nsplit + 1)
       ind1 <- min(which(df$xerror == min(df$xerror)))
-      size1 <- df$nsplit[ind1]
+      size1 <- c(df$nsplit[ind1], df$CP[ind1])
       ind2 <- min(which(df$xerror < (df$xerror[ind1] + df$xstd[ind1])))
-      size2 <- df$nsplit[ind2]
+      size2 <- c(df$nsplit[ind2], df$CP[ind2])
 
       p <- ggplot(data = df, aes_string(x = "nsplit", y = "xerror")) +
         geom_line() +
-        geom_vline(xintercept = size1, linetype = "dashed") +
+        geom_vline(xintercept = size1[1], linetype = "dashed") +
         geom_hline(yintercept = min(df$xerror), linetype = "dashed") +
         labs(
           title = "Evaluate tree pruning based on cross-validation",
           x = "Number of nodes",
           y = "Relative error"
         )
-
+        # + annotate(
+        #     geom = "text", x = df$nsplit, y = 1.1, label = as.character(signif(df$CP, 2L)),
+        #     angle = -90, vjust = 0, hjust = 0
+        #   )
       if (nrow(df) < 10) p <- p + scale_x_continuous(breaks = df$nsplit)
 
-      footnote <- paste0("\nMinimum error achieved with ", size1, " nodes")
       ## http://stats.stackexchange.com/questions/13471/how-to-choose-the-number-of-splits-in-rpart
-
+      footnote <- paste0("\nMinimum error achieved at prune complexity ", format(size1[2], scientific = FALSE), " (", size1[1], " nodes)")
       ind2 <- min(which(df$xerror < (df$xerror[ind1] + df$xstd[ind1])))
       p <- p +
-        geom_vline(xintercept = size2, linetype = "dotdash", color = "blue") +
+        geom_vline(xintercept = size2[1], linetype = "dotdash", color = "blue") +
         geom_hline(yintercept = df$xerror[ind1] + df$xstd[ind1], linetype = "dotdash", color = "blue")
 
-      if (size2 < size1) {
-        footnote <- paste0(footnote, ". Error from tree with ", size2, " nodes is within one std. of minimum")
+      if (size2[1] < size1[1]) {
+        footnote <- paste0(footnote, ".\nError at pruning complexity ", format(size2[2], scientific = FALSE), " (", size2[1], " nodes) is within one std. of minimum")
       }
 
       plot_list[["prune"]] <- p + labs(caption = footnote)
@@ -608,3 +625,138 @@ predict.crtree <- function(
 #' @export
 print.crtree.predict <- function(x, ..., n = 10)
   print_predict_model(x, ..., n = n, header = "Classification and regression trees")
+
+#' Cross-validation for Classification and Regression Trees
+#'
+#' @details See \url{https://radiant-rstats.github.io/docs/model/crtreenn.html} for an example in Radiant
+#'
+#' @param object Object of type "rpart" or "crtree" to use as a starting point for cross validation
+#' @param K Number of cross validation passes to use
+#' @param repeats Number of times to repeat the K cross-validation steps
+#' @param cp Complexity parameter used when building the (e.g., 0.0001)
+#' @param pcp Complexity parameter to use for pruning
+#' @param seed Random seed to use as the starting point
+#' @param trace Print progress
+#' @param fun Function to use for model evaluation (e.g., auc for classification or RMSE for regression)
+#' @param ... Additional arguments to be passed to 'fun'
+#'
+#' @return A data.frame sorted by the mean, sd, min, and max of the performance metric
+#'
+#' @seealso \code{\link{crtree}} to generate an initial model that can be passed to cv.crtree
+#'
+#' @importFrom rpart prune.rpart
+#' @importFrom shiny getDefaultReactiveDomain withProgress incProgress
+#'
+#' @export
+cv.crtree <- function(
+  object, K = 5, repeats = 1, cp, pcp = seq(0, 0.01, length.out = 11),
+  seed = 1234, trace = TRUE, fun, ...
+) {
+
+  if (inherits(object, "crtree")) object <- object$model
+  if (inherits(object, "rpart")) {
+    dv <- as.character(object$call$formula[[2]])
+    m <- eval(object$call[["data"]])
+    if (is.numeric(m[[dv]])) {
+      type <- "regression"
+    } else {
+      type <- "classification"
+      if (is.factor(m[[dv]])) {
+        lev <- levels(m[[dv]])[1]
+      } else if (is.logical(m[[dv]])) {
+        lev <- TRUE
+      } else {
+        stop("The level to use for classification is not clear. Use a factor of logical as the response variable")
+      }
+    }
+  } else {
+    stop("The model object does not seems to be a decision tree")
+  }
+
+  set.seed(seed)
+  if (missing(cp)) cp <- object$call$control$cp
+  tune_grid <- expand.grid(cp = cp, pcp = pcp)
+  out <- data.frame(mean = NA, std = NA, min = NA, max = NA, cp = tune_grid[["cp"]], pcp = tune_grid[["pcp"]])
+
+  if (missing(fun)) {
+    if (type == "classification") {
+      fun = radiant.model::auc
+      cn <- "AUC (mean)"
+    } else {
+      fun = radiant.model::RMSE
+      cn <- "RMSE (mean)"
+    }
+  } else {
+    cn <- glue("{deparse(substitute(fun))} (mean)")
+  }
+
+  if (length(shiny::getDefaultReactiveDomain()) > 0) {
+    trace <- FALSE
+    incProgress <- shiny::incProgress
+    withProgress <- shiny::withProgress
+  } else {
+    incProgress <- function(...) {}
+    withProgress <- function(...) list(...)[["expr"]]
+  }
+
+  nitt <- nrow(tune_grid)
+  withProgress(message = "Running cross-validation (crtree)", value = 0, {
+    for (i in seq_len(nitt)) {
+      perf <- double(K * repeats)
+      object$call[["cp"]] <- tune_grid[i, "cp"]
+      if (trace) cat("Working on cp", format(tune_grid[i, "cp"], scientific = FALSE), "pcp", format(tune_grid[i, "pcp"], scientific = FALSE),"\n")
+      cat(paste("Working on cp", format(tune_grid[i, "cp"], scientific = FALSE), "pcp", format(tune_grid[i, "pcp"], scientific = FALSE),"\n"))
+      for (j in seq_len(repeats)) {
+        rand <- sample(K, nrow(m), replace = TRUE)
+        for (k in seq_len(K)) {
+          object$call[["data"]] <- quote(m[rand != k, , drop = FALSE])
+          pred <- try(rpart::prune(eval(object$call), tune_grid[i, "pcp"]), silent = TRUE)
+          if (inherits(pred, "try-error")) next
+          if (length(object$call$parms$prior) > 0) {
+            pred <- prob_adj(pred, object$call$parms$prior[1], mean(m[rand != k, dv, drop = FALSE] == lev))
+          }
+          pred <- try(predict(pred, m[rand == k, , drop = FALSE]), silent = TRUE)
+          if (inherits(pred, "try-error")) next
+
+          if (type == "classification") {
+            if (missing(...)) {
+              perf[k + (j - 1) * K] <- fun(pred[,lev], unlist(m[rand == k, dv]), lev)
+            } else {
+              perf[k + (j - 1) * K] <- fun(pred[,lev], unlist(m[rand == k, dv]), lev, ...)
+            }
+          } else {
+            if (missing(...)) {
+              perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv]))
+            } else {
+              perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv]), ...)
+            }
+          }
+        }
+      }
+      out[i,1:4] <- c(mean(perf, na.rm = TRUE), sd(perf, na.rm = TRUE), min(perf, na.rm = TRUE), max(perf, na.rm = TRUE))
+      incProgress(1/nitt, detail = paste("\nCompleted run", i, "out of", nitt))
+    }
+  })
+
+  if (type == "classification") {
+    out <- arrange(out, desc(mean))
+  } else {
+    out <- arrange(out, mean)
+  }
+
+  ## show evaluation metric in column name
+  colnames(out)[1] <- cn
+
+  object$call[["cp"]] <- out[1, "cp"]
+  object$call[["data"]] <- m
+  object <- rpart::prune(eval(object$call), out[1, "pcp"])
+  cat("\nGiven the provided tuning grid, the pruning complexity parameter\nshould be set to", out[1, "pcp"], "or the number of nodes set to" , max(object$cptable[,"nsplit"]) + 1, "nodes\n")
+  out
+}
+
+prob_adj <- function(mod, prior, bp) {
+  p <- mod$frame$yval2[, 4]
+  mod$frame$yval2[, 4] <- bp * (p - p * prior) / (prior - p * prior + bp * p - prior * bp)
+  mod$frame$yval2[, 5] <- 1 - mod$frame$yval2[, 4]
+  mod
+}

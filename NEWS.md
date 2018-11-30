@@ -1,5 +1,7 @@
-# radiant.model 0.9.7.6
+# radiant.model 0.9.7.7
 
+* Cross validation functions for decision trees (`cv.crtree`) and neural networks(`cv.nn`) that can use various performance metrics for during evaluation e.g., `auc` or `profit`
+* Option to add square and cube terms in _Model > Linear regression_ and _Model > Logistic regression_.
 * Option to pass additional arguments to `shiny::runApp` when starting radiant such as the port to use. For example, radiant.model::radiant.model("https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda", port = 8080) 
 * Avoid empty string showing up in auto-generated code for model prediction (i.e., `pred_data` or `pred_cmd`) 
 * Fix for VIF based on `car` for `regress` and `logistic`

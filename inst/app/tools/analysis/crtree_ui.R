@@ -27,13 +27,13 @@ crtree_pred_inputs <- reactive({
 
   crtree_pred_args$pred_cmd <- crtree_pred_args$pred_data <- ""
   if (input$crtree_predict == "cmd") {
-    crtree_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$crtree_pred_cmd) %>% 
+    crtree_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$crtree_pred_cmd) %>%
       gsub(";\\s+", ";", .) %>%
       gsub("\"", "\'", .)
   } else if (input$crtree_predict == "data") {
     crtree_pred_args$pred_data <- input$crtree_pred_data
   } else if (input$crtree_predict == "datacmd") {
-    crtree_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$crtree_pred_cmd) %>% 
+    crtree_pred_args$pred_cmd <- gsub("\\s{2,}", " ", input$crtree_pred_cmd) %>%
       gsub(";\\s+", ";", .) %>%
       gsub("\"", "\'", .)
     crtree_pred_args$pred_data <- input$crtree_pred_data
@@ -75,8 +75,8 @@ output$ui_crtree_rvar <- renderUI({
 output$ui_crtree_lev <- renderUI({
   req(input$crtree_type == "classification")
   req(available(input$crtree_rvar))
-  levs <- .get_data()[[input$crtree_rvar]] %>% 
-    as.factor() %>% 
+  levs <- .get_data()[[input$crtree_rvar]] %>%
+    as.factor() %>%
     levels()
 
   selectInput(
@@ -105,8 +105,8 @@ output$ui_crtree_wts <- renderUI({
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
     vars <- base::setdiff(vars, input$crtree_evar)
-    names(vars) <- varnames() %>% 
-      {.[match(vars, .)]} %>% 
+    names(vars) <- varnames() %>%
+      {.[match(vars, .)]} %>%
       names()
   }
   vars <- c("None", vars)
@@ -122,6 +122,12 @@ output$ui_crtree_wts <- renderUI({
 observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "crtree_predict", selected = "none")
   updateSelectInput(session = session, inputId = "crtree_plots", selected = "none")
+})
+
+observeEvent(input$crtree_cost, {
+  if (!is_empty(input$crtree_cost)) {
+    updateNumericInput(session = session, inputId = "crtree_prior", value = NA)
+  }
 })
 
 output$ui_crtree_predict_plot <- renderUI({
@@ -152,10 +158,10 @@ observe({
   ## notify user when the model needs to be updated
   ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
   if (pressed(input$crtree_run)) {
-    if (is.null(input$crtree_evar)) { 
+    if (is.null(input$crtree_evar)) {
       updateTabsetPanel(session, "tabs_crtree ", selected = "Summary")
       updateActionButton(session, "crtee_run", "Estimate model", icon = icon("play"))
-    } else 
+    } else
     if (isTRUE(attr(crtree_inputs, "observable")$.invalidated)) {
       updateActionButton(session, "crtree_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
     } else {
@@ -210,19 +216,23 @@ output$ui_crtree <- renderUI({
         tags$table(
           tags$td(numericInput(
             "crtree_cp", label = "Complexity:", min = 0,
-            max = 1, step = 0.01,
+            max = 1, step = 0.001,
             value = state_init("crtree_cp", 0.001), width = "116px"
           )),
           tags$td(numericInput(
-            "crtree_nodes", label = "Max. nodes:", min = 2,
-            value = state_init("crtree_nodes", NA), width = "100%"
+          "crtree_nodes", label = "Max. nodes:", min = 2,
+          value = state_init("crtree_nodes", NA), width = "100%"
           ))
         ),
         tags$table(
           tags$td(numericInput(
-            "crtree_K", label = "K-folds:",
-            value = state_init("crtree_K", 10), width = "116px"
+            "crtree_pcp", label = "Prune complex.:", min = 0, step = 0.001,
+            value = state_init("crtree_pcp", NA), width = "116px"
           )),
+          # tags$td(numericInput(
+          #   "crtree_K", label = "K-folds:",
+          #   value = state_init("crtree_K", 10), width = "116px"
+          # )),
           tags$td(numericInput(
             "crtree_seed", label = "Seed:",
             value = state_init("crtree_seed", 1234), width = "100%"
@@ -247,7 +257,7 @@ output$ui_crtree <- renderUI({
           selectizeInput(
             inputId = "crtree_pred_data", label = "Prediction data:",
             choices = c("None" = "", r_info[["datasetlist"]]),
-            selected = state_single("crtree_pred_data", c("None" = "", r_info[["datasetlist"]])), 
+            selected = state_single("crtree_pred_data", c("None" = "", r_info[["datasetlist"]])),
             multiple = FALSE
           )
         ),
@@ -309,8 +319,16 @@ output$ui_crtree <- renderUI({
 crtree_plot_width <- function() 650
 
 crtree_plot_height <- function() {
-  if (crtree_available() != "available") return(500)
-  300 + 20 * length(.crtree()$vars)
+  if (crtree_available() == "available") {
+    ret <- .crtree()
+    if (is.list(ret)) {
+      300 + 20 * length(.crtree()$vars)
+    } else {
+      500
+    }
+  } else {
+    500
+  }
 }
 
 crtree_pred_plot_height <- function()
@@ -418,7 +436,7 @@ crtree_available <- reactive({
   if (crtree_available() != "available") return(crtree_available())
   if (is_empty(input$crtree_predict, "none")) return("** Select prediction input **")
 
-  if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && 
+  if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") &&
        is_empty(input$crtree_pred_data)) {
     "** Select data for prediction **"
   } else if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
@@ -436,21 +454,10 @@ crtree_available <- reactive({
 
 .predict_plot_crtree <- reactive({
   req(
-    pressed(input$crtree_run), input$crtree_pred_plot, 
+    pressed(input$crtree_run), input$crtree_pred_plot,
     available(input$crtree_xvar),
     !is_empty(input$crtree_predict, "none")
   )
-
-  # if (not_pressed(input$crtree_run)) return(invisible())
-  # if (crtree_available() != "available") return(crtree_available())
-  # req(input$crtree_pred_plot, available(input$crtree_xvar))
-  # if (is_empty(input$crtree_predict, "none")) return(invisible())
-  # if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") && is_empty(input$crtree_pred_data)) {
-  #   return(invisible())
-  # }
-  # if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
-  #   return(invisible())
-  # }
 
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_crtree()), crtree_pred_plot_inputs()))
@@ -458,14 +465,21 @@ crtree_available <- reactive({
 })
 
 .plot_crtree <- reactive({
-  if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
-  if (crtree_available() != "available") return(crtree_available())
-  if (is_empty(input$crtree_plots)) return("Please select a plot type from the drop-down menu")
-
-  if (input$crtree_plots == "prune") {
-    plot(.crtree(), plots = "prune", shiny = TRUE)
-  } else if (input$crtree_plots == "imp") {
-    plot(.crtree(), plots = "imp", shiny = TRUE)
+  if (not_pressed(input$crtree_run)) {
+    "** Press the Estimate button to estimate the model **"
+  } else if (crtree_available() != "available") {
+    crtree_available()
+  } else if (is_empty(input$crtree_plots)) {
+    "Please select a plot type from the drop-down menu"
+  } else {
+    ret <- .crtree()
+    if (length(ret) == 0 || is.character(ret)) {
+      "No model results to plot. Specify a model and press the Estimate button"
+    } else if (input$crtree_plots == "prune") {
+      plot(ret, plots = "prune", shiny = TRUE)
+    } else if (input$crtree_plots == "imp") {
+      plot(ret, plots = "imp", shiny = TRUE)
+    }
   }
 })
 
@@ -487,7 +501,7 @@ observeEvent(input$crtree_store_pred, {
     message = "Storing predictions", value = 1,
     # store(pred, data = input$crtree_pred_data, name = input$crtree_store_pred_name)
     r_data[[input$crtree_pred_data]] <- store(
-      r_data[[input$crtree_pred_data]], pred, 
+      r_data[[input$crtree_pred_data]], pred,
       name = input$crtree_store_pred_name
     )
   )
@@ -533,14 +547,14 @@ observeEvent(input$crtree_report, {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
-    } 
+    }
 
     inp_out[[2 + figs]] <- pred_args
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$crtree_predict %in% c("data", "datacmd")) {
       # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$crtree_pred_data, "\", name = \"", input$crtree_store_pred_name, "\")")
-      xcmd <- paste0(xcmd, "\n", input$crtree_pred_data, " <- store(", 
+      xcmd <- paste0(xcmd, "\n", input$crtree_pred_data, " <- store(",
         input$crtree_pred_data, ", pred, name = \"", input$crtree_store_pred_name, "\")"
       )
     }
@@ -598,16 +612,16 @@ dl_crtree_pred <- function(path) {
 }
 
 download_handler(
-  id = "dl_crtree_pred", 
-  fun = dl_crtree_pred, 
+  id = "dl_crtree_pred",
+  fun = dl_crtree_pred,
   fn = function() paste0(input$dataset, "_crtree_pred"),
   type = "csv",
   caption = "Save crtree predictions"
 )
 
 download_handler(
-  id = "dlp_crtree_pred", 
-  fun = download_handler_plot, 
+  id = "dlp_crtree_pred",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_crtree_pred"),
   type = "png",
   caption = "Save decision tree prediction plot",
@@ -617,8 +631,8 @@ download_handler(
 )
 
 download_handler(
-  id = "dlp_crtree", 
-  fun = download_handler_plot, 
+  id = "dlp_crtree",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_crtree"),
   type = "png",
   caption = "Save decision tree plot",
