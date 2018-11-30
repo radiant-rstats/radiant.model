@@ -4,10 +4,10 @@
 \alias{test_specs}
 \title{Add interaction terms to list of test variables if needed}
 \usage{
-test_specs(test_var, int)
+test_specs(tv, int)
 }
 \arguments{
-\item{test_var}{List of variables to use for testing for regress or logistic}
+\item{tv}{List of variables to use for testing for regress or logistic}
 
 \item{int}{Interaction terms specified}
 }
@@ -21,6 +21,9 @@ Add interaction terms to list of test variables if needed
 See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 }
 \examples{
+test_specs("a", "a:b")
 test_specs("a", c("a:b", "b:c"))
+test_specs("a", c("a:b", "b:c", "I(c^2)"))
+test_specs(c("a", "b", "c"), c("a:b", "b:c", "I(c^2)"))
 
 }

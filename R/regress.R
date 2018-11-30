@@ -99,14 +99,11 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
     coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dataset) - nrow(coeff), lower.tail = FALSE)
   }
 
-  # coeff$` ` <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$sig_star  <- sig_stars(coeff$p.value) %>% format(justify = "left")
-  # colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value", " ")
   colnames(coeff) <- c("label", "coefficient", "std.error", "t.value", "p.value", "sig_star")
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
     for (i in names(hasLevs[hasLevs])) {
-      # coeff$`  ` %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
       coeff$label %<>% gsub(paste0("^", i), paste0(i, "|"), .) %>%
         gsub(paste0(":", i), paste0(":", i, "|"), .)
     }
@@ -1091,25 +1088,22 @@ store.model <- function(dataset, object, name = "residuals", ...) {
 #' @examples
 #' var_check("a:d", c("a","b","c","d"))
 #' var_check(c("a", "b"), c("a", "b"), "a:c")
+#' var_check(c("a", "b"), c("a", "b"), "a:c")
+#' var_check(c("a", "b"), c("a", "b"), c("a:c", "I(b^2)"))
 #'
 #' @export
-var_check <- function(ev, cn, intv = "") {
-
+var_check <- function(ev, cn, intv = c()) {
   ## if : is used to select a range of variables evar is updated
   vars <- ev
   if (length(vars) < length(cn)) vars <- ev <- cn
-
-  if (intv != "" && length(vars) > 1) {
-    if ({
-      intv %>% strsplit(":") %>% unlist()
-    } %in% vars %>% all()) {
+  if (!is_empty(intv)) {
+    if (all(unlist(strsplit(intv[!grepl("\\^", intv)], ":")) %in% vars)) {
       vars <- c(vars, intv)
     } else {
-      cat("Interaction terms contain variables not selected as main effects.\nRemoving all interactions from the estimation")
-      intv <- ""
+      cat("Interaction terms contain variables not selected as main effects.\nRemoving interactions from the estimation\n")
+      intv <- intv[grepl("\\^", intv)]
     }
   }
-
   list(vars = vars, ev = ev, intv = intv)
 }
 
@@ -1117,23 +1111,26 @@ var_check <- function(ev, cn, intv = "") {
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
-#' @param test_var List of variables to use for testing for regress or logistic
+#' @param tv List of variables to use for testing for regress or logistic
 #' @param int Interaction terms specified
 #'
 #' @return A vector of variables names to test
 #'
 #' @examples
+#' test_specs("a", "a:b")
 #' test_specs("a", c("a:b", "b:c"))
+#' test_specs("a", c("a:b", "b:c", "I(c^2)"))
+#' test_specs(c("a", "b", "c"), c("a:b", "b:c", "I(c^2)"))
 #'
 #' @export
-test_specs <- function(test_var, int) {
-  if (unlist(strsplit(int, ":")) %in% test_var %>% any()) {
+test_specs <- function(tv, int) {
+  int <- int[!grepl("\\^", int)]
+  if (any(unlist(strsplit(int, ":")) %in% tv)) {
     cat("Interaction terms contain variables specified for testing.\nRelevant interaction terms are included in the requested test.\n\n")
-    for (tv in test_var) {
-      test_var <- c(test_var, int[grep(tv, int)])
-    }
-    unique(test_var)
+    unique(int[unlist(sapply(tv, grep, int))])
   } else {
-    test_var
+    tv
   }
 }
+
+

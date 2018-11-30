@@ -4,7 +4,7 @@
 \alias{var_check}
 \title{Check if main effects for all interaction effects are included in the model}
 \usage{
-var_check(ev, cn, intv = "")
+var_check(ev, cn, intv = c())
 }
 \arguments{
 \item{ev}{List of explanatory variables provided to \code{\link{regress}} or \code{\link{logistic}}}
@@ -25,5 +25,7 @@ If ':' is used to select a range evar is updated. See \url{https://radiant-rstat
 \examples{
 var_check("a:d", c("a","b","c","d"))
 var_check(c("a", "b"), c("a", "b"), "a:c")
+var_check(c("a", "b"), c("a", "b"), "a:c")
+var_check(c("a", "b"), c("a", "b"), c("a:c", "I(b^2)"))
 
 }

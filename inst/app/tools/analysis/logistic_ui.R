@@ -182,7 +182,29 @@ observeEvent(is.null(input$logit_test_var), {
 })
 
 output$ui_logit_show_interactions <- renderUI({
-  choices <- logit_show_interactions[1:max(min(3, length(input$logit_evar)), 1)]
+  # choices <- logit_show_interactions[1:max(min(3, length(input$logit_evar)), 1)]
+  vars <- input$logit_evar
+  isNum <- .get_class() %in% c("numeric", "integer")
+  if (any(vars %in% varnames()[isNum])) {
+    choices <- logit_show_interactions[1:3]
+  } else {
+    choices <- logit_show_interactions[1:max(min(3, length(input$logit_evar)), 1)]
+  }
+  radioButtons(
+    inputId = "logit_show_interactions", label = "Interactions:",
+    choices = choices, selected = state_init("logit_show_interactions"),
+    inline = TRUE
+  )
+})
+
+output$ui_logit_show_interactions <- renderUI({
+  vars <- input$logit_evar
+  isNum <- .get_class() %in% c("numeric", "integer")
+  if (any(vars %in% varnames()[isNum])) {
+    choices <- logit_show_interactions[1:3]
+  } else {
+    choices <- logit_show_interactions[1:max(min(3, length(input$logit_evar)), 1)]
+  }
   radioButtons(
     inputId = "logit_show_interactions", label = "Interactions:",
     choices = choices, selected = state_init("logit_show_interactions"),
@@ -191,16 +213,28 @@ output$ui_logit_show_interactions <- renderUI({
 })
 
 output$ui_logit_int <- renderUI({
+  choices <- character(0)
   if (isolate("logit_show_interactions" %in% names(input)) &&
     is_empty(input$logit_show_interactions)) {
-    choices <- character(0)
   } else if (is_empty(input$logit_show_interactions)) {
     return()
   } else {
     vars <- input$logit_evar
-    if (not_available(vars) || length(vars) < 2) return()
-    ## list of interaction terms to list
-    choices <- iterms(vars, input$logit_show_interactions)
+    if (not_available(vars)) {
+      return()
+    } else {
+      ## quadratic and qubic terms
+      num <- .get_class() %in% c("numeric", "integer")
+      num <- intersect(vars, varnames()[num])
+      if (length(num) > 0) {
+        choices <- qterms(num, input$logit_show_interactions)
+      }
+      ## list of interaction terms to show
+      if (length(vars) > 1) {
+        choices <- c(choices, iterms(vars, input$logit_show_interactions))
+      }
+      if (length(choices) == 0) return()
+    }
   }
 
   selectInput(
