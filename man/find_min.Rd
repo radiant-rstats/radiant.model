@@ -21,6 +21,6 @@ Find minimum value of a vector
 Find the value of y at the minimum value of x
 }
 \examples{
-find_min(1:10, 20:30)
+find_min(1:10, 21:30)
 
 }

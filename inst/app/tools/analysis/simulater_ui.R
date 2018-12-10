@@ -2,23 +2,18 @@
 ## Simulate data
 #######################################
 
-####
-####
-####
+#### Add a "function" input for custom functions
+#### This should produce named functions in Report > Rmd
+#### that are passed to the simulation and repeat calls
+#### Perhaps use an environment instead of a list when you
+#### setup a simulation
+
 #### Try putting all input$sim_... and input$rep_... into a list
 #### so you can have multiple simulations in the state file and
 #### can restore them in the GUI
 #### This should be similar to the dtree setup
 ####
 #### Also checkout https://github.com/daattali/advanced-shiny/tree/master/update-input0
-####
-####
-
-# sim_types <- c(
-#   "Binomial" = "binom", "Constant" = "const", "Discrete" = "discrete",
-#   "Log normal" = "lnorm", "Normal" = "norm", "Uniform" = "unif",
-#   "Data" = "data", "Grid search" = "grid", "Sequence" = "sequ"
-# )
 
 sim_types <- list(
   `Probability distributions` = c(
@@ -158,6 +153,7 @@ output$ui_rep_vars <- renderUI({
     svars <- c()
     for (i in 1:length(s)) {
       if (grepl("^\\s*#", s[[i]][1])) next
+      if (grepl("\\s*<-\\s*function\\s*\\(", s[[i]][1])) next
       if (grepl(s[[i]][1], s[[i]][2])) next
       svars <- c(svars, s[[i]][1])
     }
@@ -229,7 +225,7 @@ output$ui_rep_fun <- renderUI({
 
 var_updater <- function(variable, var_str, var_inputs) {
   if (is.null(variable) || variable == 0) return()
-  if (any(is.na(var_inputs))) {
+  if (is_empty(var_inputs[1]) || any(is.na(var_inputs[-1]))) {
     showModal(
       modalDialog(
         title = "Inputs required",
@@ -240,11 +236,11 @@ var_updater <- function(variable, var_str, var_inputs) {
       )
     )
   } else {
+    var_inputs[1] <- fix_names(var_inputs[1])
     inp <- paste(var_inputs, collapse = " ")
     if (is_empty(input[[var_str]])) {
       val <- paste0(inp, ";")
     } else {
-      # val <- paste0(inp, ";\n", input[[var_str]])
       val <- paste0(input[[var_str]], "\n", inp, ";")
     }
 
@@ -256,7 +252,6 @@ var_remover <- function(variable) {
   input[[variable]] %>%
     strsplit("\n") %>%
     unlist() %>%
-    # .[-1] %>%
     head(., -1) %>%
     paste0(collapse = "\n") %>%
     updateTextInput(session = session, variable, value = .)
@@ -696,20 +691,27 @@ output$simulater <- renderUI({
       "No formulas or simulated variables specified"
     )
   )
+  fixed <- fix_names(input$sim_name)
+  updateTextInput(session, "sim_name", value = fixed)
   withProgress(message = "Running simulation", value = 1, {
-    sim <- do.call(simulater, sim_inputs())
+    ## check the link below but I don't think adding an envir will work as
+    ## the functions may not see the variables in the data.frame (e.g., for default parameters)
+    ## best option is likely a "function" input using shinyAce
+    ## https://stackoverflow.com/questions/26028488/do-call-specify-environment-inside-function
+
+    inp <- sim_inputs()
+    inp$name <- fixed
+    sim <- do.call(simulater, inp)
+    # sim <- do.call(simulater, sim_inputs(), envir = r_data)
     if (is.data.frame(sim)) {
-      r_data[[input$sim_name]] <- sim
-      register(input$sim_name)
+      r_data[[fixed]] <- sim
+      register(fixed)
     }
     sim
   })
 })
 
-.summary_simulate <- eventReactive({
-  input$sim_run
-  input$sim_dec
-}, {
+.summary_simulate <- eventReactive({c(input$sim_run, input$sim_dec)}, {
   if (not_pressed(input$sim_run)) {
     "** Press the Run simulation button to simulate data **"
   } else {
@@ -721,7 +723,6 @@ sim_plot_width <- function() 650
 sim_plot_height <- function() {
   sim <- .simulater()
   if (is.character(sim)) {
-    # if (sim[1] == "error") return(300)
     300
   } else {
     if (dim(sim)[1] == 0) {
@@ -730,17 +731,6 @@ sim_plot_height <- function() {
       ceiling(sum(sapply(sim, does_vary)) / 2) * 300
     }
   }
-  # if (is.character(sim)) {
-  #   if (sim[1] == "error") return(300)
-  #   # sim <- get_data(sim)
-  #   if (dim(sim)[1] == 0) {
-  #     300
-  #   } else {
-  #     ceiling(sum(sapply(sim, does_vary)) / 2) * 300
-  #   }
-  # } else {
-    # 300
-  # }
 }
 
 .plot_simulate <- eventReactive(input$sim_run, {
@@ -753,19 +743,25 @@ sim_plot_height <- function() {
 
 .repeater <- eventReactive(input$rep_run, {
   withProgress(message = "Running repeated simulation", value = 1, {
-    rep <- do.call(repeater, rep_inputs())
+    ## check the link below but I don't think adding an envir will work as
+    ## the functions may not see the variables in the data.frame (e.g., for default parameters)
+    ## best option is likely a "function" input using shinyAce
+    ## https://stackoverflow.com/questions/26028488/do-call-specify-environment-inside-function
+    fixed <- fix_names(input$rep_name)
+    updateTextInput(session, "rep_name", value = fixed)
+    inp <- rep_inputs()
+    inp$name <- fixed
+    rep <- do.call(repeater, inp)
+    # rep <- do.call(repeater, rep_inputs(), envir = r_data)
     if (is.data.frame(rep)) {
-      r_data[[input$rep_name]] <- rep
-      register(input$rep_name)
+      r_data[[fixed]] <- rep
+      register(fixed)
     }
     rep
   })
 })
 
-.summary_repeat <- eventReactive({
-  input$rep_run
-  input$rep_dec
-}, {
+.summary_repeat <- eventReactive({c(input$rep_run, input$rep_dec)}, {
   if (not_pressed(input$rep_run)) {
     "** Press the Repeat simulation button **"
   } else if (length(input$rep_sum_vars) == 0) {
@@ -827,6 +823,9 @@ observeEvent(input$simulater_report, {
 
   ## report cleaner turns seed and nr into strings
   inp <- clean_args(sim_inputs(), sim_args) %>% lapply(report_cleaner)
+  sim_name <- fix_names(input$sim_name)
+  updateTextInput(session, "sim_name", value = sim_name)
+
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
   if (!"norm" %in% names(inp)) {
@@ -850,10 +849,10 @@ observeEvent(input$simulater_report, {
     inp_main = inp,
     fun_name = "simulater",
     inp_out = inp_out,
-    pre_cmd = paste0(input$sim_name, " <- "),
-    xcmd = paste0("register(\"", input$sim_name, "\")"),
+    pre_cmd = paste0(sim_name, " <- "),
+    xcmd = paste0("register(\"", sim_name, "\")"),
     outputs = outputs,
-    inp = input$sim_name,
+    inp = sim_name,
     figs = figs,
     fig.width = sim_plot_width(),
     fig.height = sim_plot_height()
@@ -874,6 +873,11 @@ observeEvent(input$repeater_report, {
 
   ## report cleaner turns seed and nr into strings
   inp <- clean_args(rep_inputs(), rep_args) %>% lapply(report_cleaner)
+  rep_name <- fix_names(input$rep_name)
+  updateTextInput(session, "rep_name", value = rep_name)
+  inp$dataset <- fix_names(input$sim_name)
+  updateTextInput(session, "sim_name", value = inp$dataset)
+
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
   if (input$rep_byvar == "sim") inp$grid <- NULL
@@ -889,10 +893,10 @@ observeEvent(input$repeater_report, {
     inp_main = inp,
     fun_name = "repeater",
     inp_out = inp_out,
-    pre_cmd = paste0(input$rep_name, " <- "),
-    xcmd = paste0("register(\"", input$rep_name, "\")"),
+    pre_cmd = paste0(rep_name, " <- "),
+    xcmd = paste0("register(\"", rep_name, "\")"),
     outputs = outputs,
-    inp = input$rep_name,
+    inp = rep_name,
     figs = figs,
     fig.width = rep_plot_width(),
     fig.height = rep_plot_height()

@@ -503,9 +503,11 @@ observeEvent(input$nn_store_res, {
   req(pressed(input$nn_run))
   robj <- .nn()
   if (!is.list(robj)) return()
+  fixed <- fix_names(input$nn_store_res_name)
+  updateTextInput(session, "nn_store_res_name", value = fixed)
   withProgress(
     message = "Storing residuals", value = 1,
-    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$nn_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = fixed)
   )
 })
 
@@ -513,12 +515,13 @@ observeEvent(input$nn_store_pred, {
   req(!is_empty(input$nn_pred_data), pressed(input$nn_run))
   pred <- .predict_nn()
   if (is.null(pred)) return()
+  fixed <- fix_names(input$nn_store_pred_name)
+  updateTextInput(session, "nn_store_pred_name", value = fixed)
   withProgress(
     message = "Storing predictions", value = 1,
-    # store(pred, data = input$nn_pred_data, name = input$nn_store_pred_name)
     r_data[[input$nn_pred_data]] <- store(
       r_data[[input$nn_pred_data]], pred,
-      name = input$nn_store_pred_name
+      name = fixed
     )
   )
 })
@@ -541,7 +544,9 @@ observeEvent(input$nn_report, {
   }
 
   if (!is_empty(input$nn_store_res_name)) {
-    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$nn_store_res_name, "\")\n")
+    fixed <- fix_names(input$nn_store_res_name)
+    updateTextInput(session, "nn_store_res_name", value = fixed)
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
   } else {
     xcmd <- ""
   }
@@ -566,16 +571,12 @@ observeEvent(input$nn_report, {
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$nn_predict %in% c("data", "datacmd")) {
-      # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$nn_pred_data, "\", name = \"", input$nn_store_pred_name, "\")")
-      xcmd <- paste0(xcmd, "\n", input$nn_pred_data, " <- store(",
-        input$nn_pred_data, ", pred, name = \"", input$nn_store_pred_name, "\")"
+      fixed <- fix_names(input$nn_store_pred_name)
+      updateTextInput(session, "nn_store_pred_name", value = fixed)
+      xcmd <- paste0(xcmd, "\n", input$nn_pred_data , " <- store(",
+        input$nn_pred_data, ", pred, name = \"", fixed, "\")"
       )
     }
-
-    # if (getOption("radiant.local", default = FALSE)) {
-    #   pdir <- getOption("radiant.write_dir", default = "~/")
-    #   xcmd <- paste0(xcmd, "\n# readr::write_csv(pred, path = \"", pdir, "nn", input$nn_size, "_predictions.csv\")")
-    # }
 
     if (input$nn_pred_plot && !is_empty(input$nn_xvar)) {
       inp_out[[3 + figs]] <- clean_args(nn_pred_plot_inputs(), nn_pred_plot_args[-1])

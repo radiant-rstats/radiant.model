@@ -442,10 +442,10 @@ observeEvent(input$dtree_edit, {
 })
 
 dtree_namer <- reactive({
-  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)", "", .)
+  dtree_name <- fix_names(input$dtree_name)
 
-  if (is_empty(dtree_name)) dtree_name <- input$dtree_list[1]
-  if (is_empty(dtree_name)) dtree_name <- dtree_name()
+  if (is_empty(dtree_name)) dtree_name <- fix_names(input$dtree_list[1])
+  if (is_empty(dtree_name)) dtree_name <- fix_names(dtree_name())
 
   r_data[[dtree_name]] <- input$dtree_edit
   r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()

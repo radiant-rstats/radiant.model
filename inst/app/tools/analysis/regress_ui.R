@@ -360,7 +360,6 @@ output$ui_regress <- renderUI({
       conditionalPanel(
         condition = "input.tabs_regress == 'Summary'",
         tags$table(
-          # tags$td(textInput("reg_store_res_name", "Store residuals:", state_init("reg_store_res_name", "residuals_reg"))),
           tags$td(uiOutput("ui_reg_store_res_name")),
           tags$td(actionButton("reg_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
         )
@@ -560,7 +559,9 @@ observeEvent(input$regress_report, {
   }
 
   if (!is_empty(input$reg_store_res_name)) {
-    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$reg_store_res_name, "\")\n")
+    fixed <- fix_names(input$reg_store_res_name)
+    updateTextInput(session, "reg_store_res_name", value = fixed)
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
   } else {
     xcmd <- ""
   }
@@ -584,11 +585,11 @@ observeEvent(input$regress_report, {
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$reg_predict %in% c("data", "datacmd")) {
-      name <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
-        gsub("\\s", "", .) %>%
+      fixed <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+        fix_names() %>%
         deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       xcmd <- paste0(xcmd, "\n", input$reg_pred_data , " <- store(",
-        input$reg_pred_data, ", pred, name = ", name, ")"
+        input$reg_pred_data, ", pred, name = ", fixed, ")"
       )
     }
 
@@ -616,9 +617,11 @@ observeEvent(input$reg_store_res, {
   req(pressed(input$reg_run))
   robj <- .regress()
   if (!is.list(robj)) return()
+  fixed <- fix_names(input$reg_store_res_name)
+  updateTextInput(session, "reg_store_res_name", value = fixed)
   withProgress(
     message = "Storing residuals", value = 1,
-    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$reg_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = fixed)
   )
 })
 
@@ -626,11 +629,15 @@ observeEvent(input$reg_store_pred, {
   req(!is_empty(input$reg_pred_data), pressed(input$reg_run))
   pred <- .predict_regress()
   if (is.null(pred)) return()
+  fixed <- unlist(strsplit(input$reg_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+    fix_names() %>%
+    paste0(collapse = ", ")
+  updateTextInput(session, "reg_store_pred_name", value = fixed)
   withProgress(
     message = "storing predictions", value = 1,
     r_data[[input$reg_pred_data]] <- store(
       r_data[[input$reg_pred_data]], pred,
-      name = input$reg_store_pred_name
+      name = fixed
     )
   )
 })

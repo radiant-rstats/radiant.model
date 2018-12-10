@@ -212,8 +212,9 @@ simulater <- function(
   if (form != "") {
     s <- form %>%
       gsub("\\s+", "", .) %>%
+      gsub("<-", "=", .) %>%
       sim_splitter("=")
-    for (i in 1:length(s)) {
+    for (i in seq_len(length(s))) {
       if (grepl("^\\s*?#", s[[i]][1], perl = TRUE)) next
       obj <- s[[i]][1]
       fobj <- s[[i]][-1]
@@ -236,9 +237,11 @@ simulater <- function(
   ## removing data from dataset list
   if (is.data.frame(data)) {
     dataset[colnames(data)] <- NULL
-    # print(deparse(substitute(data)))
-    # attr(dataset, "df_name") <- deparse(substitute(data))
   }
+
+  ## remove functions
+  ind <- radiant.data::get_class(dataset) == "function"
+  dataset[ind] <- NULL
 
   ## convert list to a data.frame
   dataset <- as.data.frame(dataset, stringsAsFactors = FALSE) %>% na.omit()
@@ -857,7 +860,7 @@ sim_splitter <- function(x, symbol = " ") {
 #' @return Value of val at the maximum of var
 #'
 #' @examples
-#' find_min(1:10, 20:30)
+#' find_max(1:10, 21:30)
 #'
 #' @export
 find_max <- function(x, y) {
@@ -876,7 +879,7 @@ find_max <- function(x, y) {
 #' @return Value of val at the minimum of var
 #'
 #' @examples
-#' find_min(1:10, 20:30)
+#' find_min(1:10, 21:30)
 #'
 #' @export
 find_min <- function(x, y) {

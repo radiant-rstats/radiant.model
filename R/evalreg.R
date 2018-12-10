@@ -137,7 +137,6 @@ plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
     custom = TRUE
   ) +
     labs(
-      # title = paste0("Regression performance plots (", paste0(type, collapse = ", "), ")"),
       title = glue('Regression performance plots ({glue_collapse(type, ", ")})'),
       y = "",
       x = "Predictor",

@@ -590,7 +590,9 @@ observeEvent(input$logistic_report, {
   }
 
   if (!is_empty(input$logit_store_res_name)) {
-    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$logit_store_res_name, "\")\n")
+    fixed <- fix_names(input$logit_store_res_name)
+    updateTextInput(session, "logit_store_res_name", value = fixed)
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
   } else {
     xcmd <- ""
   }
@@ -616,11 +618,11 @@ observeEvent(input$logistic_report, {
 
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$logit_predict %in% c("data", "datacmd")) {
-      name <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
-        gsub("\\s", "", .) %>%
+      fixed <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+        fix_names() %>%
         deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       xcmd <- paste0(xcmd, "\n", input$logit_pred_data, " <- store(",
-        input$logit_pred_data, ", pred, name = ", name, ")"
+        input$logit_pred_data, ", pred, name = ", fixed, ")"
       )
     }
     # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
@@ -645,23 +647,15 @@ observeEvent(input$logistic_report, {
   )
 })
 
-# observeEvent(input$logit_store_res, {
-#   req(pressed(input$logit_run))
-#   robj <- .logistic()
-#   if (!is.list(robj)) return()
-#   withProgress(
-#     message = "Storing residuals", value = 1,
-#     store(robj, name = input$logit_store_res_name)
-#   )
-# })
-
 observeEvent(input$logit_store_res, {
   req(pressed(input$logit_run))
   robj <- .logistic()
   if (!is.list(robj)) return()
+  fixed <- fix_names(input$logit_store_res_name)
+  updateTextInput(session, "logit_store_res_name", value = fixed)
   withProgress(
     message = "Storing residuals", value = 1,
-    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$logit_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = fixed)
   )
 })
 
@@ -669,13 +663,16 @@ observeEvent(input$logit_store_pred, {
   req(!is_empty(input$logit_pred_data), pressed(input$logit_run))
   pred <- .predict_logistic()
   if (is.null(pred)) return()
+  fixed <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+    fix_names() %>%
+    paste0(collapse = ", ")
+  updateTextInput(session, "logit_store_pred_name", value = fixed)
   withProgress(
     message = "Storing predictions", value = 1,
     r_data[[input$logit_pred_data]] <- store(
       r_data[[input$logit_pred_data]], pred,
-      name = input$logit_store_pred_name
+      name = fixed
     )
-    # store(pred, data = input$logit_pred_data, name = input$logit_store_pred_name)
   )
 })
 

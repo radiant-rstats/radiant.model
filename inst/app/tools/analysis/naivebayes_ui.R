@@ -130,6 +130,7 @@ output$ui_nb_store_pred_name <- renderUI({
   levs <- .get_data()[[input$nb_rvar]] %>%
     as.factor() %>%
     levels() %>%
+    fix_names() %>%
     paste(collapse = ", ")
   textInput(
     "nb_store_pred_name",
@@ -213,7 +214,6 @@ output$ui_nb <- renderUI({
         conditionalPanel(
           "input.nb_predict == 'data' | input.nb_predict == 'datacmd'",
           tags$table(
-            # tags$td(textInput("nb_store_pred_name", "Store predictions:", state_init("nb_store_pred_name", "pred_nb"))),
             tags$td(uiOutput("ui_nb_store_pred_name")),
             tags$td(actionButton("nb_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
           )
@@ -401,26 +401,19 @@ nb_available <- reactive({
   }
 })
 
-# observeEvent(input$nb_store_res, {
-#   req(pressed(input$nb_run))
-#   robj <- .nb()
-#   if (!is.list(robj)) return()
-#   withProgress(
-#     message = "Storing residuals", value = 1,
-#     store(robj, name = input$nb_store_res_name)
-#   )
-# })
-
 observeEvent(input$nb_store_pred, {
   req(!is_empty(input$nb_pred_data), pressed(input$nb_run))
   pred <- .predict_nb()
   if (is.null(pred)) return()
+  fixed <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+    fix_names() %>%
+    paste0(collapse = ", ")
+  updateTextInput(session, "nb_store_pred_name", value = fixed)
   withProgress(
     message = "Storing predictions", value = 1,
-    # store(pred, data = input$nb_pred_data, name = input$nb_store_pred_name)
     r_data[[input$nb_pred_data]] <- store(
       r_data[[input$nb_pred_data]], pred,
-      name = input$nb_store_pred_name
+      name = fixed
     )
   )
 })
@@ -458,8 +451,7 @@ observeEvent(input$nb_report, {
     if (input$nb_predict %in% c("data", "datacmd")) {
       name <- input$nb_store_pred_name
       if (!is_empty(name)) {
-        name <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
-          gsub("\\s", "", .) %>%
+        name <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
           fix_names() %>%
           deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       }

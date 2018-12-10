@@ -487,9 +487,11 @@ observeEvent(input$crtree_store_res, {
   req(pressed(input$crtree_run))
   robj <- .crtree()
   if (!is.list(robj)) return()
+  fixed <- fix_names(input$crtree_store_res_name)
+  updateTextInput(session, "crtree_store_res_name", value = fixed)
   withProgress(
     message = "Storing residuals", value = 1,
-    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = input$crtree_store_res_name)
+    r_data[[input$dataset]] <- store(r_data[[input$dataset]], robj, name = fixed)
   )
 })
 
@@ -497,28 +499,16 @@ observeEvent(input$crtree_store_pred, {
   req(!is_empty(input$crtree_pred_data), pressed(input$crtree_run))
   pred <- .predict_crtree()
   if (is.null(pred)) return()
+  fixed <- fix_names(input$crtree_store_pred_name)
+  updateTextInput(session, "crtree_store_pred_name", value = fixed)
   withProgress(
     message = "Storing predictions", value = 1,
-    # store(pred, data = input$crtree_pred_data, name = input$crtree_store_pred_name)
     r_data[[input$crtree_pred_data]] <- store(
       r_data[[input$crtree_pred_data]], pred,
-      name = input$crtree_store_pred_name
+      name = fixed
     )
   )
 })
-
-# output$dl_crtree_pred <- downloadHandler(
-#   filename = function() {
-#     "crtree_predictions.csv"
-#   },
-#   content = function(file) {
-#     if (pressed(input$crtree_run)) {
-#       .predict_crtree() %>% write.csv(file = file, row.names = FALSE)
-#     } else {
-#       cat("No output available. Press the Estimate button to generate results", file = file)
-#     }
-#   }
-# )
 
 observeEvent(input$crtree_report, {
   if (is_empty(input$crtree_evar)) return(invisible())
@@ -528,7 +518,9 @@ observeEvent(input$crtree_report, {
   figs <- FALSE
 
   if (!is_empty(input$crtree_store_res_name)) {
-    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", input$crtree_store_res_name, "\")\n")
+    fixed <- fix_names(input$crtree_store_res_name)
+    updateTextInput(session, "crtree_store_res_name", value = fixed)
+    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
   } else {
     xcmd <- ""
   }
@@ -553,13 +545,12 @@ observeEvent(input$crtree_report, {
     outputs <- c(outputs, "pred <- predict")
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$crtree_predict %in% c("data", "datacmd")) {
-      # xcmd <- paste0(xcmd, "\nstore(pred, data = \"", input$crtree_pred_data, "\", name = \"", input$crtree_store_pred_name, "\")")
+      fixed <- fix_names(input$crtree_store_pred_name)
+      updateTextInput(session, "crtree_store_pred_name", value = fixed)
       xcmd <- paste0(xcmd, "\n", input$crtree_pred_data, " <- store(",
-        input$crtree_pred_data, ", pred, name = \"", input$crtree_store_pred_name, "\")"
+        input$crtree_pred_data, ", pred, name = \"", fixed, "\")"
       )
     }
-
-    # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/crtree_predictions.csv\", row.names = FALSE)\n")
 
     if (input$crtree_pred_plot && !is_empty(input$crtree_xvar)) {
       inp_out[[3 + figs]] <- clean_args(crtree_pred_plot_inputs(), crtree_pred_plot_args[-1])
