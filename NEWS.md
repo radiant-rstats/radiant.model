@@ -1,5 +1,6 @@
 # radiant.model 0.9.7.8
 
+* Option to add user defined function to simulations. This dramatically increases the flexibility of the simulation tool
 * Ensure variable and dataset names are valid for R (i.e., no spaces or symbols), "fixing" the input as needed
 * Cross validation functions for decision trees (`cv.crtree`) and neural networks(`cv.nn`) that can use various performance metrics for during evaluation e.g., `auc` or `profit`
 * Option to add square and cube terms in _Model > Linear regression_ and _Model > Logistic regression_.

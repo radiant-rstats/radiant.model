@@ -7,6 +7,15 @@
   width: 100%;
 }
 
+/* based on https://stackoverflow.com/a/30338814/1974918*/
+#sim_funcs {
+  overflow: auto;
+  white-space: pre;
+  word-wrap: normal;
+  background-color: #ffffff;
+  tab-size: 4;
+}
+
 /* from: https://github.com/swarm-lab/editR/blob/master/inst/app/www/editR.css */
 #dtree_edit {
   position: absolute;

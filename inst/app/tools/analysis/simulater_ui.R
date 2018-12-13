@@ -92,8 +92,16 @@ rep_plot_inputs <- reactive({
 
 textinput_maker <- function(
   id = "const", lab = "Constant", rows = 3, pre = "sim_",
-  placeholder = "Provide values in the input boxes above and then press the + symbol"
+  placeholder = "Provide values in the input boxes above and then press the + symbol",
+  allow_tab = TRUE
+
 ) {
+
+  if (allow_tab) {
+    onkeydown <- ""
+  } else {
+    onkeydown <- "if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"
+  }
 
   ## avoid all sorts of 'helpful' behavior from your browser
   ## based on https://stackoverflow.com/a/35514029/1974918
@@ -107,7 +115,8 @@ textinput_maker <- function(
     autocorrect = "off",
     autocapitalize = "off",
     spellcheck = "false",
-    class = "form-control"
+    class = "form-control",
+    onkeydown = onkeydown
   )
 }
 
@@ -562,7 +571,11 @@ output$ui_simulater <- renderUI({
           td(textInput("sim_name", "Simulated data:", state_init("sim_name", "simdat"))),
           td(numericInput("sim_dec", label = "Decimals:", value = state_init("sim_dec", 4), min = 0, width = "95px"))
         )),
-        checkboxInput("sim_show_plots", "Show plots", state_init("sim_show_plots", FALSE))
+        with(tags, table(
+          td(checkboxInput("sim_add_functions", "Add functions", state_init("sim_add_functions", FALSE))),
+          td(HTML("&nbsp; &nbsp;")),
+          td(checkboxInput("sim_show_plots", "Show plots", state_init("sim_show_plots", FALSE)))
+        ))
       ),
       help_and_report(
         modal_title = "Simulate", fun_name = "simulater",
@@ -610,7 +623,11 @@ output$ui_simulater <- renderUI({
           td(textInput("rep_name", "Repeat data:", state_init("rep_name", "repdat"))),
           td(numericInput("rep_dec", label = "Decimals:", value = state_init("rep_dec", 4), min = 0, max = 10, width = "95px"))
         )),
-        checkboxInput("rep_show_plots", "Show plots", state_init("rep_show_plots", FALSE))
+        with(tags, table(
+          # td(checkboxInput("rep_add_functions", "Add functions", state_init("rep_add_functions", FALSE))),
+          # td(HTML("&nbsp; &nbsp;")),
+          td(checkboxInput("rep_show_plots", "Show plots", state_init("rep_show_plots", FALSE)))
+        ))
       ),
       help_and_report(
         modal_title = "Repeat simulation", fun_name = "repeater",
@@ -647,6 +664,16 @@ output$simulater <- renderUI({
         rows = 5,
         placeholder = "Use formulas to perform calculations on simulated variables (e.g., demand = 5 * price). Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples"
       ),
+      conditionalPanel(
+        "input.sim_add_functions == true",
+        HTML("</br><label>Simulation functions:</label>"),
+        textinput_maker(
+          "funcs", "Functions",
+          rows = 5,
+          placeholder = "Create R functions to perform calculations (e.g., add = function(x, y) {x + y}). You can then call these functions in the 'formula' input. Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples",
+          allow_tab = FALSE
+        )
+      ),
       HTML("</br><label>Simulation summary:</label>"),
       verbatimTextOutput("summary_simulate"),
       conditionalPanel(
@@ -663,6 +690,16 @@ output$simulater <- renderUI({
         "form", "Rformula",
         rows = 5, pre = "rep_",
         placeholder = "Press the Repeat button to repeat the simulation specified in the Simulate tab. Use formulas to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples"
+      ),
+      conditionalPanel(
+        "input.rep_add_functions == true",
+        HTML("</br><label>Repeated simulation functions:</label>"),
+        textinput_maker(
+          "funcs", "Rfunctions",
+          rows = 5, pre = "rep_",
+          placeholder = "Create R functions to perform calculations (e.g., add = function(x, y) {x + y}). You can then call these functions in the 'formula' input. Press the Repeat button to repeat the simulation specified in the Simulate tab. Use functions to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples",
+          allow_tab = FALSE
+        )
       ),
       HTML("</br><label>Repeated simulation summary:</label>"),
       verbatimTextOutput("summary_repeat"),
@@ -693,16 +730,10 @@ output$simulater <- renderUI({
   )
   fixed <- fix_names(input$sim_name)
   updateTextInput(session, "sim_name", value = fixed)
-  withProgress(message = "Running simulation", value = 1, {
-    ## check the link below but I don't think adding an envir will work as
-    ## the functions may not see the variables in the data.frame (e.g., for default parameters)
-    ## best option is likely a "function" input using shinyAce
-    ## https://stackoverflow.com/questions/26028488/do-call-specify-environment-inside-function
-
-    inp <- sim_inputs()
+  withProgress(message = "Running simulation", value = 0.5, {
+   inp <- sim_inputs()
     inp$name <- fixed
     sim <- do.call(simulater, inp)
-    # sim <- do.call(simulater, sim_inputs(), envir = r_data)
     if (is.data.frame(sim)) {
       r_data[[fixed]] <- sim
       register(fixed)
@@ -742,23 +773,16 @@ sim_plot_height <- function() {
 })
 
 .repeater <- eventReactive(input$rep_run, {
-  withProgress(message = "Running repeated simulation", value = 1, {
-    ## check the link below but I don't think adding an envir will work as
-    ## the functions may not see the variables in the data.frame (e.g., for default parameters)
-    ## best option is likely a "function" input using shinyAce
-    ## https://stackoverflow.com/questions/26028488/do-call-specify-environment-inside-function
-    fixed <- fix_names(input$rep_name)
-    updateTextInput(session, "rep_name", value = fixed)
-    inp <- rep_inputs()
-    inp$name <- fixed
-    rep <- do.call(repeater, inp)
-    # rep <- do.call(repeater, rep_inputs(), envir = r_data)
-    if (is.data.frame(rep)) {
-      r_data[[fixed]] <- rep
-      register(fixed)
-    }
-    rep
-  })
+  fixed <- fix_names(input$rep_name)
+  updateTextInput(session, "rep_name", value = fixed)
+  inp <- rep_inputs()
+  inp$name <- fixed
+  rep <- do.call(repeater, inp)
+  if (is.data.frame(rep)) {
+    r_data[[fixed]] <- rep
+    register(fixed)
+  }
+  rep
 })
 
 .summary_repeat <- eventReactive({c(input$rep_run, input$rep_dec)}, {
@@ -844,12 +868,27 @@ observeEvent(input$simulater_report, {
   } else {
     inp$data <- as.symbol(inp$data)
   }
+
+  pre_cmd <- paste0(sim_name, " <- ")
+  if (!is_empty(input$sim_funcs)) {
+    ## dealing with user defined functions in simulate tab
+    pre_cmd <- gsub("    ", "  ", input$sim_funcs) %>%
+      gsub("\t", "  ", .) %>%
+      paste0("\n\n", pre_cmd)
+    funcs <- parse(text = input$sim_funcs)
+    lfuncs <- list()
+    for (i in seq_len(length(funcs))) {
+      tmp <- strsplit(as.character(funcs[i]), "(\\s*=|\\s*<-)")[[1]][1]
+      lfuncs[[tmp]] <- as.symbol(tmp)
+    }
+    inp$funcs <- lfuncs
+  }
   inp$name <- NULL
   update_report(
     inp_main = inp,
     fun_name = "simulater",
     inp_out = inp_out,
-    pre_cmd = paste0(sim_name, " <- "),
+    pre_cmd = pre_cmd,
     xcmd = paste0("register(\"", sim_name, "\")"),
     outputs = outputs,
     inp = sim_name,
