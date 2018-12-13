@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.7.9</span>
       </span>
     </div>
 
@@ -166,8 +166,9 @@
 
     <pre class="usage"><span class='fu'>simulater</span>(<span class='kw'>const</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>lnorm</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>norm</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>unif</span> <span class='kw'>=</span> <span class='st'>""</span>,
   <span class='kw'>discrete</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>binom</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>pois</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>sequ</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>grid</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>form</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nexact</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>ncorr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>nr</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>dataset</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+  <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>form</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>funcs</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nexact</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>ncorr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>nr</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>dataset</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -215,6 +216,10 @@
     <tr>
       <th>form</th>
       <td><p>A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")</p></td>
+    </tr>
+    <tr>
+      <th>funcs</th>
+      <td><p>A named list of user defined functions to apply to variables generated as part of the simulation</p></td>
     </tr>
     <tr>
       <th>seed</th>
@@ -268,7 +273,7 @@
 #&gt;  $ demand: num  793 2277 3084 -346 2429 ...
 #&gt;  $ price : num  8 8 8 8 8 8 5 8 5 8 ...
 #&gt;  $ profit: num  3965 11387 15422 -1728 12146 ...
-#&gt;  - attr(*, "sim_call")=List of 16
+#&gt;  - attr(*, "sim_call")=List of 17
 #&gt;   ..$ const   : chr "cost 3"
 #&gt;   ..$ lnorm   : chr ""
 #&gt;   ..$ norm    : chr "demand 2000 1000"
@@ -280,13 +285,15 @@
 #&gt;   ..$ grid    : chr ""
 #&gt;   ..$ data    : NULL
 #&gt;   ..$ form    : chr "profit = demand * (price - cost)"
+#&gt;   ..$ funcs   : chr ""
 #&gt;   ..$ seed    : num 1234
 #&gt;   ..$ nexact  : logi FALSE
 #&gt;   ..$ name    : chr ""
 #&gt;   ..$ nr      : num 1000
 #&gt;   ..$ dataset : NULL
 #&gt;  - attr(*, "df_name")= chr "NULL"
-#&gt;  - attr(*, "description")= chr "\n### Simulated data\n\nFormulas:\n\nprofit = demand \\* (price - cost)\n\nDate: 2018-12-10 20:06:12"</div><div class='input'>
+#&gt;  - attr(*, "funcs")= chr ""
+#&gt;  - attr(*, "description")= chr "\n### Simulated data\n\nFormulas:\n\nprofit = demand \\* (price - cost)\n\nDate: 2018-12-13 08:54:59"</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
