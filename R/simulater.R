@@ -251,7 +251,11 @@ simulater <- function(
       }
     ) %>% paste0(collapse = ";")
   }
-  pfuncs <- parse(text = funcs)
+  if (!is.expression(funcs)) {
+    pfuncs <- parse(text = funcs, keep.source = TRUE)
+  } else {
+    pfuncs <- funcs
+  }
 
   form %<>% sim_cleaner()
   if (form != "") {
@@ -298,9 +302,9 @@ simulater <- function(
   sc$nr <- nr
   sc$ncorr <- ncorr
   sc$nexact <- nexact
+  sc$funcs <- pfuncs
   attr(dataset, "sim_call") <- sc
   attr(dataset, "df_name") <- deparse(substitute(data))
-  attr(dataset, "funcs") <- funcs
 
   if (nrow(dataset) == 0) {
     mess <- c("error", paste0("The simulated data set has 0 rows"))
@@ -534,6 +538,16 @@ repeater <- function(
   nr_sim <- nrow(dataset)
   sc <- attr(dataset, "sim_call")
 
+  ## reset dataset to list with vectors of the correct length
+  dataset <- as.list(dataset)
+  if ("const" %in% names(sc)) {
+    s <- strsplit(gsub("\n", "", sc$const), ";")[[1]] %>%
+      strsplit(" +")
+    for (const in seq_len(length(s))) {
+      dataset[[const]] <- dataset[[const]][1]
+    }
+  }
+
   ## needed if inputs are provided as vectors
   sc[1:(which(names(sc) == "seed") - 1)] %<>% lapply(paste, collapse = ";")
 
@@ -543,11 +557,12 @@ repeater <- function(
 
   ## using \\b based on https://stackoverflow.com/a/34074458/1974918
   sc_keep <- grep(paste(paste0("\\b", vars, "\\b"), collapse = "|"), sc, value = TRUE)
+  sc_keep$funcs <- sc$funcs
 
   ## ensure that only the selected variables of a specific type are resimulated
   ## e.g., if A, B, and C are normal and A should be re-sim'd, don't also re-sim B and C
   for (i in names(sc_keep)) {
-    if (i == "form") next
+    if (i %in% c("form", "funcs")) next
     sc_check <- sim_cleaner(sc_keep[[i]]) %>%
       sim_splitter(";")
     if (length(sc_check) < 2) {
@@ -561,7 +576,7 @@ repeater <- function(
   ## needed in case there is no 'form' in simulate
   sc[1:(which(names(sc) == "seed") - 1)] <- ""
   sc[names(sc_keep)] <- sc_keep
-  sc$dataset <- as.list(dataset)
+  sc$dataset <- dataset
 
   summarize_sim <- function(object) {
     if (fun == "none") {
@@ -593,7 +608,7 @@ repeater <- function(
 
     ## removing form ...
     sc_grid <- grep(paste(gvars, collapse = "|"), sc_keep, value = TRUE) %>%
-      {.[which(names(.) != "form")]} %>%
+      {.[which(!names(.) %in% c("form", "funcs"))]} %>%
       gsub("[ ]{2,}", " ", .)
 
     for (i in 1:length(gvars)) {
