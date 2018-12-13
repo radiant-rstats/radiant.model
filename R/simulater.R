@@ -1,3 +1,5 @@
+#' @noRd
+#' @export
 .as_int <- function(x, dataset = list()) {
   ret <- sshhr(as.integer(x))
   if (is.na(ret)) {
@@ -12,6 +14,8 @@
   }
 }
 
+#' @noRd
+#' @export
 .as_num <- function(x, dataset = list()) {
   ret <- sshhr(as.numeric(x))
   if (is.na(ret)) {
@@ -99,9 +103,10 @@ simulater <- function(
   const %<>% sim_cleaner()
   if (const != "") {
     s <- const %>% sim_splitter()
-    for (i in 1:length(s))
-      # s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset) %>% rep(nr)}
+    # s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset) %>% rep(nr)}
+    for (i in 1:length(s)) {
       s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset)}
+    }
   }
 
   ## parsing uniform

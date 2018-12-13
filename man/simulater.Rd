@@ -6,8 +6,9 @@
 \usage{
 simulater(const = "", lnorm = "", norm = "", unif = "",
   discrete = "", binom = "", pois = "", sequ = "", grid = "",
-  data = NULL, form = "", seed = NULL, nexact = FALSE,
-  ncorr = NULL, name = "", nr = 1000, dataset = NULL)
+  data = NULL, form = "", funcs = "", seed = NULL,
+  nexact = FALSE, ncorr = NULL, name = "", nr = 1000,
+  dataset = NULL)
 }
 \arguments{
 \item{const}{A character vector listing the constants to include in the analysis (e.g., c("cost = 3", "size = 4"))}
@@ -31,6 +32,8 @@ simulater(const = "", lnorm = "", norm = "", unif = "",
 \item{data}{Dataset to be used in the calculations}
 
 \item{form}{A character vector with the formula to evaluate (e.g., "profit = demand * (price - cost)")}
+
+\item{funcs}{A named list of user defined functions to apply to variables generated as part of the simulation}
 
 \item{seed}{Optional seed used in simulation}
 
