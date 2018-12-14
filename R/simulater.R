@@ -557,7 +557,7 @@ repeater <- function(
 
   ## using \\b based on https://stackoverflow.com/a/34074458/1974918
   sc_keep <- grep(paste(paste0("\\b", vars, "\\b"), collapse = "|"), sc, value = TRUE)
-  sc_keep$funcs <- sc$funcs
+  sc_keep["funcs"] <- sc$funcs
 
   ## ensure that only the selected variables of a specific type are resimulated
   ## e.g., if A, B, and C are normal and A should be re-sim'd, don't also re-sim B and C

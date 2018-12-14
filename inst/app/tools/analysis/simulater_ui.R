@@ -792,8 +792,6 @@ sim_plot_height <- function() {
     "Select at least one Output variable"
   } else if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
     "Please specify the number of repetitions in '# reps'"
-  } else if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
-    "Specify one or more constants in the Grid search input"
   } else {
     summary(.repeater(), dec = input$rep_dec)
   }
