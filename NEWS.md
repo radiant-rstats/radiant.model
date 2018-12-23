@@ -1,4 +1,4 @@
-# radiant.model 0.9.7.8
+# radiant.model 0.9.8.0
 
 * Option to add user defined function to simulations. This dramatically increases the flexibility of the simulation tool
 * Ensure variable and dataset names are valid for R (i.e., no spaces or symbols), "fixing" the input as needed
