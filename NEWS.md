@@ -1,3 +1,7 @@
+# radiant.model 0.9.8.1
+
+* Use an expandable `shinyAce` input for the formula and function inputs in _Model > Simulate_
+
 # radiant.model 0.9.8.0
 
 * Option to add user defined function to simulations. This dramatically increases the flexibility of the simulation tool

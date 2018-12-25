@@ -659,19 +659,38 @@ output$simulater <- renderUI({
     tabPanel(
       "Simulate",
       HTML("<label>Simulation formulas:</label>"),
-      textinput_maker(
-        "form", "Formula",
-        rows = 5,
-        placeholder = "Use formulas to perform calculations on simulated variables (e.g., demand = 5 * price). Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples"
+      shinyAce::aceEditor(
+        "sim_form",
+        mode = "r",
+        theme = getOption("radiant.ace_theme", default = "tomorrow"),
+        wordWrap = TRUE,
+        height = "120px",
+        value = state_init("sim_form", "##  Use formulas to perform calculations on simulated variables (e.g., demand = 5 * price). Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+        vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
+        tabSize = getOption("radiant.ace_tabSize", 2),
+        useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
+        showInvisibles = getOption("radiant.ace_showInvisibles", FALSE),
+        autoScrollEditorIntoView = TRUE,
+        minLines = 7,
+        maxLines = 20
       ),
       conditionalPanel(
         "input.sim_add_functions == true",
         HTML("</br><label>Simulation functions:</label>"),
-        textinput_maker(
-          "funcs", "Functions",
-          rows = 5,
-          placeholder = "Create R functions to perform calculations (e.g., add = function(x, y) {x + y}). You can then call these functions in the 'formula' input. Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples",
-          allow_tab = FALSE
+        shinyAce::aceEditor(
+          "sim_funcs",
+          mode = "r",
+          theme = getOption("radiant.ace_theme", default = "tomorrow"),
+          wordWrap = TRUE,
+          height = "120px",
+          value = state_init("sim_funcs", "## Create your own R functions (e.g., add = function(x, y) {x + y}). Call these functions in the 'formula' input and press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+          vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
+          tabSize = getOption("radiant.ace_tabSize", 2),
+          useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
+          showInvisibles = getOption("radiant.ace_showInvisibles", FALSE),
+          autoScrollEditorIntoView = TRUE,
+          minLines = 7,
+          maxLines = 20
         )
       ),
       HTML("</br><label>Simulation summary:</label>"),
@@ -686,19 +705,38 @@ output$simulater <- renderUI({
     tabPanel(
       "Repeat",
       HTML("<label>Repeated simulation formulas:</label>"),
-      textinput_maker(
-        "form", "Rformula",
-        rows = 5, pre = "rep_",
-        placeholder = "Press the Repeat button to repeat the simulation specified in the Simulate tab. Use formulas to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples"
+      shinyAce::aceEditor(
+        "rep_form",
+        mode = "r",
+        theme = getOption("radiant.ace_theme", default = "tomorrow"),
+        wordWrap = TRUE,
+        height = "120px",
+        value = state_init("rep_form", "## Press the Repeat button to repeat the simulation specified in the Simulate tab. Use formulas to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+        vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
+        tabSize = getOption("radiant.ace_tabSize", 2),
+        useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
+        showInvisibles = getOption("radiant.ace_showInvisibles", FALSE),
+        autoScrollEditorIntoView = TRUE,
+        minLines = 7,
+        maxLines = 20
       ),
       conditionalPanel(
         "input.rep_add_functions == true",
         HTML("</br><label>Repeated simulation functions:</label>"),
-        textinput_maker(
-          "funcs", "Rfunctions",
-          rows = 5, pre = "rep_",
-          placeholder = "Create R functions to perform calculations (e.g., add = function(x, y) {x + y}). You can then call these functions in the 'formula' input. Press the Repeat button to repeat the simulation specified in the Simulate tab. Use functions to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples",
-          allow_tab = FALSE
+        shinyAce::aceEditor(
+          "rep_funcs",
+          mode = "r",
+          theme = getOption("radiant.ace_theme", default = "tomorrow"),
+          wordWrap = TRUE,
+          height = "120px",
+          value = state_init("rep_funcs", "## Create R functions to perform calculations (e.g., add = function(x, y) {x + y}). You can then call these functions in the 'formula' input. Press the Repeat button to repeat the simulation specified in the Simulate tab. Use functions to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+          vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
+          tabSize = getOption("radiant.ace_tabSize", 2),
+          useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
+          showInvisibles = getOption("radiant.ace_showInvisibles", FALSE),
+          autoScrollEditorIntoView = TRUE,
+          minLines = 7,
+          maxLines = 20
         )
       ),
       HTML("</br><label>Repeated simulation summary:</label>"),
