@@ -12,6 +12,7 @@ r_packages:
   - devtools
 
 r_github_packages:
+  - trestletech/shinyAce
   - radiant-rstats/radiant.data
   - radiant-rstats/radiant.basics
 
