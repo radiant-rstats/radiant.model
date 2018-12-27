@@ -1,4 +1,4 @@
-# radiant.model 0.9.8.1
+# radiant.model 0.9.8.2
 
 * Use an expandable `shinyAce` input for the formula and function inputs in _Model > Simulate_
 

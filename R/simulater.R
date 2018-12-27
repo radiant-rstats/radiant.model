@@ -86,7 +86,7 @@ simulater <- function(
   grid %<>% sim_cleaner()
   if (grid != "" && length(dataset) == 0) {
     s <- grid %>% sim_splitter()
-      for (i in 1:length(s)) {
+    for (i in 1:length(s)) {
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
       s[[i]] %>% {dataset[[.[1]]] <<- seq(.as_num(.[2], dataset), .as_num(.[3], dataset), .as_num(.[4], dataset))}
     }
@@ -103,7 +103,6 @@ simulater <- function(
   const %<>% sim_cleaner()
   if (const != "") {
     s <- const %>% sim_splitter()
-    # s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset) %>% rep(nr)}
     for (i in 1:length(s)) {
       s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset)}
     }
@@ -544,7 +543,8 @@ repeater <- function(
     s <- strsplit(gsub("\n", "", sc$const), ";")[[1]] %>%
       strsplit(" +")
     for (const in seq_len(length(s))) {
-      dataset[[const]] <- dataset[[const]][1]
+      nm <- s[[const]][1]
+      dataset[[nm]] <- dataset[[nm]][1]
     }
   }
 
@@ -605,8 +605,7 @@ repeater <- function(
 
   rep_grid_sim <- function(gval, rep_nr, nr, sfun = function(x) x) {
     gvars <- names(gval)
-
-    ## removing form ...
+    ## removing form and funcs ...
     sc_grid <- grep(paste(gvars, collapse = "|"), sc_keep, value = TRUE) %>%
       {.[which(!names(.) %in% c("form", "funcs"))]} %>%
       gsub("[ ]{2,}", " ", .)
@@ -649,11 +648,11 @@ repeater <- function(
       grid <- expand.grid(grid_list)
       nr <- nrow(grid)
       if (byvar == "sim") {
-        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(grid[x,], x, nr))) %>%
+        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(slice(grid, x), x, nr))) %>%
           summarize_sim() %>%
           add_class("repeater")
       } else {
-        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(grid[x,], x, nr, summarize_sim))) %>%
+        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(slice(grid, x), x, nr, summarize_sim))) %>%
           add_class("repeater")
       }
     }
