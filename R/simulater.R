@@ -540,8 +540,12 @@ repeater <- function(
   ## reset dataset to list with vectors of the correct length
   dataset <- as.list(dataset)
   if ("const" %in% names(sc)) {
-    s <- strsplit(gsub("\n", "", sc$const), ";")[[1]] %>%
-      strsplit(" +")
+    s <- sc$const
+    if (length(s) < 2) {
+      s <- strsplit(gsub("\n", "", s), ";")[[1]] %>% strsplit("\\s+")
+    } else {
+      s <- strsplit(s, "\\s+")
+    }
     for (const in seq_len(length(s))) {
       nm <- s[[const]][1]
       dataset[[nm]] <- dataset[[nm]][1]
@@ -648,11 +652,11 @@ repeater <- function(
       grid <- expand.grid(grid_list)
       nr <- nrow(grid)
       if (byvar == "sim") {
-        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(slice(grid, x), x, nr))) %>%
+        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(grid[x,, drop = FALSE], x, nr))) %>%
           summarize_sim() %>%
           add_class("repeater")
       } else {
-        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(slice(grid, x), x, nr, summarize_sim))) %>%
+        ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(grid[x,, drop = FALSE], x, nr, summarize_sim))) %>%
           add_class("repeater")
       }
     }

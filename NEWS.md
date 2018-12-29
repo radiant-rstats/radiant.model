@@ -1,6 +1,7 @@
-# radiant.model 0.9.8.2
+# radiant.model 0.9.8.3
 
 * Use an expandable `shinyAce` input for the formula and function inputs in _Model > Simulate_
+* Fixes for repeated simulation with grid-search
 
 # radiant.model 0.9.8.0
 

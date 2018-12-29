@@ -899,6 +899,9 @@ observeEvent(input$simulater_report, {
       inp[[i]] <- strsplit(inp[[i]], ";")[[1]]
     }
   }
+  if (length(inp[["form"]]) == 1 && grepl("^#", inp[["form"]])) {
+    inp[["form"]] <- NULL
+  }
   if (is_empty(inp$data)) {
     inp$data <- NULL
   } else {
@@ -917,7 +920,12 @@ observeEvent(input$simulater_report, {
       tmp <- strsplit(as.character(funcs[i]), "(\\s*=|\\s*<-)")[[1]][1]
       lfuncs[[tmp]] <- as.symbol(tmp)
     }
-    inp$funcs <- lfuncs
+    if (length(lfuncs) == 0) {
+      pre_cmd <- paste0(sim_name, " <- ")
+      inp$funcs <- NULL
+    } else {
+      inp$funcs <- lfuncs
+    }
   }
   inp$name <- NULL
   update_report(
@@ -959,6 +967,9 @@ observeEvent(input$repeater_report, {
 
   if (!is_empty(inp[["form"]])) {
     inp[["form"]] <- strsplit(inp[["form"]], ";")[[1]]
+    if (length(inp[["form"]]) == 1 && grepl("^#", inp[["form"]])) {
+      inp[["form"]] <- NULL
+    }
   }
   if (!is_empty(inp[["grid"]])) {
     inp[["grid"]] <- strsplit(inp[["grid"]], ";")[[1]]
