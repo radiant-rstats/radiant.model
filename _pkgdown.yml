@@ -65,6 +65,7 @@ reference:
     - predict.nn
     - print.nn.predict
     - plot.nn
+    - cv.nn
 - title: Model > Naive Bayes
   desc: Estimate naive Bayes models
   contents:
@@ -83,6 +84,7 @@ reference:
     - predict.crtree
     - print.crtree.predict
     - plot.crtree
+    - cv.crtree
 - title: Model > Evaluate regression
   desc: Evaluate regression models
   contents:
