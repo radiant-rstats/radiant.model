@@ -1,5 +1,6 @@
-# radiant.model 0.9.8.3
+# radiant.model 0.9.8.4
 
+* Fix to download tables from _Model > Evaluate classificiation_
 * Use an expandable `shinyAce` input for the formula and function inputs in _Model > Simulate_
 * Fixes for repeated simulation with grid-search
 

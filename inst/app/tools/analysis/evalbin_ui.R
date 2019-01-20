@@ -1,13 +1,13 @@
 ebin_plots <- list(
-  "Lift" = "lift", 
-  "Gains" = "gains", 
-  "Profit" = "profit", 
+  "Lift" = "lift",
+  "Gains" = "gains",
+  "Profit" = "profit",
   "ROME" = "rome"
 )
 ebin_train <- list(
-  "All" = "All", 
-  "Training" = "Training", 
-  "Validation" = "Validation", 
+  "All" = "All",
+  "Training" = "Training",
+  "Validation" = "Validation",
   "Both" = "Both"
 )
 
@@ -38,8 +38,8 @@ output$ui_ebin_rvar <- renderUI({
 
 output$ui_ebin_lev <- renderUI({
   req(available(input$ebin_rvar))
-  levs <- .get_data()[[input$ebin_rvar]] %>% 
-    as.factor() %>% 
+  levs <- .get_data()[[input$ebin_rvar]] %>%
+    as.factor() %>%
     levels()
   selectInput(
     inputId = "ebin_lev", label = "Choose level:",
@@ -112,7 +112,7 @@ output$ui_evalbin <- renderUI({
       uiOutput("ui_ebin_train"),
       conditionalPanel(
         "input.tabs_evalbin == 'Evaluate'",
-        checkboxInput("ebin_show_tab", "Show lift and gains table" , state_init("ebin_show_tab", FALSE)),
+        checkboxInput("ebin_show_tab", "Show model performance table" , state_init("ebin_show_tab", FALSE)),
         checkboxGroupInput(
           "ebin_plots", "Plots:", ebin_plots,
           selected = state_group("ebin_plots", "gains"),
@@ -213,7 +213,7 @@ output$evalbin <- renderUI({
 .evalbin <- eventReactive(input$ebin_run, {
   if (!is_empty(r_info[["filter_error"]])) {
     "An invalid filter has been set for this dataset. Please\nadjust the filter in the Data > View tab and try again" %>%
-      add_class("evalbin") 
+      add_class("evalbin")
   } else {
     withProgress(message = "Evaluating models", value = 1, {
       do.call(evalbin, ebin_inputs())
@@ -226,7 +226,7 @@ output$evalbin <- renderUI({
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
     is_empty(input$ebin_lev)) {
     return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
-  }   
+  }
   summary(.evalbin(), prn = input$ebin_show_tab)
 })
 
@@ -235,7 +235,7 @@ output$evalbin <- renderUI({
   isolate({
     if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
         is_empty(input$ebin_lev)) {
-      return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% 
+      return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>%
         suggest_data("titanic"))
     } else if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && is_empty(input$data_filter)))) {
       return("** Filter required. To set a filter go to Data > View and click the filter checkbox **")
@@ -247,7 +247,7 @@ output$evalbin <- renderUI({
 .confusion <- eventReactive(input$ebin_run, {
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
     is_empty(input$ebin_lev)) {
-    return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% 
+    return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>%
       suggest_data("titanic"))
   }
   if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && is_empty(input$data_filter)))) {
@@ -327,36 +327,37 @@ observeEvent(input$confusion_report, {
 })
 
 dl_ebin_tab <- function(path) {
-  .evalbin() %>%
-    {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+  dat <- .evalbin()$dataset
+  if (!is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
 }
 
 download_handler(
-  id = "dl_ebin_tab", 
-  fun = dl_ebin_tab, 
+  id = "dl_ebin_tab",
+  fun = dl_ebin_tab,
   fn = function() paste0(input$dataset, "_evalbin"),
   type = "csv",
   caption = "Save model evaluations"
 )
 
 dl_confusion_tab <- function(path) {
-  .confusion() %>%
-    {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+  print(.confusion())
+  dat <- .confusion()$dataset
+  if (!is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
 }
 
 download_handler(
-  id = "dl_confusion_tab", 
-  fun = dl_confusion_tab, 
+  id = "dl_confusion_tab",
+  fun = dl_confusion_tab,
   fn = function() paste0(input$dataset, "_confusion"),
   type = "csv",
   caption = "Save model performance metrics"
 )
 
 download_handler(
-  id = "dlp_evalbin", 
-  fun = download_handler_plot, 
+  id = "dlp_evalbin",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_evalbin"),
-  type = "png", 
+  type = "png",
   caption = "Save model evaluation plot",
   plot = .plot_evalbin,
   width = ebin_plot_width,
@@ -364,10 +365,10 @@ download_handler(
 )
 
 download_handler(
-  id = "dlp_confusion", 
-  fun = download_handler_plot, 
+  id = "dlp_confusion",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_confusion"),
-  type = "png", 
+  type = "png",
   caption = "Save confusion plots",
   plot = .plot_confusion,
   width = confusion_plot_width,
