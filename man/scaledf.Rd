@@ -27,5 +27,5 @@ Scaled data frame
 Center or standardize variables in a data frame
 }
 \seealso{
-\code{\link{copy_attr}} to copy attributes from a training to a validation dataset
+\code{\link{copy_attr}} to copy attributes from a training to a test dataset
 }

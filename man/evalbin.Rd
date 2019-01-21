@@ -22,7 +22,7 @@ evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1,
 
 \item{margin}{Margin on each customer purchase}
 
-\item{train}{Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin}
+\item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 }

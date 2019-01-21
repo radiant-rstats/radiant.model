@@ -13,7 +13,7 @@ evalreg(dataset, pred, rvar, train = "All", data_filter = "")
 
 \item{rvar}{Response variable}
 
-\item{train}{Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalreg}
+\item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")}
 }

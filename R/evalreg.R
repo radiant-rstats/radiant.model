@@ -5,7 +5,7 @@
 #' @param dataset Dataset
 #' @param pred Predictions or predictors
 #' @param rvar Response variable
-#' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalreg
+#' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
 #'
 #' @return A list of results
@@ -35,11 +35,11 @@ evalreg <- function(
   vars <- c(pred, rvar)
   if (train == "Both") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else if (train == "Training") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-  } else if (train == "Validation") {
-    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+  } else if (train == "Test" | train == "Validation") {
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else {
     dat_list[["All"]] <- get_data(dataset, vars, filt = "")
   }
@@ -123,7 +123,7 @@ plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
   dat <- gather(x$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
-  ## what data was used in evaluation? All, Training, Validation, or Both
+  ## what data was used in evaluation? All, Training, Test, or Both
   type <- unique(dat$Type)
 
   p <- visualize(

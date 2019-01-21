@@ -7,7 +7,7 @@ ebin_plots <- list(
 ebin_train <- list(
   "All" = "All",
   "Training" = "Training",
-  "Validation" = "Validation",
+  "Test" = "Test",
   "Both" = "Both"
 )
 

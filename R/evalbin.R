@@ -9,7 +9,7 @@
 #' @param qnt Number of bins to create
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
-#' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
+#' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
 #' @return A list of results
@@ -44,11 +44,11 @@ evalbin <- function(
   vars <- c(pred, rvar)
   if (train == "Both") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else if (train == "Training") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-  } else if (train == "Validation") {
-    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+  } else if (train == "Test" | train == "Validation") {
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else {
     dat_list[["All"]] <- get_data(dataset, vars, filt = "")
   }
@@ -57,7 +57,7 @@ evalbin <- function(
   auc_list <- list()
   prof_list <- c()
   pdat <- list()
-  pext <- c(All = "", Training = " (train)", Validation = " (val)")
+  pext <- c(All = "", Training = " (train)", Test = " (test)")
 
   for (i in names(dat_list)) {
     lg_list <- list()
@@ -308,7 +308,7 @@ plot.evalbin <- function(
 #' @param lev The level in the response variable defined as success
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
-#' @param train Use data from training ("Training"), validation ("Validation"), both ("Both"), or all data ("All") to evaluate model evalbin
+#' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param ... further arguments passed to or from other methods
 #'
@@ -348,11 +348,11 @@ confusion <- function(
   vars <- c(pred, rvar)
   if (train == "Both") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else if (train == "Training") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-  } else if (train == "Validation") {
-    dat_list[["Validation"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+  } else if (train == "Test" | train == "Validation") {
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
   } else {
     dat_list[["All"]] <- get_data(dataset, vars, filt = "")
   }
@@ -541,7 +541,7 @@ plot.confusion <- function(
     gather("Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
-  ## what data was used in evaluation? All, Training, Validation, or Both
+  ## what data was used in evaluation? All, Training, Test, or Both
   type <- unique(dataset$Type)
 
   if (scale_y) {

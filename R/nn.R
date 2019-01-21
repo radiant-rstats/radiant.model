@@ -158,7 +158,7 @@ nn <- function(
 #'
 #' @return Scaled data frame
 #'
-#' @seealso \code{\link{copy_attr}} to copy attributes from a training to a validation dataset
+#' @seealso \code{\link{copy_attr}} to copy attributes from a training to a test dataset
 #'
 #' @export
 scaledf <- function(

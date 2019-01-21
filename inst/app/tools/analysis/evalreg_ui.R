@@ -1,4 +1,4 @@
-ereg_train <- list("All" = "All", "Training" = "Training", "Validation" = "Validation", "Both" = "Both")
+ereg_train <- list("All" = "All", "Training" = "Training", "Test" = "Test", "Both" = "Both")
 
 ## list of function arguments
 ereg_args <- as.list(formals(evalreg))
