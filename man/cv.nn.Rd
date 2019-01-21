@@ -35,6 +35,14 @@ Cross-validation for Neural Network
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 }
+\examples{
+\dontrun{
+result <- nn(dvd, "buy", c("coupon", "purch", "last"))
+cv.nn(result, decay = seq(0, 1, .5), size = 1:2)
+cv.nn(result, decay = seq(0, 1, .5), size = 1:2, fun = profit, cost = 1, margin = 5)
+}
+
+}
 \seealso{
 \code{\link{summary.nn}} to summarize results
 

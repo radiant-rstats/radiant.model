@@ -647,6 +647,13 @@ print.crtree.predict <- function(x, ..., n = 10)
 #' @importFrom rpart prune.rpart
 #' @importFrom shiny getDefaultReactiveDomain withProgress incProgress
 #'
+#' @examples
+#' \dontrun{
+#' result <- crtree(dvd, "buy", c("coupon", "purch", "last"))
+#' cv.crtree(result, cp = 0.0001, pcp = seq(0, 0.01, length.out = 11))
+#' cv.crtree(result, cp = 0.0001, pcp = c(0, 0.001, 0.002), fun = profit, cost = 1, margin = 5)
+#' }
+#'
 #' @export
 cv.crtree <- function(
   object, K = 5, repeats = 1, cp, pcp = seq(0, 0.01, length.out = 11),

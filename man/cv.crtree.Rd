@@ -35,6 +35,14 @@ Cross-validation for Classification and Regression Trees
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/crtreenn.html} for an example in Radiant
 }
+\examples{
+\dontrun{
+result <- crtree(dvd, "buy", c("coupon", "purch", "last"))
+cv.crtree(result, cp = 0.0001, pcp = seq(0, 0.01, length.out = 11))
+cv.crtree(result, cp = 0.0001, pcp = c(0, 0.001, 0.002), fun = profit, cost = 1, margin = 5)
+}
+
+}
 \seealso{
 \code{\link{crtree}} to generate an initial model that can be passed to cv.crtree
 }

@@ -443,6 +443,13 @@ print.nn.predict <- function(x, ..., n = 10)
 #' @importFrom nnet nnet.formula
 #' @importFrom shiny getDefaultReactiveDomain withProgress incProgress
 #'
+#' @examples
+#' \dontrun{
+#' result <- nn(dvd, "buy", c("coupon", "purch", "last"))
+#' cv.nn(result, decay = seq(0, 1, .5), size = 1:2)
+#' cv.nn(result, decay = seq(0, 1, .5), size = 1:2, fun = profit, cost = 1, margin = 5)
+#' }
+#'
 #' @export
 cv.nn <- function(
   object, K = 5, repeats = 1, decay = seq(0, 1, .2), size = 1:5,
