@@ -32,7 +32,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- get_data(dataset, c(rvar, evar), filt = data_filter)
 
-  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, does_vary) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
       add_class("regress"))
   }
@@ -238,8 +238,8 @@ summary.regress <- function(
     ss_tab <- data.frame(matrix(nrow = 3, ncol = 2), stringsAsFactors = FALSE)
     rownames(ss_tab) <- c("Regression", "Error", "Total")
     colnames(ss_tab) <- c("df", "SS")
-    ss_tab$df <- c(df_reg, df_err, df_tot)
-    ss_tab$SS <- c(ss_reg, ss_err, ss_tot)
+    ss_tab$df <- c(df_reg, df_err, df_tot) %>% format_nr(dec = 0)
+    ss_tab$SS <- c(ss_reg, ss_err, ss_tot) %>% format_nr(dec = dec)
     cat("Sum of squares:\n")
     format(ss_tab, scientific = FALSE) %>% print()
     cat("\n")
@@ -282,7 +282,7 @@ summary.regress <- function(
         as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
         {.$`+/-` <- (.$High - .$Low) / 2; .} %>%
-        mutate_all(funs(sprintf(paste0("%.", dec, "f"), .))) %>%
+        mutate_all(~ sprintf(paste0("%.", dec, "f"), .)) %>%
         cbind(coeff[[2]], .) %>%
         set_rownames(object$coeff$label) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %T>%
@@ -672,13 +672,13 @@ predict_model <- function(
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "ms")
       if (!is.null(ms)) {
-        dat <- mutate_at(dat, .vars = names(ms), .funs = funs(. + ms$.))
+        dat[names(ms)] <- lapply(names(ms), function(var) (dat[[var]] + ms[[var]]))
       }
     } else if ("standardize" %in% object$check) {
       ms <- attr(object$model$model, "ms")
       sds <- attr(object$model$model, "sds")
       if (!is.null(ms) && !is.null(sds)) {
-        dat <- mutate_at(dat, .vars = names(ms), .funs = funs(. * 2 * sds$. + ms$.))
+        dat[names(ms)] <- lapply(names(ms), function(var) (dat[[var]] * 2 * sds[[var]] + ms[[var]]))
       }
     }
 
@@ -716,7 +716,7 @@ predict_model <- function(
 
     plug_data <- data.frame(init___ = 1, stringsAsFactors = FALSE)
     if (sum(isNum) > 0) {
-      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = funs(mean)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = mean))
     }
     if (sum(isFct) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = funs(max_ffreq)))
@@ -971,17 +971,20 @@ plot.model.predict <- function(
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
   }
 
+  ## due to https://github.com/tidyverse/dplyr/issues/4149
+  attr(x, "vars") <- NULL
   tmp <- x %>%
-    group_by_at(.vars = tbv) %>%
     select_at(.vars = c(tbv, pvars)) %>%
-    summarise_all(funs(mean))
+    group_by_at(.vars = tbv) %>%
+    summarise_all(mean)
+
   if (color == "none") {
     p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction"))
   } else {
     p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color))
   }
 
-  if (length(pvars) == 3) {
+  if (length(pvars) >= 3) {
     if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11) {
       p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size = .3)
     } else {

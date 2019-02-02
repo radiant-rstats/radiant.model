@@ -82,7 +82,7 @@ crtree <- function(
     }
   }
 
-  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, does_vary) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("crtree"))
   }
 

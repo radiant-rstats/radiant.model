@@ -70,7 +70,7 @@ nn <- function(
     }
   }
 
-  if (any(summarise_all(dataset, .funs = funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, .funs = does_vary) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nn"))
   }
 
@@ -174,17 +174,17 @@ scaledf <- function(
   descr <- attr(dataset, "description")
   if (calc) {
     if (length(wts) == 0) {
-      ms <- summarise_at(dataset, .vars = cn, .funs = funs(mean(., na.rm = TRUE))) %>%
+      ms <- summarise_at(dataset, .vars = cn, .funs = ~ mean(., na.rm = TRUE)) %>%
         set_attr("description", NULL)
       if (scale) {
-        sds <- summarise_at(dataset, .vars = cn, .funs = funs(sd(., na.rm = TRUE))) %>%
+        sds <- summarise_at(dataset, .vars = cn, .funs = ~ sd(., na.rm = TRUE)) %>%
           set_attr("description", NULL)
       }
     } else {
-      ms <- summarise_at(dataset, .vars = cn, .funs = funs(weighted.mean(., wts, na.rm = TRUE))) %>%
+      ms <- summarise_at(dataset, .vars = cn, .funs = ~ weighted.mean(., wts, na.rm = TRUE)) %>%
         set_attr("description", NULL)
       if (scale) {
-        sds <- summarise_at(dataset, .vars = cn, .funs = funs(weighted.sd(., wts, na.rm = TRUE))) %>%
+        sds <- summarise_at(dataset, .vars = cn, .funs = ~ weighted.sd(., wts, na.rm = TRUE)) %>%
           set_attr("description", NULL)
       }
     }
@@ -194,16 +194,21 @@ scaledf <- function(
     if (is.null(ms) && is.null(sds)) return(dataset)
   }
   if (center && scale) {
-    mutate_at(dataset, .vars = intersect(names(ms), cn), .funs = funs((. - ms$.) / (sf * sds$.))) %>%
+    icn <- intersect(names(ms), cn)
+    dataset[icn] <- lapply(icn, function(var) (dataset[[var]] - ms[[var]]) / (sf * sds[[var]]))
+    dataset %>%
       set_attr("ms", ms) %>%
       set_attr("sds", sds) %>%
       set_attr("description", descr)
   } else if (center) {
-    mutate_at(dataset, .vars = intersect(names(ms), cn), .funs = funs(. - ms$.)) %>%
+    icn <- intersect(names(ms), cn)
+    dataset[icn] <- lapply(icn, function(var) dataset[[var]] - ms[[var]])
+    dataset %>%
       set_attr("ms", ms) %>%
       set_attr("description", descr)
   } else if (scale) {
-    mutate_at(dataset, .vars = intersect(names(sds), cn), .funs = funs(. / (sf * sds$.))) %>%
+    icn <- intersect(names(sds), cn)
+    dataset[icn] <- lapply(icn, function(var) dataset[[var]] / (sf * sds[[var]]))
       set_attr("sds", sds) %>%
       set_attr("description", descr)
   } else {

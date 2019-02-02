@@ -112,7 +112,7 @@ evalbin <- function(
           gains = nr_resp / tot_resp
         ) %>%
         {if (first(.$resp_rate) < last(.$resp_rate)) {
-           mutate_all(., funs(rev))
+           mutate_all(., rev)
          } else {
            .
          }
@@ -383,7 +383,7 @@ confusion <- function(
     dataset[, pred] <- select_at(dataset, .vars = pred) > break_even
 
     if (length(pred) > 1) {
-      dataset <- mutate_at(dataset, .vars = c(rvar, pred), .funs = funs(factor(., levels = c("FALSE", "TRUE"))))
+      dataset <- mutate_at(dataset, .vars = c(rvar, pred), .funs = ~ factor(., levels = c("FALSE", "TRUE")))
     } else {
       dataset[, pred] %<>% apply(2, function(x) factor(x, levels = c("FALSE", "TRUE")))
     }
@@ -537,7 +537,7 @@ plot.confusion <- function(
 
   if (is.character(x) || is.null(x)) return(invisible())
   dataset <- x$dataset %>%
-    mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = funs(if (is.numeric(.)) . / total else .)) %>%
+    mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = ~ if (is.numeric(.)) . / total else .) %>%
     gather("Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 

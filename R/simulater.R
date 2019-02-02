@@ -858,7 +858,7 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
         .[1, ] %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
         round(dec) %>%
-        mutate_all(funs(formatC(., big.mark = ",", digits = dec, format = "f"))) %>%
+        mutate_all(~ formatC(., big.mark = ",", digits = dec, format = "f")) %>%
         set_rownames("") %>%
         set_colnames(cn) %>%
         print()
@@ -873,9 +873,9 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
         gather("variable", "values", !! cn) %>%
         group_by_at(.vars = "variable") %>%
         summarise_all(
-          funs(
+          list(
             n_obs = n_obs, mean = mean, sd = sd, min = min,
-            `25%` = p25, median = median, `75%` = p75, max = max
+            p25 = p25, median = median, p75 = p75, max = max
           ),
           na.rm = TRUE
         ) %>%
@@ -891,11 +891,13 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
   if (sum(isLogic) > 0) {
     cat("Logicals:\n")
     select(dataset, which(isLogic)) %>%
-      summarise_all(funs(sum, mean), na.rm = TRUE) %>%
+      summarise_all(list(sum, mean), na.rm = TRUE) %>%
       round(dec) %>%
       matrix(ncol = 2) %>%
+      as.data.frame() %>%
       set_colnames(c("TRUE (nr)  ", "TRUE (prop)")) %>%
       set_rownames(names(dataset)[isLogic]) %>%
+      format(big.mark = ",", scientific = FALSE) %>%
       print()
     cat("\n")
   }
@@ -903,7 +905,7 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
   if (sum(isFct) > 0 | sum(isChar) > 0) {
     cat("Factors:\n")
     select(dataset, which(isFct | isChar)) %>%
-      mutate_if(is.character, funs(as_factor)) %>%
+      mutate_if(is.character, as_factor) %>%
       summary() %>%
       print()
     cat("\n")

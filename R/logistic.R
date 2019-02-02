@@ -76,7 +76,7 @@ logistic <- function(
     }
   }
 
-  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, does_vary) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>%
       add_class("logistic"))
   }
@@ -734,8 +734,8 @@ minmax <- function(dataset) {
   if (sum(isNum) == 0) return(dataset)
   cn <- names(isNum)[isNum]
 
-  mn <- summarise_at(dataset, .vars = cn, .funs = funs(min(., na.rm = TRUE)))
-  mx <- summarise_at(dataset, .vars = cn, .funs = funs(max(., na.rm = TRUE)))
+  mn <- summarise_at(dataset, .vars = cn, .funs = ~ min(., na.rm = TRUE))
+  mx <- summarise_at(dataset, .vars = cn, .funs = ~ max(., na.rm = TRUE))
 
   list(min = mn, max = mx)
 }

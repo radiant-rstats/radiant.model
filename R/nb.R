@@ -30,7 +30,7 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   dataset <- get_data(dataset, c(rvar, evar), filt = data_filter)
 
-  if (any(summarise_all(dataset, funs(does_vary)) == FALSE)) {
+  if (any(summarise_all(dataset, does_vary) == FALSE)) {
     return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
   }
 
@@ -132,14 +132,14 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
   if (is.character(x)) return(x)
   if (is_empty(plots[1])) return(invisible())
 
-  evar <- mutate_all(select(x$model$model, -1), funs(as_numeric))
+  evar <- mutate_all(select(x$model$model, -1), as_numeric)
   rvar <- x$model$model[[1]]
 
   if ("correlations" %in% plots) {
     if (lev == "All levels") {
-      return(radiant.basics:::plot.correlation(evar, nrobs = nrobs))
+      return(sshhr(radiant.basics:::plot.correlation(evar, nrobs = nrobs)))
     } else {
-      return(radiant.basics:::plot.correlation(filter(evar, rvar == lev), nrobs = nrobs))
+      return(sshhr(radiant.basics:::plot.correlation(filter(evar, rvar == lev), nrobs = nrobs)))
     }
   }
 
@@ -313,7 +313,7 @@ plot.nb.predict <- function(
 
   tmp <- group_by_at(x, .vars = byvar) %>%
     select_at(.vars = c(byvar, "Prediction")) %>%
-    summarise_all(funs(mean))
+    summarise_all(mean)
   p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
     geom_line()
 
