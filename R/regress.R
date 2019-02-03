@@ -719,13 +719,13 @@ predict_model <- function(
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = mean))
     }
     if (sum(isFct) > 0) {
-      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = funs(max_ffreq)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = max_ffreq))
     }
     if (sum(isChar) > 0) {
-      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isChar], .funs = funs(max_freq)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isChar], .funs = max_freq))
     }
     if (sum(isLog) > 0) {
-      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isLog], .funs = funs(max_lfreq)))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isLog], .funs = max_lfreq))
     }
 
     rm(dat)
