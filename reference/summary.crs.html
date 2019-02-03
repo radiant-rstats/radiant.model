@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.6</span>
       </span>
     </div>
 
@@ -200,21 +200,7 @@
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'>crs</span>(<span class='no'>ratings</span>, <span class='kw'>id</span> <span class='kw'>=</span> <span class='st'>"Users"</span>, <span class='kw'>prod</span> <span class='kw'>=</span> <span class='st'>"Movies"</span>, <span class='kw'>pred</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"M6"</span>, <span class='st'>"M7"</span>, <span class='st'>"M8"</span>, <span class='st'>"M9"</span>, <span class='st'>"M10"</span>),
-    <span class='kw'>rate</span> <span class='kw'>=</span> <span class='st'>"Ratings"</span>, <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>"training == 1"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>()</div><div class='output co'>#&gt; Collaborative filtering
-#&gt; Data       : ratings
-#&gt; Filter     : training == 1
-#&gt; User id    : Users
-#&gt; Product id : Movies
-#&gt; Predict for: M6, M7, M8, M9, M10 
-#&gt; 
-#&gt; Recommendations:
-#&gt; 
-#&gt;  Users product rating average   cf ranking avg_rank cf_rank
-#&gt;    U11      M6           3.30 4.10                3       1
-#&gt;    U11      M7           2.70 2.08                5       4
-#&gt;    U11      M8           3.50 1.70                2       5
-#&gt;    U11      M9           2.90 2.13                4       3
-#&gt;    U11     M10           4.10 2.71                1       2</div><div class='input'>
+    <span class='kw'>rate</span> <span class='kw'>=</span> <span class='st'>"Ratings"</span>, <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>"training == 1"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>()</div><div class='output co'>#&gt; <span class='message'>Invalid filter: "A '::id' rule specifies an unknown transliterator. (U_INVALID_ID)". Update or remove the expression</span></div><div class='output co'>#&gt; Invalid filter used. Users to predict for should not be in the training set.</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

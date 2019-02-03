@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.6</span>
       </span>
     </div>
 
@@ -196,15 +196,16 @@
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'>regress</span>(<span class='no'>diamonds</span>, <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"price"</span>, <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"cut"</span>), <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>"price &gt; 1000"</span>) <span class='kw'>%&gt;%</span>
   <span class='fu'>store</span>(<span class='no'>diamonds</span>, <span class='no'>.</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"resid"</span>) <span class='kw'>%&gt;%</span>
-  <span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/head'>head</a></span>()</div><div class='output co'>#&gt; # A tibble: 6 x 12
-#&gt;   price carat clarity cut   color depth table     x     y     z date       resid
-#&gt;   &lt;int&gt; &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;dbl&gt;
-#&gt; 1   580  0.32 VS1     Ideal H      61    56    4.43  4.45  2.71 2012-02-26   NA 
-#&gt; 2   650  0.34 SI1     Very… G      63.4  57    4.45  4.42  2.81 2012-02-26   NA 
-#&gt; 3   630  0.3  VS2     Very… G      63.1  58    4.27  4.23  2.68 2012-02-26   NA 
-#&gt; 4   706  0.35 VVS2    Ideal H      59.2  56    4.6   4.65  2.74 2012-02-26   NA 
-#&gt; 5  1080  0.4  VS2     Prem… F      62.6  58    4.72  4.68  2.94 2012-02-26  877.
-#&gt; 6  3082  0.6  VVS1    Ideal E      62.5  53.7  5.35  5.43  3.38 2012-02-26  595.</div><div class='input'>
+  <span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/head'>head</a></span>()</div><div class='output co'>#&gt; <span class='message'>Invalid filter: "A '::id' rule specifies an unknown transliterator. (U_INVALID_ID)". Update or remove the expression</span></div><div class='output co'>#&gt; <span class='message'>Invalid filter: "A '::id' rule specifies an unknown transliterator. (U_INVALID_ID)". Update or remove the expression</span></div><div class='output co'>#&gt; # A tibble: 6 x 12
+#&gt;   price carat clarity cut   color depth table     x     y     z date      
+#&gt;   &lt;int&gt; &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;    
+#&gt; 1   580  0.32 VS1     Ideal H      61    56    4.43  4.45  2.71 2012-02-26
+#&gt; 2   650  0.34 SI1     Very… G      63.4  57    4.45  4.42  2.81 2012-02-26
+#&gt; 3   630  0.3  VS2     Very… G      63.1  58    4.27  4.23  2.68 2012-02-26
+#&gt; 4   706  0.35 VVS2    Ideal H      59.2  56    4.6   4.65  2.74 2012-02-26
+#&gt; 5  1080  0.4  VS2     Prem… F      62.6  58    4.72  4.68  2.94 2012-02-26
+#&gt; 6  3082  0.6  VVS1    Ideal E      62.5  53.7  5.35  5.43  3.38 2012-02-26
+#&gt; # … with 1 more variable: resid &lt;dbl&gt;</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
