@@ -268,7 +268,7 @@ summary.crtree <- function(
     cat("Regression tree")
   }
   cat("\nData                 :", object$df_name)
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -613,7 +613,7 @@ predict.crtree <- function(
   }
 
   predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
-    set_attr("pred_data", df_name)
+    set_attr("radiant_pred_data", df_name)
 }
 
 #' Print method for predict.crtree

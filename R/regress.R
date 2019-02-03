@@ -82,12 +82,12 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
 
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
-    attr(model$model, "ms") <- attr(dataset, "ms")
-    attr(model$model, "sds") <- attr(dataset, "sds")
+    attr(model$model, "radiant_ms") <- attr(dataset, "radiant_ms")
+    attr(model$model, "radiant_sds") <- attr(dataset, "radiant_sds")
   }
 
-  attr(model$model, "min") <- mmx[["min"]]
-  attr(model$model, "max") <- mmx[["max"]]
+  attr(model$model, "radiant_min") <- mmx[["min"]]
+  attr(model$model, "radiant_max") <- mmx[["max"]]
 
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")
@@ -164,7 +164,7 @@ summary.regress <- function(
 
   cat("Linear regression (OLS)\n")
   cat("Data     :", object$df_name, "\n")
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Response variable    :", object$rvar, "\n")
@@ -634,8 +634,8 @@ predict.regress <- function(
   }
 
   predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
-    set_attr("interval", interval) %>%
-    set_attr("pred_data", df_name)
+    set_attr("radiant_interval", interval) %>%
+    set_attr("radiant_pred_data", df_name)
 }
 
 #' Predict method for model functions
@@ -670,13 +670,13 @@ predict_model <- function(
   if (!is_empty(pred_cmd) && is_empty(pred_data)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
-      ms <- attr(object$model$model, "ms")
+      ms <- attr(object$model$model, "radiant_ms")
       if (!is.null(ms)) {
         dat[names(ms)] <- lapply(names(ms), function(var) (dat[[var]] + ms[[var]]))
       }
     } else if ("standardize" %in% object$check) {
-      ms <- attr(object$model$model, "ms")
-      sds <- attr(object$model$model, "sds")
+      ms <- attr(object$model$model, "radiant_ms")
+      sds <- attr(object$model$model, "radiant_sds")
       if (!is.null(ms) && !is.null(sds)) {
         dat[names(ms)] <- lapply(names(ms), function(var) (dat[[var]] * 2 * sds[[var]] + ms[[var]]))
       }
@@ -783,10 +783,10 @@ predict_model <- function(
 
   ## scale predictors if needed
   if ("center" %in% object$check || "standardize" %in% object$check) {
-    attr(pred, "ms") <- attr(object$model$model, "ms")
+    attr(pred, "radiant_ms") <- attr(object$model$model, "radiant_ms")
     if ("standardize" %in% object$check) {
       scale <- TRUE
-      attr(pred, "sds") <- attr(object$model$model, "sds")
+      attr(pred, "radiant_sds") <- attr(object$model$model, "radiant_sds")
     } else {
       scale <- FALSE
     }
@@ -800,13 +800,13 @@ predict_model <- function(
   if (!inherits(pred_val, "try-error")) {
     ## scale rvar for regression models
     if ("center" %in% object$check) {
-      ms <- attr(object$model$model, "ms")[[object$rvar]]
+      ms <- attr(object$model$model, "radiant_ms")[[object$rvar]]
       if (!is.null(ms)) {
         pred_val[["Prediction"]] <- pred_val[["Prediction"]] + ms
       }
     } else if ("standardize" %in% object$check) {
-      ms <- attr(object$model$model, "ms")[[object$rvar]]
-      sds <- attr(object$model$model, "sds")[[object$rvar]]
+      ms <- attr(object$model$model, "radiant_ms")[[object$rvar]]
+      sds <- attr(object$model$model, "radiant_sds")[[object$rvar]]
       if (!is.null(ms) && !is.null(sds)) {
         pred_val[["Prediction"]] <- pred_val[["Prediction"]] * 2 * sds + ms
       }
@@ -821,16 +821,16 @@ predict_model <- function(
       vars <- c(object$evar, colnames(pred_val))
     }
 
-    pred <- set_attr(pred, "df_name", object$df_name) %>%
-      set_attr("data_filter", object$data_filter) %>%
-      set_attr("rvar", object$rvar) %>%
-      set_attr("lev", object$lev) %>%
-      set_attr("evar", object$evar) %>%
-      set_attr("wtsname", object$wtsname) %>%
-      set_attr("vars", vars) %>%
-      set_attr("dec", dec) %>%
-      set_attr("pred_type", pred_type) %>%
-      set_attr("pred_cmd", pred_cmd)
+    pred <- set_attr(pred, "radiant_df_name", object$df_name) %>%
+      set_attr("radiant_data_filter", object$data_filter) %>%
+      set_attr("radiant_rvar", object$rvar) %>%
+      set_attr("radiant_lev", object$lev) %>%
+      set_attr("radiant_evar", object$evar) %>%
+      set_attr("radiant_wtsname", object$wtsname) %>%
+      set_attr("radiant_vars", vars) %>%
+      set_attr("radiant_dec", dec) %>%
+      set_attr("radiant_pred_type", pred_type) %>%
+      set_attr("radiant_pred_cmd", pred_cmd)
 
     return(add_class(pred, c(mclass, "model.predict")))
   } else {
@@ -849,31 +849,31 @@ predict_model <- function(
 print_predict_model <- function(x, ..., n = 10, header = "") {
 
   class(x) <- "data.frame"
-  data_filter <- attr(x, "data_filter")
-  vars <- attr(x, "vars")
-  pred_type <- attr(x, "pred_type")
-  pred_data <- attr(x, "pred_data")
+  data_filter <- attr(x, "radiant_data_filter")
+  vars <- attr(x, "radiant_vars")
+  pred_type <- attr(x, "radiant_pred_type")
+  pred_data <- attr(x, "radiant_pred_data")
 
-  pred_cmd <- gsub("\\s*([\\=\\+\\*-])\\s*", " \\1 ", attr(x, "pred_cmd")) %>%
+  pred_cmd <- gsub("\\s*([\\=\\+\\*-])\\s*", " \\1 ", attr(x, "radiant_pred_cmd")) %>%
     gsub("(\\s*[;,]\\s*)", "\\1 ", .) %>%
     gsub("\\s+=\\s+=\\s+", " == ", .)
 
   cat(header)
-  cat("\nData                 :", attr(x, "df_name"), "\n")
-  if (data_filter %>% gsub("\\s", "", .) != "") {
+  cat("\nData                 :", attr(x, "radiant_df_name"), "\n")
+  if (!is_empty(data_filter)) {
     cat("Filter               :", gsub("\\n", "", data_filter), "\n")
   }
-  cat("Response variable    :", attr(x, "rvar"), "\n")
-  if (!is_empty(attr(x, "lev"))) {
-    cat("Level(s)             :", paste0(attr(x, "lev"), collapse = ", "), "in", attr(x, "rvar"), "\n")
+  cat("Response variable    :", attr(x, "radiant_rvar"), "\n")
+  if (!is_empty(attr(x, "radiant_lev"))) {
+    cat("Level(s)             :", paste0(attr(x, "radiant_lev"), collapse = ", "), "in", attr(x, "radiant_rvar"), "\n")
   }
-  cat("Explanatory variables:", paste0(attr(x, "evar"), collapse = ", "), "\n")
-  if (!is_empty(attr(x, "wtsname"))) {
-    cat("Weights used         :", attr(x, "wtsname"), "\n")
+  cat("Explanatory variables:", paste0(attr(x, "radiant_evar"), collapse = ", "), "\n")
+  if (!is_empty(attr(x, "radiant_wtsname"))) {
+    cat("Weights used         :", attr(x, "radiant_wtsname"), "\n")
   }
 
-  if (!is_empty(attr(x, "interval"), "none")) {
-    cat("Interval             :", attr(x, "interval"), "\n")
+  if (!is_empty(attr(x, "radiant_interval"), "none")) {
+    cat("Interval             :", attr(x, "radiant_interval"), "\n")
   }
 
   if (pred_type == "cmd") {
@@ -887,7 +887,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   if (n == -1) {
     cat("\n")
-    format_df(x[, vars, drop = FALSE], attr(x, "dec")) %>%
+    format_df(x[, vars, drop = FALSE], attr(x, "radiant_dec")) %>%
       print(row.names = FALSE)
   } else {
     if (nrow(x) > n) {
@@ -895,7 +895,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     }
     cat("\n")
     head(x[, vars, drop = FALSE], n) %>%
-      format_df(attr(x, "dec")) %>%
+      format_df(attr(x, "radiant_dec")) %>%
       print(row.names = FALSE)
   }
 }
@@ -971,8 +971,6 @@ plot.model.predict <- function(
     return("Some specified plotting variables are not in the model.\nPress the Estimate button to update results.")
   }
 
-  ## due to https://github.com/tidyverse/dplyr/issues/4149
-  attr(x, "vars") <- NULL
   tmp <- x %>%
     select_at(.vars = c(tbv, pvars)) %>%
     group_by_at(.vars = tbv) %>%
@@ -1046,7 +1044,7 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
   }
 
   vars <- colnames(object)[seq_len(ind - 1)]
-  indr <- indexr(dataset, vars = vars, filt = "", cmd = attr(object, "pred_cmd"))
+  indr <- indexr(dataset, vars = vars, filt = "", cmd = attr(object, "radiant_pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
 

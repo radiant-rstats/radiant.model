@@ -84,7 +84,7 @@ summary.nb <- function(object, dec = 3, ...) {
 
   cat("Naive Bayes Classifier")
   cat("\nData                 :", object$df_name)
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -254,7 +254,7 @@ predict.nb <- function(
   }
 
   predict_model(object, pfun, "nb.predict", pred_data, pred_cmd, dec = dec) %>%
-    set_attr("pred_data", df_name)
+    set_attr("radiant_pred_data", df_name)
 }
 
 #' Print method for predict.nb
@@ -265,7 +265,7 @@ predict.nb <- function(
 #'
 #' @export
 print.nb.predict <- function(x, ..., n = 10)
-  print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier", lev = attr(x, "lev"))
+  print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier", lev = attr(x, "radiant_lev"))
 
 #' Plot method for nb.predict function
 #'
@@ -303,8 +303,8 @@ plot.nb.predict <- function(
 
   if (is.character(x)) return(x)
 
-  pvars <- base::setdiff(attr(x, "vars"), attr(x, "evar"))
-  rvar <- attr(x, "rvar")
+  pvars <- base::setdiff(attr(x, "radiant_vars"), attr(x, "radiant_evar"))
+  rvar <- attr(x, "radiant_rvar")
   x %<>% gather(".class", "Prediction", !! pvars)
 
   byvar <- c(xvar, color)
@@ -346,7 +346,7 @@ plot.nb.predict <- function(
 store.nb.predict <- function(dataset, object, name = "pred_nb", ...) {
 
   ## extract the names of the variables predicted
-  pvars <- base::setdiff(attr(object, "vars"), attr(object, "evar"))
+  pvars <- base::setdiff(attr(object, "radiant_vars"), attr(object, "radiant_evar"))
 
   ## as.vector removes all attributes from df
   df <- as.vector(object[, pvars])
@@ -362,7 +362,7 @@ store.nb.predict <- function(dataset, object, name = "pred_nb", ...) {
     }
   }
 
-  indr <- indexr(dataset, attr(object, "evar"), "", cmd = attr(object, "pred_cmd"))
+  indr <- indexr(dataset, attr(object, "radiant_evar"), "", cmd = attr(object, "radiant_pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- df
 

@@ -170,7 +170,7 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 
   cat("Evaluate predictions for binary response models\n")
   cat("Data        :", object$df_name, "\n")
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Results for :", object$train, "\n")
@@ -492,7 +492,7 @@ summary.confusion <- function(object, dec = 3, ...) {
 
   cat("Confusion matrix\n")
   cat("Data       :", object$df_name, "\n")
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("Filter     :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Results for:", object$train, "\n")

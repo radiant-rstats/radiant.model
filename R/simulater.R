@@ -80,7 +80,7 @@ simulater <- function(
     dataset <- list()
   } else {
     ## needed because number may be NA and missing if grid used in Simulate
-    nr <- attr(dataset, "sim_call")$nr
+    nr <- attr(dataset, "radiant_sim_call")$nr
   }
 
   grid %<>% sim_cleaner()
@@ -302,8 +302,8 @@ simulater <- function(
   sc$ncorr <- ncorr
   sc$nexact <- nexact
   sc$funcs <- pfuncs
-  attr(dataset, "sim_call") <- sc
-  attr(dataset, "df_name") <- deparse(substitute(data))
+  attr(dataset, "radiant_sim_call") <- sc
+  attr(dataset, "radiant_df_name") <- deparse(substitute(data))
 
   if (nrow(dataset) == 0) {
     mess <- c("error", paste0("The simulated data set has 0 rows"))
@@ -344,7 +344,7 @@ summary.simulater <- function(object, dec = 4, ...) {
     stop("To generate summary statistics please provide a simulated dataset as input", call. = FALSE)
   }
 
-  sc <- attr(object, "sim_call")
+  sc <- attr(object, "radiant_sim_call")
   clean <- function(x) {
     paste0(x, collapse = ";") %>%
     gsub(";", "; ", .) %>%
@@ -367,10 +367,10 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (!is_empty(sc$unif)) cat("Uniform    :", clean(sc$unif))
   if (!is_empty(sc$pois)) cat("Poisson    :", clean(sc$pois))
   if (!is_empty(sc$const)) cat("Constant   :", clean(sc$const))
-  if (is.data.frame(sc$data)) cat("Data       :", attr(object, "df_name"), "\n")
+  if (is.data.frame(sc$data)) cat("Data       :", attr(object, "radiant_df_name"), "\n")
   if (!is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
   if (!is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
-  funcs <- attr(object, "funcs")
+  funcs <- attr(object, "radiant_funcs")
   if (!is_empty(funcs)) {
     funcs <- parse(text = funcs)
     lfuncs <- list()
@@ -535,7 +535,7 @@ repeater <- function(
   ## from http://stackoverflow.com/a/7664655/1974918
   ## keep those list elements that, e.g., q is in
   nr_sim <- nrow(dataset)
-  sc <- attr(dataset, "sim_call")
+  sc <- attr(dataset, "radiant_sim_call")
 
   ## reset dataset to list with vectors of the correct length
   dataset <- as.list(dataset)
@@ -690,8 +690,8 @@ repeater <- function(
   rc[names(rmc)] <- rmc
 
   rc$sc <- sc[base::setdiff(names(sc), "dat")]
-  attr(ret, "rep_call") <- rc
-  attr(ret, "df_name") <- df_name
+  attr(ret, "radiant_rep_call") <- rc
+  attr(ret, "radiant_df_name") <- df_name
 
   mess <- paste0(
     "\n### Repeated simulation data\n\nFormula:\n\n",
@@ -725,7 +725,7 @@ summary.repeater <- function(object, dec = 4, ...) {
   }
 
   ## getting the repeater call
-  rc <- attr(object, "rep_call")
+  rc <- attr(object, "radiant_rep_call")
 
   clean <- function(x) {
     paste0(x, collapse = ";") %>%
@@ -745,9 +745,9 @@ summary.repeater <- function(object, dec = 4, ...) {
   cat("Function      :", rc$fun, "\n")
   cat("Random  seed  :", rc$seed, "\n")
   if (is.data.frame(rc$sim)) {
-    rc$sim <- attr(rc$sim, "sim_call")$name
+    rc$sim <- attr(rc$sim, "radiant_sim_call")$name
   }
-  cat("Simulated data:", attr(object, "df_name"), "\n")
+  cat("Simulated data:", attr(object, "radiant_df_name"), "\n")
   if (is_empty(rc$name)) {
     cat("Repeat  data  :", deparse(substitute(object)), "\n")
   } else {
@@ -792,7 +792,7 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
   if (nrow(x) == 0) return(invisible())
 
   ## getting the repeater call
-  rc <- attr(x, "rep_call")
+  rc <- attr(x, "radiant_rep_call")
   plot_list <- list()
   for (i in colnames(x)[-1]) {
     dat <- select_at(x, .vars = i)
@@ -894,7 +894,7 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
       summarise_all(list(sum, mean), na.rm = TRUE) %>%
       round(dec) %>%
       matrix(ncol = 2) %>%
-      as.data.frame() %>%
+      as.data.frame(stringsAsFactors = FALSE) %>%
       set_colnames(c("TRUE (nr)  ", "TRUE (prop)")) %>%
       set_rownames(names(dataset)[isLogic]) %>%
       format(big.mark = ",", scientific = FALSE) %>%

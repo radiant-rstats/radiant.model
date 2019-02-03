@@ -189,27 +189,27 @@ scaledf <- function(
       }
     }
   } else {
-    ms <- attr(dataset, "ms")
-    sds <- attr(dataset, "sds")
+    ms <- attr(dataset, "radiant_ms")
+    sds <- attr(dataset, "radiant_sds")
     if (is.null(ms) && is.null(sds)) return(dataset)
   }
   if (center && scale) {
     icn <- intersect(names(ms), cn)
     dataset[icn] <- lapply(icn, function(var) (dataset[[var]] - ms[[var]]) / (sf * sds[[var]]))
     dataset %>%
-      set_attr("ms", ms) %>%
-      set_attr("sds", sds) %>%
+      set_attr("radiant_ms", ms) %>%
+      set_attr("radiant_sds", sds) %>%
       set_attr("description", descr)
   } else if (center) {
     icn <- intersect(names(ms), cn)
     dataset[icn] <- lapply(icn, function(var) dataset[[var]] - ms[[var]])
     dataset %>%
-      set_attr("ms", ms) %>%
+      set_attr("radiant_ms", ms) %>%
       set_attr("description", descr)
   } else if (scale) {
     icn <- intersect(names(sds), cn)
     dataset[icn] <- lapply(icn, function(var) dataset[[var]] / (sf * sds[[var]]))
-      set_attr("sds", sds) %>%
+      set_attr("radiant_sds", sds) %>%
       set_attr("description", descr)
   } else {
     dataset
@@ -243,7 +243,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
     cat("Activation function  : Linear (regression)")
   }
   cat("\nData                 :", object$df_name)
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -412,7 +412,7 @@ predict.nn <- function(
   }
 
   predict_model(object, pfun, "nn.predict", pred_data, pred_cmd, conf_lev = 0.95, se = FALSE, dec) %>%
-    set_attr("pred_data", df_name)
+    set_attr("radiant_pred_data", df_name)
 }
 
 #' Print method for predict.nn

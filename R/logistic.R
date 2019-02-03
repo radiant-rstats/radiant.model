@@ -138,12 +138,12 @@ logistic <- function(
 
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
-    attr(model$model, "ms") <- attr(dataset, "ms")
-    attr(model$model, "sds") <- attr(dataset, "sds")
+    attr(model$model, "radiant_ms") <- attr(dataset, "radiant_ms")
+    attr(model$model, "radiant_sds") <- attr(dataset, "radiant_sds")
   }
 
-  attr(model$model, "min") <- mmx[["min"]]
-  attr(model$model, "max") <- mmx[["max"]]
+  attr(model$model, "radiant_min") <- mmx[["min"]]
+  attr(model$model, "radiant_max") <- mmx[["max"]]
 
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
@@ -222,7 +222,7 @@ summary.logistic <- function(
 
   cat("Logistic regression (GLM)")
   cat("\nData                 :", object$df_name)
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -677,8 +677,8 @@ predict.logistic <- function(
   }
 
   predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
-    set_attr("interval", interval) %>%
-    set_attr("pred_data", df_name)
+    set_attr("radiant_interval", interval) %>%
+    set_attr("radiant_pred_data", df_name)
 }
 
 #' Print method for logistic.predict
@@ -777,19 +777,19 @@ write.coeff <- function(
   csds <- apply(mm, 2, sd, na.rm = TRUE)[-1]
   cmn <- cms * 0
   cmx <- cmn + 1
-  mn <- attr(object$model$model, "min")
+  mn <- attr(object$model$model, "radiant_min")
   nms <- intersect(names(cms), names(mn))
   dummy <- cmx
   dummy[nms] <- 0
   cmn[nms] <- mn[nms]
-  mx <- attr(object$model$model, "max")
+  mx <- attr(object$model$model, "radiant_max")
   cmx[nms] <- mx[nms]
   rm(mm)
 
   if ("standardize" %in% object$check || "center" %in% object$check) {
-    ms <- attr(object$model$model, "ms")
+    ms <- attr(object$model$model, "radiant_ms")
     cms[nms] <- ms[nms]
-    sds <- attr(object$model$model, "sds")
+    sds <- attr(object$model$model, "radiant_sds")
     if (!is_empty(sds)) csds[nms] <- sds[nms]
     cat("Standardized coefficients selected\n\n", file = file)
   } else {

@@ -89,7 +89,7 @@ summary.evalreg <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
   cat("Evaluate predictions for regression models\n")
   cat("Data        :", object$df_name, "\n")
-  if (object$data_filter %>% gsub("\\s", "", .) != "") {
+  if (!is_empty(object$data_filter)) {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Results for :", object$train, "\n")
