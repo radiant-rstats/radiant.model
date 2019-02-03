@@ -537,7 +537,7 @@ plot.confusion <- function(
 
   if (is.character(x) || is.null(x)) return(invisible())
   dataset <- x$dataset %>%
-    mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = ~ if (is.numeric(.)) . / total else .) %>%
+    mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = list(~ if (is.numeric(.)) . / total else .)) %>%
     gather("Metric", "Value", !! vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
