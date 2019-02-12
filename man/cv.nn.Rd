@@ -2,7 +2,7 @@
 % Please edit documentation in R/nn.R
 \name{cv.nn}
 \alias{cv.nn}
-\title{Cross-validation for Neural Network}
+\title{Cross-validation for a Neural Network}
 \usage{
 cv.nn(object, K = 5, repeats = 1, decay = seq(0, 1, 0.2),
   size = 1:5, seed = 1234, trace = TRUE, fun, ...)
@@ -30,7 +30,7 @@ cv.nn(object, K = 5, repeats = 1, decay = seq(0, 1, 0.2),
 A data.frame sorted by the mean of the performance metric
 }
 \description{
-Cross-validation for Neural Network
+Cross-validation for a Neural Network
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
@@ -40,13 +40,22 @@ See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in 
 result <- nn(dvd, "buy", c("coupon", "purch", "last"))
 cv.nn(result, decay = seq(0, 1, .5), size = 1:2)
 cv.nn(result, decay = seq(0, 1, .5), size = 1:2, fun = profit, cost = 1, margin = 5)
+result <- nn(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
+cv.nn(result, decay = seq(0, 1, .5), size = 1:2)
+cv.nn(result, decay = seq(0, 1, .5), size = 1:2, fun = Rsq)
 }
 
 }
 \seealso{
-\code{\link{summary.nn}} to summarize results
+\code{\link{nn}} to generate an initial model that can be passed to cv.nn
 
-\code{\link{plot.nn}} to plot results
+\code{\link{Rsq}} to calculate an R-squared measure for a regression
 
-\code{\link{predict.nn}} for prediction
+\code{\link{RMSE}} to calculate the Root Mean Squared Error for a regression
+
+\code{\link{MAE}} to calculate the Mean Absolute Error for a regression
+
+\code{\link{auc}} to calculate the area under the ROC curve for classification
+
+\code{\link{profit}} to calculate profits for classification at a cost/margin threshold
 }

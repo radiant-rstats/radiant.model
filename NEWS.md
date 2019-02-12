@@ -1,5 +1,6 @@
-# radiant.model 0.9.8.6
+# radiant.model 0.9.8.7
 
+* Improve documentation for cross-validation of `nn` and `crtree` models (i.e., `cv.nn` and `cv.crtree`)
 * Fixes for breaking changes in dplyr 0.8.0
 * Fix to download tables from _Model > Evaluate classificiation_
 * Use an expandable `shinyAce` input for the formula and function inputs in _Model > Simulate_

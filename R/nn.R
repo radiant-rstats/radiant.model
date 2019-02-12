@@ -275,14 +275,12 @@ summary.nn <- function(object, prn = TRUE, ...) {
   } else {
     if (prn) {
       cat("Weights              :\n")
-      out <- capture.output(summary(object$model))[-1:-2]
-      if (nchar(out[1]) > 150) {
-        oop <- base::options(width = 100)
-        on.exit(base::options(oop), add = TRUE)
-      }
-      gsub("^", "  ", out) %>%
-      paste0(collapse = "\n") %>%
-      cat("\n")
+      oop <- base::options(width = 100)
+      on.exit(base::options(oop), add = TRUE)
+      capture.output(summary(object$model))[-1:-2] %>%
+        gsub("^", "  ", .) %>%
+        paste0(collapse = "\n") %>%
+        cat("\n")
     }
   }
 }
@@ -425,7 +423,7 @@ predict.nn <- function(
 print.nn.predict <- function(x, ..., n = 10)
   print_predict_model(x, ..., n = n, header = "Neural Network")
 
-#' Cross-validation for Neural Network
+#' Cross-validation for a Neural Network
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
@@ -441,9 +439,12 @@ print.nn.predict <- function(x, ..., n = 10)
 #'
 #' @return A data.frame sorted by the mean of the performance metric
 #'
-#' @seealso \code{\link{summary.nn}} to summarize results
-#' @seealso \code{\link{plot.nn}} to plot results
-#' @seealso \code{\link{predict.nn}} for prediction
+#' @seealso \code{\link{nn}} to generate an initial model that can be passed to cv.nn
+#' @seealso \code{\link{Rsq}} to calculate an R-squared measure for a regression
+#' @seealso \code{\link{RMSE}} to calculate the Root Mean Squared Error for a regression
+#' @seealso \code{\link{MAE}} to calculate the Mean Absolute Error for a regression
+#' @seealso \code{\link{auc}} to calculate the area under the ROC curve for classification
+#' @seealso \code{\link{profit}} to calculate profits for classification at a cost/margin threshold
 #'
 #' @importFrom nnet nnet.formula
 #' @importFrom shiny getDefaultReactiveDomain withProgress incProgress
@@ -453,6 +454,9 @@ print.nn.predict <- function(x, ..., n = 10)
 #' result <- nn(dvd, "buy", c("coupon", "purch", "last"))
 #' cv.nn(result, decay = seq(0, 1, .5), size = 1:2)
 #' cv.nn(result, decay = seq(0, 1, .5), size = 1:2, fun = profit, cost = 1, margin = 5)
+#' result <- nn(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
+#' cv.nn(result, decay = seq(0, 1, .5), size = 1:2)
+#' cv.nn(result, decay = seq(0, 1, .5), size = 1:2, fun = Rsq)
 #' }
 #'
 #' @export

@@ -643,6 +643,11 @@ print.crtree.predict <- function(x, ..., n = 10)
 #' @return A data.frame sorted by the mean, sd, min, and max of the performance metric
 #'
 #' @seealso \code{\link{crtree}} to generate an initial model that can be passed to cv.crtree
+#' @seealso \code{\link{Rsq}} to calculate an R-squared measure for a regression
+#' @seealso \code{\link{RMSE}} to calculate the Root Mean Squared Error for a regression
+#' @seealso \code{\link{MAE}} to calculate the Mean Absolute Error for a regression
+#' @seealso \code{\link{auc}} to calculate the area under the ROC curve for classification
+#' @seealso \code{\link{profit}} to calculate profits for classification at a cost/margin threshold
 #'
 #' @importFrom rpart prune.rpart
 #' @importFrom shiny getDefaultReactiveDomain withProgress incProgress
@@ -652,6 +657,8 @@ print.crtree.predict <- function(x, ..., n = 10)
 #' result <- crtree(dvd, "buy", c("coupon", "purch", "last"))
 #' cv.crtree(result, cp = 0.0001, pcp = seq(0, 0.01, length.out = 11))
 #' cv.crtree(result, cp = 0.0001, pcp = c(0, 0.001, 0.002), fun = profit, cost = 1, margin = 5)
+#' result <- crtree(diamonds, "price", c("carat", "color", "clarity"), type = "regression", cp = 0.001)
+#' cv.crtree(result, cp = 0.001, pcp = seq(0, 0.01, length.out = 11), fun = MAE)
 #' }
 #'
 #' @export
