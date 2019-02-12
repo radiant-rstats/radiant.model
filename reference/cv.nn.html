@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Cross-validation for Neural Network — cv.nn • radiant.model</title>
+<title>Cross-validation for a Neural Network — cv.nn • radiant.model</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -36,9 +36,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
 
-<meta property="og:title" content="Cross-validation for Neural Network — cv.nn" />
+<meta property="og:title" content="Cross-validation for a Neural Network — cv.nn" />
 
-<meta property="og:description" content="Cross-validation for Neural Network" />
+<meta property="og:description" content="Cross-validation for a Neural Network" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.7</span>
       </span>
     </div>
 
@@ -153,14 +153,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Cross-validation for Neural Network</h1>
+    <h1>Cross-validation for a Neural Network</h1>
     <small class="dont-index">Source: <a href='https://github.com/radiant-rstats/radiant.model/blob/master/R/nn.R'><code>R/nn.R</code></a></small>
     <div class="hidden name"><code>cv.nn.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Cross-validation for Neural Network</p>
+    <p>Cross-validation for a Neural Network</p>
     
     </div>
 
@@ -218,9 +218,12 @@
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code>summary.nn</code> to summarize results</p>
-<p><code>plot.nn</code> to plot results</p>
-<p><code>predict.nn</code> for prediction</p></div>
+    <div class='dont-index'><p><code>nn</code> to generate an initial model that can be passed to cv.nn</p>
+<p><code>Rsq</code> to calculate an R-squared measure for a regression</p>
+<p><code>RMSE</code> to calculate the Root Mean Squared Error for a regression</p>
+<p><code>MAE</code> to calculate the Mean Absolute Error for a regression</p>
+<p><code>auc</code> to calculate the area under the ROC curve for classification</p>
+<p><code>profit</code> to calculate profits for classification at a cost/margin threshold</p></div>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
@@ -228,6 +231,9 @@
 <span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>nn</span>(<span class='no'>dvd</span>, <span class='st'>"buy"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"coupon"</span>, <span class='st'>"purch"</span>, <span class='st'>"last"</span>))
 <span class='fu'>cv.nn</span>(<span class='no'>result</span>, <span class='kw'>decay</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>.5</span>), <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>1</span>:<span class='fl'>2</span>)
 <span class='fu'>cv.nn</span>(<span class='no'>result</span>, <span class='kw'>decay</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>.5</span>), <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>1</span>:<span class='fl'>2</span>, <span class='kw'>fun</span> <span class='kw'>=</span> <span class='no'>profit</span>, <span class='kw'>cost</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>margin</span> <span class='kw'>=</span> <span class='fl'>5</span>)
+<span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>nn</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"color"</span>, <span class='st'>"clarity"</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>)
+<span class='fu'>cv.nn</span>(<span class='no'>result</span>, <span class='kw'>decay</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>.5</span>), <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>1</span>:<span class='fl'>2</span>)
+<span class='fu'>cv.nn</span>(<span class='no'>result</span>, <span class='kw'>decay</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>.5</span>), <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>1</span>:<span class='fl'>2</span>, <span class='kw'>fun</span> <span class='kw'>=</span> <span class='no'>Rsq</span>)
 <span class='co'># }</span><div class='input'>
 </div></pre>
   </div>
