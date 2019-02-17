@@ -1,5 +1,6 @@
-# radiant.model 0.9.8.7
+# radiant.model 0.9.8.8
 
+* Fix for `cv.nn` when weights are used in estimation
 * Improve documentation for cross-validation of `nn` and `crtree` models (i.e., `cv.nn` and `cv.crtree`)
 * Fixes for breaking changes in dplyr 0.8.0
 * Fix to download tables from _Model > Evaluate classificiation_

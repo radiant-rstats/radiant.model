@@ -469,6 +469,7 @@ cv.nn <- function(
   if (inherits(object, "nnet")) {
     dv <- as.character(object$call$formula[[2]])
     m <- eval(object$call[["data"]])
+    weights <- eval(object$call[["weights"]])
     if (is.numeric(m[[dv]])) {
       type <- "regression"
     } else {
@@ -521,6 +522,9 @@ cv.nn <- function(
         rand <- sample(K, nrow(m), replace = TRUE)
         for (k in seq_len(K)) {
           object$call[["data"]] <- quote(m[rand != k, , drop = FALSE])
+          if (length(weights) > 0) {
+            object$call[["weights"]] <- weights[rand != k]
+          }
           pred <- predict(eval(object$call), newdata = m[rand == k, , drop = FALSE])[,1]
           if (type == "classification") {
             if (missing(...)) {
