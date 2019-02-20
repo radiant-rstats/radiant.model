@@ -114,10 +114,14 @@ output$ui_crs <- renderUI({
   )
 })
 
-# crs_plot <- reactive({
 crs_plot <- eventReactive(input$crs_run, {
-  plot_height <- ceiling(length(input$crs_pred) / 3) * 300
-  plot_width <- 650
+  if (length(input$crs_pred) == 0) {
+    plot_height <- 500
+    plot_width <- 650
+  } else {
+    plot_height <- ceiling(length(input$crs_pred) / 3) * 220
+    plot_width <- min(4, length(input$crs_pred)) * 220
+  }
   list(plot_width = plot_width, plot_height = plot_height)
 })
 

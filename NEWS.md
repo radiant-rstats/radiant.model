@@ -1,5 +1,6 @@
-# radiant.model 0.9.8.8
+# radiant.model 0.9.8.9
 
+* Fix for plot sizing and printing of missing values in collaborative filtering
 * Fix for `cv.nn` when weights are used in estimation
 * Improve documentation for cross-validation of `nn` and `crtree` models (i.e., `cv.nn` and `cv.crtree`)
 * Fixes for breaking changes in dplyr 0.8.0

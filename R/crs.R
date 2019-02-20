@@ -2,7 +2,7 @@
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in Radiant
 #'
-#' @param dataset Dataset 
+#' @param dataset Dataset
 #' @param id String with name of the variable containing user ids
 #' @param prod String with name of the variable with product ids
 #' @param pred Products to predict for
@@ -15,7 +15,7 @@
 #' @seealso \code{\link{plot.crs}} to plot results if the actual ratings are available
 #'
 #' @examples
-#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"), 
+#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
 #'     rate = "Ratings", data_filter = "training == 1") %>% str()
 #'
 #' @importFrom dplyr distinct_
@@ -34,8 +34,8 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## make sure spread doesn't complain
   cn <- colnames(dataset)
-  # nr <- dplyr::distinct_at(dataset, .vars = base::setdiff(cn, rate), .keep_all = TRUE) %>% 
-  nr <- distinct_(dataset, .dots = base::setdiff(cn, rate), .keep_all = TRUE) %>% 
+  # nr <- dplyr::distinct_at(dataset, .vars = base::setdiff(cn, rate), .keep_all = TRUE) %>%
+  nr <- distinct_(dataset, .dots = base::setdiff(cn, rate), .keep_all = TRUE) %>%
     nrow()
   if (nr < nrow(dataset)) {
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
@@ -51,7 +51,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ## can use : for long sets of products to predict for
   if (any(grepl(":", pred))) {
     pred <- select(
-      dataset[1, , drop = FALSE], 
+      dataset[1, , drop = FALSE],
       !!! rlang::parse_exprs(paste0(pred, collapse = ";"))
     ) %>% colnames()
   }
@@ -59,7 +59,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ## stop if insufficient overlap in ratings
   if (length(pred) >= (ncol(dataset) - 1)) {
     return("Cannot predict for all products. Ratings must overlap on at least two products." %>% add_class("crs"))
-  } 
+  }
 
   if (length(vars) < (ncol(dataset) - 1)) {
     vars <- evar <- colnames(dataset)[-1]
@@ -83,11 +83,11 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
   ract <- act
 
   if (nrow(act) == 0) {
-    return("Invalid filter used. Users to predict for should not be in the training set." %>% 
+    return("Invalid filter used. Users to predict for should not be in the training set." %>%
       add_class("crs"))
   }
 
-  rank <- apply(act, 1, function(x) as.integer(min_rank(desc(x)))) %>% 
+  rank <- apply(act, 1, function(x) as.integer(min_rank(desc(x)))) %>%
     {if (length(pred) == 1) . else t(.)}
   ract[, pred] <- rank
   ract <- bind_cols(idv[-uid, , drop = FALSE], ract)
@@ -164,7 +164,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 #' @seealso \code{\link{plot.crs}} to plot results if the actual ratings are available
 #'
 #' @examples
-#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"), 
+#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
 #'     rate = "Ratings", data_filter = "training == 1") %>% summary()
 #'
 #' @export
@@ -214,20 +214,22 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 
     ## best 3 based on cf contains best product
     best <- which(!object$rcf[, -1, drop = FALSE] < 4, arr.ind = TRUE)
-    best[, "col"] <- best[, "col"] + 1 
+    best[, "col"] <- best[, "col"] + 1
     object$ract[best] <- NA
     incf3 <- mean(rowSums(object$ract == 1, na.rm = TRUE) > 0)
     cat("\n- Top 3 based on collaborative filtering contains the best product", format_nr(incf3, dec = 1, perc = TRUE), "of the time\n")
   }
 
-  object$recommendations[is.na(object$recommendations)] <- ""
   cat("\nRecommendations:\n\n")
   if (n == -1) {
     cat("\n")
-    print(format_df(object$recommendations, dec = dec), row.names = FALSE)
+    format_df(object$recommendations, dec = dec) %>%
+      {.[. == "NA"] <- ""; .} %>%
+      print(row.names = FALSE)
   } else {
-    head(object$recommendations, n) %>% 
-      format_df(dec = dec) %>% 
+    head(object$recommendations, n) %>%
+      format_df(dec = dec) %>%
+      {.[. == "NA"] <- ""; .} %>%
       print(row.names = FALSE)
   }
 }
@@ -285,8 +287,8 @@ store.crs <- function(dataset, object, name, ...) {
   } else {
      stop(
       paste0(
-        "This function is deprecated. Use the code below instead:\n\n", 
-        name, " <- ", deparse(substitute(object)), "$recommendations\nregister(\"", 
+        "This function is deprecated. Use the code below instead:\n\n",
+        name, " <- ", deparse(substitute(object)), "$recommendations\nregister(\"",
         name, ")"
       ),
       call. = FALSE
