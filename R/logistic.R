@@ -105,9 +105,9 @@ logistic <- function(
 
   ## scale data
   if ("standardize" %in% check) {
-    dataset <- scaledf(dataset, wts = wts)
+    dataset <- scale_df(dataset, wts = wts)
   } else if ("center" %in% check) {
-    dataset <- scaledf(dataset, scale = FALSE, wts = wts)
+    dataset <- scale_df(dataset, scale = FALSE, wts = wts)
   }
 
   form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
@@ -742,7 +742,7 @@ minmax <- function(dataset) {
 
 #' Write coefficient table for linear and logistic regression
 #'
-#' @details Write coefficients and importance scores to csv or or return as a data.frame 
+#' @details Write coefficients and importance scores to csv or or return as a data.frame
 #'
 #' @param object A fitted model object of class regress or logistic
 #' @param file A character string naming a file. "" indicates output to the console

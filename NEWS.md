@@ -1,5 +1,6 @@
 # radiant.model 0.9.8.9
 
+* Rename `scaledf` to `scale_df` for consistency
 * Fix for plot sizing and printing of missing values in collaborative filtering
 * Fix for `cv.nn` when weights are used in estimation
 * Improve documentation for cross-validation of `nn` and `crtree` models (i.e., `cv.nn` and `cv.crtree`)

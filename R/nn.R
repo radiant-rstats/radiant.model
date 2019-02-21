@@ -98,7 +98,7 @@ nn <- function(
   ## standardize data to limit stability issues ...
   # http://stats.stackexchange.com/questions/23235/how-do-i-improve-my-neural-network-stability
   if ("standardize" %in% check) {
-    dataset <- scaledf(dataset, wts = wts)
+    dataset <- scale_df(dataset, wts = wts)
   }
 
   vars <- evar
@@ -161,7 +161,7 @@ nn <- function(
 #' @seealso \code{\link{copy_attr}} to copy attributes from a training to a test dataset
 #'
 #' @export
-scaledf <- function(
+scale_df <- function(
   dataset, center = TRUE, scale = TRUE,
   sf = 2, wts = NULL, calc = TRUE
 ) {

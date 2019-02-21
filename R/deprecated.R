@@ -11,10 +11,15 @@
 #' @section Details:
 #' \tabular{rl}{
 #'   \code{ann} is now a synonym for \code{\link{nn}}\cr
+#'   \code{scaledf} is now a synonym for \code{\link{scale_df}}\cr
 #' }
 #'
 ann <- function(...) {
   .Deprecated("nn", package = "radiant.model")
   nn(...)
+}
+scaledf <- function(...) {
+  .Deprecated("scale_df", package = "radiant.model")
+  scale_df(...)
 }
 NULL

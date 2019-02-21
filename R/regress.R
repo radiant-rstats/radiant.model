@@ -48,9 +48,9 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   isNum <- sapply(dataset, is.numeric)
   if (sum(isNum) > 0) {
     if ("standardize" %in% check) {
-      dataset <- scaledf(dataset)
+      dataset <- scale_df(dataset)
     } else if ("center" %in% check) {
-      dataset <- scaledf(dataset, scale = FALSE)
+      dataset <- scale_df(dataset, scale = FALSE)
     }
   }
 
@@ -790,7 +790,7 @@ predict_model <- function(
     } else {
       scale <- FALSE
     }
-    pred_val <- scaledf(pred, center = TRUE, scale = scale, calc = FALSE) %>%
+    pred_val <- scale_df(pred, center = TRUE, scale = scale, calc = FALSE) %>%
       pfun(object$model, ., se = se, conf_lev = conf_lev)
   } else {
     ## generate predictions using the supplied function (pfun)

@@ -121,7 +121,7 @@ crtree <- function(
 
   ## standardize data ...
   if ("standardize" %in% check) {
-    dataset <- scaledf(dataset, wts = wts)
+    dataset <- scale_df(dataset, wts = wts)
   }
 
   vars <- evar

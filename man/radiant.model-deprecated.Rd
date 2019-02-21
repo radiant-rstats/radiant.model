@@ -20,6 +20,7 @@ radiant. They will eventually be  removed.
 
 \tabular{rl}{
   \code{ann} is now a synonym for \code{\link{nn}}\cr
+  \code{scaledf} is now a synonym for \code{\link{scale_df}}\cr
 }
 }
 
