@@ -18,7 +18,7 @@
 #' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
 #'     rate = "Ratings", data_filter = "training == 1") %>% str()
 #'
-#' @importFrom dplyr distinct_
+#' @importFrom dplyr distinct_at
 #'
 #' @export
 crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
@@ -34,8 +34,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
 
   ## make sure spread doesn't complain
   cn <- colnames(dataset)
-  # nr <- dplyr::distinct_at(dataset, .vars = base::setdiff(cn, rate), .keep_all = TRUE) %>%
-  nr <- distinct_(dataset, .dots = base::setdiff(cn, rate), .keep_all = TRUE) %>%
+  nr <- dplyr::distinct_at(dataset, .vars = base::setdiff(cn, rate), .keep_all = TRUE) %>%
     nrow()
   if (nr < nrow(dataset)) {
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
