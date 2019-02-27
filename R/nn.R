@@ -199,6 +199,7 @@ scale_df <- function(
     dataset %>%
       set_attr("radiant_ms", ms) %>%
       set_attr("radiant_sds", sds) %>%
+      set_attr("radiant_sf", sf) %>%
       set_attr("description", descr)
   } else if (center) {
     icn <- intersect(names(ms), cn)
@@ -210,6 +211,7 @@ scale_df <- function(
     icn <- intersect(names(sds), cn)
     dataset[icn] <- lapply(icn, function(var) dataset[[var]] / (sf * sds[[var]]))
       set_attr("radiant_sds", sds) %>%
+      set_attr("radiant_sf", sf) %>%
       set_attr("description", descr)
   } else {
     dataset
@@ -465,7 +467,22 @@ cv.nn <- function(
   seed = 1234, trace = TRUE, fun, ...
 ) {
 
-  if (inherits(object, "nn")) object <- object$model
+  if (inherits(object, "nn")) {
+    ms <- attr(object$model$model, "radiant_ms")[[object$rvar]]
+    sds <- attr(object$model$model, "radiant_sds")[[object$rvar]]
+    if(length(sds) == 0) {
+      sds <- sf <- 1
+    } else {
+      sf <- attr(object$model$model, "radiant_sf")
+      sf <- ifelse(length(sf) == 0, 2, sf)
+    }
+    object <- object$model
+  } else {
+    ms <- 0
+    sds <- 1
+    sf <- 1
+  }
+
   if (inherits(object, "nnet")) {
     dv <- as.character(object$call$formula[[2]])
     m <- eval(object$call[["data"]])
@@ -533,10 +550,12 @@ cv.nn <- function(
               perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv]), lev, ...)
             }
           } else {
+            pred <- pred * sf * sds + ms
+            rvar <- unlist(m[rand == k, dv]) * sf * sds + ms
             if (missing(...)) {
-              perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv]))
+              perf[k + (j - 1) * K] <- fun(pred, rvar)
             } else {
-              perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv], ...))
+              perf[k + (j - 1) * K] <- fun(pred, rvar, ...)
             }
           }
         }

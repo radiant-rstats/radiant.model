@@ -84,6 +84,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   if ("standardize" %in% check || "center" %in% check) {
     attr(model$model, "radiant_ms") <- attr(dataset, "radiant_ms")
     attr(model$model, "radiant_sds") <- attr(dataset, "radiant_sds")
+    attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
   attr(model$model, "radiant_min") <- mmx[["min"]]
@@ -678,7 +679,9 @@ predict_model <- function(
       ms <- attr(object$model$model, "radiant_ms")
       sds <- attr(object$model$model, "radiant_sds")
       if (!is.null(ms) && !is.null(sds)) {
-        dat[names(ms)] <- lapply(names(ms), function(var) (dat[[var]] * 2 * sds[[var]] + ms[[var]]))
+        sf <- attr(object$model$model, "radiant_sf")
+        sf <- ifelse(is.null(sf), 2, sf)
+        dat[names(ms)] <- lapply(names(ms), function(var) (dat[[var]] * sf * sds[[var]] + ms[[var]]))
       }
     }
 
@@ -787,6 +790,7 @@ predict_model <- function(
     if ("standardize" %in% object$check) {
       scale <- TRUE
       attr(pred, "radiant_sds") <- attr(object$model$model, "radiant_sds")
+      attr(pred, "radiant_sf") <- attr(object$model$model, "radiant_sf")
     } else {
       scale <- FALSE
     }
@@ -808,7 +812,9 @@ predict_model <- function(
       ms <- attr(object$model$model, "radiant_ms")[[object$rvar]]
       sds <- attr(object$model$model, "radiant_sds")[[object$rvar]]
       if (!is.null(ms) && !is.null(sds)) {
-        pred_val[["Prediction"]] <- pred_val[["Prediction"]] * 2 * sds + ms
+        sf <- attr(object$model$model, "radiant_sf")
+        sf <- ifelse(is.null(sf), 2, sf)
+        pred_val[["Prediction"]] <- pred_val[["Prediction"]] * sf * sds + ms
       }
     }
 

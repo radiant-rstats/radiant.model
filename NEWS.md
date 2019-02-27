@@ -1,5 +1,6 @@
-# radiant.model 0.9.8.9
+# radiant.model 0.9.8.10
 
+* Rescale predictions in `cv.nn` so RMSE and MAE are in the original scale even if the data were standardized for estimation
 * Rename `scaledf` to `scale_df` for consistency
 * Fix for plot sizing and printing of missing values in collaborative filtering
 * Fix for `cv.nn` when weights are used in estimation

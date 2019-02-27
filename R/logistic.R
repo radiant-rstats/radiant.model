@@ -140,6 +140,7 @@ logistic <- function(
   if ("standardize" %in% check || "center" %in% check) {
     attr(model$model, "radiant_ms") <- attr(dataset, "radiant_ms")
     attr(model$model, "radiant_sds") <- attr(dataset, "radiant_sds")
+    attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
   attr(model$model, "radiant_min") <- mmx[["min"]]
