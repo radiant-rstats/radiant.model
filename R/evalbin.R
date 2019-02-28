@@ -627,12 +627,33 @@ profit <- function(pred, rvar, lev, cost = 1, margin = 2) {
   margin * sum(TP) - cost * sum(TP, FP)
 }
 
-## check that a relevant value for 'lev' is available
+## Check that a relevant value for 'lev' is available
+# Examples
+# check_lev(1:10, 1)
+# check_lev(letters, "a")
+# check_lev(c(TRUE, FALSE), TRUE)
+# check_lev(c(TRUE, FALSE))
+# check_lev(factor(letters))
+# check_lev(letters)
+# check_lev(factor(letters), 1)
 check_lev <- function(rvar, lev) {
   if (missing(lev)) {
-    lev <- ifelse(is.factor(rvar), levels(rvar)[1], TRUE)
+    if (is.factor(rvar)) {
+      lev <- levels(rvar)[1]
+    } else if (is.logical(rvar)) {
+      lev <- TRUE
+    } else {
+      stop("Unless rvar is of type factor or logical you must provide the level in rvar to evaluate")
+    }
   } else {
-    stopifnot(length(lev) == 1, lev %in% rvar | is.logical(lev))
+    if (length(lev) > 1) {
+      stop("lev must have length 1 but is of length", length(lev))
+    } else if (!lev %in% rvar) {
+      cat("rvar:", head(as.character(rvar)))
+      cat("\nlev:", head(lev), "\n")
+      stop("lev must be an element of rvar")
+    }
+    # stopifnot(length(lev) == 1, lev %in% rvar | is.logical(lev))
   }
   lev
 }
