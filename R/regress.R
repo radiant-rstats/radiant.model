@@ -87,8 +87,8 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
-  attr(model$model, "radiant_min") <- mmx[["min"]]
-  attr(model$model, "radiant_max") <- mmx[["max"]]
+  # attr(model$model, "radiant_min") <- mmx[["min"]]
+  # attr(model$model, "radiant_max") <- mmx[["max"]]
 
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")

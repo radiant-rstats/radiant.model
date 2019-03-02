@@ -22,7 +22,11 @@ Write coefficient table for linear and logistic regression
 Write coefficients and importance scores to csv or or return as a data.frame
 }
 \examples{
-regress(diamonds, rvar = "price", evar = c("carat", "clarity", "x"), check = "standardize") \%>\%
+
+regress(
+ diamonds, rvar = "price", evar = c("carat", "clarity", "x"),
+ int = c("carat:clarity", "I(x^2)"), check = "standardize"
+) \%>\%
   write.coeff(sort = TRUE) \%>\%
   format_df(dec = 3)
 

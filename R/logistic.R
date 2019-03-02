@@ -143,8 +143,8 @@ logistic <- function(
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
-  attr(model$model, "radiant_min") <- mmx[["min"]]
-  attr(model$model, "radiant_max") <- mmx[["max"]]
+  # attr(model$model, "radiant_min") <- mmx[["min"]]
+  # attr(model$model, "radiant_max") <- mmx[["max"]]
 
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
@@ -751,9 +751,15 @@ minmax <- function(dataset) {
 #' @param intercept Include the intercept in the output (TRUE or FALSE). TRUE is the default
 #'
 #' @examples
-#' regress(diamonds, rvar = "price", evar = c("carat", "clarity", "x"), check = "standardize") %>%
+#'
+#' regress(
+#'  diamonds, rvar = "price", evar = c("carat", "clarity", "color", "x"),
+#'  int = c("carat:clarity", "clarity:color", "I(x^2)"), check = "standardize"
+#' ) %>%
 #'   write.coeff(sort = TRUE) %>%
 #'   format_df(dec = 3)
+#'
+#' @importFrom stats model.frame
 #'
 #' @export
 write.coeff <- function(
@@ -773,25 +779,38 @@ write.coeff <- function(
   ## calculating the mean and sd for each variable
   ## extract formula from http://stackoverflow.com/a/9694281/1974918
   frm <- formula(object$model$terms)
-  mm <- model.matrix(frm, object$model$model)
-  cms <- colMeans(mm, na.rm = TRUE)[-1]
-  csds <- apply(mm, 2, sd, na.rm = TRUE)[-1]
-  cmn <- cms * 0
-  cmx <- cmn + 1
-  mn <- attr(object$model$model, "radiant_min")
-  nms <- intersect(names(cms), names(mn))
-  dummy <- cmx
-  dummy[nms] <- 0
-  cmn[nms] <- mn[nms]
-  mx <- attr(object$model$model, "radiant_max")
-  cmx[nms] <- mx[nms]
-  rm(mm)
+  tlabs <- attr(object$model$term, "term.labels")
+  dataset <- object$model$model
+  cn <- colnames(dataset)
 
-  if ("standardize" %in% object$check || "center" %in% object$check) {
+  if ("center" %in% object$check) {
     ms <- attr(object$model$model, "radiant_ms")
-    cms[nms] <- ms[nms]
+    if (!is.null(ms)) {
+      icn <- intersect(cn, names(ms))
+      dataset[icn] <- lapply(icn, function(var) dataset[[var]] + ms[[var]])
+    }
+  } else if ("standardize" %in% object$check) {
+    ms <- attr(object$model$model, "radiant_ms")
     sds <- attr(object$model$model, "radiant_sds")
-    if (!is_empty(sds)) csds[nms] <- sds[nms]
+    if (!is.null(ms) && !is.null(sds)) {
+      icn <- intersect(cn, names(ms))
+      sf <- attr(object$model$model, "radiant_sf")
+      sf <- ifelse(is.null(sf), 2, sf)
+      dataset[icn] <- lapply(icn, function(var) dataset[[var]] * sf * sds[[var]] + ms[[var]])
+    }
+  }
+
+  ## create the model.matrix
+  mm <- model.matrix(frm, model.frame(frm, dataset))[,-1]
+
+  ## generate summary statistics
+  cms <- colMeans(mm, na.rm = TRUE)
+  csds <- apply(mm, 2, sd, na.rm = TRUE)
+  cmx <- apply(mm, 2, max, na.rm = TRUE)
+  cmn <- apply(mm, 2, min, na.rm = TRUE)
+  dummy <- apply(mm, 2, function(x) (sum(x == max(x)) + sum(x == min(x))) == length(x))
+
+  if ("standardize" %in% object$check) {
     cat("Standardized coefficients selected\n\n", file = file)
   } else {
     cat("Standardized coefficients not selected\n\n", file = file)
@@ -800,15 +819,16 @@ write.coeff <- function(
   object <- object[["coeff"]]
   object$OR[1] <- 0
   object$dummy <- c(0L, dummy)
-  object$mean <- cms %>% unlist() %>% c(1L, .)
-  object$sd <- csds %>% unlist() %>% c(0L, .)
-  object$min <- cmn %>% unlist() %>% c(1L, .)
-  object$max <- cmx %>% unlist() %>% c(1L, .)
+  object$mean <- c(1L, cms)
+  object$sd <- c(0L, csds)
+  object$min <- c(1L, cmn)
+  object$max <- c(1L, cmx)
 
   if (mod_class == "logistic") {
     object$importance <- pmax(object$OR, 1 / object$OR)
     object$OR[1] <- 0
   } else {
+    object$coeff
     object$importance <- abs(object$coeff)
     object$OR <- NULL
   }
