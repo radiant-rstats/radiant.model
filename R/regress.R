@@ -777,14 +777,13 @@ predict_model <- function(
         return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
 
-      ## only keep the variables used in the model
-      pred <- select_at(pred, .vars = vars)
       pred_type <- "datacmd"
     } else {
       pred_type <- "data"
     }
 
-    pred <- na.omit(pred)
+    ## only keep the variables used in the model
+    pred <- select_at(pred, .vars = vars) %>% na.omit()
   }
 
   if ("crtree" %in% class(object)) {
