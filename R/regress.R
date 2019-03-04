@@ -737,7 +737,7 @@ predict_model <- function(
       return("The model includes data-types that cannot be used for\nprediction at this point\n")
     } else {
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
-        return("The expression entered contains variable names that are not in the model.\nPlease try again.\n\n")
+        return("The command entered contains variable names that are not in the model.\nPlease try again.\n\n")
       } else {
         plug_data[names(pred)] <- list(NULL)
         pred <- cbind(select(plug_data, -1), pred)
@@ -747,29 +747,38 @@ predict_model <- function(
     ## generate predictions for all observations in the dataset
     pred <- get_data(pred_data, filt = "", na.rm = FALSE)
     pred_names <- colnames(pred)
-    pred <- try(select_at(pred, .vars = vars), silent = TRUE)
-
-    if (inherits(pred, "try-error")) {
-      return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars %in% pred_names], collapse = ", ")))
+    vars_in <- vars %in% pred_names
+    ## keep all variables in the prediction data for the "customized" prediction
+    if (!sum(vars_in) == length(vars)) {
+      return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars_in], collapse = ", ")))
     }
 
     if (!is_empty(pred_cmd)) {
       pred_cmd %<>% paste0(., collapse = ";") %>%
         gsub("\"", "\'", .) %>%
-        gsub("\\s+", "", .) %>%
+        gsub("\\s+", " ", .) %>%
         gsub("<-", "=", .)
 
-      vars <- strsplit(pred_cmd, ";")[[1]] %>%
+      cmd_vars <- strsplit(pred_cmd, ";")[[1]] %>%
         strsplit(., "=") %>%
-        sapply("[", 1)
+        sapply("[", 1) %>%
+        gsub("(^\\s+|\\s+$)", "", .)
+
+      cmd_vars_in <- cmd_vars %in% vars
+      if (sum(cmd_vars_in) < length(cmd_vars)) {
+        return(paste0("The command entered contains variable names that are not in the model\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(cmd_vars[!cmd_vars_in], collapse = ", ")))
+      }
 
       dots <- rlang::parse_exprs(pred_cmd) %>%
-        set_names(vars)
+        set_names(cmd_vars)
 
       pred <- try(mutate(pred, !!! dots), silent = TRUE)
       if (inherits(pred, "try-error")) {
         return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
       }
+
+      ## only keep the variables used in the model
+      pred <- select_at(pred, .vars = vars)
       pred_type <- "datacmd"
     } else {
       pred_type <- "data"
