@@ -1,7 +1,7 @@
 # radiant.model 0.9.9.0
 
-* Allow any variable in the prediction dataset to be use to customize the prediction for _Predict > Data & Command_
-* Fix for `write.coeff` when interactions, quadratic, or cubic terms are included
+* Allow any variable in the prediction dataset to be used to customize a prediction when using _Predict > Data & Command_
+* Fix for `write.coeff` when interactions, quadratic, and/or cubic terms are included in a linear or logistic regression
 * Rescale predictions in `cv.nn` so RMSE and MAE are in the original scale even if the data were standardized for estimation
 * Rename `scaledf` to `scale_df` for consistency
 * Fix for plot sizing and printing of missing values in collaborative filtering
