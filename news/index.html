@@ -66,7 +66,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.9</span>
       </span>
     </div>
 
@@ -154,11 +154,16 @@
       <small>Source: <a href='https://github.com/radiant-rstats/radiant.model/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="radiant-model-0-9-8-9" class="section level1">
+    <div id="radiant-model-0-9-9-0" class="section level1">
 <h1 class="page-header">
-<a href="#radiant-model-0-9-8-9" class="anchor"></a>radiant.model 0.9.8.9<small> Unreleased </small>
+<a href="#radiant-model-0-9-9-0" class="anchor"></a>radiant.model 0.9.9.0<small> Unreleased </small>
 </h1>
 <ul>
+<li>Allow any variable in the prediction dataset to be use to customize the prediction for <em>Predict &gt; Data &amp; Command</em>
+</li>
+<li>Fix for <code>write.coeff</code> when interactions, quadratic, or cubic terms are included</li>
+<li>Rescale predictions in <code>cv.nn</code> so RMSE and MAE are in the original scale even if the data were standardized for estimation</li>
+<li>Rename <code>scaledf</code> to <code>scale_df</code> for consistency</li>
 <li>Fix for plot sizing and printing of missing values in collaborative filtering</li>
 <li>Fix for <code>cv.nn</code> when weights are used in estimation</li>
 <li>Improve documentation for cross-validation of <code>nn</code> and <code>crtree</code> models (i.e., <code>cv.nn</code> and <code>cv.crtree</code>)</li>
@@ -565,7 +570,7 @@
     <div id="tocnav">
       <h2>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-        <li><a href="#radiant-model-0-9-8-9">0.9.8.9</a></li>
+        <li><a href="#radiant-model-0-9-9-0">0.9.9.0</a></li>
         <li><a href="#radiant-model-0-9-8-0">0.9.8.0</a></li>
         <li><a href="#radiant-model-0-9-7-0">0.9.7.0</a></li>
         <li><a href="#radiant-model-0-9-5-0">0.9.5.0</a></li>

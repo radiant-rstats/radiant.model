@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.8.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.9</span>
       </span>
     </div>
 
@@ -193,31 +193,147 @@
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>regress</span>(<span class='no'>diamonds</span>, <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"price"</span>, <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"clarity"</span>, <span class='st'>"x"</span>), <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>"standardize"</span>) <span class='kw'>%&gt;%</span>
+    <pre class="examples"><div class='input'>
+<span class='fu'>regress</span>(
+ <span class='no'>diamonds</span>, <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"price"</span>, <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"clarity"</span>, <span class='st'>"color"</span>, <span class='st'>"x"</span>),
+ <span class='kw'>int</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"carat:clarity"</span>, <span class='st'>"clarity:color"</span>, <span class='st'>"I(x^2)"</span>), <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>"standardize"</span>
+) <span class='kw'>%&gt;%</span>
   <span class='fu'>write.coeff</span>(<span class='kw'>sort</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>) <span class='kw'>%&gt;%</span>
   <span class='fu'>format_df</span>(<span class='kw'>dec</span> <span class='kw'>=</span> <span class='fl'>3</span>)</div><div class='output co'>#&gt; Standardized coefficients selected
-#&gt; </div><div class='output co'>#&gt;           label coefficient std.error t.value p.value sig_star dummy  mean
-#&gt; 1   (Intercept)      -0.506     0.024 -20.833   0.000      *** 0.000 1.000
-#&gt; 2         carat       1.283     0.027  47.278   0.000      *** 0.000 0.794
-#&gt; 3    clarity|IF       0.653     0.029  22.498   0.000      *** 1.000 0.033
-#&gt; 4  clarity|VVS2       0.640     0.026  24.495   0.000      *** 1.000 0.095
-#&gt; 5  clarity|VVS1       0.629     0.027  23.627   0.000      *** 1.000 0.075
-#&gt; 6   clarity|VS1       0.567     0.025  22.308   0.000      *** 1.000 0.147
-#&gt; 7   clarity|VS2       0.541     0.025  21.590   0.000      *** 1.000 0.220
-#&gt; 8   clarity|SI1       0.462     0.025  18.566   0.000      *** 1.000 0.240
-#&gt; 9   clarity|SI2       0.359     0.025  14.334   0.000      *** 1.000 0.176
-#&gt; 10            x      -0.282     0.027 -10.300   0.000      *** 0.000 5.722
-#&gt;       sd   min   max importance
-#&gt; 1  0.000 1.000 1.000      0.000
-#&gt; 2  0.474 0.200 3.000      1.283
-#&gt; 3  0.179 0.000 1.000      0.653
-#&gt; 4  0.293 0.000 1.000      0.640
-#&gt; 5  0.263 0.000 1.000      0.629
-#&gt; 6  0.354 0.000 1.000      0.567
-#&gt; 7  0.415 0.000 1.000      0.541
-#&gt; 8  0.427 0.000 1.000      0.462
-#&gt; 9  0.381 0.000 1.000      0.359
-#&gt; 10 1.124 3.730 9.420      0.282</div><div class='input'>
+#&gt; </div><div class='output co'>#&gt;                   label coefficient std.error t.value p.value sig_star dummy
+#&gt; 1           (Intercept)      -0.162     0.059  -2.738   0.006      **      0
+#&gt; 2      carat:clarity|IF       1.089     0.061  17.729   0.000      ***     0
+#&gt; 3    carat:clarity|VVS1       1.020     0.052  19.677   0.000      ***     0
+#&gt; 4            clarity|IF       1.015     0.098  10.349   0.000      ***     1
+#&gt; 5    carat:clarity|VVS2       1.001     0.049  20.587   0.000      ***     0
+#&gt; 6    clarity|IF:color|J      -0.946     0.147  -6.425   0.000      ***     1
+#&gt; 7     carat:clarity|VS1       0.743     0.046  16.014   0.000      ***     0
+#&gt; 8     carat:clarity|VS2       0.705     0.046  15.430   0.000      ***     0
+#&gt; 9    clarity|IF:color|H      -0.610     0.108  -5.654   0.000      ***     1
+#&gt; 10   clarity|IF:color|I      -0.606     0.114  -5.298   0.000      ***     1
+#&gt; 11    carat:clarity|SI1       0.603     0.045  13.277   0.000      ***     0
+#&gt; 12   clarity|IF:color|F      -0.572     0.105  -5.456   0.000      ***     1
+#&gt; 13   clarity|IF:color|E      -0.534     0.114  -4.679   0.000      ***     1
+#&gt; 14    carat:clarity|SI2       0.481     0.045  10.682   0.000      ***     0
+#&gt; 15   clarity|IF:color|G      -0.441     0.115  -3.816   0.000      ***     1
+#&gt; 16         clarity|VVS2       0.349     0.062   5.639   0.000      ***     1
+#&gt; 17               I(x^2)       0.345     0.020  17.227   0.000      ***     0
+#&gt; 18         clarity|VVS1       0.339     0.066   5.159   0.000      ***     1
+#&gt; 19                carat       0.286     0.069   4.151   0.000      ***     0
+#&gt; 20 clarity|VVS2:color|J      -0.284     0.107  -2.646   0.008      **      1
+#&gt; 21          clarity|VS1       0.252     0.061   4.114   0.000      ***     1
+#&gt; 22  clarity|VS2:color|J      -0.232     0.099  -2.338   0.019      *       1
+#&gt; 23              color|G      -0.231     0.079  -2.912   0.004      **      1
+#&gt; 24  clarity|VS2:color|G       0.201     0.081   2.494   0.013      *       1
+#&gt; 25 clarity|VVS1:color|J      -0.192     0.120  -1.604   0.109              1
+#&gt; 26  clarity|VS1:color|J      -0.192     0.101  -1.908   0.057      .       1
+#&gt; 27 clarity|VVS1:color|G       0.190     0.085   2.239   0.025      *       1
+#&gt; 28          clarity|VS2       0.177     0.060   2.929   0.003      **      1
+#&gt; 29  clarity|SI2:color|G       0.176     0.081   2.169   0.030      *       1
+#&gt; 30  clarity|SI1:color|G       0.175     0.081   2.162   0.031      *       1
+#&gt; 31  clarity|VS1:color|G       0.155     0.081   1.902   0.057      .       1
+#&gt; 32              color|I      -0.144     0.075  -1.926   0.054      .       1
+#&gt; 33 clarity|VVS2:color|G       0.144     0.082   1.754   0.080      .       1
+#&gt; 34  clarity|SI1:color|J      -0.133     0.099  -1.352   0.176              1
+#&gt; 35              color|J      -0.121     0.097  -1.255   0.210              1
+#&gt; 36  clarity|SI2:color|J      -0.116     0.100  -1.161   0.246              1
+#&gt; 37 clarity|VVS2:color|I      -0.108     0.081  -1.330   0.184              1
+#&gt; 38          clarity|SI1       0.103     0.060   1.719   0.086      .       1
+#&gt; 39              color|H      -0.101     0.068  -1.487   0.137              1
+#&gt; 40  clarity|SI2:color|E       0.100     0.077   1.300   0.194              1
+#&gt; 41 clarity|VVS1:color|E       0.096     0.082   1.170   0.242              1
+#&gt; 42  clarity|VS1:color|I      -0.095     0.078  -1.214   0.225              1
+#&gt; 43              color|E      -0.087     0.075  -1.161   0.246              1
+#&gt; 44  clarity|VS2:color|E       0.079     0.077   1.037   0.300              1
+#&gt; 45  clarity|SI1:color|E       0.073     0.076   0.961   0.337              1
+#&gt; 46  clarity|VS1:color|E       0.066     0.078   0.846   0.397              1
+#&gt; 47 clarity|VVS2:color|E       0.063     0.079   0.799   0.425              1
+#&gt; 48  clarity|VS1:color|H      -0.059     0.071  -0.823   0.410              1
+#&gt; 49 clarity|VVS1:color|F       0.047     0.072   0.647   0.518              1
+#&gt; 50 clarity|VVS1:color|I      -0.046     0.084  -0.553   0.580              1
+#&gt; 51  clarity|VS2:color|I      -0.038     0.077  -0.486   0.627              1
+#&gt; 52  clarity|VS1:color|F      -0.033     0.068  -0.489   0.625              1
+#&gt; 53              color|F      -0.032     0.065  -0.497   0.619              1
+#&gt; 54  clarity|SI1:color|H       0.029     0.070   0.420   0.675              1
+#&gt; 55 clarity|VVS1:color|H       0.026     0.076   0.348   0.728              1
+#&gt; 56          clarity|SI2       0.025     0.061   0.406   0.685              1
+#&gt; 57  clarity|VS2:color|F       0.024     0.067   0.362   0.718              1
+#&gt; 58  clarity|VS2:color|H      -0.020     0.070  -0.281   0.779              1
+#&gt; 59  clarity|SI1:color|I      -0.020     0.077  -0.257   0.797              1
+#&gt; 60  clarity|SI2:color|F       0.018     0.067   0.270   0.787              1
+#&gt; 61 clarity|VVS2:color|H      -0.016     0.073  -0.222   0.824              1
+#&gt; 62  clarity|SI2:color|H       0.014     0.071   0.196   0.844              1
+#&gt; 63 clarity|VVS2:color|F       0.012     0.069   0.175   0.861              1
+#&gt; 64  clarity|SI2:color|I      -0.012     0.078  -0.151   0.880              1
+#&gt; 65  clarity|SI1:color|F       0.010     0.067   0.157   0.875              1
+#&gt; 66                    x       0.009     0.047   0.197   0.844              0
+#&gt;      mean     sd    min    max importance
+#&gt; 1   1.000  0.000  1.000  1.000      0.000
+#&gt; 2   0.015  0.097  0.000  1.530      1.089
+#&gt; 3   0.039  0.158  0.000  1.580      1.020
+#&gt; 4   0.033  0.179  0.000  1.000      1.015
+#&gt; 5   0.056  0.207  0.000  1.710      1.001
+#&gt; 6   0.001  0.026  0.000  1.000      0.946
+#&gt; 7   0.107  0.303  0.000  2.380      0.743
+#&gt; 8   0.166  0.375  0.000  2.500      0.705
+#&gt; 9   0.007  0.081  0.000  1.000      0.610
+#&gt; 10  0.004  0.060  0.000  1.000      0.606
+#&gt; 11  0.204  0.425  0.000  2.400      0.603
+#&gt; 12  0.010  0.101  0.000  1.000      0.572
+#&gt; 13  0.004  0.063  0.000  1.000      0.534
+#&gt; 14  0.190  0.467  0.000  2.660      0.481
+#&gt; 15  0.007  0.083  0.000  1.000      0.441
+#&gt; 16  0.095  0.293  0.000  1.000      0.349
+#&gt; 17 34.002 13.444 13.913 88.736      0.345
+#&gt; 18  0.075  0.263  0.000  1.000      0.339
+#&gt; 19  0.794  0.474  0.200  3.000      0.286
+#&gt; 20  0.002  0.048  0.000  1.000      0.284
+#&gt; 21  0.147  0.354  0.000  1.000      0.252
+#&gt; 22  0.014  0.118  0.000  1.000      0.232
+#&gt; 23  0.199  0.399  0.000  1.000      0.231
+#&gt; 24  0.040  0.195  0.000  1.000      0.201
+#&gt; 25  0.001  0.032  0.000  1.000      0.192
+#&gt; 26  0.008  0.091  0.000  1.000      0.192
+#&gt; 27  0.023  0.151  0.000  1.000      0.190
+#&gt; 28  0.220  0.415  0.000  1.000      0.177
+#&gt; 29  0.032  0.177  0.000  1.000      0.176
+#&gt; 30  0.032  0.175  0.000  1.000      0.175
+#&gt; 31  0.037  0.190  0.000  1.000      0.155
+#&gt; 32  0.095  0.293  0.000  1.000      0.144
+#&gt; 33  0.026  0.159  0.000  1.000      0.144
+#&gt; 34  0.017  0.128  0.000  1.000      0.133
+#&gt; 35  0.055  0.227  0.000  1.000      0.121
+#&gt; 36  0.011  0.104  0.000  1.000      0.116
+#&gt; 37  0.007  0.081  0.000  1.000      0.108
+#&gt; 38  0.240  0.427  0.000  1.000      0.103
+#&gt; 39  0.151  0.358  0.000  1.000      0.101
+#&gt; 40  0.035  0.185  0.000  1.000      0.100
+#&gt; 41  0.012  0.110  0.000  1.000      0.096
+#&gt; 42  0.017  0.128  0.000  1.000      0.095
+#&gt; 43  0.185  0.388  0.000  1.000      0.087
+#&gt; 44  0.046  0.210  0.000  1.000      0.079
+#&gt; 45  0.049  0.216  0.000  1.000      0.073
+#&gt; 46  0.017  0.131  0.000  1.000      0.066
+#&gt; 47  0.019  0.135  0.000  1.000      0.063
+#&gt; 48  0.023  0.151  0.000  1.000      0.059
+#&gt; 49  0.015  0.122  0.000  1.000      0.047
+#&gt; 50  0.007  0.081  0.000  1.000      0.046
+#&gt; 51  0.019  0.135  0.000  1.000      0.038
+#&gt; 52  0.028  0.164  0.000  1.000      0.033
+#&gt; 53  0.188  0.391  0.000  1.000      0.032
+#&gt; 54  0.039  0.194  0.000  1.000      0.029
+#&gt; 55  0.011  0.103  0.000  1.000      0.026
+#&gt; 56  0.176  0.381  0.000  1.000      0.025
+#&gt; 57  0.043  0.202  0.000  1.000      0.024
+#&gt; 58  0.029  0.169  0.000  1.000      0.020
+#&gt; 59  0.025  0.157  0.000  1.000      0.020
+#&gt; 60  0.031  0.173  0.000  1.000      0.018
+#&gt; 61  0.011  0.104  0.000  1.000      0.016
+#&gt; 62  0.029  0.167  0.000  1.000      0.014
+#&gt; 63  0.016  0.127  0.000  1.000      0.012
+#&gt; 64  0.015  0.123  0.000  1.000      0.012
+#&gt; 65  0.042  0.200  0.000  1.000      0.010
+#&gt; 66  5.722  1.124  3.730  9.420      0.009</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
