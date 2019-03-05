@@ -33,7 +33,7 @@ A data.frame sorted by the mean, sd, min, and max of the performance metric
 Cross-validation for Classification and Regression Trees
 }
 \details{
-See \url{https://radiant-rstats.github.io/docs/model/crtreenn.html} for an example in Radiant
+See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 }
 \examples{
 \dontrun{

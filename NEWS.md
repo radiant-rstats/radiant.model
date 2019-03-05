@@ -1,4 +1,4 @@
-# radiant.model 0.9.8.12
+# radiant.model 0.9.9.0
 
 * Allow any variable in the prediction dataset to be use to customize the prediction for _Predict > Data & Command_
 * Fix for `write.coeff` when interactions, quadratic, or cubic terms are included

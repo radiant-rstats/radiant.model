@@ -628,7 +628,7 @@ print.crtree.predict <- function(x, ..., n = 10)
 
 #' Cross-validation for Classification and Regression Trees
 #'
-#' @details See \url{https://radiant-rstats.github.io/docs/model/crtreenn.html} for an example in Radiant
+#' @details See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example in Radiant
 #'
 #' @param object Object of type "rpart" or "crtree" to use as a starting point for cross validation
 #' @param K Number of cross validation passes to use
