@@ -98,7 +98,8 @@ output$ui_dtree_sense <- renderUI({
 observeEvent(input$dtree_sense_add, {
   var_updater(
     input$dtree_sense_add, "dtree_sense",
-    c(input$dtree_sense_name, input$dtree_sense_min, input$dtree_sense_max, input$dtree_sense_step)
+    c(input$dtree_sense_name, input$dtree_sense_min, input$dtree_sense_max, input$dtree_sense_step),
+    fix = FALSE
   )
 })
 
