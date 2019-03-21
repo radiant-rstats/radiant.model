@@ -1,3 +1,7 @@
+# radiant.model 0.9.9.1
+
+* Fix for variable selection in _Model > Decision analysis > Sensitivity_
+
 # radiant.model 0.9.9.0
 
 * Allow any variable in the prediction dataset to be used to customize a prediction when using _Predict > Data & Command_

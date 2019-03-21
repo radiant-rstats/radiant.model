@@ -232,7 +232,7 @@ output$ui_rep_fun <- renderUI({
   )
 })
 
-var_updater <- function(variable, var_str, var_inputs) {
+var_updater <- function(variable, var_str, var_inputs, fix = TRUE) {
   if (is.null(variable) || variable == 0) return()
   if (is_empty(var_inputs[1]) || any(is.na(var_inputs[-1]))) {
     showModal(
@@ -245,7 +245,9 @@ var_updater <- function(variable, var_str, var_inputs) {
       )
     )
   } else {
-    var_inputs[1] <- fix_names(var_inputs[1])
+    if (fix) {
+      var_inputs[1] <- fix_names(var_inputs[1])
+    }
     inp <- paste(var_inputs, collapse = " ")
     if (is_empty(input[[var_str]])) {
       val <- paste0(inp, ";")
