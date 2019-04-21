@@ -33,7 +33,6 @@ result <- crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 predict(result, pred_cmd = "pclass = levels(pclass)")
 result <- crtree(titanic, "survived", "pclass", lev = "Yes")
 predict(result, pred_data = titanic) \%>\% head()
-
 }
 \seealso{
 \code{\link{crtree}} to generate the result

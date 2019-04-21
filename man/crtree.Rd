@@ -64,7 +64,6 @@ See \url{https://radiant-rstats.github.io/docs/model/crtree.html} for an example
 crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
 result <- crtree(titanic, "survived", c("pclass", "sex")) \%>\% summary()
 result <- crtree(diamonds, "price", c("carat", "clarity"), type = "regression") \%>\% str()
-
 }
 \seealso{
 \code{\link{summary.crtree}} to summarize results

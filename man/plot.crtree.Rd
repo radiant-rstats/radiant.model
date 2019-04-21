@@ -40,7 +40,6 @@ result <- crtree(diamonds, "price", c("carat", "clarity", "cut"))
 plot(result, plots = "prune")
 result <- crtree(dvd, "buy", c("coupon", "purch", "last"), cp = .01)
 plot(result, plots = "imp")
-
 }
 \seealso{
 \code{\link{crtree}} to generate results
