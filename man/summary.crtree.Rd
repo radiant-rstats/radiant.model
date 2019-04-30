@@ -4,13 +4,15 @@
 \alias{summary.crtree}
 \title{Summary method for the crtree function}
 \usage{
-\method{summary}{crtree}(object, prn = TRUE, cptab = FALSE,
-  modsum = FALSE, ...)
+\method{summary}{crtree}(object, prn = TRUE, splits = FALSE,
+  cptab = FALSE, modsum = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{crtree}}}
 
 \item{prn}{Print tree in text form}
+
+\item{splits}{Print the tree splitting metrics used}
 
 \item{cptab}{Print the cp table}
 
@@ -29,7 +31,6 @@ result <- crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 summary(result)
 result <- crtree(diamonds, "price", c("carat", "color"), type = "regression")
 summary(result)
-
 }
 \seealso{
 \code{\link{crtree}} to generate results
