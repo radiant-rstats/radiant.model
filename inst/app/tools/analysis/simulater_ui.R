@@ -42,10 +42,11 @@ sim_inputs <- reactive({
   for (i in names(sim_args))
     sim_args[[i]] <- input[[paste0("sim_", i)]]
 
-  if (!is_empty(input$sim_types)) {
-    for (i in sim_types_vec)
-      if (!i %in% input$sim_types) sim_args[[i]] <- ""
-  }
+  for (i in sim_types_vec)
+    if (!i %in% input$sim_types) sim_args[[i]] <- ""
+
+  if (!isTRUE(input$sim_add_functions))
+    sim_args[["funcs"]] <- ""
 
   sim_args
 })
@@ -232,7 +233,7 @@ output$ui_rep_fun <- renderUI({
   )
 })
 
-var_updater <- function(variable, var_str, var_inputs, fix = TRUE) {
+var_updater <- function(variable, var_str, var_name, var_inputs, fix = TRUE) {
   if (is.null(variable) || variable == 0) return()
   if (is_empty(var_inputs[1]) || any(is.na(var_inputs[-1]))) {
     showModal(
@@ -246,9 +247,9 @@ var_updater <- function(variable, var_str, var_inputs, fix = TRUE) {
     )
   } else {
     if (fix) {
-      var_inputs[1] <- fix_names(var_inputs[1])
+      var_name <- fix_names(var_name)
     }
-    inp <- paste(var_inputs, collapse = " ")
+    inp <- paste(c(var_name, var_inputs), collapse = " ")
     if (is_empty(input[[var_str]])) {
       val <- paste0(inp, ";")
     } else {
@@ -271,7 +272,7 @@ var_remover <- function(variable) {
 observeEvent(input$sim_binom_add, {
   var_updater(
     input$sim_binom_add, "sim_binom",
-    c(input$sim_binom_name, input$sim_binom_n, input$sim_binom_p)
+    input$sim_binom_name, c(input$sim_binom_n, input$sim_binom_p)
   )
 })
 
@@ -288,38 +289,38 @@ observeEvent(input$sim_discrete_add, {
 
   var_updater(
     input$sim_discrete_add, "sim_discrete",
-    paste0(c(input$sim_discrete_name, v, p), collapse = " ")
+    input$sim_discrete_name, paste0(c(v, p), collapse = " ")
   )
 })
 
 observeEvent(input$sim_lnorm_add, {
-  var_updater(input$sim_lnorm_add, "sim_lnorm", c(input$sim_lnorm_name, input$sim_lnorm_mean, input$sim_lnorm_sd))
+  var_updater(input$sim_lnorm_add, "sim_lnorm", input$sim_lnorm_name, c(input$sim_lnorm_mean, input$sim_lnorm_sd))
 })
 
 observeEvent(input$sim_norm_add, {
-  var_updater(input$sim_norm_add, "sim_norm", c(input$sim_norm_name, input$sim_norm_mean, input$sim_norm_sd))
+  var_updater(input$sim_norm_add, "sim_norm", input$sim_norm_name, c(input$sim_norm_mean, input$sim_norm_sd))
 })
 
 observeEvent(input$sim_pois_add, {
-  var_updater(input$sim_pois_add, "sim_pois", c(input$sim_pois_name, input$sim_pois_lambda))
+  var_updater(input$sim_pois_add, "sim_pois", input$sim_pois_name, input$sim_pois_lambda)
 })
 
 observeEvent(input$sim_unif_add, {
-  var_updater(input$sim_unif_add, "sim_unif", c(input$sim_unif_name, input$sim_unif_min, input$sim_unif_max))
+  var_updater(input$sim_unif_add, "sim_unif", input$sim_unif_name, c(input$sim_unif_min, input$sim_unif_max))
 })
 
 observeEvent(input$sim_const_add, {
-  var_updater(input$sim_const_add, "sim_const", c(input$sim_const_name, input$sim_const_nr))
+  var_updater(input$sim_const_add, "sim_const", input$sim_const_name, input$sim_const_nr)
 })
 
 observeEvent(input$sim_sequ_add, {
-  var_updater(input$sim_sequ_add, "sim_sequ", c(input$sim_sequ_name, input$sim_sequ_min, input$sim_sequ_max))
+  var_updater(input$sim_sequ_add, "sim_sequ", input$sim_sequ_name, c(input$sim_sequ_min, input$sim_sequ_max))
 })
 
 observeEvent(input$rep_grid_add, {
   var_updater(
     input$rep_grid_add, "rep_grid",
-    c(input$rep_grid_name, input$rep_grid_min, input$rep_grid_max, input$rep_grid_step)
+    input$rep_grid_name, c(input$rep_grid_min, input$rep_grid_max, input$rep_grid_step)
   )
   updateNumericInput(session = session, "rep_nr", value = NA)
 })
@@ -327,7 +328,7 @@ observeEvent(input$rep_grid_add, {
 observeEvent(input$sim_grid_add, {
   var_updater(
     input$sim_grid_add, "sim_grid",
-    c(input$sim_grid_name, input$sim_grid_min, input$sim_grid_max, input$sim_grid_step)
+    input$sim_grid_name, c(input$sim_grid_min, input$sim_grid_max, input$sim_grid_step)
   )
 })
 
@@ -667,7 +668,8 @@ output$simulater <- renderUI({
         theme = getOption("radiant.ace_theme", default = "tomorrow"),
         wordWrap = TRUE,
         height = "120px",
-        value = state_init("sim_form", "##  Use formulas to perform calculations on simulated variables (e.g., demand = 5 * price). Press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+        value = state_init("sim_form", "") %>% fix_smart(),
+        placeholder = "Use formulas to perform calculations on simulated variables\n(e.g., demand = 5 * price). Press the Run simulation button\nto run the simulation. Click the ? icon on the bottom left\nof your screen for help and examples",
         vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
         tabSize = getOption("radiant.ace_tabSize", 2),
         useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
@@ -685,14 +687,18 @@ output$simulater <- renderUI({
           theme = getOption("radiant.ace_theme", default = "tomorrow"),
           wordWrap = TRUE,
           height = "120px",
-          value = state_init("sim_funcs", "## Create your own R functions (e.g., add = function(x, y) {x + y}). Call these functions in the 'formula' input and press the Simulate button to run the simulation. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+          value = state_init("sim_funcs", "") %>% fix_smart(),
+          placeholder = "Create your own R functions (e.g., add = function(x, y) {x + y}).\nCall these functions from the 'formula' input and press the Run\nsimulation button to run the simulation. Click the ? icon on the\nbottom left of your screen for help and examples",
           vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
           tabSize = getOption("radiant.ace_tabSize", 2),
           useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
           showInvisibles = getOption("radiant.ace_showInvisibles", FALSE),
           autoScrollEditorIntoView = TRUE,
           minLines = 7,
-          maxLines = 20
+          maxLines = 20,
+          autoComplete = "live",
+          autoCompleters = c("static", "text"),
+          autoCompleteList = isolate(radiant_sim_auto())
         )
       ),
       HTML("</br><label>Simulation summary:</label>"),
@@ -761,6 +767,35 @@ output$simulater <- renderUI({
   )
 })
 
+## creating autocomplete list for simuate - function editor
+radiant_sim_auto <- reactive({
+    pkgs <- c("stats", "base", "radiant.data") %>%
+    sapply(function(x) grep("^[A-Za-z]", getNamespaceExports(x), value = TRUE)) %>%
+    set_names(., paste0("{", names(.), "}"))
+
+    inp <- clean_args(sim_inputs(), sim_args) %>% lapply(report_cleaner)
+    nms <- base::intersect(c(sim_types_vec, "form"), names(inp))
+    auto_nms <- list()
+
+    for (i in nms) {
+      auto_nms[[paste0("{sim ", i, "}")]] <- strsplit(inp[[i]], ";")[[1]] %>%
+        strsplit(., "(\\s+|=)") %>%
+        sapply(., `[[`, 1)
+    }
+
+    c(pkgs, auto_nms)
+})
+
+## auto completion for r-functions and defined variables
+observe({
+  req(isTRUE(input$sim_add_functions))
+  shinyAce::updateAceEditor(
+    session, "sim_funcs",
+    autoCompleters = c("static", "text"),
+    autoCompleteList = radiant_sim_auto()
+  )
+})
+
 .simulater <- eventReactive(input$sim_run, {
   validate(
     need(
@@ -771,7 +806,7 @@ output$simulater <- renderUI({
   fixed <- fix_names(input$sim_name)
   updateTextInput(session, "sim_name", value = fixed)
   withProgress(message = "Running simulation", value = 0.5, {
-   inp <- sim_inputs()
+    inp <- sim_inputs()
     inp$name <- fixed
     sim <- do.call(simulater, inp)
     if (is.data.frame(sim)) {
