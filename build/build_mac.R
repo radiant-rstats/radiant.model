@@ -1,9 +1,6 @@
 ## build for mac
-app <- "radiant.model"
-path <- "~/gh"
-devtools::install(file.path(path, app), upgrade = "never")
-f <- devtools::build(file.path(path, app))
-curr <- getwd()
-setwd(path)
+app <- basename(getwd())
+curr <- setwd("../")
+f <- devtools::build(app)
 system(paste0("R CMD INSTALL --build ", f))
 setwd(curr)
