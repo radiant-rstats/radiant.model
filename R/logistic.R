@@ -143,9 +143,6 @@ logistic <- function(
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
-  # attr(model$model, "radiant_min") <- mmx[["min"]]
-  # attr(model$model, "radiant_max") <- mmx[["max"]]
-
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))

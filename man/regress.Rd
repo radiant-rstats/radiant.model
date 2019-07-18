@@ -20,7 +20,7 @@ regress(dataset, rvar, evar, int = "", check = "", data_filter = "")
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 }
 \value{
-A list of all variables variables used in the regress function as an object of class regress
+A list of all variables used in the regress function as an object of class regress
 }
 \description{
 Linear regression using OLS

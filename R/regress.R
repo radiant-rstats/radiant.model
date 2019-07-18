@@ -9,7 +9,7 @@
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
-#' @return A list of all variables variables used in the regress function as an object of class regress
+#' @return A list of all variables used in the regress function as an object of class regress
 #'
 #' @examples
 #' regress(diamonds, "price", c("carat", "clarity"), check = "standardize") %>% summary()
@@ -86,9 +86,6 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
     attr(model$model, "radiant_sds") <- attr(dataset, "radiant_sds")
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
-
-  # attr(model$model, "radiant_min") <- mmx[["min"]]
-  # attr(model$model, "radiant_max") <- mmx[["max"]]
 
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")
