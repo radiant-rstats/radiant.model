@@ -62,7 +62,7 @@ output$ui_crtree_rvar <- renderUI({
     if (input$crtree_type == "classification") {
       vars <- two_level_vars()
     } else {
-      isNum <- .get_class() %in% c("numeric", "integer")
+      isNum <- .get_class() %in% c("integer", "numeric", "ts")
       vars <- varnames()[isNum]
     }
   })
@@ -101,7 +101,7 @@ output$ui_crtree_evar <- renderUI({
 })
 
 output$ui_crtree_wts <- renderUI({
-  isNum <- .get_class() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
     vars <- base::setdiff(vars, input$crtree_evar)

@@ -17,7 +17,7 @@ ereg_inputs <- reactive({
 ###############################################################
 output$ui_ereg_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-    isNum <- .get_class() %in% c("integer", "numeric")
+    isNum <- .get_class() %in% c("integer", "numeric", "ts")
     vars <- varnames()[isNum]
   })
   selectInput(
@@ -27,7 +27,7 @@ output$ui_ereg_rvar <- renderUI({
 })
 
 output$ui_ereg_pred <- renderUI({
-  isNum <- .get_class() %in% c("integer", "numeric")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   vars <- varnames()[isNum]
 
   req(available(input$ereg_rvar))

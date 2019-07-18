@@ -146,7 +146,7 @@ output$ui_logit_evar <- renderUI({
 
 output$ui_logit_wts <- renderUI({
   req(available(input$logit_rvar), available(input$logit_evar))
-  isNum <- .get_class() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$logit_evar)) {
     vars <- base::setdiff(vars, input$logit_evar)
@@ -184,7 +184,7 @@ observeEvent(is.null(input$logit_test_var), {
 output$ui_logit_show_interactions <- renderUI({
   # choices <- logit_show_interactions[1:max(min(3, length(input$logit_evar)), 1)]
   vars <- input$logit_evar
-  isNum <- .get_class() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   if (any(vars %in% varnames()[isNum])) {
     choices <- logit_show_interactions[1:3]
   } else {
@@ -199,7 +199,7 @@ output$ui_logit_show_interactions <- renderUI({
 
 output$ui_logit_show_interactions <- renderUI({
   vars <- input$logit_evar
-  isNum <- .get_class() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   if (any(vars %in% varnames()[isNum])) {
     choices <- logit_show_interactions[1:3]
   } else {
@@ -224,10 +224,10 @@ output$ui_logit_int <- renderUI({
       return()
     } else {
       ## quadratic and qubic terms
-      num <- .get_class() %in% c("numeric", "integer")
-      num <- intersect(vars, varnames()[num])
-      if (length(num) > 0) {
-        choices <- qterms(num, input$logit_show_interactions)
+      isNum <- .get_class() %in% c("integer", "numeric", "ts")
+      isNum <- intersect(vars, varnames()[isNum])
+      if (length(isNum) > 0) {
+        choices <- qterms(isNum, input$logit_show_interactions)
       }
       ## list of interaction terms to show
       if (length(vars) > 1) {

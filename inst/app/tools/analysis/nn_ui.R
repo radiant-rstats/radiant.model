@@ -68,7 +68,8 @@ output$ui_nn_rvar <- renderUI({
     if (input$nn_type == "classification") {
       vars <- two_level_vars()
     } else {
-      vars <- varnames()[.get_class() %in% c("numeric", "integer")]
+      isNum <- .get_class() %in% c("integer", "numeric", "ts")
+      vars <- varnames()[isNum]
     }
   })
 
@@ -129,7 +130,8 @@ output$ui_nn_evar <- renderUI({
 })
 
 output$ui_nn_wts <- renderUI({
-  vars <- varnames()[.get_class() %in% c("numeric", "integer")]
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
+  vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$nn_evar)) {
     vars <- base::setdiff(vars, input$nn_evar)
     names(vars) <- varnames() %>%
