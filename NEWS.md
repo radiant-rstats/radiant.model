@@ -1,5 +1,19 @@
-# radiant.model 0.9.9.1
+# radiant.model 1.0.0
 
+* Keyboard shortcut (Enter) when defining variable in Model > Simulate
+* Allow series of type ts in models
+* Autocompletion for functions in Model > Simulate
+* Require shinyAce 0.4.0
+
+# radiant.model 0.9.9.3
+
+* Don't use simulation variables when their type is not selected
+* Provide auto-completion for variables and relevant functions in the Simulate > Functions input
+* Keyboard shortcuts for add a defined variable (i.e., press enter after adding the last input value) 
+
+# radiant.model 0.9.9.2
+
+* Fix for variable definition in _Model > Simulate_ where names of discrete random variables were not properly 'fixed'
 * Fix for variable selection in _Model > Decision analysis > Sensitivity_
 
 # radiant.model 0.9.9.0
