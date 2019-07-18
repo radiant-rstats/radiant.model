@@ -7,9 +7,11 @@ if (grepl("[nN]", rvprompt)) {
   stop("Change R-version using Rstudio > Tools > Global Options > Rversion")
 }
 
-app <- "radiant.model"
-path <- "../"
-devtools::install(file.path(path, app))
+app <- basename(rstudioapi::getActiveProject())
+path <- normalizePath(setwd(file.path(rstudioapi::getActiveProject(), "..")), winslash = "/")
+path <- sub("\\\\\\\\Mac/Home","Z:",path)
+curr <- setwd(path)
+devtools::install(file.path(path, app), upgrade = "never")
 f <- devtools::build(file.path(path, app))
 curr <- getwd()
 setwd(path)
