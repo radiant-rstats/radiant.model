@@ -1,7 +1,7 @@
 # radiant.model 1.0.0
 
 * Keyboard shortcut (Enter) when defining variable in Model > Simulate
-* Allow series of type ts in models
+* Allow series of type ts and date in models and prediction
 * Autocompletion for functions in Model > Simulate
 * Require shinyAce 0.4.0
 

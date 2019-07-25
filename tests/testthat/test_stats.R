@@ -47,6 +47,17 @@ test_that("regress - predict with quadratic term", {
   expect_equal(res1, res2)
 })
 
+test_that("regress - predict with date", {
+  result <- regress(diamonds, "price", c("carat", "clarity", "date"))
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[17] %>% trim()
+  res2 <- "SI1 2012-03-19     9  72719.464 71896.008 73542.920 823.456"
+  expect_equal(res1, res2)
+  res1 <- capture.output(predict(result, pred_cmd = "date = '2012-1-1'"))[9] %>% trim()
+  res2 <- "0.794     SI1 2012-01-01   3471.070 3357.438 3584.701 113.631"
+  expect_equal(res1, res2)
+})
+
+
 context("Logistic regression (logistic)")
 
 test_that("logistic", {
@@ -128,6 +139,16 @@ test_that("Neural Network - predict for regression", {
   res1 <- capture.output(predict(result, pred_data = diamonds, dec = 1))[16] %>% trim()
   # cat(paste0(res1, "\n"))
   res2 <- "0.9     SI1     3997.9"
+  expect_equal(res1, res2)
+})
+
+test_that("Neural Network - predict with date", {
+  result <- nn(diamonds, "price", c("carat", "clarity", "date"), type = "regression", seed = 1234)
+  res1 <- capture.output(predict(result, pred_cmd = "carat = 1:10"))[17] %>% trim()
+  res2 <- "SI1 2012-03-19    10   3907.186"
+  expect_equal(res1, res2)
+  res1 <- capture.output(predict(result, pred_cmd = "date = '2012-1-1'"))[8] %>% trim()
+  res2 <- "0.794     SI1 2012-01-01   3907.186"
   expect_equal(res1, res2)
 })
 
