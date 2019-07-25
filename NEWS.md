@@ -1,7 +1,25 @@
+# radiant.model 1.0.0
+
+* Keyboard shortcut (Enter) when defining variable in Model > Simulate
+* Allow series of type ts and date in models and prediction
+* Autocompletion for functions in Model > Simulate
+* Require shinyAce 0.4.0
+
+# radiant.model 0.9.9.3
+
+* Don't use simulation variables when their type is not selected
+* Provide auto-completion for variables and relevant functions in the Simulate > Functions input
+* Keyboard shortcuts for add a defined variable (i.e., press enter after adding the last input value) 
+
+# radiant.model 0.9.9.2
+
+* Fix for variable definition in _Model > Simulate_ where names of discrete random variables were not properly 'fixed'
+* Fix for variable selection in _Model > Decision analysis > Sensitivity_
+
 # radiant.model 0.9.9.0
 
-* Allow any variable in the prediction dataset to be use to customize the prediction for _Predict > Data & Command_
-* Fix for `write.coeff` when interactions, quadratic, or cubic terms are included
+* Allow any variable in the prediction dataset to be used to customize a prediction when using _Predict > Data & Command_
+* Fix for `write.coeff` when interactions, quadratic, and/or cubic terms are included in a linear or logistic regression
 * Rescale predictions in `cv.nn` so RMSE and MAE are in the original scale even if the data were standardized for estimation
 * Rename `scaledf` to `scale_df` for consistency
 * Fix for plot sizing and printing of missing values in collaborative filtering

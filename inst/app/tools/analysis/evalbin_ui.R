@@ -49,7 +49,7 @@ output$ui_ebin_lev <- renderUI({
 })
 
 output$ui_ebin_pred <- renderUI({
-  isNum <- .get_class() %in% c("integer", "numeric")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   vars <- varnames()[isNum]
   selectInput(
     inputId = "ebin_pred", label = "Select stored predictions:", choices = vars,

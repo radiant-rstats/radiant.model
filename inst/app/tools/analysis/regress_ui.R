@@ -113,7 +113,7 @@ reg_pred_plot_inputs <- reactive({
 
 output$ui_reg_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-    isNum <- .get_class() %in% c("numeric", "integer")
+    isNum <- .get_class() %in% c("integer", "numeric", "ts")
     vars <- varnames()[isNum]
   })
   selectInput(
@@ -157,7 +157,7 @@ observeEvent(is.null(input$reg_test_var), {
 
 output$ui_reg_show_interactions <- renderUI({
   vars <- input$reg_evar
-  isNum <- .get_class() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   if (any(vars %in% varnames()[isNum])) {
     choices <- reg_show_interactions[1:3]
   } else {
@@ -182,10 +182,10 @@ output$ui_reg_int <- renderUI({
       return()
     } else {
       ## quadratic and qubic terms
-      num <- .get_class() %in% c("numeric", "integer")
-      num <- intersect(vars, varnames()[num])
-      if (length(num) > 0) {
-        choices <- qterms(num, input$reg_show_interactions)
+      isNum <- .get_class() %in% c("integer", "numeric", "ts")
+      isNum <- intersect(vars, varnames()[isNum])
+      if (length(isNum) > 0) {
+        choices <- qterms(isNum, input$reg_show_interactions)
       }
       ## list of interaction terms to show
       if (length(vars) > 1) {

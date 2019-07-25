@@ -9,7 +9,7 @@
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #'
-#' @return A list of all variables variables used in the regress function as an object of class regress
+#' @return A list of all variables used in the regress function as an object of class regress
 #'
 #' @examples
 #' regress(diamonds, "price", c("carat", "clarity"), check = "standardize") %>% summary()
@@ -86,9 +86,6 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
     attr(model$model, "radiant_sds") <- attr(dataset, "radiant_sds")
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
-
-  # attr(model$model, "radiant_min") <- mmx[["min"]]
-  # attr(model$model, "radiant_max") <- mmx[["max"]]
 
   coeff <- tidy(model) %>% as.data.frame()
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")
@@ -708,9 +705,10 @@ predict_model <- function(
     dat_classes <- dat_classes[!grepl("(^\\(weights\\)$)|(^I\\(.+\\^[0-9]+\\)$)", names(dat_classes))]
 
     isFct <- dat_classes == "factor"
-    isChar <- dat_classes == "character"
+    isOther <- dat_classes %in% c("date", "other")
+    isChar <- dat_classes %in% c("character")
     isLog <- dat_classes == "logical"
-    isNum <- dat_classes == "numeric" | dat_classes == "integer"
+    isNum <- dat_classes %in% c("numeric", "integer", "ts", "period")
 
     # based on http://stackoverflow.com/questions/19982938/how-to-find-the-most-frequent-values-across-several-columns-containing-factors
     max_freq <- function(x) names(which.max(table(x)))
@@ -719,7 +717,7 @@ predict_model <- function(
 
     plug_data <- data.frame(init___ = 1, stringsAsFactors = FALSE)
     if (sum(isNum) > 0) {
-      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = mean))
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isNum], .funs = mean, na.rm = TRUE))
     }
     if (sum(isFct) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isFct], .funs = max_ffreq))
@@ -727,13 +725,20 @@ predict_model <- function(
     if (sum(isChar) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isChar], .funs = max_freq))
     }
+    if (sum(isOther) > 0) {
+      plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isOther], .funs = max_freq) %>% mutate_all(as.Date, origin = "1970-1-1"))
+    }
     if (sum(isLog) > 0) {
       plug_data %<>% bind_cols(., summarise_at(dat, .vars = vars[isLog], .funs = max_lfreq))
     }
 
-    rm(dat)
+    isPDO <- colnames(plug_data)[get_class(plug_data) %in% c("date", "other")]
+    isPDO <- dplyr::intersect(isPDO, colnames(pred))
+    if (length(isPDO) > 0) {
+      pred %<>% mutate_at(.vars = isPDO, as.Date, origin = "1970-1-1")
+    }
 
-    if ((sum(isNum) + sum(isFct) + sum(isLog) + sum(isChar)) < length(vars)) {
+    if ((sum(isNum) + sum(isFct) + sum(isLog) + sum(isChar) + sum(isOther)) < length(vars)) {
       return("The model includes data-types that cannot be used for\nprediction at this point\n")
     } else {
       if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
@@ -772,9 +777,16 @@ predict_model <- function(
       dots <- rlang::parse_exprs(pred_cmd) %>%
         set_names(cmd_vars)
 
+      ## any variables of type date?
+      isPDO <- colnames(pred)[get_class(pred) %in% c("date", "other")]
+
       pred <- try(mutate(pred, !!! dots), silent = TRUE)
       if (inherits(pred, "try-error")) {
         return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+      }
+
+      if (length(isPDO) > 0) {
+        pred %<>% mutate_at(.vars = isPDO, as.Date, origin = "1970-1-1")
       }
 
       pred_type <- "datacmd"

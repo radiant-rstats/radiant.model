@@ -29,7 +29,6 @@
 #' crtree(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' result <- crtree(titanic, "survived", c("pclass", "sex")) %>% summary()
 #' result <- crtree(diamonds, "price", c("carat", "clarity"), type = "regression") %>% str()
-#'
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #' @seealso \code{\link{plot.crtree}} to plot results
 #' @seealso \code{\link{predict.crtree}} for prediction
@@ -37,14 +36,7 @@
 #' @importFrom rpart rpart rpart.control prune.rpart
 #'
 #' @export
-crtree <- function(
-  dataset, rvar, evar, type = "", lev = "", wts = "None",
-  minsplit = 2, minbucket = round(minsplit/3), cp = 0.001,
-  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
-  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
-  data_filter = ""
-) {
-
+crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None", minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001, pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini", prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "", data_filter = "") {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("crtree"))
@@ -130,11 +122,12 @@ crtree <- function(
 
   form <- paste(rvar, "~ . ")
 
-  seed %>% gsub("[^0-9]", "", .) %>%
-    {if (!is_empty(.)) set.seed(seed)}
+  seed %>% gsub("[^0-9]", "", .) %>% {
+    if (!is_empty(.)) set.seed(seed)
+  }
 
-  minsplit = ifelse(is_empty(minsplit), 2, minsplit)
-  minbucket = ifelse(is_empty(minbucket), round(minsplit/3), minbucket)
+  minsplit <- ifelse(is_empty(minsplit), 2, minsplit)
+  minbucket <- ifelse(is_empty(minbucket), round(minsplit / 3), minbucket)
 
   ## make max tree
   # http://stackoverflow.com/questions/24150058/rpart-doesnt-build-a-full-tree-problems-with-cp
@@ -146,7 +139,6 @@ crtree <- function(
   )
 
   parms <- list(split = split)
-  # loss <- c(6,.5); cost <- .5, margin <- 6
   if (type == "classification") {
     ind <- if (which(lev %in% levels(dataset[[rvar]])) == 1) c(1, 2) else c(2, 1)
     if (!is_empty(prior) && !is_not(cost) && !is_not(cost)) {
@@ -154,7 +146,6 @@ crtree <- function(
     }
 
     if (!is_not(cost) && !is_not(margin)) {
-
       loss2 <- as_numeric(cost)
       loss1 <- as_numeric(margin) - loss2
 
@@ -165,7 +156,9 @@ crtree <- function(
       } else {
         parms[["loss"]] <- c(loss1, loss2) %>%
           .[ind] %>%
-          {matrix(c(0, .[1], .[2], 0), byrow = TRUE, nrow = 2)}
+          {
+            matrix(c(0, .[1], .[2], 0), byrow = TRUE, nrow = 2)
+          }
       }
     } else if (!is_empty(prior)) {
       if (!is.numeric(prior)) {
@@ -180,8 +173,7 @@ crtree <- function(
     }
   }
 
-  ## using an input list with do.call ensure that a full "call" is available
-  ## for cross-validation
+  ## using an input list with do.call ensure that a full "call" is available for cross-validation
   crtree_input <- list(
     formula = as.formula(form),
     data = dataset,
@@ -212,7 +204,7 @@ crtree <- function(
   model$residuals <- residuals(model, type = "pearson")
 
   if (is_not(cost) && is_not(margin) &&
-      !is_empty(prior) && !is_empty(adjprob)) {
+    !is_empty(prior) && !is_empty(adjprob)) {
 
     ## when prior = 0.5 can use pp <- p / (p + (1 - p) * (1 - bp) / bp)
     ## more generally, use Theorem 2 from "The Foundations of Cost-Sensitive Learning" by Charles Elkan
@@ -240,6 +232,7 @@ crtree <- function(
 #'
 #' @param object Return value from \code{\link{crtree}}
 #' @param prn Print tree in text form
+#' @param splits Print the tree splitting metrics used
 #' @param cptab Print the cp table
 #' @param modsum Print the model summary
 #' @param ... further arguments passed to or from other methods
@@ -249,17 +242,12 @@ crtree <- function(
 #' summary(result)
 #' result <- crtree(diamonds, "price", c("carat", "color"), type = "regression")
 #' summary(result)
-#'
 #' @seealso \code{\link{crtree}} to generate results
 #' @seealso \code{\link{plot.crtree}} to plot results
 #' @seealso \code{\link{predict.crtree}} for prediction
 #'
 #' @export
-summary.crtree <- function(
-  object, prn = TRUE, cptab = FALSE,
-  modsum = FALSE, ...
-) {
-
+summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, modsum = FALSE, ...) {
   if (is.character(object)) return(object)
 
   if (object$type == "classification") {
@@ -300,8 +288,13 @@ summary.crtree <- function(
   }
 
   ## extra output
-  if (cptab)
+  if (splits) {
+    print(object$model$split)
+  }
+
+  if (cptab) {
     print(object$model$cptable)
+  }
 
   if (modsum) {
     object$model$call <- NULL
@@ -332,7 +325,6 @@ summary.crtree <- function(
 #' plot(result, plots = "prune")
 #' result <- crtree(dvd, "buy", c("coupon", "purch", "last"), cp = .01)
 #' plot(result, plots = "imp")
-#'
 #' @importFrom DiagrammeR DiagrammeR mermaid
 #'
 #' @seealso \code{\link{crtree}} to generate results
@@ -341,11 +333,9 @@ summary.crtree <- function(
 #'
 #' @export
 plot.crtree <- function(
-  x, plots = "tree", orient = "LR",
-  width = "900px", labs = TRUE, dec = 2,
-  shiny = FALSE, custom = FALSE, ...
-) {
-
+                        x, plots = "tree", orient = "LR",
+                        width = "900px", labs = TRUE, dec = 2,
+                        shiny = FALSE, custom = FALSE, ...) {
   if (is_empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
       return(paste0("graph LR\n A[\"", x, "\"]") %>% DiagrammeR::DiagrammeR(.))
@@ -383,12 +373,14 @@ plot.crtree <- function(
     non_leafs <- which(df$var != "<leaf>")
     df$to1[non_leafs] <- df$id[non_leafs + 1]
     df$to2[non_leafs] <- df$to1[non_leafs] + 1
-    df <- gather(df, "level", "to", !! c("to1", "to2"))
+    df <- gather(df, "level", "to", !!c("to1", "to2"))
 
     df$split1 <- nlabs[, 1]
     df$split2 <- nlabs[, 2]
 
-    isInt <- x$model$var_types %>% {names(.)[. == "integer"]}
+    isInt <- x$model$var_types %>% {
+      names(.)[. == "integer"]
+    }
     if (length(isInt) > 0) {
       # inspired by https://stackoverflow.com/a/35556288/1974918
       int_labs <- function(x) {
@@ -463,8 +455,9 @@ plot.crtree <- function(
     df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], gsub(",", ", ", df$split2_full)))
 
     ttip_ind <- 1:(nrow(df) / 2)
-    ttip <- df[ttip_ind, , drop = FALSE] %>%
-      {paste0("click id", .$id, " callback \"<b>n:</b> ", format_nr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")}
+    ttip <- df[ttip_ind, , drop = FALSE] %>% {
+      paste0("click id", .$id, " callback \"<b>n:</b> ", format_nr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")
+    }
 
     ## try to link a tooltip directly to an edge using mermaid
     ## see https://github.com/rich-iannone/DiagrammeR/issues/267
@@ -507,13 +500,14 @@ plot.crtree <- function(
           x = "Number of nodes",
           y = "Relative error"
         )
-        # + annotate(
-        #     geom = "text", x = df$nsplit, y = 1.1, label = as.character(signif(df$CP, 2L)),
-        #     angle = -90, vjust = 0, hjust = 0
-        #   )
+      # + annotate(
+      #     geom = "text", x = df$nsplit, y = 1.1, label = as.character(signif(df$CP, 2L)),
+      #     angle = -90, vjust = 0, hjust = 0
+      #   )
       if (nrow(df) < 10) p <- p + scale_x_continuous(breaks = df$nsplit)
 
       ## http://stats.stackexchange.com/questions/13471/how-to-choose-the-number-of-splits-in-rpart
+      if (size1[1] == Inf) size1[2] <- NA
       footnote <- paste0("\nMinimum error achieved at prune complexity ", format(size1[2], scientific = FALSE), " (", size1[1], " nodes)")
       ind2 <- min(which(df$xerror < (df$xerror[ind1] + df$xstd[ind1])))
       p <- p +
@@ -531,10 +525,10 @@ plot.crtree <- function(
       if (is.null(imp)) return("Variable importance information not available for singlenode tree")
 
       df <- data.frame(
-          vars = names(imp),
-          imp = imp / sum(imp),
-          stringsAsFactors = FALSE
-        ) %>%
+        vars = names(imp),
+        imp = imp / sum(imp),
+        stringsAsFactors = FALSE
+      ) %>%
         arrange_at(.vars = "imp")
       df$vars <- factor(df$vars, levels = df$vars)
 
@@ -582,16 +576,11 @@ plot.crtree <- function(
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' result <- crtree(titanic, "survived", "pclass", lev = "Yes")
 #' predict(result, pred_data = titanic) %>% head()
-#'
 #' @seealso \code{\link{crtree}} to generate the result
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #'
 #' @export
-predict.crtree <- function(
-  object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95,
-  se = FALSE, dec = 3, ...
-) {
-
+predict.crtree <- function(object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95, se = FALSE, dec = 3, ...) {
   if (is.character(object)) return(object)
   if (is.data.frame(pred_data)) {
     df_name <- deparse(substitute(pred_data))
@@ -660,13 +649,9 @@ print.crtree.predict <- function(x, ..., n = 10)
 #' result <- crtree(diamonds, "price", c("carat", "color", "clarity"), type = "regression", cp = 0.001)
 #' cv.crtree(result, cp = 0.001, pcp = seq(0, 0.01, length.out = 11), fun = MAE)
 #' }
-#'
+#' 
 #' @export
-cv.crtree <- function(
-  object, K = 5, repeats = 1, cp, pcp = seq(0, 0.01, length.out = 11),
-  seed = 1234, trace = TRUE, fun, ...
-) {
-
+cv.crtree <- function(object, K = 5, repeats = 1, cp, pcp = seq(0, 0.01, length.out = 11), seed = 1234, trace = TRUE, fun, ...) {
   if (inherits(object, "crtree")) object <- object$model
   if (inherits(object, "rpart")) {
     dv <- as.character(object$call$formula[[2]])
@@ -694,10 +679,10 @@ cv.crtree <- function(
 
   if (missing(fun)) {
     if (type == "classification") {
-      fun = radiant.model::auc
+      fun <- radiant.model::auc
       cn <- "AUC (mean)"
     } else {
-      fun = radiant.model::RMSE
+      fun <- radiant.model::RMSE
       cn <- "RMSE (mean)"
     }
   } else {
@@ -718,7 +703,7 @@ cv.crtree <- function(
     for (i in seq_len(nitt)) {
       perf <- double(K * repeats)
       object$call[["cp"]] <- tune_grid[i, "cp"]
-      if (trace) cat("Working on cp", format(tune_grid[i, "cp"], scientific = FALSE), "pcp", format(tune_grid[i, "pcp"], scientific = FALSE),"\n")
+      if (trace) cat("Working on cp", format(tune_grid[i, "cp"], scientific = FALSE), "pcp", format(tune_grid[i, "pcp"], scientific = FALSE), "\n")
       for (j in seq_len(repeats)) {
         rand <- sample(K, nrow(m), replace = TRUE)
         for (k in seq_len(K)) {
@@ -733,9 +718,9 @@ cv.crtree <- function(
 
           if (type == "classification") {
             if (missing(...)) {
-              perf[k + (j - 1) * K] <- fun(pred[,lev], unlist(m[rand == k, dv]), lev)
+              perf[k + (j - 1) * K] <- fun(pred[, lev], unlist(m[rand == k, dv]), lev)
             } else {
-              perf[k + (j - 1) * K] <- fun(pred[,lev], unlist(m[rand == k, dv]), lev, ...)
+              perf[k + (j - 1) * K] <- fun(pred[, lev], unlist(m[rand == k, dv]), lev, ...)
             }
           } else {
             if (missing(...)) {
@@ -746,8 +731,8 @@ cv.crtree <- function(
           }
         }
       }
-      out[i,1:4] <- c(mean(perf, na.rm = TRUE), sd(perf, na.rm = TRUE), min(perf, na.rm = TRUE), max(perf, na.rm = TRUE))
-      incProgress(1/nitt, detail = paste("\nCompleted run", i, "out of", nitt))
+      out[i, 1:4] <- c(mean(perf, na.rm = TRUE), sd(perf, na.rm = TRUE), min(perf, na.rm = TRUE), max(perf, na.rm = TRUE))
+      incProgress(1 / nitt, detail = paste("\nCompleted run", i, "out of", nitt))
     }
   })
 
@@ -763,7 +748,7 @@ cv.crtree <- function(
   object$call[["cp"]] <- out[1, "cp"]
   object$call[["data"]] <- m
   object <- rpart::prune(eval(object$call), out[1, "pcp"])
-  cat("\nGiven the provided tuning grid, the pruning complexity parameter\nshould be set to", out[1, "pcp"], "or the number of nodes set to" , max(object$cptable[,"nsplit"]) + 1, "\n")
+  cat("\nGiven the provided tuning grid, the pruning complexity parameter\nshould be set to", out[1, "pcp"], "or the number of nodes set to", max(object$cptable[, "nsplit"]) + 1, "\n")
   out
 }
 

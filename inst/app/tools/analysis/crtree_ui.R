@@ -17,7 +17,7 @@ crtree_pred_args <- as.list(if (exists("predict.crtree")) {
   formals(predict.crtree)
 } else {
   formals(radiant.model:::predict.crtree)
-} )
+})
 
 # list of function inputs selected by user
 crtree_pred_inputs <- reactive({
@@ -45,7 +45,7 @@ crtree_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
   formals(plot.model.predict)
 } else {
   formals(radiant.model:::plot.model.predict)
-} )
+})
 
 # list of function inputs selected by user
 crtree_pred_plot_inputs <- reactive({
@@ -62,7 +62,7 @@ output$ui_crtree_rvar <- renderUI({
     if (input$crtree_type == "classification") {
       vars <- two_level_vars()
     } else {
-      isNum <- .get_class() %in% c("numeric", "integer")
+      isNum <- .get_class() %in% c("integer", "numeric", "ts")
       vars <- varnames()[isNum]
     }
   })
@@ -101,12 +101,14 @@ output$ui_crtree_evar <- renderUI({
 })
 
 output$ui_crtree_wts <- renderUI({
-  isNum <- .get_class() %in% c("numeric", "integer")
+  isNum <- .get_class() %in% c("integer", "numeric", "ts")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
     vars <- base::setdiff(vars, input$crtree_evar)
     names(vars) <- varnames() %>%
-      {.[match(vars, .)]} %>%
+      {
+        .[match(vars, .)]
+      } %>%
       names()
   }
   vars <- c("None", vars)
@@ -138,7 +140,8 @@ output$ui_crtree_width <- renderUI({
   init <- ifelse(is_empty(input$get_screen_width), 900, (input$get_screen_width - 400))
   init <- init - init %% 100
   numericInput(
-    "crtree_width", label = "Width:",
+    "crtree_width",
+    label = "Width:",
     value = state_init("crtree_width", init),
     step = 100, min = 600, max = 3000
   )
@@ -180,7 +183,8 @@ output$ui_crtree <- renderUI({
       conditionalPanel(
         condition = "input.tabs_crtree == 'Summary'",
         radioButtons(
-          "crtree_type", label = NULL, c("classification", "regression"),
+          "crtree_type",
+          label = NULL, c("classification", "regression"),
           selected = state_init("crtree_type", "classification"),
           inline = TRUE
         ),
@@ -192,41 +196,48 @@ output$ui_crtree <- renderUI({
           condition = "input.crtree_type == 'classification'",
           tags$table(
             tags$td(numericInput(
-              "crtree_prior", label = "Prior:",
+              "crtree_prior",
+              label = "Prior:",
               value = state_init("crtree_prior", .5, na.rm = FALSE),
               min = 0, max = 1, step = 0.1,
               width = "116px"
             )),
             tags$td(numericInput(
-              "crtree_minsplit", label = "Min obs.:",
+              "crtree_minsplit",
+              label = "Min obs.:",
               value = state_init("crtree_minsplit", 2)
             ))
           ),
           tags$table(
             tags$td(numericInput(
-              "crtree_cost", label = "Cost:",
+              "crtree_cost",
+              label = "Cost:",
               value = state_init("crtree_cost", NA)
             )),
             tags$td(numericInput(
-              "crtree_margin", label = "Margin:",
+              "crtree_margin",
+              label = "Margin:",
               value = state_init("crtree_margin", NA)
             ))
           )
         ),
         tags$table(
           tags$td(numericInput(
-            "crtree_cp", label = "Complexity:", min = 0,
+            "crtree_cp",
+            label = "Complexity:", min = 0,
             max = 1, step = 0.001,
             value = state_init("crtree_cp", 0.001), width = "116px"
           )),
           tags$td(numericInput(
-          "crtree_nodes", label = "Max. nodes:", min = 2,
-          value = state_init("crtree_nodes", NA), width = "100%"
+            "crtree_nodes",
+            label = "Max. nodes:", min = 2,
+            value = state_init("crtree_nodes", NA), width = "100%"
           ))
         ),
         tags$table(
           tags$td(numericInput(
-            "crtree_pcp", label = "Prune complex.:", min = 0, step = 0.001,
+            "crtree_pcp",
+            label = "Prune complex.:", min = 0, step = 0.001,
             value = state_init("crtree_pcp", NA), width = "116px"
           )),
           # tags$td(numericInput(
@@ -234,7 +245,8 @@ output$ui_crtree <- renderUI({
           #   value = state_init("crtree_K", 10), width = "116px"
           # )),
           tags$td(numericInput(
-            "crtree_seed", label = "Seed:",
+            "crtree_seed",
+            label = "Seed:",
             value = state_init("crtree_seed", 1234), width = "100%"
           ))
         ),
@@ -249,7 +261,8 @@ output$ui_crtree <- renderUI({
       conditionalPanel(
         condition = "input.tabs_crtree == 'Predict'",
         selectInput(
-          "crtree_predict", label = "Prediction input type:", reg_predict,
+          "crtree_predict",
+          label = "Prediction input type:", reg_predict,
           selected = state_single("crtree_predict", reg_predict, "none")
         ),
         conditionalPanel(
@@ -290,7 +303,8 @@ output$ui_crtree <- renderUI({
       conditionalPanel(
         condition = "input.tabs_crtree == 'Plot'",
         selectInput(
-          "crtree_plots", "Plots:", choices = ctree_plots,
+          "crtree_plots", "Plots:",
+          choices = ctree_plots,
           selected = state_single("crtree_plots", ctree_plots, "none")
         ),
         conditionalPanel(
@@ -298,10 +312,12 @@ output$ui_crtree <- renderUI({
           tags$table(
             tags$td(
               selectInput(
-                "crtree_orient", label = "Plot direction:",
+                "crtree_orient",
+                label = "Plot direction:",
                 c("Left-right" = "LR", "Top-down" = "TD", "Right-left" = "RL", "Bottom-Top" = "BT"),
                 state_init("crtree_orient", "LR"), width = "116px"
-              ), style = "padding-top:15px;"
+              ),
+              style = "padding-top:15px;"
             ),
             tags$td(uiOutput("ui_crtree_width"), width = "100%")
           )
@@ -337,8 +353,6 @@ crtree_pred_plot_height <- function()
 output$diagrammer_crtree <- renderUI({
   DiagrammeR::DiagrammeROutput(
     "crtree_plot",
-    # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 820, "px")),
-    # width = ifelse(length(input$get_screen_width) == 0, "860px", paste0(input$get_screen_width - 480, "px")),
     width = input$crtree_width,
     height = "100%"
   )
@@ -437,7 +451,7 @@ crtree_available <- reactive({
   if (is_empty(input$crtree_predict, "none")) return("** Select prediction input **")
 
   if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") &&
-       is_empty(input$crtree_pred_data)) {
+    is_empty(input$crtree_pred_data)) {
     "** Select data for prediction **"
   } else if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
     "** Enter prediction commands **"
@@ -449,7 +463,8 @@ crtree_available <- reactive({
 })
 
 .predict_print_crtree <- reactive({
-  .predict_crtree() %>% {if (is.character(.)) cat(., "\n") else print(.)}
+  pc <- .predict_crtree()
+  if (is.character(pc)) cat(pc, "\n") else print(pc)
 })
 
 .predict_plot_crtree <- reactive({
@@ -547,7 +562,8 @@ observeEvent(input$crtree_report, {
     if (input$crtree_predict %in% c("data", "datacmd")) {
       fixed <- fix_names(input$crtree_store_pred_name)
       updateTextInput(session, "crtree_store_pred_name", value = fixed)
-      xcmd <- paste0(xcmd, "\n", input$crtree_pred_data, " <- store(",
+      xcmd <- paste0(
+        xcmd, "\n", input$crtree_pred_data, " <- store(",
         input$crtree_pred_data, ", pred, name = \"", fixed, "\")"
       )
     }

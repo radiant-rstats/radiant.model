@@ -98,7 +98,8 @@ output$ui_dtree_sense <- renderUI({
 observeEvent(input$dtree_sense_add, {
   var_updater(
     input$dtree_sense_add, "dtree_sense",
-    c(input$dtree_sense_name, input$dtree_sense_min, input$dtree_sense_max, input$dtree_sense_step)
+    input$dtree_sense_name, c(input$dtree_sense_min, input$dtree_sense_max, input$dtree_sense_step),
+    fix = FALSE
   )
 })
 
@@ -144,8 +145,9 @@ output$dtree <- renderUI({
         debounce = 100,
         height = "auto",
         value = state_init("dtree_edit", dtree_example) %>% gsub("\t", "    ", .),
+        placeholder = "Provide structured input for a decision tree. Then click the\n\"Calculate tree\" button to generate results. Click the ? icon\non the top left of your screen for help and examples",
         vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
-        hotkeys = list(dtree_hotkey = list(win = "CTRL-ENTER", mac = "CMD-ENTER")),
+        hotkeys = list(hotkey = list(win = "CTRL-ENTER|SHIFT-ENTER", mac = "CMD-ENTER|SHIFT-ENTER")),
         tabSize = 4,
         showInvisibles = TRUE,
         useSoftTabs = TRUE,
@@ -263,13 +265,13 @@ observe({
   )
 })
 
-vals_dtree <- reactiveValues(dtree_hotkey = 0, dtree_report = 0)
+vals_dtree <- reactiveValues(dtree_edit_hotkey = 0, dtree_report = 0)
 
 observe({
-  input$dtree_hotkey
+  input$dtree_edit_hotkey
   input$dtree_run_plot
   input$dtree_run_sense
-  if (!is.null(input$dtree_run)) isolate(vals_dtree$dtree_hotkey %<>% add(1))
+  if (!is.null(input$dtree_run)) isolate(vals_dtree$dtree_edit_hotkey %<>% add(1))
 })
 
 dtree_name <- function() {
@@ -290,8 +292,8 @@ dtree_name <- function() {
   })
 }
 
-dtree_run <- eventReactive(vals_dtree$dtree_hotkey > 1, {
-  req(vals_dtree$dtree_hotkey != 1)
+dtree_run <- eventReactive(vals_dtree$dtree_edit_hotkey > 1, {
+  req(vals_dtree$dtree_edit_hotkey != 1)
   validate(
     need(!is_empty(input$dtree_edit), "No decision tree input available")
   )

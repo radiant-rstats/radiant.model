@@ -1,5 +1,38 @@
 ## Resubmission
 
+This is a resubmission. In this version I have fixed several bugs and added several new features (see NEWS.md for details).
+
+## Test environments
+
+* local OS X install, R 3.6.1
+* local Windows install, R 3.6.1
+* ubuntu "trusty" (on travis-ci), R release and devel
+* win-builder
+* rhub
+
+## R CMD check results
+
+There were no ERRORs, WARNINGs, or NOTEs. 
+
+# Previous cran-comments
+
+## Resubmission
+
+This is a resubmission. In this version I have fixed several bugs and added several new features (see NEWS.md for details).
+
+## Test environments
+
+* local OS X install, R 3.5.2
+* local Windows install, R 3.5.2
+* ubuntu "trusty" (on travis-ci), R release and devel
+* win-builder
+
+## R CMD check results
+
+There were no ERRORs, WARNINGs, or NOTEs. 
+
+## Resubmission
+
 radiant.model was recently archived and removed from CRAN. Uwe Ligges confirmed that multiple emails were sent to my radiant@rady.ucsd.edu email address but, unfortunately, I cannot find any such emails in my inbox. I hope you will accept radiant.model as a resubmission.
 
 ## Test environments
@@ -12,8 +45,6 @@ radiant.model was recently archived and removed from CRAN. Uwe Ligges confirmed 
 ## R CMD check results
 
 There were no ERRORs, WARNINGs, or NOTEs. 
-
-# Previous cran-comments
 
 ## Resubmission
 
