@@ -719,7 +719,8 @@ output$simulater <- renderUI({
         theme = getOption("radiant.ace_theme", default = "tomorrow"),
         wordWrap = TRUE,
         height = "120px",
-        value = state_init("rep_form", "## Press the Repeat button to repeat the simulation specified in the Simulate tab. Use formulas to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+        value = state_init("rep_form", "") %>% fix_smart(),
+        placeholder = "Press the Repeat button to repeat the simulation specified in the Simulate tab.\nUse formulas to perform additional calculations on the repeated simulation data.\nClick the ? icon on the bottom left of your screen for help and examples",
         vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
         tabSize = getOption("radiant.ace_tabSize", 2),
         useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
@@ -737,7 +738,8 @@ output$simulater <- renderUI({
           theme = getOption("radiant.ace_theme", default = "tomorrow"),
           wordWrap = TRUE,
           height = "120px",
-          value = state_init("rep_funcs", "## Create R functions to perform calculations (e.g., add = function(x, y) {x + y}). You can then call these functions in the 'formula' input. Press the Repeat button to repeat the simulation specified in the Simulate tab. Use functions to perform additional calculations on the repeated simulation data. Click the ? icon on the bottom left of your screen for help and examples") %>% fix_smart(),
+          value = state_init("rep_funcs", "") %>% fix_smart(),
+          placeholder = "Create your own R functions (e.g., add = function(x, y) {x + y}).\nCall these functions from the 'formula' input and press the Run\nsimulation button to run the simulation. Click the ? icon on the\nbottom left of your screen for help and examples",
           vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
           tabSize = getOption("radiant.ace_tabSize", 2),
           useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),
@@ -892,9 +894,9 @@ rep_plot_height <- function() {
   req(length(input$rep_sum_vars) > 0)
   if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
     return(invisible())
-  } else if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
-    return(invisible())
-  }
+  } # else if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
+    # return(invisible())
+  # }
   object <- .repeater()
   if (is.null(object)) return(invisible())
   withProgress(message = "Generating repeated simulation plots", value = 1, {
