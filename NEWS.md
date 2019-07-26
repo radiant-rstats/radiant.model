@@ -26,7 +26,7 @@
 * Fix for `cv.nn` when weights are used in estimation
 * Improve documentation for cross-validation of `nn` and `crtree` models (i.e., `cv.nn` and `cv.crtree`)
 * Fixes for breaking changes in dplyr 0.8.0
-* Fix to download tables from _Model > Evaluate classificiation_
+* Fix to download tables from _Model > Evaluate classification_
 * Use an expandable `shinyAce` input for the formula and function inputs in _Model > Simulate_
 * Fixes for repeated simulation with grid-search
 * Use `test` instead of `validation` 
@@ -63,7 +63,7 @@
 
 ## Major changes
 
-* Various changes to the code to accomodate the use of `shiny::makeReactiveBinding`. The advantage is that the code generated for _Report > Rmd_ and _Report > R_ will no longer have to use `r_data` to store and access data. This means that code generated and used in the Radiant browser interface will be directly usable without the browser interface as well.
+* Various changes to the code to accommodate the use of `shiny::makeReactiveBinding`. The advantage is that the code generated for _Report > Rmd_ and _Report > R_ will no longer have to use `r_data` to store and access data. This means that code generated and used in the Radiant browser interface will be directly usable without the browser interface as well.
 * Improved documentation and examples
 
 # radiant.model 0.9.2.3
