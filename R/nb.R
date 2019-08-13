@@ -30,8 +30,10 @@ nb <- function(dataset, rvar, evar, laplace = 0, data_filter = "") {
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   dataset <- get_data(dataset, c(rvar, evar), filt = data_filter)
 
-  if (any(summarise_all(dataset, does_vary) == FALSE)) {
-    return("One or more selected variables show no variation. Please select other variables." %>% add_class("nb"))
+  not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
+  if (length(not_vary) > 0) {
+    return(paste0("The following variable(s) show no variation. Please select other variables.\n\n** ", paste0(not_vary, collapse = ", "), " **") %>%
+      add_class("nb"))
   }
 
   vars <- evar

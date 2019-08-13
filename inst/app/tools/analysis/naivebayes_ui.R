@@ -63,7 +63,7 @@ nb_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
   formals(plot.model.predict)
 } else {
   formals(radiant.model:::plot.model.predict)
-} )
+})
 
 ## list of function inputs selected by user
 nb_pred_plot_inputs <- reactive({
@@ -244,13 +244,16 @@ nb_plot <- reactive({
   if (is_empty(input$nb_plots, "none")) return()
   req(input$nb_lev)
 
-  n_vars <- length(.nb()$vars)
+  nb_res <- .nb()
+  if (is.character(nb_res)) return()
+
+  n_vars <- length(nb_res$vars)
   if (input$nb_plots == "correlations") {
     plot_height <- 150 * n_vars
     plot_width <- 150 * n_vars
   } else {
     if (input$nb_lev == "All levels") {
-      n_lev <- length(.nb()$lev) - 1
+      n_lev <- length(nb_res$lev) - 1
     } else {
       n_lev <- 2
     }
@@ -394,7 +397,6 @@ nb_available <- reactive({
   if (input$nb_plots == "correlations") {
     capture_plot(do.call(plot, c(list(x = .nb()), nb_plot_inputs())))
   } else {
-    # if (input$nb_plots %in% c("correlations", "scatter")) req(input$nb_nrobs)
     withProgress(message = "Generating plots", value = 1, {
       do.call(plot, c(list(x = .nb()), nb_plot_inputs(), shiny = TRUE))
     })

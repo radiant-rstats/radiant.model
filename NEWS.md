@@ -1,3 +1,7 @@
+# radiant.model 1.0.1
+
+* Improved checks for variables that show no variation
+
 # radiant.model 1.0.0
 
 * Keyboard shortcut (Enter) when defining variable in Model > Simulate
