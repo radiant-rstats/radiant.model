@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -235,7 +235,7 @@
 #&gt; survived   mean st.dev
 #&gt;      Yes 28.819 15.004
 #&gt;      No  30.497 13.881
-#&gt; </div><div class='input'><span class='fu'>nb</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>, <span class='st'>"age"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/str'>str</a></span>()</div><div class='output co'>#&gt; List of 9
+#&gt; </div><div class='input'><span class='fu'>nb</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>, <span class='st'>"age"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/str'>str</a></span>()</div><div class='output co'>#&gt; List of 10
 #&gt;  $ model      :List of 7
 #&gt;   ..$ apriori  : 'table' int [1:2(1d)] 425 618
 #&gt;   .. ..- attr(*, "dimnames")=List of 1
@@ -266,9 +266,10 @@
 #&gt;   .. ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
 #&gt;   ..- attr(*, "class")= chr "naiveBayes"
 #&gt;  $ form       :Class 'formula'  language survived ~ pclass + sex + age
-#&gt;   .. ..- attr(*, ".Environment")=&lt;environment: 0x5b12078&gt; 
+#&gt;   .. ..- attr(*, ".Environment")=&lt;environment: 0x7715540&gt; 
 #&gt;  $ lev        : chr [1:2] "Yes" "No"
 #&gt;  $ vars       : chr [1:3] "pclass" "sex" "age"
+#&gt;  $ not_vary   : chr(0) 
 #&gt;  $ df_name    : chr "titanic"
 #&gt;  $ rvar       : chr "survived"
 #&gt;  $ evar       : chr [1:3] "pclass" "sex" "age"
