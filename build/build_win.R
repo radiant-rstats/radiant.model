@@ -9,4 +9,5 @@ if (grepl("[nN]", rvprompt))
 ## build for windows
 setwd(rstudioapi::getActiveProject())
 f <- devtools::build(binary = TRUE)
+devtools::install(upgrade = "never")
 
