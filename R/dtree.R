@@ -143,6 +143,7 @@ dtree_parser <- function(yl) {
 #' @param yl A yaml string or a list (e.g., from yaml::yaml.load_file())
 #' @param opt Find the maximum ("max") or minimum ("min") value for each decision node
 #' @param base List of variable definitions from a base tree used when calling a sub-tree
+#' @param envir Environment to extract data from
 #'
 #' @return A list with the initial tree and the calculated tree
 #'
@@ -159,7 +160,7 @@ dtree_parser <- function(yl) {
 #' dtree(movie_contract, opt = "max") %>% summary(output = TRUE)
 #'
 #' @export
-dtree <- function(yl, opt = "max", base = character(0)) {
+dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) {
 
   ## calculations will be effected is scientific notation is used
   options(scipen = max(getOption("scipen"), 100))
@@ -170,7 +171,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
 
     ## get input file from r_data
     if (!grepl("\\n", yl)) {
-      yl <- get_data(yl)
+      yl <- get_data(yl, envir = envir)
       if (is.list(yl)) {
         yl <- yaml::as.yaml(yl, indent = 4)
       }
@@ -207,7 +208,7 @@ dtree <- function(yl, opt = "max", base = character(0)) {
         return(add_class(err, "dtree"))
       }
       yl$variables <-
-        get_data(yl$variables) %>%
+        get_data(yl$variables, envir = envir) %>%
         dtree_parser() %>%
         {yaml::yaml.load(.)} %>%
         .$variables %>%

@@ -8,6 +8,7 @@
 #' @param int Interaction terms to include in the model
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param envir Environment to extract data from
 #'
 #' @return A list of all variables used in the regress function as an object of class regress
 #'
@@ -22,7 +23,10 @@
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "") {
+regress <- function(
+  dataset, rvar, evar, int = "", check = "", 
+  data_filter = "", envir = parent.frame()
+) {
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -30,7 +34,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter)
+  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, envir = envir)
 
   not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
   if (length(not_vary) > 0) {
@@ -110,7 +114,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "", data_filter = "")
   }
 
   ## remove elements no longer needed
-  rm(dataset, hasLevs, form_lower, form_upper, isNum)
+  rm(dataset, hasLevs, form_lower, form_upper, isNum, envir)
 
   as.list(environment()) %>% add_class(c("regress", "model"))
 }
@@ -568,6 +572,7 @@ plot.regress <- function(
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param interval Type of interval calculation ("confidence" or "prediction"). Set to "none" if se is FALSE
 #' @param dec Number of decimals to show
+#' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -584,7 +589,8 @@ plot.regress <- function(
 #' @export
 predict.regress <- function(
   object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95,
-  se = TRUE, interval = "confidence", dec = 3, ...
+  se = TRUE, interval = "confidence", dec = 3, 
+  envir = parent.frame(), ...
 ) {
 
   if (is.character(object)) return(object)
@@ -632,7 +638,7 @@ predict.regress <- function(
     pred_val
   }
 
-  predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
+  predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec, envir = envir) %>%
     set_attr("radiant_interval", interval) %>%
     set_attr("radiant_pred_data", df_name)
 }
@@ -649,6 +655,7 @@ predict.regress <- function(
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param dec Number of decimals to show
+#' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
 #'
 #' @importFrom radiant.data set_attr
@@ -656,7 +663,8 @@ predict.regress <- function(
 #' @export
 predict_model <- function(
   object, pfun, mclass, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3, ...
+  conf_lev = 0.95, se = FALSE, dec = 3, envir = parent.frame(), 
+  ...
 ) {
 
   if (is.character(object)) return(object)
@@ -751,7 +759,7 @@ predict_model <- function(
     }
   } else {
     ## generate predictions for all observations in the dataset
-    pred <- get_data(pred_data, filt = "", na.rm = FALSE)
+    pred <- get_data(pred_data, filt = "", na.rm = FALSE, envir = envir)
     pred_names <- colnames(pred)
     vars_in <- vars %in% pred_names
     ## keep all variables in the prediction data for the "customized" prediction

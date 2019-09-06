@@ -4,7 +4,8 @@
 \alias{nb}
 \title{Naive Bayes using e1071::naiveBayes}
 \usage{
-nb(dataset, rvar, evar, laplace = 0, data_filter = "")
+nb(dataset, rvar, evar, laplace = 0, data_filter = "",
+  envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -16,6 +17,8 @@ nb(dataset, rvar, evar, laplace = 0, data_filter = "")
 \item{laplace}{Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{envir}{Environment to extract data from}
 }
 \value{
 A list with all variables defined in nb as an object of class nb

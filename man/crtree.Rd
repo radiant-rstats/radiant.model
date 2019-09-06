@@ -8,7 +8,7 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
   minsplit = 2, minbucket = round(minsplit/3), cp = 0.001,
   pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
   prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
-  data_filter = "")
+  data_filter = "", envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -50,6 +50,8 @@ crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
 \item{check}{Optional estimation parameters (e.g., "standardize")}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{envir}{Environment to extract data from}
 }
 \value{
 A list with all variables defined in crtree as an object of class tree

@@ -7,6 +7,7 @@
 #' @param rvar Response variable
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
+#' @param envir Environment to extract data from
 #'
 #' @return A list of results
 #'
@@ -20,8 +21,8 @@
 #'
 #' @export
 evalreg <- function(
-  dataset, pred, rvar,
-  train = "All", data_filter = ""
+  dataset, pred, rvar, train = "All", 
+  data_filter = "", envir = parent.frame()
 ) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
@@ -34,14 +35,14 @@ evalreg <- function(
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
   } else if (train == "Training") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
   } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "")
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "", envir = envir)
   }
 
   pdat <- list()

@@ -1,6 +1,7 @@
-# radiant.model 1.0.1
+# radiant.model 1.1.0
 
 * Improved checks for variables that show no variation
+* Numerous small code changes to support enhanced auto-completion, tooltips, and annotations in shinyAce 0.4.1
 
 # radiant.model 1.0.0
 

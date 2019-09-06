@@ -119,7 +119,9 @@ output$evalreg <- renderUI({
 })
 
 .evalreg <- eventReactive(input$ereg_run, {
-  do.call(evalreg, ereg_inputs())
+  eri <- ereg_inputs()
+  eri$envir <- r_data
+  do.call(evalreg, eri)
 })
 
 .summary_evalreg <- reactive({

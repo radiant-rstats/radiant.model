@@ -4,7 +4,8 @@
 \alias{evalreg}
 \title{Evaluate the performance of different regression models}
 \usage{
-evalreg(dataset, pred, rvar, train = "All", data_filter = "")
+evalreg(dataset, pred, rvar, train = "All", data_filter = "",
+  envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -16,6 +17,8 @@ evalreg(dataset, pred, rvar, train = "All", data_filter = "")
 \item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")}
+
+\item{envir}{Environment to extract data from}
 }
 \value{
 A list of results

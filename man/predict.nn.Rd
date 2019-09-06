@@ -5,7 +5,7 @@
 \title{Predict method for the nn function}
 \usage{
 \method{predict}{nn}(object, pred_data = NULL, pred_cmd = "",
-  dec = 3, ...)
+  dec = 3, envir = parent.frame(), ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{nn}}}
@@ -15,6 +15,8 @@
 \item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')}
 
 \item{dec}{Number of decimals to show}
+
+\item{envir}{Environment to extract data from}
 
 \item{...}{further arguments passed to or from other methods}
 }

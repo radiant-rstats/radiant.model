@@ -178,7 +178,9 @@ output$crs <- renderUI({
       add_class("crs")
   } else {
     withProgress(message = "Estimating model", value = 1, {
-      do.call(crs, crs_inputs())
+      crsi <- crs_inputs()
+      crsi$envir <- r_data
+      do.call(crs, crsi)
     })
   }
 })

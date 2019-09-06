@@ -500,10 +500,11 @@ logit_available <- reactive({
 .logistic <- eventReactive(input$logit_run, {
   req(input$logit_lev)
   req(input$logit_wts == "None" || available(input$logit_wts))
-  withProgress(
-    message = "Estimating model", value = 1,
-    do.call(logistic, logit_inputs())
-  )
+  withProgress(message = "Estimating model", value = 1, {
+    lgi <- logit_inputs()
+    lgi$envir <- r_data
+    do.call(logistic, lgi)
+  })
 })
 
 .summary_logistic <- reactive({
@@ -524,7 +525,10 @@ logit_available <- reactive({
   }
 
   withProgress(message = "Generating predictions", value = 1, {
-    do.call(predict, c(list(object = .logistic()), logit_pred_inputs()))
+    lgi <- logit_pred_inputs()
+    lgi$object <- .logistic()
+    lgi$envir <- r_data
+    do.call(predict, lgi)
   })
 })
 

@@ -22,6 +22,7 @@
 #' @param margin Margin associated with a successful treatment (e.g., a purchase)
 #' @param check Optional estimation parameters (e.g., "standardize")
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in crtree as an object of class tree
 #'
@@ -36,7 +37,14 @@
 #' @importFrom rpart rpart rpart.control prune.rpart
 #'
 #' @export
-crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None", minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001, pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini", prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "", data_filter = "") {
+crtree <- function(
+  dataset, rvar, evar, type = "", lev = "", wts = "None", 
+  minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001, 
+  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini", 
+  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "", 
+  data_filter = "", envir = parent.frame()
+) {
+
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("crtree"))
@@ -59,7 +67,7 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None", minsp
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter)
+  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
 
   if (!is_empty(wts)) {
     if (exists("wtsname")) {
@@ -571,6 +579,7 @@ plot.crtree <- function(
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param dec Number of decimals to show
+#' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -582,7 +591,11 @@ plot.crtree <- function(
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #'
 #' @export
-predict.crtree <- function(object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95, se = FALSE, dec = 3, ...) {
+predict.crtree <- function(
+  object, pred_data = NULL, pred_cmd = "", 
+  conf_lev = 0.95, se = FALSE, dec = 3, 
+  envir = parent.frame(), ...
+) {
   if (is.character(object)) return(object)
   if (is.data.frame(pred_data)) {
     df_name <- deparse(substitute(pred_data))
@@ -603,7 +616,7 @@ predict.crtree <- function(object, pred_data = NULL, pred_cmd = "", conf_lev = 0
     pred_val
   }
 
-  predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
+  predict_model(object, pfun, "crtree.predict", pred_data, pred_cmd, conf_lev, se, dec, envir = envir) %>%
     set_attr("radiant_pred_data", df_name)
 }
 

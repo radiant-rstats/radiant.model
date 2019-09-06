@@ -11,6 +11,7 @@
 #' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param envir Environment to extract data from
 #'
 #' @return A list of results
 #'
@@ -26,7 +27,8 @@
 evalbin <- function(
   dataset, pred, rvar, lev = "",
   qnt = 10, cost = 1, margin = 2,
-  train = "All", data_filter = ""
+  train = "All", data_filter = "",
+  envir = parent.frame()
 ) {
 
   ## in case no inputs were provided
@@ -43,14 +45,14 @@ evalbin <- function(
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
   } else if (train == "Training") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
   } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "")
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "", envir = envir)
   }
 
   qnt_name <- "bins"
@@ -310,6 +312,7 @@ plot.evalbin <- function(
 #' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
 #'
 #' @return A list of results
@@ -327,7 +330,7 @@ plot.evalbin <- function(
 #' @export
 confusion <- function(
   dataset, pred, rvar, lev = "", cost = 1, margin = 2,
-  train = "All", data_filter = "", ...
+  train = "All", data_filter = "", envir = parent.frame(), ...
 ) {
 
   if (!train %in% c("", "All") && is_empty(data_filter)) {
@@ -347,14 +350,14 @@ confusion <- function(
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
   } else if (train == "Training") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
   } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"))
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "")
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "", envir = envir)
   }
 
   pdat <- list()

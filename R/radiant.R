@@ -59,14 +59,16 @@ sensitivity <- function(object, ...) UseMethod("sensitivity", object)
 #' Method to render DiagrammeR plots
 #'
 #' @param object DiagrammeR plot
+#' @param shiny Check if function is called from a shiny application
 #' @param ... Additional arguments
 #'
 #' @importFrom DiagrammeR renderDiagrammeR
+#' @importFrom shiny getDefaultReactiveDomain
 #'
 #' @export
-render.DiagrammeR <- function(object, ...) {
+render.DiagrammeR <- function(object, shiny = shiny::getDefaultReactiveDomain(), ...) {
   ## hack for rmarkdown from Report > Rmd and Report > R
-  if (exists("r_environment") && !getOption("radiant.rmarkdown", FALSE)) {
+  if (!is.null(shiny) && !getOption("radiant.rmarkdown", FALSE)) {
     DiagrammeR::renderDiagrammeR(object)
   } else {
     object

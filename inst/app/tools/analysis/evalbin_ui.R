@@ -216,7 +216,9 @@ output$evalbin <- renderUI({
       add_class("evalbin")
   } else {
     withProgress(message = "Evaluating models", value = 1, {
-      do.call(evalbin, ebin_inputs())
+      ebi <- ebin_inputs()
+      ebi$envir <- r_data
+      do.call(evalbin, ebi)
     })
   }
 })

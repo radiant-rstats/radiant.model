@@ -326,10 +326,12 @@ nb_available <- reactive({
 })
 
 .nb <- eventReactive(input$nb_run, {
-  withProgress(
-    message = "Estimating model", value = 1,
-    do.call(nb, nb_inputs())
-  )
+  withProgress(message = "Estimating model", value = 1, {
+    nbi <- nb_inputs()
+    nbi$envir <- r_data
+    do.call(nb, nbi)
+
+  })
 })
 
 .summary_nb <- reactive({
@@ -351,7 +353,10 @@ nb_available <- reactive({
   }
 
   withProgress(message = "Generating predictions", value = 1, {
-    do.call(predict, c(list(object = .nb()), nb_pred_inputs()))
+    nbi <- nb_pred_inputs()
+    nbi$object <- .nb()
+    nbi$envir <- r_data
+    do.call(predict, nbi)
   })
 })
 

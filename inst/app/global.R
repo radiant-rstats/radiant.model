@@ -14,3 +14,11 @@ addResourcePath("www_model", file.path(getOption("radiant.path.model"), "app/www
 ## loading urls and ui
 source("init.R", encoding = getOption("radiant.encoding", "UTF-8"), local = TRUE)
 options(radiant.url.patterns = make_url_patterns())
+
+if (!"package:radiant.model" %in% search() &&
+  isTRUE(getOption("radiant.development")) &&
+  getOption("radiant.path.model") == "..") {
+  options(radiant.from.package = FALSE)
+} else {
+  options(radiant.from.package = TRUE)
+}

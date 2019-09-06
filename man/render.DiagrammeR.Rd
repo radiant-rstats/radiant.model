@@ -4,10 +4,13 @@
 \alias{render.DiagrammeR}
 \title{Method to render DiagrammeR plots}
 \usage{
-\method{render}{DiagrammeR}(object, ...)
+\method{render}{DiagrammeR}(object,
+  shiny = shiny::getDefaultReactiveDomain(), ...)
 }
 \arguments{
 \item{object}{DiagrammeR plot}
+
+\item{shiny}{Check if function is called from a shiny application}
 
 \item{...}{Additional arguments}
 }

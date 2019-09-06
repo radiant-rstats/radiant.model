@@ -11,6 +11,7 @@
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitly set
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
 #'
@@ -27,9 +28,9 @@
 #'
 #' @export
 logistic <- function(
-  dataset, rvar, evar, lev = "",
-  int = "", wts = "None", check = "",
-  ci_type, data_filter = ""
+  dataset, rvar, evar, lev = "", int = "", 
+  wts = "None", check = "", ci_type, 
+  data_filter = "", envir = parent.frame()
 ) {
 
   if (rvar %in% evar) {
@@ -47,7 +48,7 @@ logistic <- function(
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter)
+  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
 
   if (missing(ci_type)) {
     ## Use profiling for smaller datasets
@@ -599,6 +600,7 @@ plot.logistic <- function(
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
 #' @param interval Type of interval calculation ("confidence" or "none"). Set to "none" if se is FALSE
 #' @param dec Number of decimals to show
+#' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -618,7 +620,7 @@ plot.logistic <- function(
 predict.logistic <- function(
   object, pred_data = NULL, pred_cmd = "",
   conf_lev = 0.95, se = TRUE, interval = "confidence",
-  dec = 3, ...
+  dec = 3, envir = parent.frame(), ...
 ) {
 
   if (is.character(object)) return(object)
@@ -675,7 +677,7 @@ predict.logistic <- function(
     pred_val
   }
 
-  predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec) %>%
+  predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec, envir = envir) %>%
     set_attr("radiant_interval", interval) %>%
     set_attr("radiant_pred_data", df_name)
 }

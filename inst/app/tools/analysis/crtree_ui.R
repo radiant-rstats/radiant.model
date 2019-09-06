@@ -429,10 +429,11 @@ crtree_available <- reactive({
 
 .crtree <- eventReactive(input$crtree_run, {
   req(input$crtree_evar)
-  withProgress(
-    message = "Estimating model", value = 1,
-    do.call(crtree, crtree_inputs())
-  )
+  withProgress(message = "Estimating model", value = 1, {
+    crti <- crtree_inputs()
+    crti$envir <- r_data
+    do.call(crtree, crti)
+  })
 })
 
 .summary_crtree <- reactive({
@@ -456,8 +457,12 @@ crtree_available <- reactive({
   } else if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
     "** Enter prediction commands **"
   } else {
+
     withProgress(message = "Generating predictions", value = 1, {
-      do.call(predict, c(list(object = .crtree()), crtree_pred_inputs()))
+      cri <- crtree_pred_inputs()
+      cri$object <- .crtree()
+      cri$envir <- r_data
+      do.call(predict, cri)
     })
   }
 })

@@ -52,6 +52,7 @@
 #' @param name Deprecated argument
 #' @param nr Number of simulations
 #' @param dataset Data list from previous simulation. Used by repeater function
+#' @param envir Environment to extract data from
 #'
 #' @return A data.frame with the simulated data
 #'
@@ -72,7 +73,7 @@ simulater <- function(
   const = "", lnorm = "", norm = "", unif = "", discrete = "",
   binom = "", pois = "", sequ = "", grid = "", data = NULL,
   form = "", funcs = "", seed = NULL, nexact = FALSE, ncorr = NULL,
-  name = "", nr = 1000, dataset = NULL
+  name = "", nr = 1000, dataset = NULL, envir = parent.frame()
 ) {
 
   if (!is_empty(seed)) set.seed(as.numeric(seed))
@@ -210,7 +211,7 @@ simulater <- function(
 
   ## fetching data if needed
   if (!is_empty(data) && is_string(data)) {
-    data <- get_data(data)
+    data <- get_data(data, envir = envir)
   }
 
   ## adding data to dataset list
@@ -296,7 +297,8 @@ simulater <- function(
 
   ## capturing the function call for use in repeat
   sc <- formals()
-  smc <- lapply(match.call()[-1], eval, envir = parent.frame())
+  # smc <- lapply(match.call()[-1], eval, envir = parent.frame())
+  smc <- lapply(match.call()[-1], eval, envir = envir)
   sc[names(smc)] <- smc
   sc$nr <- nr
   sc$ncorr <- ncorr
@@ -453,6 +455,9 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @param form A character vector with the formula to apply to the summarized data
 #' @param seed Seed for the repeated simulation
 #' @param name Deprecated argument
+#' @param envir Environment to extract data from
+#'
+#' @importFrom shiny getDefaultReactiveDomain
 #'
 #' @examples
 #' simdat <- simulater(
@@ -488,7 +493,7 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 repeater <- function(
   dataset, nr = 12, vars = "", grid = "", sum_vars = "",
   byvar = "sim", fun = "sum", form = "", seed = NULL,
-  name = ""
+  name = "", envir = parent.frame()
 ) {
 
   if (byvar == "sim") grid <- ""
@@ -503,7 +508,7 @@ repeater <- function(
 
   if (is_string(dataset)) {
     df_name <- dataset
-    dataset <- get_data(dataset)
+    dataset <- get_data(dataset, envir = envir)
   } else {
     df_name <- deparse(substitute(dataset))
   }
@@ -686,7 +691,8 @@ repeater <- function(
 
   ## capturing the function call for use in summary and plot
   rc <- formals()
-  rmc <- lapply(match.call()[-1], eval, envir = parent.frame())
+  # rmc <- lapply(match.call()[-1], eval, envir = parent.frame())
+  rmc <- lapply(match.call()[-1], eval, envir = envir)
   rc[names(rmc)] <- rmc
 
   rc$sc <- sc[base::setdiff(names(sc), "dat")]

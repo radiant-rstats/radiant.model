@@ -5,7 +5,8 @@
 \title{Predict method for the crtree function}
 \usage{
 \method{predict}{crtree}(object, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3, ...)
+  conf_lev = 0.95, se = FALSE, dec = 3, envir = parent.frame(),
+  ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{crtree}}}
@@ -19,6 +20,8 @@
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 
 \item{dec}{Number of decimals to show}
+
+\item{envir}{Environment to extract data from}
 
 \item{...}{further arguments passed to or from other methods}
 }

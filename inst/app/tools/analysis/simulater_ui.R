@@ -810,6 +810,7 @@ observe({
   withProgress(message = "Running simulation", value = 0.5, {
     inp <- sim_inputs()
     inp$name <- fixed
+    inp$envir <- r_data
     sim <- do.call(simulater, inp)
     if (is.data.frame(sim)) {
       r_data[[fixed]] <- sim
@@ -852,14 +853,18 @@ sim_plot_height <- function() {
 .repeater <- eventReactive(input$rep_run, {
   fixed <- fix_names(input$rep_name)
   updateTextInput(session, "rep_name", value = fixed)
-  inp <- rep_inputs()
-  inp$name <- fixed
-  rep <- do.call(repeater, inp)
-  if (is.data.frame(rep)) {
-    r_data[[fixed]] <- rep
-    register(fixed)
-  }
-  rep
+
+  withProgress(message = "Repeated simulation", value = 0.5, {
+    inp <- rep_inputs()
+    inp$name <- fixed
+    inp$envir <- r_data
+    rep <- do.call(repeater, inp)
+    if (is.data.frame(rep)) {
+      r_data[[fixed]] <- rep
+      register(fixed)
+    }
+    rep
+  })
 })
 
 .summary_repeat <- eventReactive({c(input$rep_run, input$rep_dec)}, {

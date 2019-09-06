@@ -464,8 +464,10 @@ reg_available <- eventReactive(input$reg_run, {
 })
 
 .regress <- eventReactive(input$reg_run, {
+  regi <- reg_inputs()
+  regi$envir <- r_data
   withProgress(message = "Estimating model", value = 1, {
-    do.call(regress, reg_inputs())
+    do.call(regress, regi)
   })
 })
 
@@ -485,8 +487,12 @@ reg_available <- eventReactive(input$reg_run, {
   if (input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd)) {
     return("** Enter prediction commands **")
   }
+
   withProgress(message = "Generating predictions", value = 1, {
-    do.call(predict, c(list(object = .regress()), reg_pred_inputs()))
+    rpi <- reg_pred_inputs()
+    rpi$object <- .regress()
+    rpi$envir <- r_data
+    do.call(predict, rpi)
   })
 })
 

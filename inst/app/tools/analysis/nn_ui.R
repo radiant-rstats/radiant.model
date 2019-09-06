@@ -417,9 +417,11 @@ nn_available <- reactive({
 })
 
 .nn <- eventReactive(input$nn_run, {
+  nni <- nn_inputs()
+  nni$envir <- r_data
   withProgress(
     message = "Estimating model", value = 1,
-    do.call(nn, nn_inputs())
+    do.call(nn, nni)
   )
 })
 
@@ -442,7 +444,10 @@ nn_available <- reactive({
   }
 
   withProgress(message = "Generating predictions", value = 1, {
-    do.call(predict, c(list(object = .nn()), nn_pred_inputs()))
+    nni <- nn_pred_inputs()
+    nni$object <- .nn()
+    nni$envir <- r_data
+    do.call(predict, nni)
   })
 })
 

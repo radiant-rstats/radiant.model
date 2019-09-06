@@ -8,6 +8,7 @@
 #' @param pred Products to predict for
 #' @param rate String with name of the variable with product ratings
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
+#' @param envir Environment to extract data from
 #'
 #' @return A data.frame with the original data and a new column with predicted ratings
 #'
@@ -21,12 +22,15 @@
 #' @importFrom dplyr distinct_at
 #'
 #' @export
-crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
+crs <- function(
+  dataset, id, prod, pred, rate, 
+  data_filter = "", envir = parent.frame()
+) {
 
   vars <- c(id, prod, rate)
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  uid <- get_data(dataset, id, filt = data_filter, na.rm = FALSE) %>% unique()
-  dataset <- get_data(dataset, vars, na.rm = FALSE)
+  uid <- get_data(dataset, id, filt = data_filter, na.rm = FALSE, envir = envir) %>% unique()
+  dataset <- get_data(dataset, vars, na.rm = FALSE, envir = envir)
 
   ## creating a matrix layout
   ## will not be efficient for very large and sparse datasets
@@ -145,7 +149,7 @@ crs <- function(dataset, id, prod, pred, rate, data_filter = "") {
     arrange_at(.vars = c(id, "product")) %>%
     select_at(.vars = c(id, "product", "rating", "average", "cf", "ranking", "avg_rank", "cf_rank"))
 
-  rm(dataset, ms, sds, srate, cors, dnom, wts, cn, ind, nind, nr, uid, idv)
+  rm(dataset, ms, sds, srate, cors, dnom, wts, cn, ind, nind, nr, uid, idv, envir)
 
   as.list(environment()) %>% add_class("crs")
 }

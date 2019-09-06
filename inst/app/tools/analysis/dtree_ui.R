@@ -303,7 +303,7 @@ dtree_run <- eventReactive(vals_dtree$dtree_edit_hotkey > 1, {
 
   if (input$dtree_edit != "") {
     withProgress(message = "Creating decision tree", value = 1, {
-      dtree(input$dtree_edit, opt = input$dtree_opt)
+      dtree(input$dtree_edit, opt = input$dtree_opt, envir = r_data)
     })
   }
 })
@@ -510,7 +510,7 @@ observeEvent(input$dtree_remove, {
 })
 
 dl_dtree_save <- function(path) {
-  capture.output(dtree(input$dtree_edit) %>%
+  capture.output(dtree(input$dtree_edit, envir = r_data) %>%
     summary(input = FALSE, output = TRUE)) %>%
     cat(file = path, sep = "\n")
 }

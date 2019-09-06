@@ -5,7 +5,7 @@
 \title{Confusion matrix}
 \usage{
 confusion(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
-  train = "All", data_filter = "", ...)
+  train = "All", data_filter = "", envir = parent.frame(), ...)
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -23,6 +23,8 @@ confusion(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
 \item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{envir}{Environment to extract data from}
 
 \item{...}{further arguments passed to or from other methods}
 }
