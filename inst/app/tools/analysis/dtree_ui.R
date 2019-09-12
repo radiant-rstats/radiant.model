@@ -305,7 +305,8 @@ dtree_run <- eventReactive(vals_dtree$dtree_edit_hotkey > 1, {
   yl <- gsub(":([^ $])", ": \\1", input$dtree_edit) %>%
     gsub(":[ ]{2,}", ": ", .) %>%
     gsub(":[ ]+\\n", ":\n", .) %>%
-    gsub("[ ]*\\n[ ]+\\n[ ]*", "\n\n", .)
+    gsub("[ ]*\\n[ ]+\\n[ ]*", "\n\n", .) %>%
+    gsub(":\\s*(\\.[0-9]+\\s*\\n)", ": 0\\1", ., perl = TRUE)
 
   shinyAce::updateAceEditor(session, "dtree_edit", value = yl)
 
