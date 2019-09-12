@@ -301,9 +301,17 @@ dtree_run <- eventReactive(vals_dtree$dtree_edit_hotkey > 1, {
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
 
+  ## ensure correct spacing
+  yl <- gsub(":([^ $])", ": \\1", input$dtree_edit) %>%
+    gsub(":[ ]{2,}", ": ", .) %>%
+    gsub(":[ ]+\\n", ":\n", .) %>%
+    gsub("[ ]*\\n[ ]+\\n[ ]*", "\n\n", .)
+
+  shinyAce::updateAceEditor(session, "dtree_edit", value = yl)
+
   if (input$dtree_edit != "") {
     withProgress(message = "Creating decision tree", value = 1, {
-      dtree(input$dtree_edit, opt = input$dtree_opt, envir = r_data)
+      dtree(yl, opt = input$dtree_opt, envir = r_data)
     })
   }
 })
