@@ -1,7 +1,8 @@
-# radiant.model 1.1.0
+# radiant.model 1.1.1
 
 * Improved checks for variables that show no variation
 * Numerous small code changes to support enhanced auto-completion, tooltips, and annotations in shinyAce 0.4.1
+* Automatically fix faulty spacing in user input in Model > Decision Analysis
 
 # radiant.model 1.0.0
 
