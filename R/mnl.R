@@ -461,7 +461,7 @@ plot.mnl <- function(
 
     nrCol <- 1
     plot_list[["coef"]] <- ggplot(ci_tab) +
-        geom_pointrange(aes_string(x = "label", y = "coefficient", ymin = "Low", ymax = "High", color = color), position = position_dodge(width = -0.9)) +
+        geom_pointrange(aes_string(x = "label", y = "coefficient", ymin = "Low", ymax = "High", color = color), position = position_dodge(width = -0.6)) +
         geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
         labs(y = yl, x = "") +
         ## can't use coord_trans together with coord_flip

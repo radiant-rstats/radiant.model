@@ -446,9 +446,7 @@ mnl_plot <- reactive({
   }
   if (input$mnl_plots == "scatter") plot_height <- 300 * nrVars
   if (input$mnl_plots == "coef") {
-    mod <- .mnl()$model
-    mod$model <- NULL
-    nr_coeff <- broom::tidy(mod) %>% nrow()
+    nr_coeff <- broom::tidy(.mnl()$model) %>% nrow()
     plot_height <- 300 + 10 * nr_coeff
   }
 
@@ -513,7 +511,7 @@ output$mnl <- renderUI({
 
 mnl_available <- reactive({
   if (not_available(input$mnl_rvar)) {
-    "This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>%
+    "This analysis requires a response variable with two or more levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>%
       suggest_data("titanic")
   } else if (not_available(input$mnl_evar)) {
     "Please select one or more explanatory variables.\n\n" %>%
