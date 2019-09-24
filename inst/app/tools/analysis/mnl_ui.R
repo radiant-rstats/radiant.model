@@ -513,7 +513,7 @@ output$mnl <- renderUI({
 
 mnl_available <- reactive({
   if (not_available(input$mnl_rvar)) {
-    "This analysis requires a response variable with two levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>%
+    "This analysis requires a response variable with two or more levels and one\nor more explanatory variables. If these variables are not available\nplease select another dataset.\n\n" %>%
       suggest_data("titanic")
   } else if (not_available(input$mnl_evar)) {
     "Please select one or more explanatory variables.\n\n" %>%
