@@ -28,7 +28,8 @@ ebin_inputs <- reactive({
 ###############################################################
 output$ui_ebin_rvar <- renderUI({
   withProgress(message = "Acquiring variable information", value = 1, {
-    vars <- two_level_vars()
+    # vars <- two_level_vars()
+    vars <- groupable_vars()
   })
   selectInput(
     inputId = "ebin_rvar", label = "Response variable:", choices = vars,
@@ -255,7 +256,11 @@ output$evalbin <- renderUI({
   if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && is_empty(input$data_filter)))) {
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **")
   }
-  do.call(confusion, ebin_inputs())
+  withProgress(message = "Evaluating models", value = 1, {
+    ebi <- ebin_inputs()
+    ebi$envir <- r_data
+    do.call(confusion, ebi)
+  })
 })
 
 .summary_confusion <- reactive({

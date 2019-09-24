@@ -1,5 +1,8 @@
-# radiant.model 1.1.1
+# radiant.model 1.1.2
 
+* Added a module for Multinomial Logistic regression (MNL) in the _Model > Estimate_ menu
+* Fix for confusion matrix which couldn't find find the selected dataset in the web-interface
+* Documentation fixes
 * Improved checks for variables that show no variation
 * Numerous small code changes to support enhanced auto-completion, tooltips, and annotations in shinyAce 0.4.1
 * Automatically fix faulty spacing in user input in Model > Decision Analysis

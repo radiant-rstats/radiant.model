@@ -124,7 +124,6 @@ observeEvent(input$dataset, {
   updateSelectInput(session = session, inputId = "nb_plots", selected = "none")
 })
 
-
 output$ui_nb_store_pred_name <- renderUI({
   req(input$nb_rvar)
   levs <- .get_data()[[input$nb_rvar]] %>%

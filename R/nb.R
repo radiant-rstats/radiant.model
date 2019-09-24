@@ -341,7 +341,7 @@ plot.nb.predict <- function(
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nb.html} for an example in Radiant
 #'
-#' @param dataset Dataset to add predictions two
+#' @param dataset Dataset to add predictions to
 #' @param object Return value from model function
 #' @param name Variable name(s) assigned to predicted values. If empty, the levels of the response variable will be used
 #' @param ... Additional arguments
