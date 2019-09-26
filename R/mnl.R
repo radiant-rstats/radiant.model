@@ -125,9 +125,6 @@ mnl <- function(
   coeff <- tidy(model) %>% as.data.frame()
   coeff$estimate <- log(coeff$estimate)
 
-  ## nnet::multinom doesn't add the dataset
-  # model$model <- dataset
-
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
     attr(model$model, "radiant_ms") <- attr(dataset, "radiant_ms")
@@ -455,7 +452,7 @@ plot.mnl <- function(
 
     if (!isTRUE(intercept)) {
       ci_tab <- ci_tab[!grepl("(Intercept)", ci_tab[[2]]), ]
-    } 
+    }
     labels <- unique(ci_tab[[2]])
     ci_tab[, -c(1, 2)] <- exp(ci_tab[, -c(1, 2)])
 
@@ -519,7 +516,7 @@ plot.mnl <- function(
 #' @export
 predict.mnl <- function(
   object, pred_data = NULL, pred_cmd = "",
-  pred_names = "", dec = 3, envir = parent.frame(), 
+  pred_names = "", dec = 3, envir = parent.frame(),
   ...
 ) {
 
@@ -674,7 +671,6 @@ store.mnl.predict <- function(dataset, object, name = "pred_mnl", ...) {
   indr <- indexr(dataset, attr(object, "radiant_evar"), "", cmd = attr(object, "radiant_pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   pred[indr$ind, ] <- df
-
   dataset[, name] <- pred
   dataset
 }

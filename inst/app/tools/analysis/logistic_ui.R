@@ -384,8 +384,8 @@ output$ui_logistic <- renderUI({
       ),
       # Using && to check that input.logit_sum_check is not null (must be &&)
       conditionalPanel(
-        condition = "(input.tabs_logistic == 'Summary' && input.logit_sum_check != undefined && (input.logit_sum_check.indexOf('confint') >= 0 | input.logit_sum_check.indexOf('odds') >= 0) |
-                     (input.tabs_logistic == 'Predict' && input.logit_predict != 'none') |
+        condition = "(input.tabs_logistic == 'Summary' && input.logit_sum_check != undefined && (input.logit_sum_check.indexOf('confint') >= 0 || input.logit_sum_check.indexOf('odds') >= 0)) ||
+                     (input.tabs_logistic == 'Predict' && input.logit_predict != 'none') ||
                      (input.tabs_logistic == 'Plot' && input.logit_plots == 'coef')",
         sliderInput(
           "logit_conf_lev", "Confidence level:", min = 0.80,

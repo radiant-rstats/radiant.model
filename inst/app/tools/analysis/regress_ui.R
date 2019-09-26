@@ -348,8 +348,8 @@ output$ui_regress <- renderUI({
         )
       ),
       conditionalPanel(
-        condition = "(input.tabs_regress == 'Summary' && input.reg_sum_check != undefined && input.reg_sum_check.indexOf('confint') >= 0) |
-                     (input.tabs_regress == 'Predict' && input.reg_predict != 'none') |
+        condition = "(input.tabs_regress == 'Summary' && input.reg_sum_check != undefined && input.reg_sum_check.indexOf('confint') >= 0) ||
+                     (input.tabs_regress == 'Predict' && input.reg_predict != 'none') ||
                      (input.tabs_regress == 'Plot' && input.reg_plots == 'coef')",
         sliderInput(
           "reg_conf_lev", "Confidence level:", min = 0.80,

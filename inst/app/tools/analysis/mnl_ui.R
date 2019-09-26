@@ -406,7 +406,7 @@ output$ui_mnl <- renderUI({
       ),
       # Using && to check that input.mnl_sum_check is not null (must be &&)
       conditionalPanel(
-        condition = "(input.tabs_mnl == 'Summary' && input.mnl_sum_check != undefined && (input.mnl_sum_check.indexOf('confint') >= 0 | input.mnl_sum_check.indexOf('rrr') >= 0)) |
+        condition = "(input.tabs_mnl == 'Summary' && input.mnl_sum_check != undefined && (input.mnl_sum_check.indexOf('confint') >= 0 || input.mnl_sum_check.indexOf('rrr') >= 0)) ||
                      (input.tabs_mnl == 'Plot' && input.mnl_plots == 'coef')",
         sliderInput(
           "mnl_conf_lev", "Confidence level:", min = 0.80,
@@ -607,9 +607,16 @@ observeEvent(input$mnl_report, {
   }
 
   if (!is_empty(input$mnl_store_res_name)) {
-    fixed <- fix_names(input$mnl_store_res_name)
-    updateTextInput(session, "mnl_store_res_name", value = fixed)
-    xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
+    name <- input$mnl_store_res_name
+    if (!is_empty(name)) {
+      name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+        fix_names() %T>%
+        updateTextInput(session, "mnl_store_res_name", value = .) %>%
+        deparse(control = getOption("dctrl"), width.cutoff = 500L)
+    }
+    xcmd <- paste0(input$dataset, " <- store(",
+      input$dataset, ", result, name = ", name, ")\n"
+    )
   } else {
     xcmd <- ""
   }
@@ -634,14 +641,6 @@ observeEvent(input$mnl_report, {
     outputs <- c(outputs, "pred <- predict")
 
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
-    # if (input$mnl_predict %in% c("data", "datacmd")) {
-    #   fixed <- unlist(strsplit(input$mnl_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
-    #     fix_names() %>%
-    #     deparse(., control = getOption("dctrl"), width.cutoff = 500L)
-    #   xcmd <- paste0(xcmd, "\n", input$mnl_pred_data, " <- store(",
-    #     input$mnl_pred_data, ", pred, name = ", fixed, ")"
-    #   )
-    # }
     if (input$mnl_predict %in% c("data", "datacmd")) {
       name <- input$mnl_store_pred_name
       if (!is_empty(name)) {
@@ -680,7 +679,9 @@ observeEvent(input$mnl_store_res, {
   req(pressed(input$mnl_run))
   robj <- .mnl()
   if (!is.list(robj)) return()
-  fixed <- fix_names(input$mnl_store_res_name)
+  fixed <- unlist(strsplit(input$mnl_store_res_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
+    fix_names() %>%
+    paste0(collapse = ", ")
   updateTextInput(session, "mnl_store_res_name", value = fixed)
   withProgress(
     message = "Storing residuals", value = 1,

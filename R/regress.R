@@ -1104,9 +1104,19 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
 #' @export
 store.model <- function(dataset, object, name = "residuals", ...) {
   indr <- indexr(dataset, vars = c(object$rvar, object$evar), filt = object$data_filter)
-  res <- rep(NA, indr$nr)
-  res[indr$ind] <- object$model$residuals
-  dataset[[name]] <- res
+  name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
+      gsub("\\s", "", .)
+  nr_res <- length(name)
+  res <- matrix(rep(NA, indr$nr * nr_res), ncol = nr_res) %>% 
+    set_colnames(name) %>%
+    as.data.frame(stringsAsFactors = FALSE)
+  residuals <- object$model$residuals
+  if (is.vector(residuals)) {
+    res[indr$ind, name] <- residuals
+  } else {
+    res[indr$ind, name] <- residuals[, 1:nr_res]
+  }
+  dataset[, name] <- res
   dataset
 }
 
