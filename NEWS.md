@@ -1,5 +1,6 @@
-# radiant.model 1.1.3
+# radiant.model 1.1.4
 
+* Added confusion matrix and misclassification error for _Model > Multinomial Logistic regression (MNL)_
 * Fix for saving multiple residual series for MNL
 * Added a module for Multinomial Logistic regression (MNL) in the _Model > Estimate_ menu
 * Fix for confusion matrix which couldn't find find the selected dataset in the web-interface

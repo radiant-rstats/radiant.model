@@ -368,6 +368,14 @@ summary.mnl <- function(
       cat(paste0("\nChi-squared: ", round(chi2, dec), " df(", df, "), p.value ", mnl_sub_pval))
     }
   }
+
+  if ("confusion" %in% sum_check) {
+    cat("Confusion matrix:\n")
+    predicted <- predict(object$model, type = "class")
+    actual <- object$model$model[[object$rvar]]
+    print(table(predicted, actual))
+    cat("\nMisclassification error:", format_nr(mean(predicted != actual), perc = TRUE, dec = dec))
+  }
 }
 
 #' Plot method for the mnl function

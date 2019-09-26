@@ -10,7 +10,7 @@ mnl_check <- c(
   "Stepwise" = "stepwise-backward"
 )
 mnl_sum_check <- c(
-  "Confidence intervals" = "confint", "RRRs" = "rrr"
+  "Confidence intervals" = "confint", "RRRs" = "rrr", "Confusion" = "confusion"
 )
 mnl_plots <- c(
   "None" = "none", "Distribution" = "dist",
