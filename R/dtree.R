@@ -91,7 +91,6 @@ dtree_parser <- function(yl) {
     ncnl_id <- c(ncnl_id, nc_id[nc_id > i][1])
   }
 
-  # type_nn <- type_cid %in% (nn_id - 1)
   type_nn <- ncnl_id %in% nn_id
 
   if (!all(type_nn)) {
@@ -108,7 +107,8 @@ dtree_parser <- function(yl) {
   }
 
   indent_next <- yl[ncnn_id] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
-  indent_issue <- indent_type == indent_next
+
+  indent_issue <- is.na(indent_next) | indent_type == indent_next
 
   if (any(!indent_issue)) {
     err <- c(err, paste0("Indent issue in line(s): ", paste0(type_cid[!indent_issue] + 1, collapse = ", "), "\nUse the tab key to ensure a node name is indented the same amount\nas the node type on the preceding line. Check the level of indentation\non each line shown, as well as the indentation on the preceding lines"))
