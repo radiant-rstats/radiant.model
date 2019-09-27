@@ -44,13 +44,27 @@ output$ui_dtree_remove <- renderUI({
   actionButton("dtree_remove", "Remove", icon = icon("trash"), class = "btn-danger")
 })
 
+dtreeIsNum <- function(x) {
+  if (!grepl("[A-Za-z]+", x)) {
+    x <- try(eval(parse(text = x), envir = r_data), silent = TRUE)
+    if (inherits(x, "try-error")) {
+      FALSE
+    } else {
+      if (sshhr(is.na(as.numeric(x)))) FALSE else TRUE
+    }
+  } else {
+    FALSE
+  }
+}
+
 output$ui_dtree_sense_name <- renderUI({
   dte <- dtree_run()
-  if (length(dte) < 2) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
+  mess <- HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables.")
+  if (!inherits(dte, "list")) return(mess)
   vars <- dte$yl$variables
-  if (is_empty(vars)) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
-  vars <- vars[!is.na(sshhr(sapply(vars, as.numeric)))]
-  if (length(vars) == 0) return(HTML("No variables are available for sensitivity analysis. If the input file does contain a variables section, press the Calculate button to show the list of available variables."))
+  if (is_empty(vars)) return(mess)
+  vars <- vars[!is.na(sshhr(sapply(vars, dtreeIsNum)))]
+  if (length(vars) == 0) return(mess)
   vars[names(vars)] <- names(vars)
 
   selectInput(
@@ -62,21 +76,24 @@ output$ui_dtree_sense_name <- renderUI({
 
 output$ui_dtree_sense_decision <- renderUI({
   dte <- dtree_run()
-  if (length(dte) < 2) return(invisible())
-  jl <- dte$jl
-  if (is.null(jl)) return(invisible())
-
-  ## all decisions in the tree
-  decs <-
-    jl$Get(function(x) if (length(x$parent$decision) > 0) x$payoff) %>%
-    na.omit() %>%
-    names()
+  if (inherits(dte, "list") && !is.null(dte[["jl"]])) {
+    ## all decisions in the tree
+    decs <-
+      dte$jl$Get(function(x) if (length(x$parent$decision) > 0) x$payoff) %>%
+      na.omit() %>%
+      names()
+  } else {
+    decs <- ""
+  }
 
   selectizeInput(
     "dtree_sense_decision", label = "Decisions to evaluate:",
     choices = decs, multiple = TRUE,
     selected = state_multiple("dtree_sense_decision", decs, decs),
-    options = list(plugins = list("remove_button"))
+    options = list(
+      placeholder = "Select decisions to evaluate",
+      plugins = list("remove_button")
+    )
   )
 })
 
@@ -337,7 +354,7 @@ dtree_plot_inputs <- reactive({
 })
 
 output$dtree_plot <- DiagrammeR::renderDiagrammeR({
-  if (is_empty(input$dtree_final)) return(invisible())
+  req(input$dtree_final)
   dt <- dtree_run()
   if (is.null(dt)) {
     invisible()
@@ -349,18 +366,16 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
 
 ## Evaluate tree sensitivity
 .plot_dtree_sensitivity <- eventReactive(input$dtree_run_sensitivity, {
-  if (is_not(input$dtree_sense_decision)) {
-    return("At least one decision should be selected for evaluation")
+  if (is_empty(input$dtree_sense_decision)) {
+    "At least one decision should be selected for evaluation"
+  } else if (is_empty(input$dtree_sense)) {
+    "No variables were specified for evaluation.\nClick the + icon to add variables for sensitivity evaluation"
+  } else {
+    withProgress(
+      message = "Conducting sensitivity analysis", value = 1,
+      sensitivity(dtree_run(), gsub("\n+", "", input$dtree_sense), input$dtree_sense_decision, envir = r_data, shiny = TRUE)
+    )
   }
-
-  if (is_empty(input$dtree_sense)) {
-    return("No variables were specified for evaluation.\nClick the + icon to add variables for sensitivity evaluation")
-  }
-
-  withProgress(
-    message = "Conducting sensitivity analysis", value = 1,
-    sensitivity(dtree_run(), gsub("\n+", "", input$dtree_sense), input$dtree_sense_decision, shiny = TRUE)
-  )
 })
 
 dtree_sense_width <- reactive({
@@ -373,6 +388,7 @@ dtree_sense_height <- eventReactive(input$dtree_run_sensitivity, {
 
 output$plot_dtree_sensitivity <- renderPlot({
   req(input$dtree_run_sensitivity, cancelOutput = TRUE)
+  req(input$dtree_sense_name, cancelOutput = TRUE)
   isolate({
     .plot_dtree_sensitivity() %>% {
       if (is.character(.)) {
@@ -453,17 +469,18 @@ observeEvent(input$dtree_edit, {
 })
 
 dtree_namer <- reactive({
-  dtree_name <- fix_names(input$dtree_name)
+  dtree_name_org <- input$dtree_name
+  dtree_name <- fix_names(dtree_name_org)
 
   if (is_empty(dtree_name)) dtree_name <- fix_names(input$dtree_list[1])
   if (is_empty(dtree_name)) dtree_name <- fix_names(dtree_name())
 
   r_data[[dtree_name]] <- input$dtree_edit
-  r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
+  r_info[["dtree_list"]] <- c(dtree_name, setdiff(r_info[["dtree_list"]], dtree_name_org)) %>% unique()
   if (!bindingIsActive(as.symbol(dtree_name), env = r_data)) {
     shiny::makeReactiveBinding(dtree_name, env = r_data)
   }
-  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
+  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name, choices = r_info[["dtree_list"]])
   dtree_name
 })
 
@@ -480,6 +497,7 @@ observeEvent(input$dtree_remove, {
   inp_out <- list(list(input = TRUE, output = FALSE), "")
   figs <- FALSE
   if (!is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
+    wrap <- TRUE
     vars <- strsplit(input$dtree_sense, ";")[[1]] %>% gsub("\n+", "", .)
     inp_out[[2]] <- list(
       vars = vars,
@@ -488,6 +506,8 @@ observeEvent(input$dtree_remove, {
     )
     outputs <- c(outputs, "sensitivity")
     figs <- TRUE
+  } else {
+    wrap <- FALSE
   }
 
   ## update settings and get data.tree name
@@ -506,17 +526,21 @@ observeEvent(input$dtree_remove, {
   inp <- list(yl = dtree_name)
   if (input$dtree_opt == "min") inp$opt <- "min"
 
-  update_report(
+  ret <- update_report(
     inp_main = inp,
     fun_name = "dtree",
     inp_out = inp_out,
     outputs = outputs,
+    wrap = wrap,
     figs = figs,
     fig.width = dtree_sense_width(),
     fig.height = dtree_sense_height(),
     xcmd = xcmd
   )
+
+  ret
 })
+
 
 dl_dtree_save <- function(path) {
   capture.output(dtree(input$dtree_edit, envir = r_data) %>%

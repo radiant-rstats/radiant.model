@@ -17,8 +17,8 @@ dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
-  yl <- fix_smart(yl) %>% 
-    gsub("[\x80-\xFF]", "", .) %>% 
+  yl <- fix_smart(yl) %>%
+    gsub("[\x80-\xFF]", "", .) %>%
     gsub("\t", "    ", .)
 
   ## container to collect errors
@@ -60,8 +60,8 @@ dtree_parser <- function(yl) {
   # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
   ## incase there are 2 # signs - should be able to do that in
   # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
-  nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>% 
-    {. == FALSE} %>% 
+  nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>%
+    {. == FALSE} %>%
     which()
 
   if (length(nc_id) > 0) {
@@ -252,8 +252,8 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
         tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*", "\\1", vars[i]) %>% gsub("[\"\']", "", .)
         if (exists("r_info") && !is.null(r_info[["dtree_list"]]) && tree %in% r_info[["dtree_list"]]) {
           cmd <- gsub("\\)\\s*$", paste0(", base = ", list(vars[!grepl("dtree\\(.*\\)", vars)]), "\\)"), vars[i])
-          ret <- try(eval(parse(text = cmd)), silent = TRUE)
 
+          ret <- try(eval(parse(text = cmd), envir = envir), silent = TRUE)
           if (inherits(ret, "try-error") || !is.list(ret)) {
             return("**\nThe reference to another tree was not succesful. It is possible\nthis was caused by a problem earlier in the 'variables:' section\nor because of a typo in the name of the tree you are trying to\nreference. Please check any messages about issues in the 'variables:'\nsection and try again\n**" %>% add_class("dtree"))
           } else {
@@ -271,7 +271,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
 
     for (i in 2:max(2, length(vn))) {
       vars <- gsub(vn[i - 1], paste0("(", vars[[i - 1]], ")"), vars, fixed = TRUE)
-      vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+", x), x, eval(parse(text = x))))
+      vars <- sapply(vars, function(x) ifelse(grepl("[A-Za-z]+", x), x, eval(parse(text = x), envir = envir)))
     }
     names(vars) <- vn
 
@@ -303,17 +303,32 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     ## any characters left in p, payoff, or cost fields?
     isNot <- grepl("(.p$)|(.payoff$)|(.cost$)", names(tmp))
     isNot <- tmp[isNot]
-    isNot <- isNot[grepl("[^0-9.-]+", isNot)]
+    isNot <- isNot[grepl("[^0-9.+*/() -]+", isNot)]
     if (length(isNot) > 0) {
       names(isNot) <- gsub(".", ":", names(isNot), fixed = TRUE)
-      cat("Not all variables could be resolved to a numeric value. Note\nthat formula's are only allowed in the 'variables:' section\n")
+      cat("Not all variables could be resolved to a numeric value.\nNote that only basic formula's are allowed but no R-functions\n")
       print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
       return("\nUpdate the tree input and try again." %>% add_class("dtree"))
     }
 
     ## convert payoff, probabilities, and costs to numeric
     tmp <- relist(tmp)
-    toNum <- function(x) if (grepl("[A-Za-z]+", x)) x else as.numeric(x)
+    toNum <- function(x) {
+      if (!grepl("[A-Za-z]+", x)) {
+        px <- try(eval(parse(text = x), envir = envir), silent = TRUE)
+        if (inherits(px, "try-error")) {
+          message("There was an error parsing: ", x)
+        } else {
+          px <- sshhr(as.numeric(px))
+          if (is.na(px)) {
+            message("There was an error parsing: ", x)
+          } else {
+            x <- px
+          }
+        }
+      }
+      x
+    }
 
     tmp <- nlapply(tmp, toNum)
 
@@ -390,7 +405,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
   err <- try(jl$Do(calc_payoff, traversal = "post-order", filterFun = data.tree::isNotLeaf), silent = TRUE)
 
   if (inherits(err, "try-error")) {
-    err <- paste0("**\nThere was an error calculating payoffs associated with a chance or decision\nnode. Please check that each terminal node has a payoff and that probabilities\nare correctly specificied\n**")
+    err <- paste0("**\nThere was an error calculating payoffs associated with a chance or decision\nnode. Please check that each terminal node has a payoff and that probabilities\nare correctly specificied. Also check the R(studio) console for messages\n**")
     return(err %>% add_class("dtree"))
   }
 
@@ -437,7 +452,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
 #'
 #' @export
 summary.dtree <- function(
-  object, input = TRUE, output = FALSE, 
+  object, input = TRUE, output = FALSE,
   dec = 2, ...
 ) {
   if (is.character(object)) return(cat(object))
@@ -445,25 +460,25 @@ summary.dtree <- function(
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
   print_money <- function(x) {
-    x %>% 
+    x %>%
       {if (isNum(.)) . else ""} %>%
       formatC(
-        digits = dec, 
-        decimal.mark = ".", 
-        big.mark = ",", 
+        digits = dec,
+        decimal.mark = ".",
+        big.mark = ",",
         format = "f"
       )
   }
 
   print_percent <- function(x) {
-    x %>% 
-      {if (isNum(.)) . else NA} %>% 
+    x %>%
+      {if (isNum(.)) . else NA} %>%
       data.tree::FormatPercent()
   }
 
   rm_terminal <- function(x)
-    x %>% 
-      {if (is.na(.)) "" else .} %>% 
+    x %>%
+      {if (is.na(.)) "" else .} %>%
       {if (. == "terminal") "" else .}
 
   format_dtree <- function(jl) {
@@ -481,7 +496,7 @@ summary.dtree <- function(
         check.names = FALSE,
         stringsAsFactors = FALSE
       )
-    } %>% 
+    } %>%
       {.[[" "]] <- format(.[[" "]], justify = "left"); .} %>%
       format_df(mark = ",", dec = dec)
   }
@@ -651,8 +666,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
   )
 
   trv <- data.tree::Traverse(jl, traversal = "level", filterFun = data.tree::isRoot)
-  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>% 
-    na.omit() %>% 
+  ttip <- c(df[["tooltip"]], data.tree::Get(trv, ToolTip)) %>%
+    na.omit() %>%
     unique()
 
   ## use LR or TD
@@ -681,15 +696,16 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #' @param object Return value from \code{\link{dtree}}
 #' @param vars Variables to include in the sensitivity analysis
 #' @param decs Decisions to include in the sensitivity analysis
+#' @param envir Environment to extract data from
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... Additional arguments
 
 #' @examples
-#' dtree(movie_contract, opt = "max") %>% 
+#' dtree(movie_contract, opt = "max") %>%
 #'   sensitivity(
-#'     vars = "legal fees 0 100000 10000", 
-#'     decs = c("Sign with Movie Company", "Sign with TV Network"), 
+#'     vars = "legal fees 0 100000 10000",
+#'     decs = c("Sign with Movie Company", "Sign with TV Network"),
 #'     custom = FALSE
 #'   )
 #'
@@ -700,18 +716,22 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #' @export
 sensitivity.dtree <- function(
   object, vars = NULL, decs = NULL,
+  envir = parent.frame(),
   shiny = FALSE, custom = FALSE, ...
 ) {
 
   yl <- object$yl
 
-  if (is_empty(vars)) return("** No variables were specified **")
-  if (is_empty(decs)) return("** No decisions were specified **")
+  if (is_empty(vars)) {
+    return("** No variables were specified **")
+  } else if (is_empty(decs)) {
+    return("** No decisions were specified **")
+  }
   vars <- strsplit(vars, ";") %>% unlist() %>% strsplit(" ")
 
   calc_payoff <- function(x, nm) {
     yl$variables[[nm]] <- x
-    ret <- dtree(yl, opt = object$opt)$jl
+    ret <- dtree(yl, opt = object$opt, envir = envir)$jl
     ret$Get(function(x) x$payoff)[decs]
   }
 
@@ -722,9 +742,9 @@ sensitivity.dtree <- function(
     tmp[1] <- paste(head(x, -3), collapse = " ")
     nms <<- c(nms, tmp[1])
     df <- data.frame(
-        values = tail(tmp, 3) %>% as.numeric() %>% {seq(.[1], .[2], .[3])},
-        stringsAsFactors = FALSE
-      )
+      values = tail(tmp, 3) %>% as.numeric() %>% {seq(.[1], .[2], .[3])},
+      stringsAsFactors = FALSE
+    )
 
     if (length(decs) == 1) {
       df[[decs]] <- sapply(df$values, calc_payoff, tmp[1])
@@ -750,12 +770,12 @@ sensitivity.dtree <- function(
 
   if (custom) {
     if (length(plot_list) == 1) {
-      return(plot_list[[1]]) 
+      return(plot_list[[1]])
     } else {
       return(plot_list)
     }
   }
 
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% 
+  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>%
     {if (shiny) . else print(.)}
 }

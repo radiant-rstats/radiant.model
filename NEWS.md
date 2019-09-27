@@ -1,5 +1,7 @@
-# radiant.model 1.1.4
+# radiant.model 1.1.5
 
+* Decision analysis now allow basic formulas in all parts of the tree
+* Fix for decision trees that reference sub-trees where environment to evaluate the tree was needed explicitly
 * Added confusion matrix and misclassification error for _Model > Multinomial Logistic regression (MNL)_
 * Fix for saving multiple residual series for MNL
 * Added a module for Multinomial Logistic regression (MNL) in the _Model > Estimate_ menu
