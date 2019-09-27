@@ -5,7 +5,7 @@
 \title{Evaluate sensitivity of the decision tree}
 \usage{
 \method{sensitivity}{dtree}(object, vars = NULL, decs = NULL,
-  shiny = FALSE, custom = FALSE, ...)
+  envir = parent.frame(), shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{dtree}}}
@@ -13,6 +13,8 @@
 \item{vars}{Variables to include in the sensitivity analysis}
 
 \item{decs}{Decisions to include in the sensitivity analysis}
+
+\item{envir}{Environment to extract data from}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 
@@ -27,10 +29,10 @@ Evaluate sensitivity of the decision tree
 See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example in Radiant
 }
 \examples{
-dtree(movie_contract, opt = "max") \%>\% 
+dtree(movie_contract, opt = "max") \%>\%
   sensitivity(
-    vars = "legal fees 0 100000 10000", 
-    decs = c("Sign with Movie Company", "Sign with TV Network"), 
+    vars = "legal fees 0 100000 10000",
+    decs = c("Sign with Movie Company", "Sign with TV Network"),
     custom = FALSE
   )
 
