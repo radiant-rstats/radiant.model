@@ -293,19 +293,14 @@ observe({
 
 dtree_name <- function() {
   isolate({
-    dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>% gsub("\\s{2,}", " ", .) %>% gsub("(^\\s+)|(\\s+$)", "", .)
+    dtree_name <- input$dtree_name
     if (is_empty(dtree_name)) {
-      dtree_name <- stringr::str_match(input$dtree_edit, "\\s*name:\\s*(.*)\\n\\s*type:")[2]
+      dtree_name <- stringr::str_match(input$dtree_edit, "^\\s*name:\\s*(.*)\\n")[2]
       if (is.na(dtree_name)) {
         dtree_name <- "dtree"
-      } else {
-        dtree_name %<>% tolower %>%
-          gsub("[^[:alnum:] ]", "", .) %>%
-          gsub("\\s+", "_", .) %>%
-          gsub("^([0-9]+)", ".", .)
       }
     }
-    dtree_name
+    fix_names(dtree_name)
   })
 }
 
@@ -324,6 +319,8 @@ dtree_run <- eventReactive(vals_dtree$dtree_edit_hotkey > 1, {
     gsub(":[ ]+\\n", ":\n", .) %>%
     gsub("[ ]*\\n[ ]+\\n[ ]*", "\n\n", .) %>%
     gsub(":\\s*([-]{0,1})(\\.[0-9]+\\s*\\n)", ": \\10\\2", ., perl = TRUE)
+
+  yl <- gsub("(\\n[ ]+)([0-9]+)", "\\1_\\2", yl)
 
   shinyAce::updateAceEditor(session, "dtree_edit", value = yl)
 
@@ -426,21 +423,19 @@ observeEvent(input$dtree_load_yaml, {
   ## remove characters that may cause problems in shinyAce
   yaml_file %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r", "\n", .)
 
-  dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name)
+  dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name) %>%
+    fix_names()
   r_data[[dtree_name]] <- yaml_file
   if (!bindingIsActive(as.symbol(dtree_name), env = r_data)) {
     shiny::makeReactiveBinding(dtree_name, env = r_data)
   }
-  # r_data[["dtree_list"]] <- c(dtree_name, r_data[["dtree_list"]]) %>% unique()
   r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
   updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
   shinyAce::updateAceEditor(session, "dtree_edit", value = gsub("\t", "    ", yaml_file))
 })
 
 observeEvent(input$dtree_list, {
-  dtree_name <- gsub("[^ A-z0-9_\\.\\-]", " ", input$dtree_name) %>%
-    gsub("\\s{2,}", " ", .) %>%
-    gsub("(^\\s+)|(\\s+$)", "", .)
+  dtree_name <- fix_names(input$dtree_name)
   if (is_empty(dtree_name)) dtree_name <- dtree_name()
   r_data[[dtree_name]] <- input$dtree_edit
 
@@ -470,10 +465,17 @@ observeEvent(input$dtree_edit, {
 
 dtree_namer <- reactive({
   dtree_name_org <- input$dtree_name
-  dtree_name <- fix_names(dtree_name_org)
 
-  if (is_empty(dtree_name)) dtree_name <- fix_names(input$dtree_list[1])
-  if (is_empty(dtree_name)) dtree_name <- fix_names(dtree_name())
+  if (is_empty(dtree_name_org)) {
+    dtree_name <- input$dtree_list[1]
+    if (is_empty(dtree_name)) {
+      dtree_name <- dtree_name()
+    } else {
+      dtree_name <- fix_names(dtree_name)
+    }
+  } else {
+    dtree_name <- fix_names(dtree_name_org)
+  }
 
   r_data[[dtree_name]] <- input$dtree_edit
   r_info[["dtree_list"]] <- c(dtree_name, setdiff(r_info[["dtree_list"]], dtree_name_org)) %>% unique()
