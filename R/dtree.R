@@ -130,9 +130,9 @@ dtree_parser <- function(yl) {
 
   ## determine return value
   if (length(err) > 0) {
-    paste0("\n**\n", paste0(err, collapse = "\n"), "\n**\n") %>% add_class("dtree")
+    paste0("\n**\n", paste0(err, collapse = "\n"), "\n**\n") %>% add_class(c("dtree", "dtree-error"))
   } else {
-    paste0(yl, collapse = "\n")
+    paste0(yl, collapse = "\n") %>% add_class("dtree")
   }
 }
 
@@ -172,13 +172,14 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     ## get input file from r_data
     if (!grepl("\\n", yl)) {
       yl <- get_data(yl, envir = envir)
-      if (is.list(yl)) {
+      if (inherits(yl, "list")) {
         yl <- yaml::as.yaml(yl, indent = 4)
       }
     }
     yl <- dtree_parser(yl)
 
-    if ("dtree" %in% class(yl)) return(yl)
+    ## return errors if needed
+    if (inherits(yl, "dtree-error")) return(yl)
 
     ## if the name of input-list in r_data is provided
     yl <- try(yaml::yaml.load(yl), silent = TRUE)
@@ -191,24 +192,26 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
       } else {
         err <- paste0("**\nIndentation issue found in line ", err_line, ".\nThis means that the indentation level is not correct when compared\nto prior or subsequent lines in the tree input. Use tabs to separate\nthe branches in the decision tree. Fix the indentation error and try\nagain. Examples are shown in the help file (?)\n**")
       }
-      return(add_class(err, "dtree"))
+      return(add_class(err, c("dtree", "dtree-error")))
     }
   }
 
   if (length(yl) == 0) {
     err <- "**\nThe provided tree input list is empty or not in the correct format.\nPlease double check the tree input and try again.\n**"
-    return(add_class(err, "dtree"))
+    return(add_class(err, c("dtree", "dtree-error")))
   }
 
   ## getting variables from base if available
   if (!is.null(yl$variables) && is.character(yl$variables[1])) {
-    if (exists("r_info") && !is.null(r_info[["dtree_list"]])) {
-      if (!yl$variables %in% r_info[["dtree_list"]]) {
-        err <- "**\nThe tree referenced in the 'variables:' section is not available.\nPlease correct the name and try again.\n**"
-        return(add_class(err, "dtree"))
-      }
-      yl$variables <-
-        get_data(yl$variables, envir = envir) %>%
+    yl_tree <- yl$variables[1]
+    if (!exists(yl_tree, envir = envir)) {
+      err <- "**\nThe tree referenced in the 'variables:' section is not available.\nPlease correct the name and try again.\n**"
+      return(add_class(err, c("dtree", "dtree-error")))
+    } else if (!is.character(envir[[yl_tree]]) && !inherits(envir[[yl_tree]], "list")) {
+      err <- "**\nThe tree referenced in the 'variables:' section is not of type\ncharacter or list and cannot be used.\n**"
+      return(add_class(err, c("dtree", "dtree-error")))
+    } else {
+      yl$variables <- envir[[yl_tree]] %>%
         dtree_parser() %>%
         {yaml::yaml.load(.)} %>%
         .$variables %>%
@@ -242,7 +245,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
           tmp <- names(ret[ret[, i], i])
           cat(paste0(paste0("'", tmp[1], "'"), " is part of '", paste0(tail(tmp, -1), collapse = "', '"), "'\n"))
         }
-        return("\nPlease update the tree input and try again." %>% add_class("dtree"))
+        return("\nPlease update the tree input and try again." %>% add_class(c("dtree", "dtree-error")))
       }
     }
 
@@ -250,12 +253,11 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     for (i in vn) {
       if (grepl("dtree\\(.*\\)", vars[i])) {
         tree <- gsub(".*?([\'\"]+[ A-z0-9_\\.\\-]+[\'\"]+).*", "\\1", vars[i]) %>% gsub("[\"\']", "", .)
-        if (exists("r_info") && !is.null(r_info[["dtree_list"]]) && tree %in% r_info[["dtree_list"]]) {
+        if (exists(tree, envir = envir)) {
           cmd <- gsub("\\)\\s*$", paste0(", base = ", list(vars[!grepl("dtree\\(.*\\)", vars)]), "\\)"), vars[i])
-
           ret <- try(eval(parse(text = cmd), envir = envir), silent = TRUE)
-          if (inherits(ret, "try-error") || !is.list(ret)) {
-            return("**\nThe reference to another tree was not succesful. It is possible\nthis was caused by a problem earlier in the 'variables:' section\nor because of a typo in the name of the tree you are trying to\nreference. Please check any messages about issues in the 'variables:'\nsection and try again\n**" %>% add_class("dtree"))
+          if (inherits(ret, "try-error") || !inherits(ret, "list")) {
+            return("**\nThe reference to another tree was not succesful. It is possible\nthis was caused by a problem earlier in the 'variables:' section\nor because of a typo in the name of the tree you are trying to\nreference. Please check any messages about issues in the 'variables:'\nsection and try again\n**" %>% add_class(c("dtree", "dtree-error")))
           } else {
             if (!is.null(ret$jl)) {
               vars[i] <- ret$jl$Get(function(x) x$payoff)[1]
@@ -293,7 +295,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     }
 
     if (any(unlist(nlapply(yl, is.null)))) {
-      return("**\nOne or more payoffs or probabilities were not specified.\nUpdate the tree input and try again\n**" %>% add_class("dtree"))
+      return("**\nOne or more payoffs or probabilities were not specified.\nUpdate the tree input and try again\n**" %>% add_class(c("dtree", "dtree-error")))
     }
 
     ## based on http://stackoverflow.com/a/14656351/1974918
@@ -308,7 +310,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
       names(isNot) <- gsub(".", ":", names(isNot), fixed = TRUE)
       cat("Not all variables could be resolved to a numeric value.\nNote that only basic formula's are allowed but no R-functions\n")
       print(as.data.frame(isNot, stringsAsFactors = FALSE) %>% set_names(""))
-      return("\nUpdate the tree input and try again." %>% add_class("dtree"))
+      return("\nUpdate the tree input and try again." %>% add_class(c("dtree", "dtree-error")))
     }
 
     ## convert payoff, probabilities, and costs to numeric
@@ -406,7 +408,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
 
   if (inherits(err, "try-error")) {
     err <- paste0("**\nThere was an error calculating payoffs associated with a chance or decision\nnode. Please check that each terminal node has a payoff and that probabilities\nare correctly specificied. Also check the R(studio) console for messages\n**")
-    return(err %>% add_class("dtree"))
+    return(err %>% add_class(c("dtree", "dtree-error")))
   }
 
   decision <- function(x) {
@@ -419,7 +421,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
 
   if (inherits(err, "try-error")) {
     err <- paste0("**\nThere was an error calculating payoffs associated with a decision node.\nPlease check that each terminal node has a payoff\n**")
-    return(err %>% add_class("dtree"))
+    return(err %>% add_class(c("dtree", "dtree-error")))
   }
 
   list(
