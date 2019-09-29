@@ -53,13 +53,6 @@ dtree_parser <- function(yl) {
   }
 
   ## can't have # signs anywhere if line is not a comment
-  # yl <- c(" # name # 3:")
-  # yl <- c(" storm leaves # 4 now:")
-  # yl <- c(" storm # leaves # 4 now:")
-  # yl %<>% gsub("(^\\s*[^\\s\\#]+\\s*)(\\#)", "\\1//", .,  perl = TRUE)
-  # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
-  ## incase there are 2 # signs - should be able to do that in
-  # yl %<>% gsub("(^\\s*[^#][^#]+\\s*)#", "\\1//", .,  perl = TRUE)
   nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>%
     {. == FALSE} %>%
     which()
@@ -81,9 +74,6 @@ dtree_parser <- function(yl) {
   if (length(nn_id) > 0) {
     yl[nn_id] %<>% gsub("[\\(\\)\\{\\}\\[\\]<>\\@;~]", "/", ., perl = TRUE)
   }
-
-  ## check that type is followed by a name
-  # yl <- c(yl, "   type   :  decision   ")
 
   ## non-commented next line after type
   ncnl_id <- c()
@@ -210,10 +200,12 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     } else if (!is.character(envir[[yl_tree]]) && !inherits(envir[[yl_tree]], "list")) {
       err <- "**\nThe tree referenced in the 'variables:' section is not of type\ncharacter or list and cannot be used.\n**"
       return(add_class(err, c("dtree", "dtree-error")))
+    } else if (inherits(envir[[yl_tree]], "list")) {
+      yl$variables <- envir[[yl_tree]]$variables %>% .[!grepl("dtree\\(.*\\)", .)]
     } else {
       yl$variables <- envir[[yl_tree]] %>%
         dtree_parser() %>%
-        {yaml::yaml.load(.)} %>%
+        yaml::yaml.load() %>%
         .$variables %>%
         .[!grepl("dtree\\(.*\\)", .)]
     }

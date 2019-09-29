@@ -1,6 +1,6 @@
-# radiant.model 1.1.6
+# radiant.model 1.1.7
 
-* Fix for decision trees that reference sub-trees. Environment to evaluate the tree is now explicitly provided
+* Fix for decision trees that reference sub-trees. Environment to evaluate the tree is now explicitly provided. This will now also work with (sub) trees loaded from .yaml files
 * Decision analysis now allows basic formulas in all parts of the tree
 * Added confusion matrix and misclassification error for _Model > Multinomial Logistic regression (MNL)_
 * Fix for saving multiple residual series for MNL
