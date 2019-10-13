@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.8</span>
       </span>
     </div>
 
@@ -212,89 +212,43 @@
 <p><code>plot.model.predict</code> to plot prediction output</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>mnl</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='st'>"pclass"</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>)
-<span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>result</span>, <span class='kw'>test_var</span> <span class='kw'>=</span> <span class='st'>"pclass"</span>)</div><div class='output co'>#&gt; Multinomial Logistic regression (MNL)
-#&gt; Data                 : titanic
-#&gt; Response variable    : survived
-#&gt; Base level           : Yes in survived
-#&gt; Explanatory variables: pclass 
-#&gt; Null hyp.: there is no effect of pclass on survived
-#&gt; Alt. hyp.: there is an effect of pclass on survived
+    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>mnl</span>(
+  <span class='no'>ketchup</span>,
+  <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"choice"</span>,
+  <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"price.heinz28"</span>, <span class='st'>"price.heinz32"</span>, <span class='st'>"price.heinz41"</span>, <span class='st'>"price.hunts32"</span>),
+  <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"heinz28"</span>
+)
+<span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>result</span>)</div><div class='output co'>#&gt; Multinomial logistic regression (MNL)
+#&gt; Data                 : ketchup
+#&gt; Response variable    : choice
+#&gt; Base level           : heinz28 in choice
+#&gt; Explanatory variables: price.heinz28, price.heinz32, price.heinz41, price.hunts32 
+#&gt; Null hyp.: there is no effect of x on choice
+#&gt; Alt. hyp.: there is an effect of x on choice
 #&gt; 
-#&gt;                    RRR coefficient std.error z.value p.value    
-#&gt;   No (Intercept)            -0.553     0.124  -4.469  &lt; .001 ***
-#&gt;   No pclass|2nd  2.206       0.791     0.176   4.506  &lt; .001 ***
-#&gt;   No pclass|3rd  4.895       1.588     0.160   9.919  &lt; .001 ***
-#&gt; 
-#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#&gt; 
-#&gt; Pseudo R-squared: 0.076
-#&gt; Log-likelihood: -651.734, AIC: 1309.468, BIC: 1324.317
-#&gt; Chi-squared: 106.517 df(2), p.value &lt; .001 
-#&gt; Nr obs: 1,043 
-#&gt; 
-#&gt; Model 1: survived ~ 1
-#&gt; Model 2: survived ~ pclass
-#&gt; Pseudo R-squared, Model 1 vs 2: 0 0.076
-#&gt; Chi-squared: 106.517 df(2), p.value &lt; .001</div><div class='input'><span class='no'>res</span> <span class='kw'>&lt;-</span> <span class='fu'>mnl</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>int</span> <span class='kw'>=</span> <span class='st'>"pclass:sex"</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>)
-<span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>res</span>, <span class='kw'>sum_check</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"confint"</span>, <span class='st'>"rrr"</span>))</div><div class='output co'>#&gt; Multinomial Logistic regression (MNL)
-#&gt; Data                 : titanic
-#&gt; Response variable    : survived
-#&gt; Base level           : Yes in survived
-#&gt; Explanatory variables: pclass, sex 
-#&gt; Null hyp.: there is no effect of x on survived
-#&gt; Alt. hyp.: there is an effect of x on survived
-#&gt; 
-#&gt;                             RRR coefficient std.error z.value p.value    
-#&gt;   No (Intercept)                     -3.228     0.456  -7.075  &lt; .001 ***
-#&gt;   No pclass|2nd           3.017       1.104     0.557   1.983   0.047 *  
-#&gt;   No pclass|3rd          28.046       3.334     0.484   6.883  &lt; .001 ***
-#&gt;   No sex|male            46.665       3.843     0.487   7.889  &lt; .001 ***
-#&gt;   No pclass|2nd:sex|male  1.052       0.051     0.624   0.081   0.935    
-#&gt;   No pclass|3rd:sex|male  0.094      -2.360     0.533  -4.427  &lt; .001 ***
+#&gt;                          RRR coefficient std.error z.value p.value    
+#&gt;  heinz32 (Intercept)               4.776     0.740   6.452  &lt; .001 ***
+#&gt;  heinz32 price.heinz28 3.000       1.099     0.076  14.439  &lt; .001 ***
+#&gt;  heinz32 price.heinz32 0.101      -2.296     0.135 -17.033  &lt; .001 ***
+#&gt;  heinz32 price.heinz41 0.686      -0.377     0.118  -3.182   0.001 ** 
+#&gt;  heinz32 price.hunts32 1.055       0.053     0.103   0.516   0.606    
+#&gt;  heinz41 (Intercept)               4.757     1.092   4.358  &lt; .001 ***
+#&gt;  heinz41 price.heinz28 2.106       0.745     0.136   5.483  &lt; .001 ***
+#&gt;  heinz41 price.heinz32 0.699      -0.357     0.232  -1.542   0.123    
+#&gt;  heinz41 price.heinz41 0.212      -1.549     0.175  -8.857  &lt; .001 ***
+#&gt;  heinz41 price.hunts32 0.702      -0.353     0.209  -1.688   0.091 .  
+#&gt;  hunts32 (Intercept)               0.526     1.309   0.402   0.688    
+#&gt;  hunts32 price.heinz28 3.602       1.282     0.126  10.200  &lt; .001 ***
+#&gt;  hunts32 price.heinz32 1.710       0.536     0.246   2.185   0.029 *  
+#&gt;  hunts32 price.heinz41 0.911      -0.093     0.188  -0.495   0.620    
+#&gt;  hunts32 price.hunts32 0.070      -2.655     0.208 -12.789  &lt; .001 ***
 #&gt; 
 #&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #&gt; 
-#&gt; Pseudo R-squared: 0.315
-#&gt; Log-likelihood: -483.189, AIC: 978.377, BIC: 1008.076
-#&gt; Chi-squared: 443.608 df(5), p.value &lt; .001 
-#&gt; Nr obs: 1,043 
-#&gt; 
-#&gt;                         coefficient   2.5%  97.5%   +/-
-#&gt;  No         (Intercept)      -3.228 -4.123 -2.334 0.894
-#&gt;  No          pclass|2nd       1.104  0.013  2.195 1.091
-#&gt;  No          pclass|3rd       3.334  2.384  4.283 0.949
-#&gt;  No            sex|male       3.843  2.888  4.798 0.955
-#&gt;  No pclass|2nd:sex|male       0.051 -1.173  1.274 1.224
-#&gt;  No pclass|3rd:sex|male      -2.360 -3.404 -1.315 1.045
-#&gt; 
-#&gt;                            RRR   2.5%   97.5%
-#&gt;  No          pclass|2nd  3.017  1.013   8.984
-#&gt;  No          pclass|3rd 28.046 10.854  72.470
-#&gt;  No            sex|male 46.665 17.962 121.238
-#&gt;  No pclass|2nd:sex|male  1.052  0.309   3.577
-#&gt;  No pclass|3rd:sex|male  0.094  0.033   0.268
-#&gt; </div><div class='input'><span class='no'>titanic</span> <span class='kw'>%&gt;%</span> <span class='fu'>mnl</span>(<span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>, <span class='st'>"age"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>()</div><div class='output co'>#&gt; Multinomial Logistic regression (MNL)
-#&gt; Data                 : .
-#&gt; Response variable    : survived
-#&gt; Base level           : Yes in survived
-#&gt; Explanatory variables: pclass, sex, age 
-#&gt; Null hyp.: there is no effect of x on survived
-#&gt; Alt. hyp.: there is an effect of x on survived
-#&gt; 
-#&gt;                     RRR coefficient std.error z.value p.value    
-#&gt;   No (Intercept)             -3.515     0.327 -10.752  &lt; .001 ***
-#&gt;   No pclass|2nd   3.576       1.274     0.226   5.649  &lt; .001 ***
-#&gt;   No pclass|3rd   9.804       2.283     0.226  10.104  &lt; .001 ***
-#&gt;   No sex|male    12.078       2.491     0.166  14.996  &lt; .001 ***
-#&gt;   No age          1.035       0.034     0.006   5.438  &lt; .001 ***
-#&gt; 
-#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#&gt; 
-#&gt; Pseudo R-squared: 0.304
-#&gt; Log-likelihood: -490.864, AIC: 991.728, BIC: 1016.477
-#&gt; Chi-squared: 428.257 df(4), p.value &lt; .001 
-#&gt; Nr obs: 1,043 
+#&gt; Pseudo R-squared: 0.2
+#&gt; Log-likelihood: -2511.212, AIC: 5052.423, BIC: 5162.268
+#&gt; Chi-squared: 1255.653 df(14), p.value &lt; .001 
+#&gt; Nr obs: 11,192 
 #&gt; </div><div class='input'>
 </div></pre>
   </div>

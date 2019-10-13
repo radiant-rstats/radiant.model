@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Multinomial Logistic regression — mnl • radiant.model</title>
+<title>Multinomial logistic regression — mnl • radiant.model</title>
 
 
 <!-- jquery -->
@@ -41,8 +41,8 @@
 
 
 
-<meta property="og:title" content="Multinomial Logistic regression — mnl" />
-<meta property="og:description" content="Multinomial Logistic regression" />
+<meta property="og:title" content="Multinomial logistic regression — mnl" />
+<meta property="og:description" content="Multinomial logistic regression" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.8</span>
       </span>
     </div>
 
@@ -159,13 +159,13 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Multinomial Logistic regression</h1>
+    <h1>Multinomial logistic regression</h1>
     <small class="dont-index">Source: <a href='https://github.com/radiant-rstats/radiant.model/blob/master/R/mnl.R'><code>R/mnl.R</code></a></small>
     <div class="hidden name"><code>mnl.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Multinomial Logistic regression</p>
+    <p>Multinomial logistic regression</p>
     </div>
 
     <pre class="usage"><span class='fu'>mnl</span>(<span class='no'>dataset</span>, <span class='no'>rvar</span>, <span class='no'>evar</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>int</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>,
@@ -226,192 +226,192 @@
 <p><code>plot.model.predict</code> to plot prediction output</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>mnl</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>()</div><div class='output co'>#&gt; Multinomial Logistic regression (MNL)
-#&gt; Data                 : titanic
-#&gt; Response variable    : survived
-#&gt; Base level           : Yes in survived
-#&gt; Explanatory variables: pclass, sex 
-#&gt; Null hyp.: there is no effect of x on survived
-#&gt; Alt. hyp.: there is an effect of x on survived
-#&gt; 
-#&gt;                     RRR coefficient std.error z.value p.value    
-#&gt;   No (Intercept)             -2.151     0.188 -11.420  &lt; .001 ***
-#&gt;   No pclass|2nd   2.444       0.893     0.208   4.291  &lt; .001 ***
-#&gt;   No pclass|3rd   5.538       1.712     0.191   8.953  &lt; .001 ***
-#&gt;   No sex|male    12.456       2.522     0.163  15.446  &lt; .001 ***
-#&gt; 
-#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#&gt; 
-#&gt; Pseudo R-squared: 0.281
-#&gt; Log-likelihood: -506.562, AIC: 1021.124, BIC: 1040.924
-#&gt; Chi-squared: 396.861 df(3), p.value &lt; .001 
-#&gt; Nr obs: 1,043 
-#&gt; </div><div class='input'><span class='fu'>mnl</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 17
-#&gt;  $ umod       :List of 25
-#&gt;   ..$ n            : num [1:3] 1 0 1
-#&gt;   ..$ nunits       : int 3
-#&gt;   ..$ nconn        : num [1:4] 0 0 0 2
-#&gt;   ..$ conn         : num [1:2] 0 1
-#&gt;   ..$ nsunits      : int 3
+    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>mnl</span>(
+  <span class='no'>ketchup</span>,
+  <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"choice"</span>,
+  <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"price.heinz28"</span>, <span class='st'>"price.heinz32"</span>, <span class='st'>"price.heinz41"</span>, <span class='st'>"price.hunts32"</span>),
+  <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"heinz28"</span>
+)
+<span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>(<span class='no'>result</span>)</div><div class='output co'>#&gt; List of 16
+#&gt;  $ umod       :List of 26
+#&gt;   ..$ n            : num [1:3] 1 0 4
+#&gt;   ..$ nunits       : int 6
+#&gt;   ..$ nconn        : num [1:7] 0 0 0 2 4 6 8
+#&gt;   ..$ conn         : num [1:8] 0 1 0 1 0 1 0 1
+#&gt;   ..$ nsunits      : num 2
 #&gt;   ..$ decay        : num 0
-#&gt;   ..$ entropy      : logi TRUE
-#&gt;   ..$ softmax      : logi FALSE
+#&gt;   ..$ entropy      : logi FALSE
+#&gt;   ..$ softmax      : logi TRUE
 #&gt;   ..$ censored     : logi FALSE
-#&gt;   ..$ value        : num 705
-#&gt;   ..$ wts          : num [1:2] 0 0.374
+#&gt;   ..$ value        : num 3139
+#&gt;   ..$ wts          : num [1:8] 0 0 0 0.538 0 ...
 #&gt;   ..$ convergence  : int 0
-#&gt;   ..$ fitted.values: num [1:1043, 1] 0.593 0.593 0.593 0.593 0.593 ...
+#&gt;   ..$ fitted.values: num [1:2798, 1:4] 0.304 0.304 0.304 0.304 0.304 ...
 #&gt;   .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. ..$ : chr [1:1043] "1" "2" "3" "4" ...
-#&gt;   .. .. ..$ : NULL
-#&gt;   ..$ residuals    : num [1:1043, 1] -0.593 -0.593 0.407 0.407 0.407 ...
+#&gt;   .. .. ..$ : chr [1:2798] "1" "2" "3" "4" ...
+#&gt;   .. .. ..$ : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
+#&gt;   ..$ residuals    : num [1:2798, 1:4] 0.696 0.696 0.696 0.696 0.696 ...
 #&gt;   .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. ..$ : chr [1:1043] "1" "2" "3" "4" ...
-#&gt;   .. .. ..$ : NULL
-#&gt;   ..$ lev          : chr [1:2] "Yes" "No"
+#&gt;   .. .. ..$ : chr [1:2798] "1" "2" "3" "4" ...
+#&gt;   .. .. ..$ : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
+#&gt;   ..$ lev          : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
 #&gt;   ..$ call         : language (function (formula, data, weights, subset, na.action, contrasts = NULL,      Hess = FALSE, summ = 0, censored = F| __truncated__ ...
-#&gt;   ..$ terms        :Classes 'terms', 'formula'  language survived ~ 1
-#&gt;   .. .. ..- attr(*, "variables")= language list(survived)
+#&gt;   ..$ terms        :Classes 'terms', 'formula'  language choice ~ 1
+#&gt;   .. .. ..- attr(*, "variables")= language list(choice)
 #&gt;   .. .. ..- attr(*, "factors")= int(0) 
 #&gt;   .. .. ..- attr(*, "term.labels")= chr(0) 
 #&gt;   .. .. ..- attr(*, "order")= int(0) 
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x50b5260&gt; 
-#&gt;   .. .. ..- attr(*, "predvars")= language list(survived)
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xb26d6c0&gt; 
+#&gt;   .. .. ..- attr(*, "predvars")= language list(choice)
 #&gt;   .. .. ..- attr(*, "dataClasses")= Named chr "factor"
-#&gt;   .. .. .. ..- attr(*, "names")= chr "survived"
-#&gt;   ..$ weights      : num [1:1043] 1 1 1 1 1 1 1 1 1 1 ...
-#&gt;   ..$ deviance     : num 1410
+#&gt;   .. .. .. ..- attr(*, "names")= chr "choice"
+#&gt;   ..$ weights      : num [1:2798, 1] 1 1 1 1 1 1 1 1 1 1 ...
+#&gt;   .. ..- attr(*, "dimnames")=List of 2
+#&gt;   .. .. ..$ : chr [1:2798] "1" "2" "3" "4" ...
+#&gt;   .. .. ..$ : NULL
+#&gt;   ..$ deviance     : num 6278
 #&gt;   ..$ rank         : int 1
+#&gt;   ..$ lab          : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
 #&gt;   ..$ coefnames    : chr "(Intercept)"
 #&gt;   ..$ vcoefnames   : chr "(Intercept)"
-#&gt;   ..$ edf          : num 1
-#&gt;   ..$ AIC          : num 1412
-#&gt;   ..$ model        :'data.frame':	1043 obs. of  1 variable:
-#&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
-#&gt;   .. ..- attr(*, "terms")=Classes 'terms', 'formula'  language survived ~ 1
-#&gt;   .. .. .. ..- attr(*, "variables")= language list(survived)
+#&gt;   ..$ edf          : num 3
+#&gt;   ..$ AIC          : num 6284
+#&gt;   ..$ model        :'data.frame':	2798 obs. of  1 variable:
+#&gt;   .. ..$ choice: Factor w/ 4 levels "heinz28","heinz32",..: 1 1 1 1 1 1 1 3 1 1 ...
+#&gt;   .. ..- attr(*, "terms")=Classes 'terms', 'formula'  language choice ~ 1
+#&gt;   .. .. .. ..- attr(*, "variables")= language list(choice)
 #&gt;   .. .. .. ..- attr(*, "factors")= int(0) 
 #&gt;   .. .. .. ..- attr(*, "term.labels")= chr(0) 
 #&gt;   .. .. .. ..- attr(*, "order")= int(0) 
 #&gt;   .. .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x50b5260&gt; 
-#&gt;   .. .. .. ..- attr(*, "predvars")= language list(survived)
+#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0xb26d6c0&gt; 
+#&gt;   .. .. .. ..- attr(*, "predvars")= language list(choice)
 #&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr "factor"
-#&gt;   .. .. .. .. ..- attr(*, "names")= chr "survived"
+#&gt;   .. .. .. .. ..- attr(*, "names")= chr "choice"
 #&gt;   ..- attr(*, "class")= chr [1:2] "multinom" "nnet"
-#&gt;  $ coeff      :'data.frame':	4 obs. of  8 variables:
-#&gt;   ..$ level      : chr [1:4] "No" "No" "No" "No"
-#&gt;   ..$ label      : chr [1:4] "(Intercept)" "pclass|2nd" "pclass|3rd" "sex|male"
-#&gt;   ..$ RRR        : num [1:4] 0.116 2.444 5.538 12.456
-#&gt;   ..$ coefficient: num [1:4] -2.151 0.893 1.712 2.522
-#&gt;   ..$ std.error  : num [1:4] 0.188 0.208 0.191 0.163
-#&gt;   ..$ z.value    : num [1:4] -11.42 4.29 8.95 15.45
-#&gt;   ..$ p.value    : num [1:4] 0.000000000000000000000000000003325916801885511943872983 0.000017824805389875268750400280626244864379259524866939| __truncated__
-#&gt;   ..$ sig_star   : chr [1:4] "***" "***" "***" "***"
+#&gt;  $ coeff      :'data.frame':	15 obs. of  8 variables:
+#&gt;   ..$ level      : chr [1:15] "heinz32" "heinz32" "heinz32" "heinz32" ...
+#&gt;   ..$ label      : chr [1:15] "(Intercept)" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   ..$ RRR        : num [1:15] 118.647 3 0.101 0.686 1.055 ...
+#&gt;   ..$ coefficient: num [1:15] 4.7762 1.0987 -2.2963 -0.377 0.0532 ...
+#&gt;   ..$ std.error  : num [1:15] 0.7403 0.0761 0.1348 0.1185 0.1031 ...
+#&gt;   ..$ z.value    : num [1:15] 6.452 14.439 -17.033 -3.182 0.516 ...
+#&gt;   ..$ p.value    : num [1:15] 0.0000000001106116796162242107301839029508214867769666511776449624449 0.00000000000000000000000000000000000000000| __truncated__ ...
+#&gt;   ..$ sig_star   : chr [1:15] "***" "***" "***" "** " ...
 #&gt;  $ model      :List of 31
-#&gt;   ..$ n            : num [1:3] 4 0 1
-#&gt;   ..$ nunits       : int 6
-#&gt;   ..$ nconn        : num [1:7] 0 0 0 0 0 0 5
-#&gt;   ..$ conn         : num [1:5] 0 1 2 3 4
-#&gt;   ..$ nsunits      : int 6
+#&gt;   ..$ n            : num [1:3] 5 0 4
+#&gt;   ..$ nunits       : int 10
+#&gt;   ..$ nconn        : num [1:11] 0 0 0 0 0 0 0 6 12 18 ...
+#&gt;   ..$ conn         : num [1:24] 0 1 2 3 4 5 0 1 2 3 ...
+#&gt;   ..$ nsunits      : num 6
 #&gt;   ..$ decay        : num 0
-#&gt;   ..$ entropy      : logi TRUE
-#&gt;   ..$ softmax      : logi FALSE
+#&gt;   ..$ entropy      : logi FALSE
+#&gt;   ..$ softmax      : logi TRUE
 #&gt;   ..$ censored     : logi FALSE
-#&gt;   ..$ value        : num 507
-#&gt;   ..$ wts          : num [1:5] 0 -2.151 0.893 1.712 2.522
+#&gt;   ..$ value        : num 2511
+#&gt;   ..$ wts          : num [1:24] 0 0 0 0 0 ...
 #&gt;   ..$ convergence  : int 0
-#&gt;   ..$ fitted.values: num [1:1043, 1] 0.104 0.592 0.104 0.592 0.104 ...
+#&gt;   ..$ fitted.values: num [1:2798, 1:4] 0.2725 0.5914 0.0675 0.2725 0.1817 ...
 #&gt;   .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. ..$ : chr [1:1043] "1" "2" "3" "4" ...
-#&gt;   .. .. ..$ : NULL
-#&gt;   ..$ residuals    : num [1:1043, 1] -0.104 -0.592 0.896 0.408 0.896 ...
+#&gt;   .. .. ..$ : chr [1:2798] "1" "2" "3" "4" ...
+#&gt;   .. .. ..$ : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
+#&gt;   ..$ residuals    : num [1:2798, 1:4] 0.728 0.409 0.933 0.728 0.818 ...
 #&gt;   .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. ..$ : chr [1:1043] "1" "2" "3" "4" ...
-#&gt;   .. .. ..$ : NULL
-#&gt;   ..$ lev          : chr [1:2] "Yes" "No"
+#&gt;   .. .. ..$ : chr [1:2798] "1" "2" "3" "4" ...
+#&gt;   .. .. ..$ : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
+#&gt;   ..$ lev          : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
 #&gt;   ..$ call         : language (function (formula, data, weights, subset, na.action, contrasts = NULL,      Hess = FALSE, summ = 0, censored = F| __truncated__ ...
-#&gt;   ..$ terms        :Classes 'terms', 'formula'  language survived ~ pclass + sex
-#&gt;   .. .. ..- attr(*, "variables")= language list(survived, pclass, sex)
-#&gt;   .. .. ..- attr(*, "factors")= int [1:3, 1:2] 0 1 0 0 0 1
+#&gt;   ..$ terms        :Classes 'terms', 'formula'  language choice ~ price.heinz28 + price.heinz32 + price.heinz41 + price.hunts32
+#&gt;   .. .. ..- attr(*, "variables")= language list(choice, price.heinz28, price.heinz32, price.heinz41, price.hunts32)
+#&gt;   .. .. ..- attr(*, "factors")= int [1:5, 1:4] 0 1 0 0 0 0 0 1 0 0 ...
 #&gt;   .. .. .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. .. .. ..$ : chr [1:3] "survived" "pclass" "sex"
-#&gt;   .. .. .. .. ..$ : chr [1:2] "pclass" "sex"
-#&gt;   .. .. ..- attr(*, "term.labels")= chr [1:2] "pclass" "sex"
-#&gt;   .. .. ..- attr(*, "order")= int [1:2] 1 1
+#&gt;   .. .. .. .. ..$ : chr [1:5] "choice" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   .. .. .. .. ..$ : chr [1:4] "price.heinz28" "price.heinz32" "price.heinz41" "price.hunts32"
+#&gt;   .. .. ..- attr(*, "term.labels")= chr [1:4] "price.heinz28" "price.heinz32" "price.heinz41" "price.hunts32"
+#&gt;   .. .. ..- attr(*, "order")= int [1:4] 1 1 1 1
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x50b5260&gt; 
-#&gt;   .. .. ..- attr(*, "predvars")= language list(survived, pclass, sex)
-#&gt;   .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "factor" "factor" "factor"
-#&gt;   .. .. .. ..- attr(*, "names")= chr [1:3] "survived" "pclass" "sex"
-#&gt;   ..$ weights      : num [1:1043] 1 1 1 1 1 1 1 1 1 1 ...
-#&gt;   ..$ deviance     : num 1013
-#&gt;   ..$ rank         : int 4
-#&gt;   ..$ coefnames    : chr [1:4] "(Intercept)" "pclass2nd" "pclass3rd" "sexmale"
-#&gt;   ..$ vcoefnames   : chr [1:4] "(Intercept)" "pclass2nd" "pclass3rd" "sexmale"
-#&gt;   ..$ contrasts    :List of 2
-#&gt;   .. ..$ pclass: chr "contr.treatment"
-#&gt;   .. ..$ sex   : chr "contr.treatment"
-#&gt;   ..$ xlevels      :List of 2
-#&gt;   .. ..$ pclass: chr [1:3] "1st" "2nd" "3rd"
-#&gt;   .. ..$ sex   : chr [1:2] "female" "male"
-#&gt;   ..$ edf          : num 4
-#&gt;   ..$ AIC          : num 1021
-#&gt;   ..$ model        :'data.frame':	1043 obs. of  3 variables:
-#&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
-#&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
-#&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
-#&gt;   .. ..- attr(*, "terms")=Classes 'terms', 'formula'  language survived ~ pclass + sex
-#&gt;   .. .. .. ..- attr(*, "variables")= language list(survived, pclass, sex)
-#&gt;   .. .. .. ..- attr(*, "factors")= int [1:3, 1:2] 0 1 0 0 0 1
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xb26d6c0&gt; 
+#&gt;   .. .. ..- attr(*, "predvars")= language list(choice, price.heinz28, price.heinz32, price.heinz41, price.hunts32)
+#&gt;   .. .. ..- attr(*, "dataClasses")= Named chr [1:5] "factor" "numeric" "numeric" "numeric" ...
+#&gt;   .. .. .. ..- attr(*, "names")= chr [1:5] "choice" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   ..$ weights      : num [1:2798, 1] 1 1 1 1 1 1 1 1 1 1 ...
+#&gt;   .. ..- attr(*, "dimnames")=List of 2
+#&gt;   .. .. ..$ : chr [1:2798] "1" "2" "3" "4" ...
+#&gt;   .. .. ..$ : NULL
+#&gt;   ..$ deviance     : num 5022
+#&gt;   ..$ rank         : int 5
+#&gt;   ..$ lab          : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
+#&gt;   ..$ coefnames    : chr [1:5] "(Intercept)" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   ..$ vcoefnames   : chr [1:5] "(Intercept)" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   ..$ xlevels      : Named list()
+#&gt;   ..$ edf          : num 15
+#&gt;   ..$ AIC          : num 5052
+#&gt;   ..$ model        :'data.frame':	2798 obs. of  5 variables:
+#&gt;   .. ..$ choice       : Factor w/ 4 levels "heinz28","heinz32",..: 1 1 1 1 1 1 1 3 1 1 ...
+#&gt;   .. ..$ price.heinz28: num [1:2798] 5.2 5.2 4.6 5.2 4.6 ...
+#&gt;   .. ..$ price.heinz32: num [1:2798] 3.7 4.3 2.5 3.7 3 ...
+#&gt;   .. ..$ price.heinz41: num [1:2798] 4.6 4.6 4.6 4.6 4.6 ...
+#&gt;   .. ..$ price.hunts32: num [1:2798] 3.4 4.4 4.8 3.4 4.8 ...
+#&gt;   .. ..- attr(*, "terms")=Classes 'terms', 'formula'  language choice ~ price.heinz28 + price.heinz32 + price.heinz41 + price.hunts32
+#&gt;   .. .. .. ..- attr(*, "variables")= language list(choice, price.heinz28, price.heinz32, price.heinz41, price.hunts32)
+#&gt;   .. .. .. ..- attr(*, "factors")= int [1:5, 1:4] 0 1 0 0 0 0 0 1 0 0 ...
 #&gt;   .. .. .. .. ..- attr(*, "dimnames")=List of 2
-#&gt;   .. .. .. .. .. ..$ : chr [1:3] "survived" "pclass" "sex"
-#&gt;   .. .. .. .. .. ..$ : chr [1:2] "pclass" "sex"
-#&gt;   .. .. .. ..- attr(*, "term.labels")= chr [1:2] "pclass" "sex"
-#&gt;   .. .. .. ..- attr(*, "order")= int [1:2] 1 1
+#&gt;   .. .. .. .. .. ..$ : chr [1:5] "choice" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   .. .. .. .. .. ..$ : chr [1:4] "price.heinz28" "price.heinz32" "price.heinz41" "price.hunts32"
+#&gt;   .. .. .. ..- attr(*, "term.labels")= chr [1:4] "price.heinz28" "price.heinz32" "price.heinz41" "price.hunts32"
+#&gt;   .. .. .. ..- attr(*, "order")= int [1:4] 1 1 1 1
 #&gt;   .. .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x50b5260&gt; 
-#&gt;   .. .. .. ..- attr(*, "predvars")= language list(survived, pclass, sex)
-#&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "factor" "factor" "factor"
-#&gt;   .. .. .. .. ..- attr(*, "names")= chr [1:3] "survived" "pclass" "sex"
-#&gt;   ..$ null.deviance:Class 'logLik' : 1410 (df=1)
-#&gt;   ..$ logLik       :Class 'logLik' : -507 (df=4)
-#&gt;   ..$ df.null      : num 1042
-#&gt;   ..$ nobs         : int 1043
+#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0xb26d6c0&gt; 
+#&gt;   .. .. .. ..- attr(*, "predvars")= language list(choice, price.heinz28, price.heinz32, price.heinz41, price.hunts32)
+#&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr [1:5] "factor" "numeric" "numeric" "numeric" ...
+#&gt;   .. .. .. .. ..- attr(*, "names")= chr [1:5] "choice" "price.heinz28" "price.heinz32" "price.heinz41" ...
+#&gt;   ..$ null.deviance:Class 'logLik' : 6278 (df=3)
+#&gt;   ..$ logLik       :Class 'logLik' : -2511 (df=15)
+#&gt;   ..$ df.null      : num 11191
+#&gt;   ..$ nobs         : int 11192
 #&gt;   ..- attr(*, "class")= chr [1:2] "multinom" "nnet"
 #&gt;  $ mnl_input  :List of 5
-#&gt;   ..$ formula:Class 'formula'  language survived ~ pclass + sex
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x50b5260&gt; 
+#&gt;   ..$ formula:Class 'formula'  language choice ~ price.heinz28 + price.heinz32 + price.heinz41 + price.hunts32
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xb26d6c0&gt; 
 #&gt;   ..$ weights: NULL
-#&gt;   ..$ data   :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
-#&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
-#&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
-#&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
-#&gt;   .. ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
+#&gt;   ..$ data   :'data.frame':	2798 obs. of  5 variables:
+#&gt;   .. ..$ choice       : Factor w/ 4 levels "heinz28","heinz32",..: 1 1 1 1 1 1 1 3 1 1 ...
+#&gt;   .. ..$ price.heinz28: num [1:2798] 5.2 5.2 4.6 5.2 4.6 ...
+#&gt;   .. ..$ price.heinz32: num [1:2798] 3.7 4.3 2.5 3.7 3 ...
+#&gt;   .. ..$ price.heinz41: num [1:2798] 4.6 4.6 4.6 4.6 4.6 ...
+#&gt;   .. ..$ price.hunts32: num [1:2798] 3.4 4.4 4.8 3.4 4.8 ...
+#&gt;   .. ..- attr(*, "description")= chr "## Choice of ketchup brands\n\nChoice behavior for 300 individuals in a panel of households in Springfield, Mis"| __truncated__
 #&gt;   ..$ model  : logi TRUE
 #&gt;   ..$ trace  : logi FALSE
-#&gt;  $ mmx        :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
-#&gt;   ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
-#&gt;   ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
-#&gt;   ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
-#&gt;   ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
-#&gt;  $ rv         : Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
+#&gt;  $ mmx        :List of 2
+#&gt;   ..$ min:'data.frame':	1 obs. of  4 variables:
+#&gt;   .. ..$ price.heinz28: num 0.1
+#&gt;   .. ..$ price.heinz32: num 0.3
+#&gt;   .. ..$ price.heinz41: num 2
+#&gt;   .. ..$ price.hunts32: num 0.3
+#&gt;   .. ..- attr(*, "description")= chr "## Choice of ketchup brands\n\nChoice behavior for 300 individuals in a panel of households in Springfield, Mis"| __truncated__
+#&gt;   ..$ max:'data.frame':	1 obs. of  4 variables:
+#&gt;   .. ..$ price.heinz28: num 12
+#&gt;   .. ..$ price.heinz32: num 4.3
+#&gt;   .. ..$ price.heinz41: num 7.2
+#&gt;   .. ..$ price.hunts32: num 8.7
+#&gt;   .. ..- attr(*, "description")= chr "## Choice of ketchup brands\n\nChoice behavior for 300 individuals in a panel of households in Springfield, Mis"| __truncated__
+#&gt;  $ rv         : Factor w/ 4 levels "heinz28","heinz32",..: 1 1 1 1 1 1 1 3 1 1 ...
 #&gt;  $ not_vary   : chr(0) 
-#&gt;  $ df_name    : chr "titanic"
-#&gt;  $ vars       : chr [1:2] "pclass" "sex"
-#&gt;  $ rvar       : chr "survived"
-#&gt;  $ evar       : chr [1:2] "pclass" "sex"
-#&gt;  $ lev        : chr [1:2] "Yes" "No"
+#&gt;  $ df_name    : chr "ketchup"
+#&gt;  $ vars       : chr [1:4] "price.heinz28" "price.heinz32" "price.heinz41" "price.hunts32"
+#&gt;  $ rvar       : chr "choice"
+#&gt;  $ evar       : chr [1:4] "price.heinz28" "price.heinz32" "price.heinz41" "price.hunts32"
+#&gt;  $ lev        : chr [1:4] "heinz28" "heinz32" "heinz41" "hunts32"
 #&gt;  $ int        : chr ""
 #&gt;  $ wts        : NULL
 #&gt;  $ check      : chr ""
 #&gt;  $ data_filter: chr ""
-#&gt;  $ envir      :&lt;environment: 0xa935d58&gt; 
 #&gt;  - attr(*, "class")= chr [1:3] "mnl" "model" "list"</div><div class='input'>
 </div></pre>
   </div>

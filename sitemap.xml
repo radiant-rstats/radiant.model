@@ -67,6 +67,9 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/ideal.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/ketchup.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/logistic.html</loc>
   </url>
   <url>
@@ -308,6 +311,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/logistic.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/mnl.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/nb.html</loc>

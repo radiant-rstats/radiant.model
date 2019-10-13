@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.8</span>
       </span>
     </div>
 
@@ -169,7 +169,7 @@
     </div>
 
     <pre class="usage"><span class='co'># S3 method for mnl.predict</span>
-<span class='fu'>store</span>(<span class='no'>dataset</span>, <span class='no'>object</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"pred_mnl"</span>, <span class='no'>...</span>)</pre>
+<span class='fu'>store</span>(<span class='no'>dataset</span>, <span class='no'>object</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -197,9 +197,14 @@
     <p>See <a href='https://radiant-rstats.github.io/docs/model/mnl.html'>https://radiant-rstats.github.io/docs/model/mnl.html</a> for an example in Radiant</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>mnl</span>(<span class='no'>titanic</span>, <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"survived"</span>, <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>, <span class='st'>"age"</span>))
-<span class='no'>pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_data</span> <span class='kw'>=</span> <span class='no'>titanic</span>)
-<span class='no'>titanic</span> <span class='kw'>&lt;-</span> <span class='fu'>store</span>(<span class='no'>titanic</span>, <span class='no'>pred</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"Yes"</span>, <span class='st'>"No"</span>))</div></pre>
+    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>mnl</span>(
+  <span class='no'>ketchup</span>,
+  <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"choice"</span>,
+  <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"price.heinz28"</span>, <span class='st'>"price.heinz32"</span>, <span class='st'>"price.heinz41"</span>, <span class='st'>"price.hunts32"</span>),
+  <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"heinz28"</span>
+)
+<span class='no'>pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_data</span> <span class='kw'>=</span> <span class='no'>ketchup</span>)
+<span class='no'>ketchup</span> <span class='kw'>&lt;-</span> <span class='fu'>store</span>(<span class='no'>ketchup</span>, <span class='no'>pred</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"heinz28"</span>, <span class='st'>"heinz32"</span>, <span class='st'>"heinz41"</span>, <span class='st'>"hunts32"</span>))</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
