@@ -86,9 +86,6 @@ mnl_pred_inputs <- reactive({
     mnl_pred_args$pred_data <- input$mnl_pred_data
   }
 
-  ## setting value for prediction interval type
-  mnl_pred_args$interval <- "confidence"
-
   mnl_pred_args
 })
 
@@ -424,7 +421,7 @@ output$ui_mnl <- renderUI({
       )
     ),
     help_and_report(
-      modal_title = "Multinomial Logistic regression (MNL)", fun_name = "mnl",
+      modal_title = "Multinomial logistic regression (MNL)", fun_name = "mnl",
       help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/mnl.Rmd"))
     )
   )
@@ -503,7 +500,7 @@ output$mnl <- renderUI({
 
   stat_tab_panel(
     menu = "Model > Estimate",
-    tool = "Multinomial Logistic regression (MNL)",
+    tool = "Multinomial logistic regression (MNL)",
     tool_ui = "ui_mnl",
     output_panels = mnl_output_panels
   )
@@ -576,11 +573,9 @@ mnl_available <- reactive({
 .plot_mnl <- reactive({
   if (not_pressed(input$mnl_run)) {
     return("** Press the Estimate button to estimate the model **")
-  }
-  if (is_empty(input$mnl_plots, "none")) {
+  } else if (is_empty(input$mnl_plots, "none")) {
     return("Please select a mnl regression plot from the drop-down menu")
-  }
-  if (mnl_available() != "available") {
+  } else if (mnl_available() != "available") {
     return(mnl_available())
   }
 

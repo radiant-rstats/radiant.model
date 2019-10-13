@@ -2,7 +2,7 @@
 % Please edit documentation in R/mnl.R
 \name{mnl}
 \alias{mnl}
-\title{Multinomial Logistic regression}
+\title{Multinomial logistic regression}
 \usage{
 mnl(dataset, rvar, evar, lev = "", int = "", wts = "None",
   check = "", data_filter = "", envir = parent.frame())
@@ -30,14 +30,19 @@ mnl(dataset, rvar, evar, lev = "", int = "", wts = "None",
 A list with all variables defined in mnl as an object of class mnl
 }
 \description{
-Multinomial Logistic regression
+Multinomial logistic regression
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in Radiant
 }
 \examples{
-mnl(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
-mnl(titanic, "survived", c("pclass", "sex")) \%>\% str()
+result <- mnl(
+  ketchup, 
+  rvar = "choice", 
+  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+  lev = "heinz28"
+) 
+str(result)
 
 }
 \seealso{

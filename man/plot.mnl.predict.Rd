@@ -2,13 +2,13 @@
 % Please edit documentation in R/mnl.R
 \name{plot.mnl.predict}
 \alias{plot.mnl.predict}
-\title{Plot method for nb.predict function}
+\title{Plot method for mnl.predict function}
 \usage{
 \method{plot}{mnl.predict}(x, xvar = "", facet_row = ".",
   facet_col = ".", color = ".class", ...)
 }
 \arguments{
-\item{x}{Return value from predict function predict.nb}
+\item{x}{Return value from predict function predict.mnl}
 
 \item{xvar}{Variable to display along the X-axis of the plot}
 
@@ -21,19 +21,19 @@
 \item{...}{further arguments passed to or from other methods}
 }
 \description{
-Plot method for nb.predict function
+Plot method for mnl.predict function
 }
 \examples{
-result <- nb(titanic, "survived", c("pclass", "sex", "age"))
-pred <- predict(
-  result,
-  pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = seq(0, 100, 20)")
-)
-plot(pred, xvar = "age", facet_col = "sex", facet_row = "pclass")
-pred <- predict(result, pred_data = titanic)
-plot(pred, xvar = "age", facet_col = "sex")
+result <- mnl(
+  ketchup, 
+  rvar = "choice", 
+  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+  lev = "heinz28"
+) 
+pred <- predict(result, pred_cmd = "price.heinz28 = seq(3, 5, 0.1)")
+plot(pred, xvar = "price.heinz28")
 
 }
 \seealso{
-\code{\link{predict.nb}} to generate predictions
+\code{\link{predict.mnl}} to generate predictions
 }

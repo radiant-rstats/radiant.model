@@ -4,7 +4,7 @@
 \alias{plot.logistic}
 \title{Plot method for the logistic function}
 \usage{
-\method{plot}{logistic}(x, plots = "", conf_lev = 0.95,
+\method{plot}{logistic}(x, plots = "coef", conf_lev = 0.95,
   intercept = FALSE, nrobs = -1, shiny = FALSE, custom = FALSE,
   ...)
 }

@@ -14,7 +14,7 @@ r_url_list[["Logistic regression (GLM)"]] <-
     "Predict" = "model/logistic/predict/",
     "Plot" = "model/logistic/plot/"
   ))
-r_url_list[["Multinomial Logistic regression (MNL)"]] <-
+r_url_list[["Multinomial logistic regression (MNL)"]] <-
   list("tabs_mnl" = list(
     "Summary" = "model/mnl/",
     "Predict" = "model/mnl/predict/",
@@ -67,7 +67,7 @@ options(
         "Estimate",
         tabPanel("Linear regression (OLS)", uiOutput("regress")),
         tabPanel("Logistic regression (GLM)", uiOutput("logistic")),
-        tabPanel("Multinomial Logistic regression (MNL)", uiOutput("mnl")),
+        tabPanel("Multinomial logistic regression (MNL)", uiOutput("mnl")),
         tabPanel("Naive Bayes", uiOutput("nb")),
         tabPanel("Neural Network", uiOutput("nn")),
         tabPanel("Classification and regression trees", uiOutput("crtree")),

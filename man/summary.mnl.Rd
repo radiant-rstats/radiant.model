@@ -27,11 +27,13 @@ Summary method for the mnl function
 See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in Radiant
 }
 \examples{
-result <- mnl(titanic, "survived", "pclass", lev = "Yes")
-summary(result, test_var = "pclass")
-res <- mnl(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")
-summary(res, sum_check = c("confint", "rrr"))
-titanic \%>\% mnl("survived", c("pclass", "sex", "age"), lev = "Yes") \%>\% summary()
+result <- mnl(
+  ketchup, 
+  rvar = "choice", 
+  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+  lev = "heinz28"
+) 
+summary(result)
 
 }
 \seealso{

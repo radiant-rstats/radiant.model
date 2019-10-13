@@ -69,6 +69,15 @@ NULL
 #' @format A data frame with 20,000 rows and 4 variables
 NULL
 
+#' Data on ketchup choices
+#' @details Choice behavior for a sample of 300 individuals in a panel of households in Springfield, Missouri (USA). Description provided in attr(ketchup,"description")
+#' @docType data
+#' @keywords datasets
+#' @name ketchup
+#' @usage data(ketchup)
+#' @format A data frame with 2,798 rows and 14 variables
+NULL
+
 #' Movie ratings
 #' @details Use collaborative filtering to create recommendations based on ratings from existing users. Description provided in attr(ratings, "description")
 #' @docType data

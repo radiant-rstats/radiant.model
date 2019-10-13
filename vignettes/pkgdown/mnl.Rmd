@@ -1,0 +1,10 @@
+---
+title: "Model > Multinomial logistic regression"
+author: "Vincent R. Nijs, Rady School of Management (UCSD)"
+---
+
+```{r child = "_mnl.Rmd"}
+```
+
+```{r child = "_footer.md"}
+```

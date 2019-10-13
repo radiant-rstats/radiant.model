@@ -1,7 +1,7 @@
 help_model <- c(
   "Linear regression (OLS)" = "regress.Rmd",
   "Logistic regression (GLM)" = "logistic.Rmd",
-  "Multinomial Logistic regression (MNL)" = "mnl.Rmd",
+  "Multinomial logistic regression (MNL)" = "mnl.Rmd",
   "Naive Bayes" = "nb.md",
   "Neural Network" = "nn.md",
   "Classification and regression trees" = "crtree.md",

@@ -4,7 +4,7 @@
 \alias{store.mnl.predict}
 \title{Store predicted values generated in the mnl function}
 \usage{
-\method{store}{mnl.predict}(dataset, object, name = "pred_mnl", ...)
+\method{store}{mnl.predict}(dataset, object, name = NULL, ...)
 }
 \arguments{
 \item{dataset}{Dataset to add predictions to}
@@ -22,8 +22,13 @@ Store predicted values generated in the mnl function
 See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in Radiant
 }
 \examples{
-result <- mnl(titanic, rvar = "survived", evar = c("pclass", "sex", "age"))
-pred <- predict(result, pred_data = titanic)
-titanic <- store(titanic, pred, name = c("Yes", "No"))
+result <- mnl(
+  ketchup, 
+  rvar = "choice", 
+  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+  lev = "heinz28"
+)
+pred <- predict(result, pred_data = ketchup)
+ketchup <- store(ketchup, pred, name = c("heinz28", "heinz32", "heinz41", "hunts32"))
 
 }

@@ -28,8 +28,8 @@
 #'
 #' @export
 logistic <- function(
-  dataset, rvar, evar, lev = "", int = "", 
-  wts = "None", check = "", ci_type, 
+  dataset, rvar, evar, lev = "", int = "",
+  wts = "None", check = "", ci_type,
   data_filter = "", envir = parent.frame()
 ) {
 
@@ -168,7 +168,7 @@ logistic <- function(
   coeff <- coeff[, c("label", "OR", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
 
   ## remove elements no longer needed
-  rm(dataset, hasLevs, form_lower, form_upper)
+  rm(dataset, hasLevs, form_lower, form_upper, envir)
 
   as.list(environment()) %>% add_class(c("logistic", "model"))
 }
@@ -440,7 +440,7 @@ summary.logistic <- function(
 #'
 #' @export
 plot.logistic <- function(
-  x, plots = "", conf_lev = .95,
+  x, plots = "coef", conf_lev = .95,
   intercept = FALSE, nrobs = -1,
   shiny = FALSE, custom = FALSE, ...
 ) {
@@ -765,12 +765,15 @@ minmax <- function(dataset) {
 write.coeff <- function(
   object, file = "", sort = FALSE, intercept = TRUE
 ) {
-  if ("regress" %in% class(object)) {
+  if (inherits(object, "regress")) {
     mod_class <- "regress"
-  } else if ("logistic" %in% class(object)) {
+  # } else if ("logistic" %in% class(object)) {
+  } else if (inherits(object, "logistic")) {
     mod_class <- "logistic"
+  } else if (inherits(object, "mnl")) {
+    mod_class <- "mnl"
   } else {
-    "Object is not of class logistic or regress" %T>%
+    "Object is not of class logistic, mnl, or regress" %T>%
       message %>%
       cat("\n\n", file = file)
     return(invisible())
@@ -817,23 +820,26 @@ write.coeff <- function(
   }
 
   object <- object[["coeff"]]
-  object$OR[1] <- 0
   object$dummy <- c(0L, dummy)
   object$mean <- c(1L, cms)
   object$sd <- c(0L, csds)
   object$min <- c(1L, cmn)
   object$max <- c(1L, cmx)
+  
+  intc <- grepl("(Intercept)", object$label)
 
   if (mod_class == "logistic") {
     object$importance <- pmax(object$OR, 1 / object$OR)
-    object$OR[1] <- 0
+    object$OR[intc] <- 0
+  } else if (mod_class == "mnl") {
+    object$importance <- pmax(object$RRR, 1 / object$RRR)
+    object$RRR[intc] <- 0
   } else {
     object$coeff
     object$importance <- abs(object$coeff)
-    object$OR <- NULL
   }
 
-  object$importance[1] <- 0
+  object$importance[intc] <- 0
 
   if (sort)
     object[-1, ] <- arrange(object[-1, ], desc(.data$importance))

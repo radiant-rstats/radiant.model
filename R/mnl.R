@@ -1,4 +1,4 @@
-#' Multinomial Logistic regression
+#' Multinomial logistic regression
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in Radiant
 #'
@@ -15,9 +15,14 @@
 #' @return A list with all variables defined in mnl as an object of class mnl
 #'
 #' @examples
-#' mnl(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
-#' mnl(titanic, "survived", c("pclass", "sex")) %>% str()
-#'
+#' result <- mnl(
+#'   ketchup, 
+#'   rvar = "choice", 
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   lev = "heinz28"
+#' ) 
+#' str(result)
+#' 
 #' @seealso \code{\link{summary.mnl}} to summarize the results
 #' @seealso \code{\link{plot.mnl}} to plot the results
 #' @seealso \code{\link{predict.mnl}} to generate predictions
@@ -74,7 +79,6 @@ mnl <- function(
       lev <- as.character(rv) %>% as.factor() %>% levels() %>% .[1]
     }
   }
-
 
   ## re-leveling the
   dataset[[rvar]] <- dataset[[rvar]] %>% as.factor() %>% relevel(ref = lev)
@@ -154,7 +158,7 @@ mnl <- function(
   model$nobs <- length(model$residuals)
 
   ## remove elements no longer needed
-  rm(dataset, hasLevs, form_lower, form_upper)
+  rm(dataset, hasLevs, form_lower, form_upper, envir)
 
   as.list(environment()) %>% add_class(c("mnl", "model"))
 }
@@ -171,11 +175,13 @@ mnl <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- mnl(titanic, "survived", "pclass", lev = "Yes")
-#' summary(result, test_var = "pclass")
-#' res <- mnl(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")
-#' summary(res, sum_check = c("confint", "rrr"))
-#' titanic %>% mnl("survived", c("pclass", "sex", "age"), lev = "Yes") %>% summary()
+#' result <- mnl(
+#'   ketchup, 
+#'   rvar = "choice", 
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   lev = "heinz28"
+#' ) 
+#' summary(result)
 #'
 #' @seealso \code{\link{mnl}} to generate the results
 #' @seealso \code{\link{plot.mnl}} to plot the results
@@ -206,7 +212,7 @@ summary.mnl <- function(
     cat("----------------------------------------------------\n")
   }
 
-  cat("Multinomial Logistic regression (MNL)")
+  cat("Multinomial logistic regression (MNL)")
   cat("\nData                 :", object$df_name)
   if (!is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
@@ -392,19 +398,21 @@ summary.mnl <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- mnl(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+#' result <- mnl(
+#'   ketchup, 
+#'   rvar = "choice", 
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   lev = "heinz28"
+#' ) 
 #' plot(result, plots = "coef")
-#' result <- nb(titanic, "pclass", c("sex", "age"))
-#' plot(result)
 #'
 #' @seealso \code{\link{mnl}} to generate results
-#' @seealso \code{\link{plot.mnl}} to plot results
 #' @seealso \code{\link{predict.mnl}} to generate predictions
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
 #'
 #' @export
 plot.mnl <- function(
-  x, plots = "", conf_lev = .95,
+  x, plots = "coef", conf_lev = .95,
   intercept = FALSE, nrobs = -1,
   shiny = FALSE, custom = FALSE, ...
 ) {
@@ -501,7 +509,7 @@ plot.mnl <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in Radiant
 #'
 #' @param object Return value from \code{\link{mnl}}
-#' @param pred_data Provide the dataframe to generate predictions (e.g., titanic). The dataset must contain all columns used in the estimation
+#' @param pred_data Provide the dataframe to generate predictions (e.g., ketchup). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
 #' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the level in the response variable of the mnl model will be used
 #' @param dec Number of decimals to show
@@ -509,14 +517,14 @@ plot.mnl <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- mnl(titanic, "survived", c("pclass", "sex", "age"))
-#' predict(result, pred_data = titanic)
-#' predict(result, pred_data = titanic, pred_names = c("Yes", "No"))
-#' predict(result, pred_cmd = "pclass = levels(pclass)")
-#' result <- mnl(titanic, "pclass", c("survived", "sex", "age"))
-#' predict(result, pred_data = titanic)
-#' predict(result, pred_data = titanic, pred_names = c("1st", "2nd", "3rd"))
-#' predict(result, pred_data = titanic, pred_names = "")
+#' result <- mnl(
+#'   ketchup, 
+#'   rvar = "choice", 
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   lev = "heinz28"
+#' ) 
+#' predict(result, pred_cmd = "price.heinz28 = seq(3, 5, 0.1)")
+#' predict(result, pred_data = slice(ketchup, 1:20))
 #'
 #' @seealso \code{\link{mnl}} to generate the result
 #' @seealso \code{\link{summary.mnl}} to summarize results
@@ -579,11 +587,11 @@ predict.mnl <- function(
 #'
 #' @export
 print.mnl.predict <- function(x, ..., n = 10)
-  print_predict_model(x, ..., n = n, header = "Multinomial Logistic regression (MNL)", lev = attr(x, "radiant_lev"))
+  print_predict_model(x, ..., n = n, header = "Multinomial logistic regression (MNL)", lev = attr(x, "radiant_lev"))
 
-#' Plot method for nb.predict function
+#' Plot method for mnl.predict function
 #'
-#' @param x Return value from predict function predict.nb
+#' @param x Return value from predict function predict.mnl
 #' @param xvar Variable to display along the X-axis of the plot
 #' @param facet_row Create vertically arranged subplots for each level of the selected factor variable
 #' @param facet_col Create horizontally arranged subplots for each level of the selected factor variable
@@ -591,16 +599,16 @@ print.mnl.predict <- function(x, ..., n = 10)
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- nb(titanic, "survived", c("pclass", "sex", "age"))
-#' pred <- predict(
-#'   result,
-#'   pred_cmd = c("pclass = levels(pclass)", "sex = levels(sex)", "age = seq(0, 100, 20)")
-#' )
-#' plot(pred, xvar = "age", facet_col = "sex", facet_row = "pclass")
-#' pred <- predict(result, pred_data = titanic)
-#' plot(pred, xvar = "age", facet_col = "sex")
+#' result <- mnl(
+#'   ketchup, 
+#'   rvar = "choice", 
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   lev = "heinz28"
+#' ) 
+#' pred <- predict(result, pred_cmd = "price.heinz28 = seq(3, 5, 0.1)")
+#' plot(pred, xvar = "price.heinz28")
 #'
-#' @seealso \code{\link{predict.nb}} to generate predictions
+#' @seealso \code{\link{predict.mnl}} to generate predictions
 #'
 #' @export
 plot.mnl.predict <- function(
@@ -652,12 +660,17 @@ plot.mnl.predict <- function(
 #' @param ... Additional arguments
 #'
 #' @examples
-#' result <- mnl(titanic, rvar = "survived", evar = c("pclass", "sex", "age"))
-#' pred <- predict(result, pred_data = titanic)
-#' titanic <- store(titanic, pred, name = c("Yes", "No"))
+#' result <- mnl(
+#'   ketchup, 
+#'   rvar = "choice", 
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   lev = "heinz28"
+#' )
+#' pred <- predict(result, pred_data = ketchup)
+#' ketchup <- store(ketchup, pred, name = c("heinz28", "heinz32", "heinz41", "hunts32"))
 #'
 #' @export
-store.mnl.predict <- function(dataset, object, name = "pred_mnl", ...) {
+store.mnl.predict <- function(dataset, object, name = NULL, ...) {
 
   ## extract the names of the variables predicted
   pvars <- base::setdiff(attr(object, "radiant_vars"), attr(object, "radiant_evar"))

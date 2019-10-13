@@ -4,8 +4,9 @@
 \alias{plot.mnl}
 \title{Plot method for the mnl function}
 \usage{
-\method{plot}{mnl}(x, plots = "", conf_lev = 0.95, intercept = FALSE,
-  nrobs = -1, shiny = FALSE, custom = FALSE, ...)
+\method{plot}{mnl}(x, plots = "coef", conf_lev = 0.95,
+  intercept = FALSE, nrobs = -1, shiny = FALSE, custom = FALSE,
+  ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{mnl}}}
@@ -31,16 +32,17 @@ Plot method for the mnl function
 See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in Radiant
 }
 \examples{
-result <- mnl(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+result <- mnl(
+  ketchup, 
+  rvar = "choice", 
+  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+  lev = "heinz28"
+) 
 plot(result, plots = "coef")
-result <- nb(titanic, "pclass", c("sex", "age"))
-plot(result)
 
 }
 \seealso{
 \code{\link{mnl}} to generate results
-
-\code{\link{plot.mnl}} to plot results
 
 \code{\link{predict.mnl}} to generate predictions
 
