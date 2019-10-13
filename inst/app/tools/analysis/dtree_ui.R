@@ -380,7 +380,14 @@ dtree_sense_width <- reactive({
 })
 
 dtree_sense_height <- eventReactive(input$dtree_run_sensitivity, {
-  if (is_empty(input$dtree_sense, "")) 650 else length(strsplit(input$dtree_sense, ";")[[1]]) * 400
+  if (is_empty(input$dtree_sense, "")) {
+    650 
+  } else {
+    strsplit(input$dtree_sense, ";") %>%
+      unlist() %>% 
+      unique() %>%
+      length() * 400 
+  }
 })
 
 output$plot_dtree_sensitivity <- renderPlot({
@@ -499,7 +506,6 @@ observeEvent(input$dtree_remove, {
   inp_out <- list(list(input = TRUE, output = FALSE), "")
   figs <- FALSE
   if (!is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
-    wrap <- TRUE
     vars <- strsplit(input$dtree_sense, ";")[[1]] %>% gsub("\n+", "", .)
     inp_out[[2]] <- list(
       vars = vars,
@@ -508,13 +514,10 @@ observeEvent(input$dtree_remove, {
     )
     outputs <- c(outputs, "sensitivity")
     figs <- TRUE
-  } else {
-    wrap <- FALSE
-  }
+  } 
 
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
-  id <- sample(seq_len(1000000), 1)
   xcmd <- clean_args(dtree_plot_inputs(), dtree_plot_args[-1]) %>%
     deparse(control = getOption("dctrl"), width.cutoff = 500L) %>%
     {if (. == "list()") {
@@ -533,7 +536,6 @@ observeEvent(input$dtree_remove, {
     fun_name = "dtree",
     inp_out = inp_out,
     outputs = outputs,
-    wrap = wrap,
     figs = figs,
     fig.width = dtree_sense_width(),
     fig.height = dtree_sense_height(),
