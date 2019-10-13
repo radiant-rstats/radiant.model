@@ -1,12 +1,16 @@
 #' @noRd
 #' @export
 .as_int <- function(x, dataset = list()) {
-  ret <- sshhr(as.integer(x))
+  if (is.character(x)) x <- strsplit(x, "/") %>% unlist()
+  asInt <- function(x) ifelse(length(x) > 1, as.integer(as.integer(x[1]) / as.integer(x[2])), as.integer(x))
+  ret <- sshhr(asInt(x))
   if (is.na(ret)) {
     if (x %in% names(dataset)) {
-      ret <- dataset[[x]]
+      dataset[[x]]
+    } else if (is.na(x)) {
+      x
     } else {
-      cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluate first\n\n\n'))
+      cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluated first\n\n\n'))
       NA
     }
   } else {
@@ -17,12 +21,16 @@
 #' @noRd
 #' @export
 .as_num <- function(x, dataset = list()) {
-  ret <- sshhr(as.numeric(x))
+  if (is.character(x)) x <- strsplit(x, "/") %>% unlist()
+  asNum <- function(x) ifelse(length(x) > 1, as.numeric(x[1]) / as.numeric(x[2]), as.numeric(x))
+  ret <- sshhr(asNum(x))
   if (is.na(ret)) {
     if (x %in% names(dataset)) {
-      ret <- dataset[[x]]
+      dataset[[x]]
+    } else if (is.na(x)) {
+      x
     } else {
-      cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluate first\n\n\n'))
+      cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluated first\n\n\n'))
       NA
     }
   } else {
@@ -123,7 +131,7 @@ simulater <- function(
     s <- lnorm %>% sim_splitter()
     for (i in 1:length(s)) {
       sdev <- .as_num(s[[i]][3], dataset)
-      if (!sdev > 0) {
+      if (is.na(sdev) || !sdev > 0) {
         mess <- c("error", paste0("All log-normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
@@ -138,7 +146,7 @@ simulater <- function(
     means <- sds <- nms <- c()
     for (i in 1:length(s)) {
       sdev <- .as_num(s[[i]][3], dataset)
-      if (!sdev > 0) {
+      if (is.na(sdev) || !sdev > 0) {
         mess <- c("error", paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
