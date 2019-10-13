@@ -1,5 +1,7 @@
 > Simulation for decision analysis
 
+
+
 Start by selecting the types of variables to use in the simulation from the `Select types` dropdown in the _Simulate_ tab. Available types include Binomial, Constant, Discrete, Log normal, Normal, Uniform, Data, Grid search, and Sequence.
 
 ### Binomial
@@ -310,4 +312,6 @@ plot(result, custom = TRUE) %>%
 
 ### R-functions
 
-For an overview of related R-functions used by Radiant to construct and evaluate (repeated) simulation models see <a href = "https://radiant-rstats.github.io/radiant.model/reference/index.html#section-model-simulate" target="_blank">_Model > Simulate_</a>
+For an overview of related R-functions used by Radiant to construct and evaluate (repeated) simulation models see <a href = "https://radiant-rstats.github.io/radiant.model/reference/index.html#section-model-simulate" target="_blank">_Model > Simulate_</a>.
+
+Key functions from the `stats` package used in the `simulater` tool are `rbinom`, `rlnorm`, `rnorm`, `rpios`, and `runif`

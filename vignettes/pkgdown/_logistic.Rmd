@@ -2,7 +2,7 @@
 
 ### Functionality
 
-To estimate a logistic regression we need a binary response variable and one or more explanatory variables. We also need specify the level of the response variable we will count as as _success_ (i.e., the `Choose level:` dropdown). In the example data file `titanic`, success for the variable `survived` would be the level `Yes`.
+To estimate a logistic regression we need a binary response variable and one or more explanatory variables. We also need specify the level of the response variable we will count as _success_ (i.e., the `Choose level:` dropdown). In the example data file `titanic`, success for the variable `survived` would be the level `Yes`.
 
 To access this dataset go to _Data > Manage_, select `examples` from the `Load data of type` dropdown, and press the `Load` button. Then select the `titanic` dataset.
 
@@ -10,7 +10,7 @@ In the _Summary_ tab we can test if two or more variables together add significa
 
 Additional output that requires re-estimation:
 
-* Standardize: Odds-ratios can be hard to compare if the explanatory variables are measured on different scales. By standardizing the data before estimation we can see which variables move-the-needle most. Note that a one-unit change is now equated to 2 x the standard deviation of the variable.
+* Standardize: Odds-ratios can be hard to compare if the explanatory variables are measured on different scales. By standardizing the explanatory variables before estimation we can see which variables move-the-needle most. Note that a one-unit change is now equated to 2 x the standard deviation of the explanatory variable.
 * Center: Replace all explanatory variables X by X - mean(X). This can be useful when trying to interpret interaction effects.
 * Stepwise: A data-mining approach to select the best fitting model
 * Robust standard errors: When `robust` is selected the coefficient estimates are the same as a normal logistic regression standard errors are adjusted. This adjustment is used by default when probability weights are specified in estimation. 
@@ -21,17 +21,6 @@ Additional output that does not require re-estimation:
 * Confidence intervals: Coefficient confidence intervals
 * Odds: Odds-ratios with confidence intervals
 
-We can use the _Predict_ tab to predict probabilities for different values of the explanatory variable(s) (i.e., a common use of Logistic regression models). First, select the type of input for prediction using the `Prediction` radio buttons. Choose either an existing dataset for prediction ("Data") or specify a command ("Command") to generate the prediction inputs. If you choose to enter a command you must specify at least one variable and one value to get a prediction. If you do not specify a value for each variable in the model either the mean value or the most frequent level will be used. It is only possible to predict outcomes based on variables used in the model (e.g., `age` must be one of the selected explanatory variables to predict survival probability for a 90 year old passenger).
-
-* To predict the survival probability for a passenger in 3rd class use `pclass = "3rd"` and press enter
-* To predict the survival probability for passengers aged between 0 and 90 at 10 year intervals type `age = seq(0, 90, 10)` and press enter
-* To predict the survival probability for passengers per class and gender type `pclass = levels(pclass), sex = c("male","female")` and press enter
-
-As an example of how to use data as input for prediction (e.g., predict the survival probabilities for 30 year old men and women in each of the passenger classes) you can use `titanic_pred`. Select `titanic` as the dataset for analysis and specify a model in _Model > Logistic regression (GLM)_ with `pclass`, `sex`, and `age` as explanatory variables. Choose `Data` from the `Prediction input` dropdown and select `titanic_pred` from the `Predict for profiles` dropdown to generate the predictions. Note that the variables in the datafile and in the model must be the same.
-
-To generate predicted values for all cases in, for example, the `titanic` dataset select `Data` from the `Prediction input` dropdown then select the `titanic` dataset. You can also create a dataset for input in _Data > Transform_ using `Expand grid` or in a spreadsheet and then paste it into Radiant through the _Data > Manage_ tab. You can also load csv data as input. For example, paste the following link `https://radiant-rstats.github.io/docs/examples/glm_pred.csv` file into Radiant through the _Data > Manage_ tab and try to generate the same predictions. Hint: Use `csv (url)` to load the data link above.
-
-Once the desired predictions have been generated they can be saved to a csv file by clicking the download button button on the top right of the screen. To add predictions to the dataset, click the `Store` button.
 
 ### Example 1: Titanic Survival
 
@@ -58,11 +47,13 @@ The odds-ratios from the logistic regression can be interpreted as follows:
 
 <p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model//logistic_summary.png"></p>
 
-In addition to the numerical output provided in the _Summary_ tab we can also evaluate the link between `survival`, `class`, `sex`, and `age` visually (see _Plot_ tab). The settings in the side-panel are the same as before. In the screenshot below we see a coefficient (or rather an odds-ratio) plot with confidence intervals. The relative importance of gender and class compared to age clearly stands out. Note: click the check box for standardized coefficients (i.e., `standardize`) in the _Summary_ tab and see if your conclusion changes.
+In addition to the numerical output provided in the _Summary_ tab we can also evaluate the link between `survival`, `class`, `sex`, and `age` visually (see _Plot_ tab). In the screenshot below we see a coefficient (or rather an odds-ratio) plot with confidence intervals. The relative importance of gender and class compared to age clearly stands out. Note: click the check box for standardized coefficients (i.e., `standardize`) in the _Summary_ tab and see if your conclusion changes.
 
 <p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model//logistic_plot.png"></p>
 
-Probabilities, are more convenient for interpretation than coefficients or odds from a logistic regression model. To see how survival probabilities change across passenger classes select `Command` from the `Prediction input` dropdown in the _Predict_ tab, type `pclass = levels(pclass)` in the **Prediction command** box, and press return.
+Probabilities, are often more convenient for interpretation than coefficients or odds from a logistic regression model. We can use the _Predict_ tab to predict probabilities for different values of the explanatory variable(s) (i.e., a common use of Logistic regression models). First, select the type of input for prediction using the `Prediction input type` dropdown. Choose either an existing dataset for prediction ("Data") or specify a command ("Command") to generate the prediction inputs. If you choose to enter a command you must specify at least one variable and one value in the **Prediction command** box to get a prediction. If you do not specify a value for each variable in the model either the mean value or the most frequent level will be used. It is only possible to predict outcomes based on variables used in the model (e.g., `age` must be one of the selected explanatory variables to predict survival probability for a 90 year old passenger).
+
+To see how survival probabilities change across passenger classes select `Command` from the `Prediction input type` dropdown in the _Predict_ tab, type `pclass = levels(pclass)`, and press return.
 
 <p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model//logistic_predict.png"></p>
 
@@ -95,10 +86,13 @@ To see the effects for age type `age = seq(0, 100, 20)` in the **Prediction comm
     3rd male 100 0.009
 ```
 
-For a more comprehensive overview of the influence of gender, age, and passenger class on the chances of survival we can generate a full table of probabilities by selecting `Command` from the `Prediction input` dropdown in the _Predict_ tab and selecting `Titanic` from the `Predict for profiles`. There are too many numbers to easily interpret in table form but the figure gives a clear overview of how survival probabilities change with `age`, `gender`, and `pclass`:
+For a more comprehensive overview of the influence of gender, age, and passenger class on the chances of survival we can generate a full table of probabilities by selecting `Data` from the `Prediction input` dropdown in the _Predict_ tab and selecting `titanic` from the `Prediction data` dropdown. There are too many numbers to easily interpret in table form but the figure gives a clear overview of how survival probabilities change with `age`, `gender`, and `pclass`:
 
 <p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model//logistic_predict_data.png"></p>
 
+You can also create a dataset for input in _Data > Transform_ using `Expand grid` or in a spreadsheet and then paste it into Radiant through the _Data > Manage_ tab. You can also load csv data as input. For example, paste the following link `https://radiant-rstats.github.io/docs/examples/glm_pred.csv` file into Radiant through the _Data > Manage_ tab and try to generate the same predictions. Hint: Use `csv (url)` to load the data link above.
+
+Once the desired predictions have been generated they can be saved to a CSV file by clicking the download icon on the top right of the screen. To add predictions to the dataset used for estimation, click the `Store` button.
 
 ### Example 2: DVD sales
 
@@ -123,4 +117,6 @@ plot(result, plots = "coef", custom = TRUE) +
 
 ### R-functions
 
-For an overview of related R-functions used by Radiant to estimate a logistic regression model see <a href = "https://radiant-rstats.github.io/radiant.model/reference/index.html#section-model-logistic-regression" target="_blank">_Model > Logistic regression_</a>
+For an overview of related R-functions used by Radiant to estimate a logistic regression model see <a href = "https://radiant-rstats.github.io/radiant.model/reference/index.html#section-model-logistic-regression" target="_blank">_Model > Logistic regression_</a>.
+
+The key functions used in the `logistic` tool are `glm` from the `stats` package and `vif` and `linearHypothesis` from the `car` package. 
