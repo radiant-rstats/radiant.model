@@ -544,17 +544,6 @@ logit_available <- reactive({
     !is_empty(input$logit_predict, "none")
   )
 
-  # if (not_pressed(input$logit_run)) return(invisible())
-  # if (logit_available() != "available") return(logit_available())
-  # req(input$logit_pred_plot, available(input$logit_xvar))
-  # if (is_empty(input$logit_predict, "none")) return(invisible())
-  # if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && is_empty(input$logit_pred_data)) {
-  #   return(invisible())
-  # }
-  # if (input$logit_predict == "cmd" && is_empty(input$logit_pred_cmd)) {
-  #   return(invisible())
-  # }
-
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_logistic()), logit_pred_plot_inputs()))
   })
@@ -563,11 +552,9 @@ logit_available <- reactive({
 .plot_logistic <- reactive({
   if (not_pressed(input$logit_run)) {
     return("** Press the Estimate button to estimate the model **")
-  }
-  if (is_empty(input$logit_plots, "none")) {
+  } else if (is_empty(input$logit_plots, "none")) {
     return("Please select a logistic regression plot from the drop-down menu")
-  }
-  if (logit_available() != "available") {
+  } else if (logit_available() != "available") {
     return(logit_available())
   }
 

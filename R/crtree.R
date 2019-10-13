@@ -38,10 +38,10 @@
 #'
 #' @export
 crtree <- function(
-  dataset, rvar, evar, type = "", lev = "", wts = "None", 
-  minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001, 
-  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini", 
-  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "", 
+  dataset, rvar, evar, type = "", lev = "", wts = "None",
+  minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001,
+  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
+  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
   data_filter = "", envir = parent.frame()
 ) {
 
@@ -231,7 +231,7 @@ crtree <- function(
   ## passing on variable classes for plotting
   model$var_types <- sapply(dataset, class)
 
-  rm(dataset) ## dataset not needed elsewhere
+  rm(dataset, envir) ## dataset not needed elsewhere
 
   as.list(environment()) %>% add_class(c("crtree", "model"))
 }
@@ -592,8 +592,8 @@ plot.crtree <- function(
 #'
 #' @export
 predict.crtree <- function(
-  object, pred_data = NULL, pred_cmd = "", 
-  conf_lev = 0.95, se = FALSE, dec = 3, 
+  object, pred_data = NULL, pred_cmd = "",
+  conf_lev = 0.95, se = FALSE, dec = 3,
   envir = parent.frame(), ...
 ) {
   if (is.character(object)) return(object)
@@ -664,7 +664,7 @@ print.crtree.predict <- function(x, ..., n = 10)
 #' result <- crtree(diamonds, "price", c("carat", "color", "clarity"), type = "regression", cp = 0.001)
 #' cv.crtree(result, cp = 0.001, pcp = seq(0, 0.01, length.out = 11), fun = MAE)
 #' }
-#' 
+#'
 #' @export
 cv.crtree <- function(object, K = 5, repeats = 1, cp, pcp = seq(0, 0.01, length.out = 11), seed = 1234, trace = TRUE, fun, ...) {
   if (inherits(object, "crtree")) object <- object$model

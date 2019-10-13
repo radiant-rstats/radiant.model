@@ -352,7 +352,7 @@ plot.nb.predict <- function(
 #' titanic <- store(titanic, pred, name = c("Yes", "No"))
 #'
 #' @export
-store.nb.predict <- function(dataset, object, name = "pred_nb", ...) {
+store.nb.predict <- function(dataset, object, name = NULL, ...) {
 
   ## extract the names of the variables predicted
   pvars <- base::setdiff(attr(object, "radiant_vars"), attr(object, "radiant_evar"))
