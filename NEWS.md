@@ -1,5 +1,6 @@
-# radiant.model 1.1.8
+# radiant.model 1.1.9
 
+* Fix for `nobs` in _Model > Multinomial logistic regression_.
 * Fix for `write.coeff` for use with _Model > Multinomial logistic regression_
 * Fix for decision trees that reference sub-trees. Environment to evaluate the tree is now explicitly provided. This will now also work with (sub) trees loaded from .yaml files
 * Decision analysis now allows basic formulas in all parts of the tree

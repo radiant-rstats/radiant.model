@@ -16,13 +16,13 @@
 #'
 #' @examples
 #' result <- mnl(
-#'   ketchup, 
-#'   rvar = "choice", 
-#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   ketchup,
+#'   rvar = "choice",
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
 #'   lev = "heinz28"
-#' ) 
+#' )
 #' str(result)
-#' 
+#'
 #' @seealso \code{\link{summary.mnl}} to summarize the results
 #' @seealso \code{\link{plot.mnl}} to plot the results
 #' @seealso \code{\link{predict.mnl}} to generate predictions
@@ -154,8 +154,7 @@ mnl <- function(
   umod <- update(model, ~1, trace = FALSE)
   model$null.deviance <- -2 * logLik(umod)
   model$logLik <- logLik(model)
-  model$df.null <- length(umod$residuals) - 1
-  model$nobs <- length(model$residuals)
+  model$nobs <- nrow(model$residuals)
 
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, envir)
@@ -176,11 +175,11 @@ mnl <- function(
 #'
 #' @examples
 #' result <- mnl(
-#'   ketchup, 
-#'   rvar = "choice", 
-#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   ketchup,
+#'   rvar = "choice",
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
 #'   lev = "heinz28"
-#' ) 
+#' )
 #' summary(result)
 #'
 #' @seealso \code{\link{mnl}} to generate the results
@@ -250,7 +249,6 @@ summary.mnl <- function(
   mnl_fit <- glance(object$model)
   mnl_fit$null.deviance <- object$model$null.deviance
   mnl_fit$logLik <- object$model$logLik
-  mnl_fit$df.null <- object$model$df.null
   mnl_fit$BIC <- round(-2 * mnl_fit$logLik + ln(object$model$nobs) * with(mnl_fit, edf), dec)
 
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
@@ -260,7 +258,7 @@ summary.mnl <- function(
     nobs <- sum(object$wts)
     mnl_fit$BIC <- round(-2 * mnl_fit$logLik + ln(nobs) * with(mnl_fit, edf), dec)
   } else {
-    nobs <- mnl_fit$df.null + 1
+    nobs <- object$model$nobs
   }
 
   # ## chi-squared test of overall model fit (p-value) - http://www.ats.ucla.edu/stat/r/dae/logit.htm
@@ -399,11 +397,11 @@ summary.mnl <- function(
 #'
 #' @examples
 #' result <- mnl(
-#'   ketchup, 
-#'   rvar = "choice", 
-#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   ketchup,
+#'   rvar = "choice",
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
 #'   lev = "heinz28"
-#' ) 
+#' )
 #' plot(result, plots = "coef")
 #'
 #' @seealso \code{\link{mnl}} to generate results
@@ -518,11 +516,11 @@ plot.mnl <- function(
 #'
 #' @examples
 #' result <- mnl(
-#'   ketchup, 
-#'   rvar = "choice", 
-#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   ketchup,
+#'   rvar = "choice",
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
 #'   lev = "heinz28"
-#' ) 
+#' )
 #' predict(result, pred_cmd = "price.heinz28 = seq(3, 5, 0.1)")
 #' predict(result, pred_data = slice(ketchup, 1:20))
 #'
@@ -600,11 +598,11 @@ print.mnl.predict <- function(x, ..., n = 10)
 #'
 #' @examples
 #' result <- mnl(
-#'   ketchup, 
-#'   rvar = "choice", 
-#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   ketchup,
+#'   rvar = "choice",
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
 #'   lev = "heinz28"
-#' ) 
+#' )
 #' pred <- predict(result, pred_cmd = "price.heinz28 = seq(3, 5, 0.1)")
 #' plot(pred, xvar = "price.heinz28")
 #'
@@ -661,9 +659,9 @@ plot.mnl.predict <- function(
 #'
 #' @examples
 #' result <- mnl(
-#'   ketchup, 
-#'   rvar = "choice", 
-#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+#'   ketchup,
+#'   rvar = "choice",
+#'   evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
 #'   lev = "heinz28"
 #' )
 #' pred <- predict(result, pred_data = ketchup)
