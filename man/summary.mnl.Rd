@@ -28,11 +28,11 @@ See \url{https://radiant-rstats.github.io/docs/model/mnl.html} for an example in
 }
 \examples{
 result <- mnl(
-  ketchup, 
-  rvar = "choice", 
-  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"), 
+  ketchup,
+  rvar = "choice",
+  evar = c("price.heinz28", "price.heinz32", "price.heinz41", "price.hunts32"),
   lev = "heinz28"
-) 
+)
 summary(result)
 
 }
