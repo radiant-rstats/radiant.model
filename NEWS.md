@@ -1,4 +1,4 @@
-# radiant.model 1.1.9
+# radiant.model 1.1.10
 
 * Fix for `nobs` in _Model > Multinomial logistic regression_.
 * Fix for `write.coeff` for use with _Model > Multinomial logistic regression_
