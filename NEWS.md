@@ -1,7 +1,7 @@
 # radiant.model 1.1.11
 
 * Imroved description of standardization process used. Added link to [Gelman 2008](http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf) 
-* Added 
+* Added an influence plot that shows standardized residuals and cooks-distance
 
 # radiant.model 1.1.10
 
