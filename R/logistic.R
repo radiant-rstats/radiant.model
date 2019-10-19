@@ -421,7 +421,7 @@ summary.logistic <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{logistic}}
-#' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "coef" provides a coefficient plot
+#' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "coef" provides a coefficient plot and "influence" shows (potentially) influential observations
 #' @param conf_lev Confidence level to use for coefficient and odds confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
@@ -437,6 +437,8 @@ summary.logistic <- function(
 #' @seealso \code{\link{plot.logistic}} to plot results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
+#' 
+#' @importFrom broom augment
 #'
 #' @export
 plot.logistic <- function(
@@ -445,24 +447,20 @@ plot.logistic <- function(
   shiny = FALSE, custom = FALSE, ...
 ) {
 
-  if (is.character(x)) return(x)
-  if (class(x$model)[1] != "glm") return(x)
-  if (is_empty(plots[1])) {
-    return("Please select a logistic regression plot from the drop-down menu")
-  }
+  if (is.character(x) || !inherits(x$model, "glm")) return(x)
+  if (is_empty(plots[1])) return("Please select a logistic regression plot from the drop-down menu")
 
   if ("(weights)" %in% colnames(x$model$model) &&
     min(x$model$model[["(weights)"]]) == 0) {
+    ## broom::augment chokes when a weight variable has 0s
     model <- x$model$model
+    model$.fitted <- predict(x$model, type = "response")
   } else {
-    ## fortify chokes when a weight variable has 0s
-    model <- ggplot2::fortify(x$model)
+    model <- broom::augment(x$model, type.predict = "response") %>% as.data.frame()
   }
 
-  model$.fitted <- predict(x$model, type = "response")
-
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
-  model$.actual <- as_numeric(x$rv) %>% {. - max(.) + 1}
+  model$.actual <- as_integer(x$rv) %>% {. - max(.) + 1}
 
   rvar <- x$rvar
   evar <- x$evar
@@ -566,12 +564,58 @@ plot.logistic <- function(
 
     plot_list[["fit"]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
-      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + ylim(0, 1) +
+      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + 
+      ylim(0, 1) +
       labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
   }
 
   if ("correlations" %in% plots) {
     return(radiant.basics:::plot.correlation(select_at(model, .vars = vars), nrobs = nrobs))
+  }
+
+  if ("influence" %in% plots) {
+    nrCol <- 1
+
+    ## based on http://www.sthda.com/english/articles/36-classification-methods-essentials/148-logistic-regression-assumptions-and-diagnostics-in-r/
+    mod <- model %>%
+      select(.std.resid, .cooksd) %>%
+      mutate(index = 1:n(), .cooksd.max = .cooksd) %>%
+      arrange(desc(.cooksd)) %>%
+      mutate(index.max = 1:n(), .cooksd.max = ifelse(index.max < 4, .cooksd, NA)) %>%
+      mutate(index.max = ifelse(index.max < 4, index, NA)) %>%
+      arrange(index)
+
+    mod <- mutate(mod, .std.resid = ifelse(abs(.std.resid) < 1 & is.na(index.max), NA, .std.resid))
+    lim <- max(abs(mod$.std.resid), na.rm = TRUE) %>% {c(min(-4, -.), max(4, .))}
+    plot_list[["influence"]] <- ggplot(mod, aes(index, .std.resid)) +
+      geom_point(aes(size = .cooksd), alpha = 0.5) +
+      ggrepel::geom_text_repel(aes(label = index.max)) +
+      geom_hline(yintercept = c(-1, -3, 1, 3), linetype = "longdash", size = 0.25) +
+      scale_y_continuous(breaks = -4:4, limits = lim) +
+      labs(
+        title = "Influential observations", 
+        x = "Observation index",
+        y = "Standardized residuals",
+        size = "cooksd"
+      )
+  }
+
+  if ("linearity" %in% plots) {
+    ## based on http://www.sthda.com/english/articles/36-classification-methods-essentials/148-logistic-regression-assumptions-and-diagnostics-in-r/
+    mod <- select_at(model, .vars = c(".fitted", evar)) %>% dplyr::select_if(is.numeric)
+    predictors <- setdiff(colnames(mod), ".fitted")
+    mod <- mutate(mod, logit = log(.fitted / (1 - .fitted))) %>%
+      select(-.fitted) %>%
+      gather(key = "predictors", value = "predictor.value", -logit)
+    plot_list[["linearity"]] <- ggplot(mod, aes(logit, predictor.value)) +
+      geom_point(size = 0.5, alpha = 0.5) +
+      geom_smooth(method = "loess") +
+      facet_wrap(~ predictors, scales = "free_y") +
+      labs(
+        title = "Checking linearity assumption",
+        y = NULL,
+        x = NULL
+      )
   }
 
   if (custom) {

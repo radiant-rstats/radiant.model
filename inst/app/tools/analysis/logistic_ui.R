@@ -16,7 +16,8 @@ logit_sum_check <- c(
 logit_plots <- c(
   "None" = "none", "Distribution" = "dist",
   "Correlations" = "correlations", "Scatter" = "scatter",
-  "Model fit" = "fit", "Coefficient (OR) plot" = "coef"
+  "Model fit" = "fit", "Coefficient (OR) plot" = "coef",
+  "Influential observations" = "influence"
 )
 
 ## list of function arguments

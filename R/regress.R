@@ -366,7 +366,7 @@ summary.regress <- function(
 #' @details See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{regress}}
-#' @param plots Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "dist" to shows histograms (or frequency bar plots) of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals. "leverage" to show leverage plots for each explanatory variable
+#' @param plots Regression plots to produce for the specified regression model. Enter "" to avoid showing any plots (default). "dist" to shows histograms (or frequency bar plots) of all variables in the model. "correlations" for a visual representation of the correlation matrix selected variables. "scatter" to show scatter plots (or box plots for factors) for the response variable with each explanatory variable. "dashboard" for a series of six plots that can be used to evaluate model fit visually. "resid_pred" to plot the explanatory variables against the model residuals. "coef" for a coefficient plot with adjustable confidence intervals and "influence" to show (potentially) influential observations
 #' @param lines Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line", "loess")
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
@@ -389,6 +389,8 @@ summary.regress <- function(
 #' @seealso \code{\link{predict.regress}} to generate predictions
 #'
 #' @importFrom dplyr sample_n
+#' @importFrom ggrepel geom_text_repel
+#' @importFrom broom augment
 #'
 #' @export
 plot.regress <- function(
@@ -402,12 +404,12 @@ plot.regress <- function(
 
   ## checking x size
   if (inherits(x$model, "lm")) {
-    model <- ggplot2::fortify(x$model)
+    model <- broom::augment(x$model)
   } else if (inherits(x, "nn")) {
     model <- x$model$model
     model$pred <- predict(x, x$model$model)$Prediction
     model <- lm(formula(paste0(x$rvar, " ~ ", "pred")), data = model) %>%
-      ggplot2::fortify()
+      broom::augment()
   } else {
     return(x)
   }
@@ -440,7 +442,7 @@ plot.regress <- function(
     plot_list[["dash3"]] <- ggplot(model, aes(y = .resid, x = seq_along(.resid))) + geom_line() +
       labs(title = "Residuals vs Row order", x = "Row order", y = "Residuals")
 
-    plot_list[["dash4"]] <- ggplot(model, aes_string(sample = ".stdresid")) + stat_qq(alpha = 0.5) +
+    plot_list[["dash4"]] <- ggplot(model, aes_string(sample = ".std.resid")) + stat_qq(alpha = 0.5) +
       labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals")
 
     plot_list[["dash5"]] <-
@@ -448,7 +450,7 @@ plot.regress <- function(
       labs(title = "Histogram of residuals", x = "Residuals")
 
     plot_list[["dash6"]] <- ggplot(model, aes_string(x = ".resid")) + geom_density(alpha = 0.3, fill = "green") +
-      stat_function(fun = dnorm, args = list(mean = mean(model[, ".resid"]), sd = sd(model[, ".resid"])), color = "blue") +
+      stat_function(fun = dnorm, args = list(mean = mean(model$.resid), sd = sd(model$.resid)), color = "blue") +
       labs(title = "Residuals vs Normal density", x = "Residuals", y = "") +
       theme(axis.text.y = element_blank())
 
@@ -515,7 +517,6 @@ plot.regress <- function(
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(x$coeff, 2), .) %>%
-      # set_rownames(x$coeff$`  `) %>%
       set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
       mutate(variable = rownames(.)) %>%
@@ -527,7 +528,6 @@ plot.regress <- function(
       geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
       labs(y = yl, x = "") +
       scale_x_discrete(limits = {
-        # if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])
         if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])
       }) +
       coord_flip() +
@@ -538,13 +538,32 @@ plot.regress <- function(
     return(radiant.basics:::plot.correlation(x$model$model, nrobs = nrobs))
   }
 
-  # if ("leverage" %in% plots) {
-  #   ## no plots if aliased coefficients present
-  #   if (anyNA(x$model$coeff))
-  #     return("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\nLeverage plot will not be shown")
-  #   return(car::leveragePlots(x$model, main = "", ask=FALSE, id.n = 1,
-  #          layout = c(ceiling(length(evar)/2),2)))
-  # }
+  if ("influence" %in% plots) {
+    nrCol <- 1
+
+    ## based on http://www.sthda.com/english/articles/36-classification-methods-essentials/148-logistic-regression-assumptions-and-diagnostics-in-r/
+    mod <- model %>%
+      select(.std.resid, .cooksd) %>%
+      mutate(index = 1:n(), .cooksd.max = .cooksd) %>%
+      arrange(desc(.cooksd)) %>%
+      mutate(index.max = 1:n(), .cooksd.max = ifelse(index.max < 4, .cooksd, NA)) %>%
+      mutate(index.max = ifelse(index.max < 4, index, NA)) %>%
+      arrange(index)
+
+    mod <- mutate(mod, .std.resid = ifelse(abs(.std.resid) < 1 & is.na(index.max), NA, .std.resid))
+    lim <- max(abs(mod$.std.resid), na.rm = TRUE) %>% {c(min(-4, -.), max(4, .))}
+    plot_list[["influence"]] <- ggplot(mod, aes(index, .std.resid)) +
+      geom_point(aes(size = .cooksd), alpha = 0.5) +
+      ggrepel::geom_text_repel(aes(label = index.max)) +
+      geom_hline(yintercept = c(-1, -3, 1, 3), linetype = "longdash", size = 0.25) +
+      scale_y_continuous(breaks = -4:4, limits = lim) +
+      labs(
+        title = "Influential observations", 
+        x = "Observation index",
+        y = "Standardized residuals",
+        size = "cooksd"
+      )
+  }
 
   if (length("plot_list") > 0) {
     if (custom) {

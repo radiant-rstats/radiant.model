@@ -22,7 +22,8 @@ reg_plots <- c(
   "Correlations" = "correlations", "Scatter" = "scatter",
   "Dashboard" = "dashboard",
   "Residual vs explanatory" = "resid_pred",
-  "Coefficient plot" = "coef"
+  "Coefficient plot" = "coef",
+  "Influential observations" = "influence"
 )
 
 reg_args <- as.list(formals(regress))
@@ -381,16 +382,18 @@ reg_plot <- reactive({
   plot_width <- 650
   nrVars <- length(input$reg_evar) + 1
 
-  if (input$reg_plots == "dist") plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
-  if (input$reg_plots == "dashboard") plot_height <- 1.5 * plot_height
-  if (input$reg_plots == "correlations") {
+  if (input$reg_plots == "dist") {
+    plot_height <- (plot_height / 2) * ceiling(nrVars / 2)
+  } else if (input$reg_plots == "dashboard") {
+    plot_height <- 1.5 * plot_height
+  } else if (input$reg_plots == "correlations") {
     plot_height <- 150 * nrVars
     plot_width <- 150 * nrVars
-  }
-  if (input$reg_plots == "coef") plot_height <- 300 + 20 * length(.regress()$model$coefficients)
-  if (input$reg_plots %in% c("scatter", "leverage", "resid_pred")) {
+  } else if (input$reg_plots == "coef") {
+    plot_height <- 300 + 20 * length(.regress()$model$coefficients)
+  } else if (input$reg_plots %in% c("scatter", "resid_pred")) {
     plot_height <- (plot_height / 2) * ceiling((nrVars - 1) / 2)
-  }
+  } 
 
   list(plot_width = plot_width, plot_height = plot_height)
 })
@@ -508,18 +511,6 @@ reg_available <- eventReactive(input$reg_run, {
     !is_empty(input$reg_predict, "none")
   )
 
-  ## needs more testing ...
-  # if (not_pressed(input$reg_run)) return(invisible())
-  # if (reg_available() != "available") return(reg_available())
-  # req(input$reg_pred_plot, available(input$reg_xvar))
-  # if (is_empty(input$reg_predict, "none")) return(invisible())
-  # if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && is_empty(input$reg_pred_data)) {
-  #   return(invisible())
-  # }
-  # if (input$reg_predict == "cmd" && is_empty(input$reg_pred_cmd)) {
-  #   return(invisible())
-  # }
-
   withProgress(message = "Generating prediction plot", value = 1, {
     do.call(plot, c(list(x = .predict_regress()), reg_pred_plot_inputs()))
   })
@@ -534,9 +525,9 @@ reg_available <- eventReactive(input$reg_run, {
     return(reg_available())
   }
 
-  if (!input$reg_plots %in% c("coef", "dist")) req(input$reg_nrobs)
+  if (!input$reg_plots %in% c("coef", "dist", "influence")) req(input$reg_nrobs)
   withProgress(message = "Generating plots", value = 1, {
-    if (input$reg_plots %in% c("correlations", "leverage")) {
+    if (input$reg_plots == "correlations") {
       capture_plot(do.call(plot, c(list(x = .regress()), reg_plot_inputs())))
     } else {
       do.call(plot, c(list(x = .regress()), reg_plot_inputs(), shiny = TRUE))

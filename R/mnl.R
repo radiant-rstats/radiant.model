@@ -415,11 +415,8 @@ plot.mnl <- function(
   shiny = FALSE, custom = FALSE, ...
 ) {
 
-  if (is.character(x)) return(x)
-  if (class(x$model)[1] != "multinom") return(x)
-  if (is_empty(plots[1])) {
-    return("Please select a mnl regression plot from the drop-down menu")
-  }
+  if (is.character(x) || !inherits(x$model, "multinom")) return(x)
+  if (is_empty(plots[1])) return("Please select a mnl regression plot from the drop-down menu")
 
   model <- x$model$model
   rvar <- x$rvar

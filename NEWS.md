@@ -1,3 +1,8 @@
+# radiant.model 1.1.11
+
+* Imroved description of standardization process used. Added link to [Gelman 2008](http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf) 
+* Added 
+
 # radiant.model 1.1.10
 
 * Fix for `nobs` in _Model > Multinomial logistic regression_.
