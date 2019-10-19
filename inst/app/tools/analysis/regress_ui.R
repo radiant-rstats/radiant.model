@@ -524,7 +524,6 @@ reg_available <- eventReactive(input$reg_run, {
   } else if (reg_available() != "available") {
     return(reg_available())
   }
-
   if (!input$reg_plots %in% c("coef", "dist", "influence")) req(input$reg_nrobs)
   withProgress(message = "Generating plots", value = 1, {
     if (input$reg_plots == "correlations") {
