@@ -7,6 +7,7 @@
 #' @param evar Explanatory variables in the regression
 #' @param int Interaction terms to include in the model
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param form Optional formula to use instead of rvar, evar, and int
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param envir Environment to extract data from
 #'
@@ -24,9 +25,16 @@
 #'
 #' @export
 regress <- function(
-  dataset, rvar, evar, int = "", check = "", 
-  data_filter = "", envir = parent.frame()
+  dataset, rvar, evar, int = "", check = "",
+  form, data_filter = "", envir = parent.frame()
 ) {
+
+  if (!missing(form)) {
+    if (is.character(form)) form <- as.formula(form)
+    vars <- all.vars(form)
+    rvar <- vars[1]
+    evar <- vars[-1]
+  }
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -34,12 +42,21 @@ regress <- function(
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, envir = envir)
+  if (any(evar == ".")) {
+    dataset <- get_data(dataset, "", filt = data_filter, envir = envir)
+    evar <- setdiff(colnames(dataset), rvar)
+  } else {
+    dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, envir = envir)
+  }
 
   not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
   if (length(not_vary) > 0) {
     return(paste0("The following variable(s) show no variation. Please select other variables.\n\n** ", paste0(not_vary, collapse = ", "), " **") %>%
       add_class("regress"))
+  }
+
+  if (!missing(form)) {
+    int <- setdiff(attr(terms.formula(form), "term.labels"), evar)
   }
 
   vars <- ""
@@ -59,7 +76,11 @@ regress <- function(
     }
   }
 
-  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
+  if (missing(form)) {
+    form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
+  } else {
+    form_upper <- form
+  }
   form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
@@ -558,7 +579,7 @@ plot.regress <- function(
       geom_hline(yintercept = c(-1, -3, 1, 3), linetype = "longdash", size = 0.25) +
       scale_y_continuous(breaks = -4:4, limits = lim) +
       labs(
-        title = "Influential observations", 
+        title = "Influential observations",
         x = "Observation index",
         y = "Standardized residuals",
         size = "cooksd"
@@ -608,7 +629,7 @@ plot.regress <- function(
 #' @export
 predict.regress <- function(
   object, pred_data = NULL, pred_cmd = "", conf_lev = 0.95,
-  se = TRUE, interval = "confidence", dec = 3, 
+  se = TRUE, interval = "confidence", dec = 3,
   envir = parent.frame(), ...
 ) {
 
@@ -682,7 +703,7 @@ predict.regress <- function(
 #' @export
 predict_model <- function(
   object, pfun, mclass, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3, envir = parent.frame(), 
+  conf_lev = 0.95, se = FALSE, dec = 3, envir = parent.frame(),
   ...
 ) {
 
@@ -1126,7 +1147,7 @@ store.model <- function(dataset, object, name = "residuals", ...) {
   name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
       gsub("\\s", "", .)
   nr_res <- length(name)
-  res <- matrix(rep(NA, indr$nr * nr_res), ncol = nr_res) %>% 
+  res <- matrix(rep(NA, indr$nr * nr_res), ncol = nr_res) %>%
     set_colnames(name) %>%
     as.data.frame(stringsAsFactors = FALSE)
   residuals <- object$model$residuals

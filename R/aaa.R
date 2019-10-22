@@ -19,9 +19,9 @@ globalVariables(c(
 #' @importFrom tidyr spread gather
 #' @importFrom lubridate now
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
-#' @importFrom stats anova as.formula binomial coef confint cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif rpois terms quantile
 #' @importFrom utils head tail relist as.relistable combn capture.output write.table
-#' @importFrom stats residuals formula model.matrix pt qt confint.default family median logLik relevel
+#' @importFrom stats anova as.formula binomial coef confint cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif rpois terms quantile
+#' @importFrom stats residuals formula model.matrix pt qt confint.default family median logLik relevel terms.formula
 #' @importFrom import from
 NULL
 

@@ -1,5 +1,6 @@
-# radiant.model 1.1.11
+# radiant.model 1.1.12
 
+* Add option to use a formula for the `regress` function
 * Imroved description of standardization process used. Added link to [Gelman 2008](http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf) 
 * Added an influence plot that shows standardized residuals and cooks-distance
 
