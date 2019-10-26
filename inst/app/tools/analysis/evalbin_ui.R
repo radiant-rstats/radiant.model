@@ -66,22 +66,8 @@ output$ui_ebin_train <- renderUI({
   )
 })
 
-observe({
-  ## dep on most inputs
-  input$data_filter
-  input$show_filter
-  sapply(r_drop(names(ebin_args)), function(x) input[[paste0("ebin_", x)]])
-
-  ## notify user when the regression needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$ebin_run)) {
-    if (isTRUE(attr(ebin_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "ebin_run", "Re-evaluate models", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "ebin_run", "Evaluate models", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the model needs to be (re)estimated
+run_refresh(ebin_args, "ebin", init = "pred", label = "Evaluate models", relabel = "Re-evaluate models")
 
 output$ui_evalbin <- renderUI({
   req(input$dataset)

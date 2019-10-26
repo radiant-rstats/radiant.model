@@ -144,31 +144,16 @@ output$ui_nb_predict_plot <- renderUI({
   predict_plot_controls("nb", vars_color = var_colors, init_color = ".class")
 })
 
-observe({
-  ## dep on most inputs
-  input$data_filter
-  input$show_filter
-  sapply(r_drop(names(nb_args)), function(x) input[[paste0("nb_", x)]])
-
-  ## notify user when the regression needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$nb_run)) {
-    if (is.null(input$nb_evar)) {
-      updateTabsetPanel(session, "tabs_nb ", selected = "Summary")
-      updateActionButton(session, "nb_run", "Estimate model", icon = icon("play"))
-    } else if (isTRUE(attr(nb_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "nb_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "nb_run", "Estimate model", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the model needs to be (re)estimated
+run_refresh(nb_args, "nb", tabs = "tabs_nb", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_nb <- renderUI({
   req(input$dataset)
   tagList(
-    wellPanel(
-      actionButton("nb_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+    conditionalPanel(condition = "input.tabs_nb == 'Summary'",
+      wellPanel(
+        actionButton("nb_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+      )
     ),
     wellPanel(
       conditionalPanel(

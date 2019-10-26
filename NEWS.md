@@ -1,5 +1,6 @@
-# radiant.model 1.1.12
+# radiant.model 1.2.0
 
+* Update action buttons that initiate calculations when one or more relevant inputs are changed. When, for example, a model should be re-estimated, a spinning "refresh" icon will be shown
 * Add option to use a formula for the `regress` function
 * Imroved description of standardization process used. Added link to [Gelman 2008](http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf) 
 * Added an influence plot that shows standardized residuals and cooks-distance

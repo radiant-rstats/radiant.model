@@ -232,32 +232,17 @@ output$ui_reg_store_res_name <- renderUI({
   textInput("reg_store_res_name", "Store residuals:", "", placeholder = "Provide variable name")
 })
 
-observe({
-  ## dep on most inputs
-  input$data_filter
-  input$show_filter
-  sapply(r_drop(names(reg_args)), function(x) input[[paste0("reg_", x)]])
-
-  ## notify user when the model needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$reg_run)) {
-    if (is.null(input$reg_evar)) {
-      updateTabsetPanel(session, "tabs_regress ", selected = "Summary")
-      updateActionButton(session, "reg_run", "Estimate model", icon = icon("play"))
-    } else if (isTRUE(attr(reg_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "reg_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "reg_run", "Estimate model", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the model needs to be (re)estimated
+run_refresh(reg_args, "reg", tabs = "tabs_regress", label = "Estimate model", relabel = "Re-estimate model")
 
 ## data ui and tabs
 output$ui_regress <- renderUI({
   req(input$dataset)
   tagList(
-    wellPanel(
-      actionButton("reg_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+    conditionalPanel(condition = "input.tabs_regress == 'Summary'",
+      wellPanel(
+        actionButton("reg_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+      )
     ),
     wellPanel(
       conditionalPanel(

@@ -201,30 +201,16 @@ output$ui_nn_nrobs <- renderUI({
   )
 })
 
-observe({
-  ## dep on most inputs
-  input$data_filter
-  input$show_filter
-  sapply(r_drop(names(nn_args)), function(x) input[[paste0("nn_", x)]])
-  ## notify user when the model needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$nn_run)) {
-    if (is.null(input$nn_evar)) {
-      updateTabsetPanel(session, "tabs_nn ", selected = "Summary")
-      updateActionButton(session, "nn_run", "Estimate model", icon = icon("play"))
-    } else if (isTRUE(attr(nn_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "nn_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "nn_run", "Estimate model", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the model needs to be (re)estimated
+run_refresh(nn_args, "nn", tabs = "tabs_nn", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_nn <- renderUI({
   req(input$dataset)
   tagList(
-    wellPanel(
-      actionButton("nn_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+    conditionalPanel(condition = "input.tabs_nn == 'Summary'",
+      wellPanel(
+        actionButton("nn_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+      )
     ),
     wellPanel(
       conditionalPanel(

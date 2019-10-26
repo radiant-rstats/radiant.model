@@ -66,31 +66,16 @@ output$ui_crs_store_pred_name <- renderUI({
   textInput("crs_store_pred_name", NULL, "", placeholder = "Provide data name")
 })
 
-observe({
-  ## dep on most inputs
-  input$data_filter
-  input$show_filter
-  sapply(r_drop(names(crs_args)), function(x) input[[paste0("crs_", x)]])
-
-  ## notify user when the regression needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$crs_run)) {
-    if (is.null(input$crs_pred)) {
-      updateTabsetPanel(session, "tabs_crs ", selected = "Summary")
-      updateActionButton(session, "crs_run", "Estimate model", icon = icon("play"))
-    } else if (isTRUE(attr(crs_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "crs_run", "Re-estimate model", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "crs_run", "Estimate model", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the model needs to be (re)estimated
+run_refresh(crs_args, "crs", init = "pred", tabs = "tabs_crs", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_crs <- renderUI({
   req(input$dataset)
   tagList(
-    wellPanel(
-      actionButton("crs_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+    conditionalPanel("input.tabs_crs == 'Summary'",
+      wellPanel(
+        actionButton("crs_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+      )
     ),
     conditionalPanel(
       "input.tabs_crs == 'Summary'",

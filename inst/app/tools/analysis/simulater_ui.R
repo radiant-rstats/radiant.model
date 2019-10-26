@@ -389,39 +389,11 @@ observeEvent(input$sim_grid_del, {
   var_remover("sim_grid")
 })
 
-observe({
-  ## dep on most inputs
-  input$sim_types
-  ret <- sapply(names(sim_args), function(x) input[[paste0("sim_", x)]])
-  ## notify user when the simulation needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$sim_run)) {
-    if(is_empty(input$sim_types)) {
-      updateActionButton(session, "sim_run", "Run simulation", icon = icon("play"))
-    } else if (isTRUE(attr(sim_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "sim_run", "Re-run simulation", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "sim_run", "Run simulation", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the simulation needs to be (re)run
+run_refresh(sim_args, "sim", init = "types", label = "Run simulation", relabel = "Re-run simulation", data = FALSE)
 
-observe({
-  ## dep on most inputs
-  ret <- sapply(names(rep_args), function(x) input[[paste0("rep_", x)]])
-  ## notify user when the repeated simulation needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$rep_run)) {
-    # if(is_empty(input$rep_vars) || is_empty(input$rep_sum_vars)) {
-    if(is_empty(input$rep_sum_vars)) {
-      updateActionButton(session, "rep_run", "Repeat simulation", icon = icon("play"))
-    } else if (isTRUE(attr(rep_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "rep_run", "Repeat simulation", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "rep_run", "Repeat simulation", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the repeated simulation needs to be (re)run
+run_refresh(rep_args, "rep", init = "sum_vars", label = "Repeat simulation", data = FALSE)
 
 output$ui_simulater <- renderUI({
   tagList(
@@ -720,7 +692,7 @@ output$simulater <- renderUI({
         wordWrap = TRUE,
         height = "120px",
         value = state_init("rep_form", "") %>% fix_smart(),
-        placeholder = "Press the Repeat button to repeat the simulation specified in the Simulate tab.\nUse formulas to perform additional calculations on the repeated simulation data.\nClick the ? icon on the bottom left of your screen for help and examples",
+        placeholder = "Press the Repeat simulation button to repeat the simulation specified in the\nSimulate tab. Use formulas to perform additional calculations on the repeated\nsimulation data. Click the ? icon on the bottom left of your screen for help\nand examples",
         vimKeyBinding = getOption("radiant.ace_vim.keys", default = FALSE),
         tabSize = getOption("radiant.ace_tabSize", 2),
         useSoftTabs = getOption("radiant.ace_useSoftTabs", TRUE),

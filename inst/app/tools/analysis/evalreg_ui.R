@@ -50,22 +50,8 @@ output$ui_ereg_train <- renderUI({
   )
 })
 
-observe({
-  ## dep on most inputs
-  input$data_filter
-  input$show_filter
-  sapply(r_drop(names(ereg_args)), function(x) input[[paste0("ereg_", x)]])
-
-  ## notify user when the regression needs to be updated
-  ## based on https://stackoverflow.com/questions/45478521/listen-to-reactive-invalidation-in-shiny
-  if (pressed(input$ereg_run) && !is.null(input$ereg_pred)) {
-    if (isTRUE(attr(ereg_inputs, "observable")$.invalidated)) {
-      updateActionButton(session, "ereg_run", "Re-evaluate models", icon = icon("refresh", class = "fa-spin"))
-    } else {
-      updateActionButton(session, "ereg_run", "Evaluate models", icon = icon("play"))
-    }
-  }
-})
+## add a spinning refresh icon if the model needs to be (re)estimated
+run_refresh(ereg_args, "ereg", init = "pred", label = "Evaluate models", relabel = "Re-evaluate models")
 
 output$ui_evalreg <- renderUI({
   req(input$dataset)
