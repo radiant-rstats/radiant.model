@@ -1,3 +1,7 @@
+# radiant.model 1.2.1
+
+* Fix to ensure environment is not attached as an attribute to data frames generated in the _Model > Simulate_ tool 
+
 # radiant.model 1.2.0
 
 * Update action buttons that initiate calculations when one or more relevant inputs are changed. When, for example, a model should be re-estimated, a spinning "refresh" icon will be shown
