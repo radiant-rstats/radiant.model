@@ -305,8 +305,8 @@ simulater <- function(
 
   ## capturing the function call for use in repeat
   sc <- formals()
-  # smc <- lapply(match.call()[-1], eval, envir = parent.frame())
   smc <- lapply(match.call()[-1], eval, envir = envir)
+  smc$envir <- NULL
   sc[names(smc)] <- smc
   sc$nr <- nr
   sc$ncorr <- ncorr
@@ -699,8 +699,8 @@ repeater <- function(
 
   ## capturing the function call for use in summary and plot
   rc <- formals()
-  # rmc <- lapply(match.call()[-1], eval, envir = parent.frame())
   rmc <- lapply(match.call()[-1], eval, envir = envir)
+  rmc$envir <- NULL
   rc[names(rmc)] <- rmc
 
   rc$sc <- sc[base::setdiff(names(sc), "dat")]
