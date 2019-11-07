@@ -119,21 +119,12 @@ logistic <- function(
     ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
     model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dataset)) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
-
-    ## adding full data even if all variables are not significant
-    model$model <- dataset
   } else if ("stepwise-forward" %in% check) {
     model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dataset)) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
-
-    ## adding full data even if all variables are not significant
-    model$model <- dataset
   } else if ("stepwise-both" %in% check) {
     model <- sshhr(glm(form_lower, weights = wts, family = binomial(link = "logit"), data = dataset)) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
-
-    ## adding full data even if all variables are not significant
-    model$model <- dataset
   } else {
     model <- sshhr(glm(form_upper, weights = wts, family = binomial(link = "logit"), data = dataset))
   }
@@ -159,7 +150,7 @@ logistic <- function(
   if ("robust" %in% check) {
     vcov <- sandwich::vcovHC(model, type = "HC1")
     coeff$std.error <- sqrt(diag(vcov))
-    coeff$z.value <- coef(model) / coeff$std.error
+    coeff$z.value <- coeff$coefficient / coeff$std.error
     coeff$p.value <- 2 * pnorm(abs(coeff$z.value), lower.tail = FALSE)
   }
 
@@ -437,7 +428,7 @@ summary.logistic <- function(
 #' @seealso \code{\link{plot.logistic}} to plot results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
-#' 
+#'
 #' @importFrom broom augment
 #'
 #' @export
@@ -463,8 +454,8 @@ plot.logistic <- function(
   model$.actual <- as_integer(x$rv) %>% {. - max(.) + 1}
 
   rvar <- x$rvar
-  evar <- x$evar
-  vars <- c(x$rvar, x$evar)
+  evar <- intersect(x$evar, colnames(model))
+  vars <- c(rvar, evar)
   nrCol <- 2
   plot_list <- list()
 
@@ -564,13 +555,17 @@ plot.logistic <- function(
 
     plot_list[["fit"]] <-
       visualize(model, xvar = ".fittedbin", yvar = ".actual", type = "bar", custom = TRUE) +
-      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) + 
+      geom_line(data = df, aes_string(y = "Probability"), color = "blue", size = 1) +
       ylim(0, 1) +
       labs(title = "Actual vs Fitted values (binned)", x = "Predicted probability bins", y = "Probability")
   }
 
   if ("correlations" %in% plots) {
-    return(radiant.basics:::plot.correlation(select_at(model, .vars = vars), nrobs = nrobs))
+    if (length(evar) == 0) {
+      message("Model contains only an intercept. Correlation plot cannot be generated")
+    } else {
+      return(radiant.basics:::plot.correlation(select_at(model, .vars = vars), nrobs = nrobs))
+    }
   }
 
   if ("influence" %in% plots) {
@@ -593,7 +588,7 @@ plot.logistic <- function(
       geom_hline(yintercept = c(-1, -3, 1, 3), linetype = "longdash", size = 0.25) +
       scale_y_continuous(breaks = -4:4, limits = lim) +
       labs(
-        title = "Influential observations", 
+        title = "Influential observations",
         x = "Observation index",
         y = "Standardized residuals",
         size = "cooksd"
@@ -869,7 +864,7 @@ write.coeff <- function(
   object$sd <- c(0L, csds)
   object$min <- c(1L, cmn)
   object$max <- c(1L, cmx)
-  
+
   intc <- grepl("(Intercept)", object$label)
 
   if (mod_class == "logistic") {

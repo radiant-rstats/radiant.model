@@ -87,21 +87,12 @@ regress <- function(
     ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
     model <- lm(form_upper, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
-
-    ## adding full data even if all variables are not significant
-    model$model <- dataset
   } else if ("stepwise-forward" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
-
-    ## adding full data even if all variables are not significant
-    model$model <- dataset
   } else if ("stepwise-both" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
-
-    ## adding full data even if all variables are not significant
-    model$model <- dataset
   } else {
     model <- lm(form_upper, data = dataset)
   }
@@ -119,7 +110,7 @@ regress <- function(
   if ("robust" %in% check) {
     vcov <- sandwich::vcovHC(model, type = "HC1")
     coeff$std.error <- sqrt(diag(vcov))
-    coeff$t.value <- coef(model) / coeff$std.error
+    coeff$t.value <- coeff$coefficient / coeff$std.error
     coeff$p.value <- 2 * pt(abs(coeff$t.value), df = nrow(dataset) - nrow(coeff), lower.tail = FALSE)
   }
 
@@ -227,13 +218,14 @@ summary.regress <- function(
   ## adjusting df for included intercept term
   df_int <- if (attr(object$model$terms, "intercept")) 1L else 0L
 
+  reg_fit <- glance(object$model) %>% round(dec)
+  cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
+  cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
+
   ## if stepwise returns only an intercept
   if (nrow(coeff) == 1) return("\nModel contains only an intercept. No additional output shown")
 
-  reg_fit <- glance(object$model) %>% round(dec)
   if (reg_fit["p.value"] < .001) reg_fit["p.value"] <- "< .001"
-  cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
-  cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
   cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df - df_int, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
   cat("\nNr obs:", format_nr(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
 
@@ -255,7 +247,6 @@ summary.regress <- function(
     df_reg <- sum(atab$Df[-nr_rows])
     df_err <- sum(atab$Df[nr_rows])
     df_tot <- df_reg + df_err
-
     ss_reg <- sum(atab$`Sum Sq`[-nr_rows])
     ss_err <- sum(atab$`Sum Sq`[nr_rows])
     ss_tot <- ss_reg + ss_err
@@ -436,7 +427,7 @@ plot.regress <- function(
   }
 
   rvar <- x$rvar
-  evar <- x$evar
+  evar <- intersect(x$evar, colnames(model))
   vars <- c(rvar, evar)
 
   flines <- sub("loess", "", lines) %>% sub("line", "", .)
@@ -556,7 +547,11 @@ plot.regress <- function(
   }
 
   if ("correlations" %in% plots) {
-    return(radiant.basics:::plot.correlation(x$model$model, nrobs = nrobs))
+    if (length(evar) == 0) {
+      message("Model contains only an intercept. Correlation plot cannot be generated")
+    } else {
+      return(radiant.basics:::plot.correlation(x$model$model, nrobs = nrobs))
+    }
   }
 
   if ("influence" %in% plots) {
@@ -586,15 +581,15 @@ plot.regress <- function(
       )
   }
 
-  if (length("plot_list") > 0) {
-    if (custom) {
-      if (length(plot_list) == 1) {
-        return(plot_list[[1]])
-      } else {
-        return(plot_list)
-      }
+  if (custom) {
+    if (length(plot_list) == 1) {
+      return(plot_list[[1]])
+    } else {
+      return(plot_list)
     }
+  }
 
+  if (length(plot_list) > 0) {
     sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>% {
       if (shiny) . else print(.)
     }
@@ -713,7 +708,7 @@ predict_model <- function(
   }
 
   pred_type <- "cmd"
-  vars <- object$evar
+  vars <- intersect(object$evar, colnames(object$model$model))
   if (!is_empty(pred_cmd) && is_empty(pred_data)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
@@ -790,8 +785,10 @@ predict_model <- function(
     if ((sum(isNum) + sum(isFct) + sum(isLog) + sum(isChar) + sum(isOther)) < length(vars)) {
       return("The model includes data-types that cannot be used for\nprediction at this point\n")
     } else {
-      if (sum(names(pred) %in% names(plug_data)) < length(names(pred))) {
-        return("The command entered contains variable names that are not in the model.\nPlease try again.\n\n")
+      pred_names <- names(pred)
+      if (sum(pred_names %in% names(plug_data)) < length(pred_names)) {
+        vars_in <- pred_names %in% names(plug_data)
+        return(paste0("The command entered contains variable names that are not in the model\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(pred_names[!vars_in], collapse = ", ")))
       } else {
         plug_data[names(pred)] <- list(NULL)
         pred <- cbind(select(plug_data, -1), pred)

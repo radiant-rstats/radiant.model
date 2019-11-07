@@ -170,7 +170,7 @@ scale_df <- function(
 ) {
 
   isNum <- sapply(dataset, function(x) is.numeric(x))
-  if (sum(isNum) == 0) return(dataset)
+  if (length(isNum) == 0 || sum(isNum) == 0) return(dataset)
   cn <- names(isNum)[isNum]
 
   ## remove set_attr calls when dplyr removes and keep attributes appropriately

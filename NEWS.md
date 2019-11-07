@@ -1,3 +1,7 @@
+# radiant.model 1.2.2
+
+* Various fixes related to stepwise estimation of Multinomial, Logistic, and Linear regression model (e.g., VIF calculation, models with only an intercept, perfect multicollinearity, etc.). 
+
 # radiant.model 1.2.1
 
 * Fix to ensure environment is not attached as an attribute to data frames generated in the _Model > Simulate_ tool 

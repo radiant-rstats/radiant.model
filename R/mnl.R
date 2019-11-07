@@ -420,13 +420,10 @@ plot.mnl <- function(
 
   model <- x$model$model
   rvar <- x$rvar
-  evar <- x$evar
-  vars <- c(x$rvar, x$evar)
+  evar <- intersect(x$evar, colnames(model))
+  vars <- c(rvar, evar)
   nrCol <- 2
   plot_list <- list()
-
-  ## use orginal data rather than the logical used for estimation
-  model[[rvar]] <- x$rv
 
   if ("dist" %in% plots) {
     for (i in vars)
@@ -435,7 +432,7 @@ plot.mnl <- function(
   }
 
   if ("coef" %in% plots) {
-    if (nrow(x$coeff) == 1 && !intercept) return("** Model contains only an intercept **")
+    if (length(evar) == 0 && !intercept) return("** Model contains only an intercept **")
 
     yl <- {
       if (sum(c("standardize", "center") %in% x$check) == 2) {
@@ -481,7 +478,11 @@ plot.mnl <- function(
   }
 
   if ("correlations" %in% plots) {
-    return(radiant.basics:::plot.correlation(select_at(model, .vars = vars), nrobs = nrobs))
+    if (length(evar) == 0) {
+      message("Model contains only an intercept. Correlation plot cannot be generated")
+    } else {
+      return(radiant.basics:::plot.correlation(select_at(model, .vars = vars), nrobs = nrobs))
+    }
   }
 
   if (custom) {
