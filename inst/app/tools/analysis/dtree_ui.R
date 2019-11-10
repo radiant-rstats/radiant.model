@@ -159,7 +159,7 @@ output$dtree <- renderUI({
         mode = "yaml",
         theme = getOption("radiant.ace_theme", default = "tomorrow"),
         wordWrap = TRUE,
-        debounce = 100,
+        debounce = 0,
         height = "auto",
         value = state_init("dtree_edit", dtree_example) %>% gsub("\t", "    ", .),
         placeholder = "Provide structured input for a decision tree. Then click the\n\"Calculate tree\" button to generate results. Click the ? icon\non the top left of your screen for help and examples",
@@ -381,12 +381,12 @@ dtree_sense_width <- reactive({
 
 dtree_sense_height <- eventReactive(input$dtree_run_sensitivity, {
   if (is_empty(input$dtree_sense, "")) {
-    650 
+    650
   } else {
     strsplit(input$dtree_sense, ";") %>%
-      unlist() %>% 
+      unlist() %>%
       unique() %>%
-      length() * 400 
+      length() * 400
   }
 })
 
@@ -514,7 +514,7 @@ observeEvent(input$dtree_remove, {
     )
     outputs <- c(outputs, "sensitivity")
     figs <- TRUE
-  } 
+  }
 
   ## update settings and get data.tree name
   dtree_name <- dtree_namer()
