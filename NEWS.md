@@ -1,4 +1,4 @@
-# radiant.model 1.2.4
+# radiant.model 1.2.5
 
 * Option to drop the intercept for _Model > Multinomial Logistic Regression_
 * Provide access to the variables in a dataset during simulation and repeated simulation.
