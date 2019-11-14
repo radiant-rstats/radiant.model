@@ -6,8 +6,8 @@ mnl_predict <- c(
   "Data & Command" = "datacmd"
 )
 mnl_check <- c(
-  "Standardize" = "standardize", "Center" = "center",
-  "Stepwise" = "stepwise-backward"
+  "Drop intercept" = "no_int", "Standardize" = "standardize", 
+  "Center" = "center", "Stepwise" = "stepwise-backward"
 )
 mnl_sum_check <- c(
   "Confidence intervals" = "confint", "RRRs" = "rrr", "Confusion" = "confusion"

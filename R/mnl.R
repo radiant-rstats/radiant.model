@@ -101,8 +101,14 @@ mnl <- function(
     dataset <- scale_df(dataset, scale = FALSE, wts = wts)
   }
 
-  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
-  form_lower <- paste(rvar, "~ 1") %>% as.formula()
+  if ("no_int" %in% check) {
+    form_upper <- paste(rvar, "~ 0 +", paste(vars, collapse = " + ")) %>% as.formula()
+    form_lower <- paste(rvar, "~ 0") %>% as.formula()
+  } else {
+    form_upper <- paste(rvar, "~ ", paste(vars, collapse = " + ")) %>% as.formula()
+    form_lower <- paste(rvar, "~ 1") %>% as.formula()
+  } 
+
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
     ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
@@ -320,9 +326,6 @@ summary.mnl <- function(
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
-      # sub_form <- ". ~ 1"
-      sub_form <- paste(object$rvar, "~ 1") %>% as.formula()
-
       vars <- object$evar
       if (object$int != "" && length(vars) > 1) {
         ## updating test_var if needed
@@ -330,37 +333,20 @@ summary.mnl <- function(
         vars <- c(vars, object$int)
       }
 
+      no_int <- ifelse("no_int" %in% object$check, "~ 0 +", "~")
       not_selected <- base::setdiff(vars, test_var)
-      if (length(not_selected) > 0) sub_form <- paste(object$rvar, "~", paste(not_selected, collapse = " + ")) %>% as.formula()
+      if (length(not_selected) > 0) {
+        sub_form <- paste(object$rvar, no_int, paste(not_selected, collapse = " + ")) %>% as.formula()
+      } else {
+        sub_form <- paste(object$rvar, no_int) %>% as.formula()
+      }
       mnl_input <- list(formula = sub_form, weights = object$wts, data = object$model$model, trace = FALSE)
       mnl_sub <- do.call(nnet::multinom, mnl_input)
       mnl_sub_fit <- glance(mnl_sub)
       mnl_sub_fit$null.deviance <- object$model$null.deviance
       mnl_sub_test <- anova(mnl_sub, object$model, test = "Chi")
 
-      matchCf <- function(clist, vlist) {
-        matcher <- function(vl, cn)
-          if (grepl(":", vl)) {
-            strsplit(vl, ":") %>%
-              unlist() %>%
-              sapply(function(x) gsub("var", x, "((var.*:)|(:var))")) %>%
-              paste0(collapse = "|") %>%
-              grepl(cn) %>%
-              cn[.]
-          } else {
-            mf <- grepl(paste0("^", vl, "$"), cn) %>% cn[.]
-            if (length(mf) == 0) {
-              mf <- grepl(paste0("^", vl), cn) %>% cn[.]
-            }
-            mf
-          }
-
-        cn <- names(clist)
-        sapply(vlist, matcher, cn) %>% unname()
-      }
-
       pval <- mnl_sub_test[2, "Pr(Chi)"]
-      # df <- mnl_sub_test[2, "Df"]
       df <- mnl_sub_test[2, 5]
       chi2 <- mnl_sub_test[2, "LR stat."]
 
