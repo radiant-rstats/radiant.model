@@ -131,11 +131,11 @@ output$ui_sim_types <- renderUI({
 })
 
 output$ui_sim_data <- renderUI({
-  choices <- c("None" = "none", isolate(r_info[["datasetlist"]]))
+  choices <- c("None" = "none", r_info[["datasetlist"]])
   selectizeInput(
     inputId = "sim_data", label = "Input data for calculations:",
     choices = choices,
-    selected = state_single("sim_data", choices),
+    selected = state_single("sim_data", choices, isolate(input$sim_data)),
     multiple = FALSE
   )
 })
