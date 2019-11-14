@@ -1,3 +1,7 @@
+# radiant.model 1.2.3
+
+* Provide access to the variables in a dataset during simulation and repeated simulation.
+
 # radiant.model 1.2.2
 
 * Various fixes related to stepwise estimation of Multinomial, Logistic, and Linear regression model (e.g., VIF calculation, models with only an intercept, perfect multicollinearity, etc.). 

@@ -90,6 +90,7 @@ simulater <- function(
   } else {
     ## needed because number may be NA and missing if grid used in Simulate
     nr <- attr(dataset, "radiant_sim_call")$nr
+    data <- attr(dataset, "radiant_sim_call")$data
   }
 
   grid %<>% sim_cleaner()
@@ -218,8 +219,12 @@ simulater <- function(
   }
 
   ## fetching data if needed
-  if (!is_empty(data) && is_string(data)) {
-    data <- get_data(data, envir = envir)
+  if (!is_empty(data, "none") && is_string(data)) {
+    if (exists(data, envir = envir)) {
+      data <- get_data(data, envir = envir)
+    } else {
+      stop(paste0("Data set ", data, " cannot be found", call. = FALSE))
+    }
   }
 
   ## adding data to dataset list
@@ -290,7 +295,7 @@ simulater <- function(
       }
     }
   }
-
+  
   ## removing data from dataset list
   if (is.data.frame(data)) {
     dataset[colnames(data)] <- NULL
@@ -312,8 +317,17 @@ simulater <- function(
   sc$ncorr <- ncorr
   sc$nexact <- nexact
   sc$funcs <- pfuncs
+
+  if (is_empty(sc$data, "none")) {
+    attr(dataset, "sim_data_name") <- NULL
+  } else if (is_string(sc$data)) {
+    attr(dataset, "sim_data_name") <- sc$data
+    sc$data <- data 
+  } else {
+    attr(dataset, "sim_data_name") <- deparse(substitute(data))
+  }
+
   attr(dataset, "radiant_sim_call") <- sc
-  attr(dataset, "radiant_df_name") <- deparse(substitute(data))
 
   if (nrow(dataset) == 0) {
     mess <- c("error", paste0("The simulated data set has 0 rows"))
@@ -377,7 +391,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (!is_empty(sc$unif)) cat("Uniform    :", clean(sc$unif))
   if (!is_empty(sc$pois)) cat("Poisson    :", clean(sc$pois))
   if (!is_empty(sc$const)) cat("Constant   :", clean(sc$const))
-  if (is.data.frame(sc$data)) cat("Data       :", attr(object, "radiant_df_name"), "\n")
+  if (is.data.frame(sc$data)) cat("Data       :", attr(object, "sim_data_name"), "\n")
   if (!is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
   if (!is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
   funcs <- attr(object, "radiant_funcs")
@@ -515,10 +529,10 @@ repeater <- function(
   }
 
   if (is_string(dataset)) {
-    df_name <- dataset
+    sim_df_name <- dataset
     dataset <- get_data(dataset, envir = envir)
   } else {
-    df_name <- deparse(substitute(dataset))
+    sim_df_name <- deparse(substitute(dataset))
   }
   if (!is_empty(seed)) set.seed(as.numeric(seed))
 
@@ -550,6 +564,12 @@ repeater <- function(
   nr_sim <- nrow(dataset)
   sc <- attr(dataset, "radiant_sim_call")
 
+  if (is.data.frame(sc$data)) {
+    data <- sc$data
+  } else {
+    data <- NULL
+  }
+
   ## reset dataset to list with vectors of the correct length
   dataset <- as.list(dataset)
   if ("const" %in% names(sc)) {
@@ -567,8 +587,6 @@ repeater <- function(
 
   ## needed if inputs are provided as vectors
   sc[1:(which(names(sc) == "seed") - 1)] %<>% lapply(paste, collapse = ";")
-
-  if (!is_empty(sc$data)) vars <- c(sc$data, vars)
 
   sc$name <- sc$seed <- "" ## cleaning up the sim call
 
@@ -594,6 +612,14 @@ repeater <- function(
   sc[1:(which(names(sc) == "seed") - 1)] <- ""
   sc[names(sc_keep)] <- sc_keep
   sc$dataset <- dataset
+
+  if (!is_empty(sc$data, "none") && is_string(sc$data)) {
+    if (exists(sc$data, envir = envir)) {
+      sc$data <- get(sc$data, envir = envir)
+    } else {
+      stop(paste0("Data set ", sc$data, " cannot be found", call. = FALSE))
+    }
+  }
 
   summarize_sim <- function(object) {
     if (fun == "none") {
@@ -675,6 +701,16 @@ repeater <- function(
     }
   })
 
+  if (is.data.frame(data)) {
+    ret <- as.list(ret)
+    for (i in colnames(data)) {
+      ret[[i]] <- data[[i]]
+    }
+    sim_data_name <- attr(dataset, "sim_data_name")
+  } else {
+    sim_data_name <- NULL
+  }
+
   form %<>% sim_cleaner()
   if (form != "") {
     s <- form %>% gsub("\\s+", "", .) %>% sim_splitter("=")
@@ -694,6 +730,11 @@ repeater <- function(
     }
   }
 
+  ## removing data from dataset list
+  if (is.data.frame(data)) {
+    ret[colnames(data)] <- NULL
+  }
+
   ## tbl_df remove attributes so use as.data.frame for now
   ret <- as.data.frame(ret, stringsAsFactors = FALSE)
 
@@ -705,7 +746,8 @@ repeater <- function(
 
   rc$sc <- sc[base::setdiff(names(sc), "dat")]
   attr(ret, "radiant_rep_call") <- rc
-  attr(ret, "radiant_df_name") <- df_name
+  attr(ret, "sim_df_name") <- sim_df_name
+  attr(ret, "sim_data_name") <- sim_data_name
 
   mess <- paste0(
     "\n### Repeated simulation data\n\nFormula:\n\n",
@@ -761,11 +803,12 @@ summary.repeater <- function(object, dec = 4, ...) {
   if (is.data.frame(rc$sim)) {
     rc$sim <- attr(rc$sim, "radiant_sim_call")$name
   }
-  cat("Simulated data:", attr(object, "radiant_df_name"), "\n")
+  cat("Simulated data:", attr(object, "sim_df_name"), "\n")
+  attr(object, "sim_data_name") %>% {if (!is_empty(.)) cat("Data          :", ., "\n")}
   if (is_empty(rc$name)) {
-    cat("Repeat  data  :", deparse(substitute(object)), "\n")
+    cat("Repeat data   :", deparse(substitute(object)), "\n")
   } else {
-    cat("Repeat  data  :", rc$name, "\n")
+    cat("Repeat data   :", rc$name, "\n")
   }
 
   if (isTRUE(rc$byvar == "rep") && !is_empty(rc$grid)) {
