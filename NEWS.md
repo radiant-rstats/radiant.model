@@ -1,3 +1,7 @@
+# radiant.model 1.2.6
+
+* Fix prediction issue when using I(x^2) in a stepwise estimation process and x is removed
+
 # radiant.model 1.2.5
 
 * Option to drop the intercept for _Model > Multinomial Logistic Regression_

@@ -708,7 +708,7 @@ predict_model <- function(
   }
 
   pred_type <- "cmd"
-  vars <- intersect(object$evar, colnames(object$model$model))
+  vars <- object$evar
   if (!is_empty(pred_cmd) && is_empty(pred_data)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
@@ -736,7 +736,7 @@ predict_model <- function(
       return(paste0("The command entered did not generate valid data for prediction. The\nerror message was:\n\n", attr(pred, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
     }
 
-    # adding information to the prediction data.frame
+    vars <- vars[vars %in% colnames(dat)]
     dat <- select_at(dat, .vars = vars)
 
     if (!is.null(object$model$term)) {
@@ -959,14 +959,14 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   if (n == -1) {
     cat("\n")
-    format_df(x[, vars, drop = FALSE], attr(x, "radiant_dec")) %>%
+    format_df(x, attr(x, "radiant_dec")) %>%
       print(row.names = FALSE)
   } else {
     if (nrow(x) > n) {
       cat("Rows shown           :", n, "of", format_nr(nrow(x), dec = 0), "\n")
     }
     cat("\n")
-    head(x[, vars, drop = FALSE], n) %>%
+    head(x, n) %>%
       format_df(attr(x, "radiant_dec")) %>%
       print(row.names = FALSE)
   }
@@ -979,8 +979,9 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.regress.predict <- function(x, ..., n = 10)
+print.regress.predict <- function(x, ..., n = 10) {
   print_predict_model(x, ..., n = n, header = "Linear regression (OLS)")
+}
 
 #' Plot method for model.predict functions
 #'
