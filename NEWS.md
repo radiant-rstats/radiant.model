@@ -1,6 +1,7 @@
-# radiant.model 1.2.6
+# radiant.model 1.2.7
 
 * Fix prediction issue when using I(x^2) in a stepwise estimation process and x is removed
+* Fix issue finding .as_int and .as_num when use radiant through shiny server
 
 # radiant.model 1.2.5
 

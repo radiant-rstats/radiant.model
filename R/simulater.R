@@ -98,7 +98,7 @@ simulater <- function(
     s <- grid %>% sim_splitter()
     for (i in 1:length(s)) {
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
-      s[[i]] %>% {dataset[[.[1]]] <<- seq(.as_num(.[2], dataset), .as_num(.[3], dataset), .as_num(.[4], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- seq(radiant.model::.as_num(.[2], dataset), radiant.model::.as_num(.[3], dataset), radiant.model::.as_num(.[4], dataset))}
     }
     dataset <- as.list(expand.grid(dataset) %>% as.data.frame(stringsAsFactors = FALSE))
     nr <- length(dataset[[1]])
@@ -114,7 +114,7 @@ simulater <- function(
   if (const != "") {
     s <- const %>% sim_splitter()
     for (i in 1:length(s)) {
-      s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset)}
+      s[[i]] %>% {dataset[[.[1]]] <<- radiant.model::.as_num(.[2], dataset)}
     }
   }
 
@@ -123,7 +123,7 @@ simulater <- function(
   if (unif != "") {
     s <- unif %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- runif(nr, .as_num(.[2], dataset), .as_num(.[3], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- runif(nr, radiant.model::.as_num(.[2], dataset), radiant.model::.as_num(.[3], dataset))}
   }
 
   ## parsing log normal
@@ -131,12 +131,12 @@ simulater <- function(
   if (lnorm != "") {
     s <- lnorm %>% sim_splitter()
     for (i in 1:length(s)) {
-      sdev <- .as_num(s[[i]][3], dataset)
+      sdev <- radiant.model::.as_num(s[[i]][3], dataset)
       if (is.na(sdev) || !sdev > 0) {
         mess <- c("error", paste0("All log-normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
-      s[[i]] %>% {dataset[[.[1]]] <<- rlnorm(nr, .as_num(.[2], dataset), sdev)}
+      s[[i]] %>% {dataset[[.[1]]] <<- rlnorm(nr, radiant.model::.as_num(.[2], dataset), sdev)}
     }
   }
 
@@ -146,7 +146,7 @@ simulater <- function(
     s <- norm %>% sim_splitter()
     means <- sds <- nms <- c()
     for (i in 1:length(s)) {
-      sdev <- .as_num(s[[i]][3], dataset)
+      sdev <- radiant.model::.as_num(s[[i]][3], dataset)
       if (is.na(sdev) || !sdev > 0) {
         mess <- c("error", paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
@@ -154,21 +154,21 @@ simulater <- function(
       if (is_empty(ncorr) || length(s) == 1) {
         if (nexact) {
           s[[i]] %>% {
-            dataset[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + .as_num(.[2], dataset)
+            dataset[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + radiant.model::.as_num(.[2], dataset)
           }
         } else {
           s[[i]] %>% {
-            dataset[[.[1]]] <<- rnorm(nr, .as_num(.[2], dataset), sdev)
+            dataset[[.[1]]] <<- rnorm(nr, radiant.model::.as_num(.[2], dataset), sdev)
           }
         }
       } else {
         nms <- c(nms, s[[i]][1])
-        means <- c(means, .as_num(s[[i]][2], dataset))
+        means <- c(means, radiant.model::.as_num(s[[i]][2], dataset))
         sds <- c(sds, sdev)
       }
     }
     if (!is_empty(ncorr) && length(nms) > 1) {
-      ncorr <- gsub(",", " ", ncorr) %>% strsplit("\\s+") %>% unlist() %>% .as_num(dataset)
+      ncorr <- gsub(",", " ", ncorr) %>% strsplit("\\s+") %>% unlist() %>% radiant.model::.as_num(dataset)
       ncorr_nms <- combn(nms, 2) %>% apply(., 2, paste, collapse = "-")
       if (length(ncorr) == 1 && length(ncorr_nms) > 2) {
         ncorr <- rep(ncorr, length(ncorr_nms))
@@ -199,7 +199,7 @@ simulater <- function(
   if (binom != "") {
     s <- binom %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- rbinom(nr, .as_int(.[2], dataset), .as_num(.[3], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- rbinom(nr, radiant.model::.as_int(.[2], dataset), radiant.model::.as_num(.[3], dataset))}
   }
 
   ## parsing poisson
@@ -207,7 +207,7 @@ simulater <- function(
   if (pois != "") {
     s <- pois %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, .as_int(.[2], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, radiant.model::.as_int(.[2], dataset))}
   }
 
   ## parsing sequence
@@ -215,7 +215,7 @@ simulater <- function(
   if (sequ != "") {
     s <- sequ %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- seq(.as_num(.[2]), .as_num(.[3]), length.out = .as_num(nr))}
+      s[[i]] %>% {dataset[[.[1]]] <<- seq(radiant.model::.as_num(.[2]), radiant.model::.as_num(.[3]), length.out = radiant.model::.as_num(nr))}
   }
 
   ## fetching data if needed
@@ -240,7 +240,7 @@ simulater <- function(
     s <- discrete %>% sim_splitter()
     for (i in 1:length(s)) {
       dpar <- s[[i]][-1] %>% gsub(",", " ", .) %>% strsplit("\\s+") %>% unlist() %>% strsplit("/")
-      asNum <- function(x) ifelse(length(x) > 1, .as_num(x[1]) / .as_num(x[2]), .as_num(x[1]))
+      asNum <- function(x) ifelse(length(x) > 1, radiant.model::.as_num(x[1]) / radiant.model::.as_num(x[2]), radiant.model::.as_num(x[1]))
       dpar <- sshhr(try(sapply(dpar, asNum) %>% matrix(ncol = 2), silent = TRUE))
 
       if (inherits(dpar, "try-error") || any(is.na(dpar))) {
@@ -295,7 +295,7 @@ simulater <- function(
       }
     }
   }
-  
+
   ## removing data from dataset list
   if (is.data.frame(data)) {
     dataset[colnames(data)] <- NULL
@@ -322,7 +322,7 @@ simulater <- function(
     attr(dataset, "sim_data_name") <- NULL
   } else if (is_string(sc$data)) {
     attr(dataset, "sim_data_name") <- sc$data
-    sc$data <- data 
+    sc$data <- data
   } else {
     attr(dataset, "sim_data_name") <- deparse(substitute(data))
   }
@@ -551,7 +551,7 @@ repeater <- function(
       for (i in 1:length(s)) {
         if (is_empty(s[[i]][4])) s[[i]][4] <- 1
         s[[i]] %>% {
-          grid_list[[.[1]]] <<- seq(.as_num(.[2]), .as_num(.[3], dataset), .as_num(.[4], dataset))
+          grid_list[[.[1]]] <<- seq(radiant.model::.as_num(.[2]), radiant.model::.as_num(.[3], dataset), radiant.model::.as_num(.[4], dataset))
         }
       }
     }
