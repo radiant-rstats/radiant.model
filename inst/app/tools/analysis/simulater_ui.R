@@ -141,6 +141,7 @@ output$ui_sim_data <- renderUI({
 })
 
 sim_vars <- reactive({
+  input$sim_run
   if (is_empty(input$sim_name)) {
     character(0)
   } else {

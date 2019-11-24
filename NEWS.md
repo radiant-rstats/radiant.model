@@ -1,3 +1,7 @@
+# radiant.model 1.2.8
+
+* Fix for repeated simulation (_Model > Simulate > Repeat_) where "Variables to re-simulate" and "Output variables" were not always updated correctly when the set of available variables changed
+
 # radiant.model 1.2.7
 
 * Fix prediction issue when using I(x^2) in a stepwise estimation process and x is removed
