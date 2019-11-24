@@ -60,6 +60,8 @@ rep_inputs <- reactive({
   for (i in r_drop(names(rep_args)))
     rep_args[[i]] <- input[[paste0("rep_", i)]]
 
+  if (is_empty(input$rep_fun)) rep_args$fun <- "none"
+
   rep_args
 })
 
@@ -141,6 +143,7 @@ output$ui_sim_data <- renderUI({
 })
 
 sim_vars <- reactive({
+  input$sim_run
   if (is_empty(input$sim_name)) {
     character(0)
   } else {
@@ -153,11 +156,10 @@ sim_vars <- reactive({
 })
 
 output$ui_rep_vars <- renderUI({
-
   vars <- sim_vars()
   req(vars)
-
   form <- input$sim_form %>% sim_cleaner()
+
   if (!is_empty(form)) {
     s <- gsub(" ", "", form) %>% sim_splitter("=")
     svars <- c()
@@ -181,7 +183,6 @@ output$ui_rep_vars <- renderUI({
 output$ui_rep_sum_vars <- renderUI({
   vars <- sim_vars()
   req(!is_empty(vars))
-
   selectizeInput(
     "rep_sum_vars", label = "Output variables:",
     choices = vars, multiple = TRUE,
@@ -221,15 +222,18 @@ output$ui_rep_byvar <- renderUI({
 output$ui_rep_fun <- renderUI({
   choices <- list(
     "sum" = "sum", "mean" = "mean", "median" = "median",
-    "min" = "min", "max" = "max", "first" = "first",
-    "last" = "last", "none" = "none"
+    "min" = "min", "max" = "max", "sd" = "sd", "var" = "var",
+    "p01" = "p01", "p025" = "p025", "p05" = "p05", "p10" = "p10",
+    "p25" = "p25", "p75" = "p75", "p90" = "p90", "p95" = "p95",
+    "p975" = "p975", "p99" = "p99",
+    "first" = "first", "last" = "last"
   )
-
-  selectInput(
-    "rep_fun", "Apply function:",
+  selectizeInput(
+    inputId = "rep_fun", label = "Apply function:",
     choices = choices,
-    selected = state_single("rep_fun", choices, "sum"),
-    multiple = FALSE
+    selected = state_multiple("rep_fun", choices, isolate(input$rep_fun)),
+    multiple = TRUE,
+    options = list(placeholder = "None", plugins = list("remove_button"))
   )
 })
 

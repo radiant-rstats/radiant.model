@@ -622,16 +622,15 @@ repeater <- function(
   }
 
   summarize_sim <- function(object) {
-    if (fun == "none") {
+    if (is_empty(fun) || any(fun == "none")) {
       object <- select_at(object, .vars = c("rep", "sim", sum_vars))
-    } else if (fun %in% c("first", "last")) {
-      object <- group_by_at(object, byvar) %>%
-        summarise_at(.vars = sum_vars, .funs = fun) %>%
-        set_colnames(c(byvar, sum_vars))
     } else {
+      cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
+      first <- function(x, ...) dplyr::first(x)
+      last <- function(x, ...) dplyr::last(x)
       object <- group_by_at(object, byvar) %>%
         summarise_at(.vars = sum_vars, .funs = fun, na.rm = TRUE) %>%
-        set_colnames(c(byvar, sum_vars))
+        set_colnames(c(byvar, cn))
     }
     object
   }
@@ -713,7 +712,10 @@ repeater <- function(
 
   form %<>% sim_cleaner()
   if (form != "") {
-    s <- form %>% gsub("\\s+", "", .) %>% sim_splitter("=")
+    s <- form %>%
+      gsub("\\s+", "", .) %>%
+      gsub("<-", "=", .) %>%
+      sim_splitter("=")
     for (i in 1:length(s)) {
       if (grepl("^#", s[[i]][1])) next
       obj <- s[[i]][1]
@@ -725,6 +727,10 @@ repeater <- function(
       } else {
         ret[[obj]] <- NA
         mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that these formulas can only be applied to selected 'Output variables'"))
+        if (!is_empty(fun)) {
+          cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
+          mess[2] <- paste0(mess[2], "\n\nAvailable output variables:\n* ", paste0(cn, collapse = "\n* "))
+        }
         return(add_class(mess, "repeater"))
       }
     }
@@ -936,7 +942,6 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
           ),
           na.rm = TRUE
         ) %>%
-        {if (fun == "" || fun == "none") { . } else { .[[1]] <- paste0(fun, " of ", .[[1]]) }; .} %>%
         {.[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE, stringsAsFactors = FALSE) %>%
         format_df(., dec = dec, mark = ",") %>%
