@@ -139,16 +139,17 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
   if (is.character(x)) return(x)
   if (is_empty(plots[1])) return(invisible())
 
-  evar <- mutate_all(select(x$model$model, -1), as_numeric)
   rvar <- x$model$model[[1]]
 
   if ("correlations" %in% plots) {
     if (lev == "All levels") {
-      return(sshhr(radiant.basics:::plot.correlation(evar, nrobs = nrobs)))
+      return(sshhr(radiant.basics:::plot.correlation(x$model$model, nrobs = nrobs)))
     } else {
-      return(sshhr(radiant.basics:::plot.correlation(filter(evar, rvar == lev), nrobs = nrobs)))
+      return(sshhr(radiant.basics:::plot.correlation(filter(select(x$model$model, -1), rvar == lev), nrobs = nrobs)))
     }
   }
+
+  evar <- mutate_all(select(x$model$model, -1), as_numeric)
 
   if (lev != "All levels") {
     rvar <- factor(
