@@ -5,7 +5,7 @@
 \title{Repeated simulation}
 \usage{
 repeater(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
-  byvar = "sim", fun = "sum", form = "", seed = NULL, name = "",
+  byvar = ".sim", fun = "sum", form = "", seed = NULL, name = "",
   envir = parent.frame())
 }
 \arguments{
@@ -52,7 +52,7 @@ repdat <- repeater(
   nr = 12,
   vars = c("E","price"),
   sum_vars = "profit",
-  byvar = "sim",
+  byvar = ".sim",
   form = "profit_365 = profit < 36500",
   seed = 1234,
 )
