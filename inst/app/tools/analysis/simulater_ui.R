@@ -211,7 +211,7 @@ output$ui_rep_grid_vars <- renderUI({
 })
 
 output$ui_rep_byvar <- renderUI({
-  vars <- c("Simulation" = "sim", "Repeat" = "rep")
+  vars <- c("Simulation" = ".sim", "Repeat" = ".rep")
   selectizeInput(
     "rep_byvar", label = "Group by:", choices = vars,
     selected = state_single("rep_byvar", vars), multiple = FALSE,
@@ -346,7 +346,7 @@ observeEvent(c(input$sim_grid, input$sim_types), {
 })
 
 observeEvent(c(input$rep_grid, input$rep_byvar), {
-  if (isTRUE(input$rep_byvar == "rep") && !is_empty(input$rep_grid)) {
+  if (isTRUE(input$rep_byvar %in% c(".rep", "rep")) && !is_empty(input$rep_grid)) {
     updateNumericInput(session = session, "rep_nr", value = NA)
   } else {
     val <- ifelse(is_empty(r_state$rep_nr), 12, r_state$rep_nr)
@@ -852,7 +852,7 @@ sim_plot_height <- function() {
     "** Press the Repeat simulation button **"
   } else if (length(input$rep_sum_vars) == 0) {
     "Select at least one Output variable"
-  } else if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
+  } else if (input$rep_byvar == ".sim" && is_empty(input$rep_nr)) {
     "Please specify the number of repetitions in '# reps'"
   } else {
     summary(.repeater(), dec = input$rep_dec)
@@ -877,7 +877,7 @@ rep_plot_height <- function() {
 .plot_repeat <- eventReactive(input$rep_run, {
   req(input$rep_show_plots)
   req(length(input$rep_sum_vars) > 0)
-  if (input$rep_byvar == "sim" && is_empty(input$rep_nr)) {
+  if (input$rep_byvar == ".sim" && is_empty(input$rep_nr)) {
     return(invisible())
   } # else if (input$rep_byvar == "rep" && is_empty(input$rep_grid)) {
     # return(invisible())
@@ -987,7 +987,7 @@ observeEvent(input$repeater_report, {
 
   if (!is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
   if (!is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
-  if (input$rep_byvar == "sim") inp$grid <- NULL
+  if (input$rep_byvar == ".sim") inp$grid <- NULL
 
   if (!is_empty(inp[["form"]])) {
     inp[["form"]] <- strsplit(inp[["form"]], ";")[[1]]
