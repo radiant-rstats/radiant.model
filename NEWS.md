@@ -1,3 +1,8 @@
+# radiant.model 1.2.9
+
+* Adjust correrlation plot for NB to accomodate changes in _Basics > Correlation_
+* Fix for repeated simulation (_Model > Simulate > Repeat_) where "Variables to re-simulate" and "Output variables" were not always updated correctly when the set of available variables changed
+
 # radiant.model 1.2.7
 
 * Fix prediction issue when using I(x^2) in a stepwise estimation process and x is removed
