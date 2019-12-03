@@ -186,7 +186,7 @@ output$crs <- renderUI({
   isolate({
     if (is_empty(input$crs_id)) return(invisible())
     withProgress(message = "Generating plots", value = 1, {
-      plot.crs(.crs())
+      plot(.crs())
     })
   })
 })

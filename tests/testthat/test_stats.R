@@ -157,7 +157,6 @@ context("Linear regression (plot.regress)")
 test_that("regress - plots", {
   result <- regress(diamonds, "price", c("carat", "clarity"))
   grb <- plot(result, plots = "dashboard", shiny = TRUE)
-  expect_true(all(c("gtable", "grob") %in% class(grb)))
-  expect_equal(try(print(grb), silent = TRUE), NULL)
+  expect_true(all(c("patchwork", "gg", "ggplot") %in% class(grb)))
   unlink("Rplots.pdf")
 })

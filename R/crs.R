@@ -250,12 +250,13 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 #' @export
 plot.crs <- function(x, ...) {
   if (is.character(x)) return(x)
-  if (any(is.na(x$act))) {
+  if (any(is.na(x$act)) || all(is.na(x$cf))) {
     return("Plotting for Collaborative Filter requires the actual ratings associated\nwith the predictions")
   }
 
   ## use quantile to avoid plotting extreme predictions
   lim <- quantile(x$recommendations[, c("rating", "cf")], probs = c(.025, .975), na.rm = TRUE)
+
 
   p <- visualize(
     x$recommendations, xvar = "cf", yvar = "rating",

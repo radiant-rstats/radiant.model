@@ -555,15 +555,10 @@ plot.crtree <- function(
 
     if (length(plot_list) > 0) {
       if (custom) {
-        if (length(plot_list) == 1) {
-          return(plot_list[[1]])
-        } else {
-          return(plot_list)
-        }
-      }
-
-      sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = 1)) %>% {
-        if (shiny) . else print(.)
+        if (length(plot_list) == 1) plot_list[[1]] else plot_list
+      } else {
+        patchwork::wrap_plots(plot_list, ncol = 1) %>%
+          {if (shiny) . else print(.)}
       }
     }
   }

@@ -453,16 +453,14 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
       visualize(xvar = i, bins = bins, custom = TRUE)
   }
 
-  if (custom) {
-    if (length(plot_list) == 1) {
-      return(plot_list[[1]])
+  if (length(plot_list) > 0) {
+    if (custom) {
+      if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
-      return(plot_list)
+      patchwork::wrap_plots(plot_list, ncol = min(length(plot_list), 2)) %>%
+        {if (shiny) . else print(.)}
     }
   }
-
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>%
-    {if (shiny) . else print(.)}
 }
 
 #' Repeated simulation
@@ -863,18 +861,14 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
     }
   }
 
-  if (length(plot_list) == 0) return(invisible())
-
-  if (custom) {
-    if (length(plot_list) == 1) {
-      return(plot_list[[1]])
+  if (length(plot_list) > 0) {
+    if (custom) {
+      if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
-      return(plot_list)
+      patchwork::wrap_plots(plot_list, ncol = min(length(plot_list), 2)) %>%
+        {if (shiny) . else print(.)}
     }
   }
-
-  sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>%
-    {if (shiny) . else print(.)}
 }
 
 #' Print simulation summary
