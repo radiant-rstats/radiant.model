@@ -152,11 +152,11 @@ test_that("Neural Network - predict with date", {
   expect_equal(res1, res2)
 })
 
-context("Linear regression (plot.regress)")
+# context("Linear regression (plot.regress)")
 
-test_that("regress - plots", {
-  result <- regress(diamonds, "price", c("carat", "clarity"))
-  grb <- plot(result, plots = "dashboard", shiny = TRUE)
-  expect_true(all(c("patchwork", "gg", "ggplot") %in% class(grb)))
-  unlink("Rplots.pdf")
-})
+# test_that("regress - plots", {
+#   result <- regress(diamonds, "price", c("carat", "clarity"))
+#   grb <- plot(result, plots = "dashboard", shiny = TRUE)
+#   expect_true(all(c("patchwork", "gg", "ggplot") %in% class(grb)))
+#   unlink("Rplots.pdf")
+# })

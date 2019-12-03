@@ -475,8 +475,10 @@ plot.mnl <- function(
     if (custom) {
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
-      patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+      sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = nrCol)) %>%
         {if (shiny) . else print(.)}
+      # patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+      #   {if (shiny) . else print(.)}
     }
   }
 }

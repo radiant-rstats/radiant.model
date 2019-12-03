@@ -585,7 +585,9 @@ plot.regress <- function(
     if (custom) {
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
-      patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+      # patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+      #   {if (shiny) . else print(.)}
+      sshhr(gridExtra::grid.arrange(grobs = plot_list, ncol = min(length(plot_list), 2))) %>%
         {if (shiny) . else print(.)}
     }
   }
