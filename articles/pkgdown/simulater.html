@@ -489,9 +489,8 @@ psum(x,y)
 <h3 class="hasAnchor">
 <a href="#report-rmd" class="anchor"></a>Report &gt; Rmd</h3>
 <p>Add code to <a href="https://radiant-rstats.github.io/docs/data/report_rmd.html" target="_blank"><em>Report &gt; Rmd</em></a> to (re)create the analysis by clicking the <i title="report results" class="fa fa-edit"></i> icon on the bottom left of your screen or by pressing <code>ALT-enter</code> on your keyboard.</p>
-<p>If a plot was created it can be customized using <code>ggplot2</code> commands or with <code>gridExtra</code>. See example below and <a href="https://radiant-rstats.github.io/docs/data/visualize.html" target="_blank"><em>Data &gt; Visualize</em></a> for details.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(result, <span class="dt">custom =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="st">  </span>gridExtra<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html">grid.arrange</a></span>(<span class="dt">grobs =</span> ., <span class="dt">top =</span> <span class="st">"Simulation plots"</span>, <span class="dt">ncol =</span> <span class="dv">2</span>)</a></code></pre></div>
+<p>If a plot was created it can be customized using <code>ggplot2</code> commands or with <code>patchwork</code>. See example below and <a href="https://radiant-rstats.github.io/docs/data/visualize.html" target="_blank"><em>Data &gt; Visualize</em></a> for details.</p>
+<p>`<code>r plot(result, custom = TRUE) %&gt;%   wrap_plots(plot_list, ncol = 2) + plot_annotation(title = "Simulation plots")</code></p>
 </div>
 <div id="r-functions" class="section level3">
 <h3 class="hasAnchor">
