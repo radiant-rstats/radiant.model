@@ -497,7 +497,7 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'   nr = 12,
 #'   vars = c("E","price"),
 #'   sum_vars = "profit",
-#'   byvar = "sim",
+#'   byvar = ".sim",
 #'   form = "profit_365 = profit < 36500",
 #'   seed = 1234,
 #' )
@@ -512,11 +512,11 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #' @export
 repeater <- function(
   dataset, nr = 12, vars = "", grid = "", sum_vars = "",
-  byvar = "sim", fun = "sum", form = "", seed = NULL,
+  byvar = ".sim", fun = "sum", form = "", seed = NULL,
   name = "", envir = parent.frame()
 ) {
 
-  if (byvar == "sim") grid <- ""
+  if (byvar %in% c(".sim", "sim")) grid <- ""
   if (is_empty(nr)) {
     if (is_empty(grid)) {
       mess <- c("error", paste0("Please specify the number of repetitions in '# reps'"))
@@ -620,23 +620,22 @@ repeater <- function(
   }
 
   summarize_sim <- function(object) {
-    if (fun == "none") {
-      object <- select_at(object, .vars = c("rep", "sim", sum_vars))
-    } else if (fun %in% c("first", "last")) {
-      object <- group_by_at(object, byvar) %>%
-        summarise_at(.vars = sum_vars, .funs = fun) %>%
-        set_colnames(c(byvar, sum_vars))
+    if (is_empty(fun) || any(fun == "none")) {
+      object <- select_at(object, .vars = c(".rep", ".sim", sum_vars))
     } else {
+      cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
+      first <- function(x, ...) dplyr::first(x)
+      last <- function(x, ...) dplyr::last(x)
       object <- group_by_at(object, byvar) %>%
         summarise_at(.vars = sum_vars, .funs = fun, na.rm = TRUE) %>%
-        set_colnames(c(byvar, sum_vars))
+        set_colnames(c(byvar, cn))
     }
     object
   }
 
   rep_sim <- function(rep_nr, nr, sfun = function(x) x) {
     bind_cols(
-      data.frame(rep = rep(rep_nr, nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
+      data.frame(.rep = rep(rep_nr, nr_sim), .sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
     ) %>%
       na.omit() %>%
@@ -658,7 +657,7 @@ repeater <- function(
 
     sc[names(sc_grid)] <- sc_grid
     bind_cols(
-      data.frame(rep = rep(paste(gval, collapse = "|"), nr_sim), sim = 1:nr_sim, stringsAsFactors = FALSE),
+      data.frame(.rep = rep(paste(gval, collapse = "|"), nr_sim), .sim = 1:nr_sim, stringsAsFactors = FALSE),
       do.call(simulater, sc)
     ) %>%
     na.omit() %>%
@@ -677,7 +676,7 @@ repeater <- function(
 
   withProgress(message = "Running repeated simulation", value = 0, {
     if (length(grid_list) == 0) {
-      if (byvar == "sim") {
+      if (byvar == ".sim") {
         ret <- bind_rows(lapply(1:nr, rep_sim, nr)) %>%
           summarize_sim() %>%
           add_class("repeater")
@@ -688,7 +687,7 @@ repeater <- function(
     } else {
       grid <- expand.grid(grid_list)
       nr <- nrow(grid)
-      if (byvar == "sim") {
+      if (byvar == ".sim") {
         ret <- bind_rows(lapply(1:nr, function(x) rep_grid_sim(grid[x,, drop = FALSE], x, nr))) %>%
           summarize_sim() %>%
           add_class("repeater")
@@ -711,7 +710,10 @@ repeater <- function(
 
   form %<>% sim_cleaner()
   if (form != "") {
-    s <- form %>% gsub("\\s+", "", .) %>% sim_splitter("=")
+    s <- form %>%
+      gsub("\\s+", "", .) %>%
+      gsub("<-", "=", .) %>%
+      sim_splitter("=")
     for (i in 1:length(s)) {
       if (grepl("^#", s[[i]][1])) next
       obj <- s[[i]][1]
@@ -722,7 +724,11 @@ repeater <- function(
         ret[[obj]] <- out
       } else {
         ret[[obj]] <- NA
-        mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that these formulas can only be applied to selected 'Output variables'"))
+        mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that repeated simulation formulas can only be applied to\n(summarized) 'Output variables'"))
+        if (!is_empty(fun)) {
+          cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
+          mess[2] <- paste0(mess[2], "\n\nAvailable (summarized) output variables:\n* ", paste0(cn, collapse = "\n* "))
+        }
         return(add_class(mess, "repeater"))
       }
     }
@@ -930,7 +936,6 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
           ),
           na.rm = TRUE
         ) %>%
-        {if (fun == "" || fun == "none") { . } else { .[[1]] <- paste0(fun, " of ", .[[1]]) }; .} %>%
         {.[[1]] <- format(.[[1]], justify = "left"); .} %>%
         data.frame(check.names = FALSE, stringsAsFactors = FALSE) %>%
         format_df(., dec = dec, mark = ",") %>%
