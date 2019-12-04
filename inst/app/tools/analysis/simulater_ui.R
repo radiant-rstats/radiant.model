@@ -573,7 +573,7 @@ output$ui_simulater <- renderUI({
       wellPanel(
         uiOutput("ui_rep_byvar"),
         conditionalPanel(
-          condition = "input.rep_byvar == 'rep'",
+          condition = "input.rep_byvar == '.rep'",
           HTML("<label>Grid search: <i id='rep_grid_add' title='Add variable' href='#' class='action-button fa fa-plus-circle'></i>
                 <i id='rep_grid_del' title='Remove variable' href='#' class='action-button fa fa-minus-circle'></i></label>"),
           with(tags, table(
