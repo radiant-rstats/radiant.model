@@ -18,7 +18,6 @@ globalVariables(c(
 #' @importFrom tidyr spread gather
 #' @importFrom lubridate now
 #' @importFrom patchwork wrap_plots plot_annotation
-#' @importFrom gridExtra grid.arrange
 #' @importFrom DiagrammeR DiagrammeROutput renderDiagrammeR DiagrammeR mermaid
 #' @importFrom utils head tail relist as.relistable combn capture.output write.table
 #' @importFrom stats anova as.formula binomial coef confint cor deviance dnorm glm lm na.omit pnorm predict qnorm sd setNames step update weighted.mean wilcox.test rbinom rlnorm rnorm runif rpois terms quantile
