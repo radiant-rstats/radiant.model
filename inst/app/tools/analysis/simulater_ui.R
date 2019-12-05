@@ -69,7 +69,7 @@ rep_sum_args <- as.list(if (exists("summary.repeater")) {
   formals(summary.repeater)
 } else {
   formals(radiant.model:::summary.repeater)
-} )
+})
 
 ## list of function inputs selected by user
 rep_sum_inputs <- reactive({
@@ -83,7 +83,7 @@ rep_plot_args <- as.list(if (exists("plot.repeater")) {
   formals(plot.repeater)
 } else {
   formals(radiant.model:::plot.repeater)
-} )
+})
 
 ## list of function inputs selected by user
 rep_plot_inputs <- reactive({
@@ -885,9 +885,10 @@ rep_plot_height <- function() {
   object <- .repeater()
   if (is.null(object)) return(invisible())
   withProgress(message = "Generating repeated simulation plots", value = 1, {
-    rep_plot_inputs() %>%
-      {.$shiny <- TRUE; .} %>%
-      {do.call(plot, c(list(x = object), .))}
+    inp <- rep_plot_inputs()
+    inp$shiny <- TRUE
+    inp$x <- object
+    do.call(plot, inp)
   })
 })
 
