@@ -9,6 +9,7 @@
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param form Optional formula to use instead of rvar, evar, and int
 #' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitly set
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param envir Environment to extract data from
@@ -29,9 +30,18 @@
 #' @export
 logistic <- function(
   dataset, rvar, evar, lev = "", int = "",
-  wts = "None", check = "", ci_type,
+  wts = "None", check = "", form, ci_type,
   data_filter = "", envir = parent.frame()
 ) {
+
+  if (!missing(form)) {
+    form <- as.formula(format(form))
+    paste0(format(form), collapse = "")
+
+    vars <- all.vars(form)
+    rvar <- vars[1]
+    evar <- vars[-1]
+  }
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -45,10 +55,15 @@ logistic <- function(
   } else if (is_string(wts)) {
     wtsname <- wts
     vars <- c(rvar, evar, wtsname)
-  }
+  } 
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
+  if (any(evar == ".")) {
+    dataset <- get_data(dataset, "", filt = data_filter, envir = envir)
+    evar <- setdiff(colnames(dataset), rvar)
+  } else {
+    dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
+  }
 
   if (missing(ci_type)) {
     ## Use profiling for smaller datasets
@@ -95,6 +110,10 @@ logistic <- function(
   ## transformation to TRUE/FALSE depending on the selected level (lev)
   dataset[[rvar]] <- dataset[[rvar]] == lev
 
+  if (!missing(form)) {
+    int <- setdiff(attr(terms.formula(form), "term.labels"), evar)
+  }
+
   vars <- ""
   var_check(evar, colnames(dataset)[-1], int) %>% {
     vars <<- .$vars
@@ -112,7 +131,13 @@ logistic <- function(
     dataset <- scale_df(dataset, scale = FALSE, wts = wts)
   }
 
-  form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
+  if (missing(form)) {
+    form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
+  } else {
+    form_upper <- form
+    rm(form)
+  }
+
   form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
@@ -221,6 +246,8 @@ summary.logistic <- function(
   cat("\nExplanatory variables:", paste0(object$evar, collapse = ", "), "\n")
   if (length(object$wtsname) > 0) {
     cat("Weights used         :", object$wtsname, "\n")
+  } else if (length(object$wts) > 0) {
+    cat("Weights used         :", deparse(substitute(object$wts)), "\n")
   }
   expl_var <- if (length(object$evar) == 1) object$evar else "x"
   cat(paste0("Null hyp.: there is no effect of ", expl_var, " on ", object$rvar, "\n"))

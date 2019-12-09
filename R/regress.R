@@ -30,7 +30,7 @@ regress <- function(
 ) {
 
   if (!missing(form)) {
-    if (is.character(form)) form <- as.formula(form)
+    form <- as.formula(format(form))
     vars <- all.vars(form)
     rvar <- vars[1]
     evar <- vars[-1]
@@ -80,6 +80,7 @@ regress <- function(
     form_upper <- paste(rvar, "~", paste(vars, collapse = " + ")) %>% as.formula()
   } else {
     form_upper <- form
+    rm(form)
   }
   form_lower <- paste(rvar, "~ 1") %>% as.formula()
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
