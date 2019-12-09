@@ -209,7 +209,7 @@ summary.regress <- function(
     p.small <- coeff$p.value < .001
     coeff[, 2:5] %<>% format_df(dec)
     coeff$p.value[p.small] <- "< .001"
-    print(rename(coeff, `  ` = "label", ` ` = "sig_star"), row.names = FALSE)
+    print(dplyr::rename(coeff, `  ` = "label", ` ` = "sig_star"), row.names = FALSE)
   }
 
   if (nrow(object$model$model) <= (length(object$evar) + 1)) {

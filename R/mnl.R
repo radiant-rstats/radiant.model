@@ -107,7 +107,7 @@ mnl <- function(
   } else {
     form_upper <- paste(rvar, "~ ", paste(vars, collapse = " + ")) %>% as.formula()
     form_lower <- paste(rvar, "~ 1") %>% as.formula()
-  } 
+  }
 
   if ("stepwise" %in% check) check <- sub("stepwise", "stepwise-backward", check)
   if ("stepwise-backward" %in% check) {
@@ -248,7 +248,7 @@ summary.mnl <- function(
   coeff[, 3:7] %<>% format_df(dec)
   coeff$p.value[p.small] <- "< .001"
   coeff$RRR[grepl("(Intercept)", coeff$label)] <- ""
-  rename(coeff, `   ` = "level", `  ` = "label", ` ` = "sig_star") %>%
+  dplyr::rename(coeff, `   ` = "level", `  ` = "label", ` ` = "sig_star") %>%
     print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
