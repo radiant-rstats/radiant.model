@@ -240,7 +240,7 @@ summary.logistic <- function(
   p.small <- coeff$p.value < .001
   coeff[, 2:6] %<>% format_df(dec)
   coeff$p.value[p.small] <- "< .001"
-  rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
+  dplyr::rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
   logit_fit <- glance(object$model)
