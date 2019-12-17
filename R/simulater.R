@@ -801,7 +801,7 @@ summary.repeater <- function(object, dec = 4, ...) {
   if (!is_empty(rc$vars)) {
     cat("Re-simulated  :", paste0(rc$vars, collapse = ", "), "\n")
   }
-  cat("Group by      :", ifelse(rc$byvar == "rep", "Repeat", "Simulation"), "\n")
+  cat("Group by      :", ifelse(rc$byvar == ".rep", "Repeat", "Simulation"), "\n")
   cat("Function      :", rc$fun, "\n")
   cat("Random  seed  :", rc$seed, "\n")
   if (is.data.frame(rc$sim)) {
