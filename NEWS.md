@@ -1,6 +1,10 @@
-# radiant.model 1.2.9
+# radiant.model 1.3.0
 
-* Adjust correrlation plot for NB to accomodate changes in _Basics > Correlation_
+* Allow specification of multiple summary functions in _Model > Simulate > Repeat_
+* Documentation updates to link to new video tutorials
+* Use `patchwork` for grouping multiple plots together
+* Allow formula input for `logistic` and `regress` functions
+* Adjust correlation plot for NB to accommodate changes in _Basics > Correlation_
 * Fix for repeated simulation (_Model > Simulate > Repeat_) where "Variables to re-simulate" and "Output variables" were not always updated correctly when the set of available variables changed
 
 # radiant.model 1.2.7
@@ -25,7 +29,7 @@
 
 * Update action buttons that initiate calculations when one or more relevant inputs are changed. When, for example, a model should be re-estimated, a spinning "refresh" icon will be shown
 * Add option to use a formula for the `regress` function
-* Imroved description of standardization process used. Added link to [Gelman 2008](http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf) 
+* Improved description of standardization process used. Added link to [Gelman 2008](http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf) 
 * Added an influence plot that shows standardized residuals and cooks-distance
 
 # radiant.model 1.1.10
