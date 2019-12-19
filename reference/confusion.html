@@ -231,7 +231,7 @@
     <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span>(<span class='kw'>buy</span> <span class='kw'>=</span> <span class='no'>dvd</span>$<span class='no'>buy</span>, <span class='kw'>pred1</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Uniform.html'>runif</a></span>(<span class='fl'>20000</span>), <span class='kw'>pred2</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>dvd</span>$<span class='no'>buy</span> <span class='kw'>==</span> <span class='st'>"yes"</span>, <span class='fl'>1</span>, <span class='fl'>0</span>)) <span class='kw'>%&gt;%</span>
   <span class='fu'>confusion</span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pred1"</span>, <span class='st'>"pred2"</span>), <span class='st'>"buy"</span>) <span class='kw'>%&gt;%</span>
   <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 9
-#&gt;  $ dataset    :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	2 obs. of  18 variables:
+#&gt;  $ dataset    :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	2 obs. of  19 variables:
 #&gt;   ..$ Type     : chr [1:2] "All" "All"
 #&gt;   ..$ Predictor: chr [1:2] "pred1" "pred2"
 #&gt;   ..$ TP       : int [1:2] 2514 5246
@@ -243,6 +243,7 @@
 #&gt;   ..$ TNR      : num [1:2] 0.496 1
 #&gt;   ..$ precision: num [1:2] 0.253 1
 #&gt;   ..$ Fscore   : num [1:2] 0.331 1
+#&gt;   ..$ RIG      : num [1:2] -0.757 1
 #&gt;   ..$ accuracy : num [1:2] 0.491 1
 #&gt;   ..$ kappa    : num [1:2] -0.0194 1
 #&gt;   ..$ profit   : int [1:2] -4926 5246
