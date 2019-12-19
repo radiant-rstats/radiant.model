@@ -308,8 +308,13 @@ observeEvent(input$confusion_report, {
     figs <- TRUE
   }
 
+  # qnt might be set in the Evaluate tab but is not needed to calculate
+  # the confusion matrix
+  ebi <- ebin_inputs()
+  ebi$qnt <- NULL
+
   update_report(
-    inp_main = clean_args(ebin_inputs(), ebin_args),
+    inp_main = clean_args(ebi, ebin_args),
     fun_name = "confusion",
     inp_out = inp_out,
     outputs = outputs,
