@@ -101,7 +101,6 @@ evalbin <- function(
       lg_list[[pname]] <-
         dataset %>%
         select_at(.vars = c(pred[j], rvar)) %>%
-        # mutate_(.dots = setNames(paste0(method,"(",pred[j],",", qnt,", rev = TRUE)"), pred[j])) %>%
         mutate(!! pred[j] := radiant.data::xtile(.data[[pred[j]]], n = qnt, rev = TRUE)) %>%
         setNames(c(qnt_name, rvar)) %>%
         group_by_at(.vars = qnt_name) %>%
@@ -380,8 +379,11 @@ confusion <- function(
     ## transformation to TRUE/FALSE depending on the selected level (lev)
     dataset[[rvar]] <- dataset[[rvar]] == lev
 
-    auc_vec <- rep(NA, length(pred)) %>% set_names(pred)
-    for (p in pred) auc_vec[p] <- auc(dataset[[p]], dataset[[rvar]], TRUE)
+    auc_vec <- rig_vec <- rep(NA, length(pred)) %>% set_names(pred)
+    for (p in pred) {
+      auc_vec[p] <- auc(dataset[[p]], dataset[[rvar]], TRUE)
+      rig_vec[p] <- rig(dataset[[p]], dataset[[rvar]], TRUE)
+    }
 
     p_vec <- colMeans(dataset[, pred, drop = FALSE]) / mean(dataset[[rvar]])
 
@@ -427,6 +429,7 @@ confusion <- function(
       ret,
       data.frame(
         AUC = auc_vec,
+        RIG = rig_vec,
         p.ratio = p_vec,
         stringsAsFactors = FALSE
       )
@@ -464,7 +467,7 @@ confusion <- function(
     dataset,
     .vars = c(
       "Type", "Predictor", "TP", "FP", "TN", "FN", "total",
-      "TPR", "TNR", "precision", "Fscore", "accuracy",
+      "TPR", "TNR", "precision", "Fscore", "RIG", "accuracy",
       "kappa", "profit", "index", "ROME", "contact", "AUC"
     )
   )
@@ -511,7 +514,7 @@ summary.confusion <- function(object, dec = 3, ...) {
     format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
   cat("\n")
-  as.data.frame(object$dataset[, c(1, 2, 12:18)], stringsAsFactors = FALSE) %>%
+  as.data.frame(object$dataset[, c(1, 2, 13:19)], stringsAsFactors = FALSE) %>%
     format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
 }
@@ -604,6 +607,37 @@ auc <- function(pred, rvar, lev) {
   denom <- as.numeric(length(x1)) * length(x2)
   wt <- unname(wilcox.test(x1, x2, exact = FALSE)$statistic / denom)
   ifelse(wt < .5, 1 - wt, wt)
+}
+
+#' Relative Information Gain (RIG)
+#'
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#'
+#' @param pred Prediction or predictor
+#' @param rvar Response variable
+#' @param lev The level in the response variable defined as success
+#' @param crv Correction value to avoid log(0)
+#' @param na.rm Logical that indicates if missing values should be removed (TRUE) or not (FALSE)
+#'
+#' @return RIG statistic
+#'
+#' @seealso \code{\link{evalbin}} to calculate results
+#' @seealso \code{\link{summary.evalbin}} to summarize results
+#' @seealso \code{\link{plot.evalbin}} to plot results
+#'
+#' @examples
+#' rig(runif(20000), dvd$buy, "yes")
+#' rig(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes")
+#'
+#' @export
+rig <- function(pred, rvar, lev, crv = 0.0000001, na.rm = TRUE) {
+  lev <- check_lev(rvar, lev)
+  act <- rvar == lev
+  mo = mean(act, na.rm = na.rm)
+  pred = pmin(pmax(pred, crv, na.rm = na.rm), 1 - crv, na.rm = na.rm)
+  llpred = mean(-log(pred) * act - log(1 - pred) * (1 - act))
+  llbase = mean(-log(mo) * act - log(1 - mo)*(1 - act))
+  round((1 - llpred/llbase), 6)
 }
 
 #' Calculate Profit based on cost:margin ratio
