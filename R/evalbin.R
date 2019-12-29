@@ -598,14 +598,15 @@ plot.confusion <- function(
 #'
 #' @export
 auc <- function(pred, rvar, lev) {
-  ## based on examples in colAUC at ...
-  ## https://cran.r-project.org/web/packages/caTools/caTools.pdf
-  lev <- check_lev(rvar, lev)
-  x1 <- pred[rvar == lev]
-  x2 <- pred[rvar != lev]
-  ## need as.numeric to avoid integer-overflows
-  denom <- as.numeric(length(x1)) * length(x2)
-  wt <- unname(wilcox.test(x1, x2, exact = FALSE)$statistic / denom)
+  ## adapted from https://stackoverflow.com/a/50202118/1974918
+  if (!is.logical(rvar)) {
+    lev <- check_lev(rvar, lev)
+    rvar <- rvar == lev
+  }
+  n1 <- sum(!rvar)
+  n2 <- sum(rvar)
+  U <- sum(rank(pred)[!rvar]) - n1 * (n1 + 1) / 2
+  wt <- U / n1 / n2
   ifelse(wt < .5, 1 - wt, wt)
 }
 
@@ -631,12 +632,14 @@ auc <- function(pred, rvar, lev) {
 #'
 #' @export
 rig <- function(pred, rvar, lev, crv = 0.0000001, na.rm = TRUE) {
-  lev <- check_lev(rvar, lev)
-  act <- rvar == lev
-  mo = mean(act, na.rm = na.rm)
+  if (!is.logical(rvar)) {
+    lev <- check_lev(rvar, lev)
+    rvar <- rvar == lev
+  }
+  mo = mean(rvar, na.rm = na.rm)
   pred = pmin(pmax(pred, crv, na.rm = na.rm), 1 - crv, na.rm = na.rm)
-  llpred = mean(-log(pred) * act - log(1 - pred) * (1 - act))
-  llbase = mean(-log(mo) * act - log(1 - mo)*(1 - act))
+  llpred = mean(-log(pred) * rvar - log(1 - pred) * (1 - rvar))
+  llbase = mean(-log(mo) * rvar - log(1 - mo)*(1 - rvar))
   round((1 - llpred/llbase), 6)
 }
 
@@ -658,11 +661,13 @@ rig <- function(pred, rvar, lev, crv = 0.0000001, na.rm = TRUE) {
 #'
 #' @export
 profit <- function(pred, rvar, lev, cost = 1, margin = 2) {
-  lev <- check_lev(rvar, lev)
-  rvar <- rvar == lev
+  if (!is.logical(rvar)) {
+    lev <- check_lev(rvar, lev)
+    rvar <- rvar == lev
+  }
   break_even = cost/margin
-  TP <- rvar & pred > break_even
-  FP <- !rvar & pred > break_even
+  TP <- rvar & (pred > break_even)
+  FP <- !rvar & (pred > break_even)
   margin * sum(TP) - cost * sum(TP, FP)
 }
 
