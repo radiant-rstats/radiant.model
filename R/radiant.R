@@ -74,3 +74,31 @@ render.DiagrammeR <- function(object, shiny = shiny::getDefaultReactiveDomain(),
     object
   }
 }
+
+#' One hot encoding of data.frames
+#' @param dataset Dataset to endcode
+#' @param all Extract all factor levels (e.g., for tree-based models)
+#' @param df Return a data.frame (tibble)
+#' 
+#' @examples
+#' head(onehot(diamonds, df = TRUE))
+#' head(onehot(diamonds, all = TRUE, df = TRUE))
+#' 
+#' @importFrom stats contrasts
+#' 
+#' @export 
+onehot <- function(dataset, all = FALSE, df = FALSE) {
+  if (all) {
+    mm <- model.matrix(~ 0 + .,
+      data = dataset,
+      contrasts.arg = lapply(
+        dataset[, vapply(dataset, is.factor, logical(1))],
+        contrasts,
+        contrasts = FALSE
+      )
+    ) 
+  } else {
+    mm <- model.matrix(~ ., model.frame(~ ., dataset))
+  }
+  if (df) as.data.frame(mm, stringsAsFactors = FALSE) else mm
+}

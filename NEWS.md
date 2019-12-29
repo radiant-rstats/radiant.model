@@ -1,3 +1,10 @@
+# radiant.model 1.3.1
+
+* Random Forest module using the `ranger` package. Includes a `cv.rforest` function for tuning using cross-validation
+* Gradient Boosted Trees module using the `xgboost` package. Includes a `cv.gbt` function for tuning using cross-validation. For convenience, all data.frame-to-matrix-conversion is handled by radiant
+* Partial Dependence Plots for all trees-based estimation modules and for neural networks
+* `onehot` function to make converting a data.frame with categorical variables to a matrix a bit easier
+
 # radiant.model 1.3.0
 
 * Allow specification of multiple summary functions in _Model > Simulate > Repeat_

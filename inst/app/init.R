@@ -38,6 +38,18 @@ r_url_list[["Classification and regression trees"]] <-
     "Predict" = "model/crtree/predict/",
     "Plot" = "model/crtree/plot/"
   ))
+r_url_list[["Random Forest"]] <-
+  list("tabs_rf" = list(
+    "Summary" = "model/rf/",
+    "Predict" = "model/rf/predict/",
+    "Plot" = "model/rf/plot/"
+  ))
+r_url_list[["Gradient Boosted Trees"]] <-
+  list("tabs_gbt" = list(
+    "Summary" = "model/gbtf/",
+    "Predict" = "model/gbt/predict/",
+    "Plot" = "model/gbt/plot/"
+  ))
 r_url_list[["Evaluate regression"]] <-
   list("tabs_evalreg" = list("Summary" = "model/evalreg/"))
 r_url_list[["Evaluate classification"]] <-
@@ -70,7 +82,10 @@ options(
         tabPanel("Multinomial logistic regression (MNL)", uiOutput("mnl")),
         tabPanel("Naive Bayes", uiOutput("nb")),
         tabPanel("Neural Network", uiOutput("nn")),
+        "----", "Trees",
         tabPanel("Classification and regression trees", uiOutput("crtree")),
+        tabPanel("Random Forest", uiOutput("rf")),
+        tabPanel("Gradient Boosted Trees", uiOutput("gbt")),
         "----", "Evaluate",
         tabPanel("Evaluate regression", uiOutput("evalreg")),
         tabPanel("Evaluate classification", uiOutput("evalbin")),

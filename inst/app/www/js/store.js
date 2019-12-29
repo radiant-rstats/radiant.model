@@ -25,6 +25,14 @@ $(document).keydown(function (event) {
       $("#crtree_store_res").click();
     } else if ($("#crtree_store_pred_name").is(":focus") && event.keyCode == 13) {
       $("#crtree_store_pred").click();
+    } else if ($("#rf_store_res_name").is(":focus") && event.keyCode == 13) {
+      $("#rf_store_res").click();
+    } else if ($("#rf_store_pred_name").is(":focus") && event.keyCode == 13) {
+      $("#rf_store_pred").click();
+    } else if ($("#gbt_store_res_name").is(":focus") && event.keyCode == 13) {
+      $("#gbt_store_res").click();
+    } else if ($("#gbt_store_pred_name").is(":focus") && event.keyCode == 13) {
+      $("#gbt_store_pred").click();
     } else if ($("#crs_store_pred_name").is(":focus") && event.keyCode == 13) {
       $("#crs_store_pred").click();
     } else if ($("#sim_binom_p").is(":focus") && event.keyCode == 13) {

@@ -418,7 +418,7 @@ plot.regress <- function(
   ## checking x size
   if (inherits(x$model, "lm")) {
     model <- broom::augment(x$model)
-  } else if (inherits(x, "nn")) {
+  } else if (inherits(x, "nn") || inherits(x, "rforest") || inherits(x, "gbt") || inherits(x, "crtree")) {
     model <- x$model$model
     model$pred <- predict(x, x$model$model)$Prediction
     model <- lm(formula(paste0(x$rvar, " ~ ", "pred")), data = model) %>%
@@ -857,10 +857,10 @@ predict_model <- function(
       scale <- FALSE
     }
     pred_val <- scale_df(pred, center = TRUE, scale = scale, calc = FALSE) %>%
-      pfun(object$model, ., se = se, conf_lev = conf_lev)
+      pfun(object$model, ., se = se, conf_lev = conf_lev, ...)
   } else {
     ## generate predictions using the supplied function (pfun)
-    pred_val <- pfun(object$model, pred, se = se, conf_lev = conf_lev)
+    pred_val <- pfun(object$model, pred, se = se, conf_lev = conf_lev, ...)
   }
 
   if (!inherits(pred_val, "try-error")) {
@@ -889,6 +889,7 @@ predict_model <- function(
       vars <- c(object$evar, colnames(pred_val))
     }
 
+    extra_args <- list(...)
     pred <- set_attr(pred, "radiant_df_name", object$df_name) %>%
       set_attr("radiant_data_filter", object$data_filter) %>%
       set_attr("radiant_rvar", object$rvar) %>%
@@ -898,11 +899,12 @@ predict_model <- function(
       set_attr("radiant_vars", vars) %>%
       set_attr("radiant_dec", dec) %>%
       set_attr("radiant_pred_type", pred_type) %>%
-      set_attr("radiant_pred_cmd", pred_cmd)
+      set_attr("radiant_pred_cmd", pred_cmd) %>%
+      set_attr("radiant_extra_args", extra_args)
 
     return(add_class(pred, c(mclass, "model.predict")))
   } else {
-    return(paste0("There was an error when trying to generate predictions. The\nerror message was:\n\n", attr(pred_val, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
+    return(paste0("There was an error trying to generate predictions. The error\nmessage was:\n\n", attr(pred_val, "condition")$message, "\n\nPlease try again. Examples are shown in the help file."))
   }
 }
 
@@ -951,6 +953,14 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
     cat("Customize command    :", pred_cmd, "\n")
   } else {
     cat("Prediction dataset   :", pred_data, "\n")
+  }
+
+  extra_args <- attr(x, "radiant_extra_args")
+  if (!is_empty(extra_args)) {
+    extra_args <- deparse(extra_args) %>% 
+      sub("list\\(", "", .) %>%
+      sub("\\)$", "", .)
+    cat("Additional arguments :", extra_args, "\n")
   }
 
   if (n == -1) {
@@ -1017,6 +1027,7 @@ plot.model.predict <- function(
   cn <- colnames(x)
   pvars <- "Prediction"
   cnpred <- which(cn == pvars)
+  if (length(cnpred) == 0) return(invisible())
   if (length(cn) > cnpred) {
     pvars <- c(pvars, "ymin", "ymax")
     cn[cnpred + 1] <- pvars[2]

@@ -5,6 +5,8 @@ help_model <- c(
   "Naive Bayes" = "nb.md",
   "Neural Network" = "nn.md",
   "Classification and regression trees" = "crtree.md",
+  "Random Forest" = "rf.md",
+  "Gradient Boosted Trees" = "gbt.md",
   "Evaluate regression" = "evalreg.md",
   "Evaluate classification" = "evalbin.md",
   "Collaborative filtering" = "crs.md",
