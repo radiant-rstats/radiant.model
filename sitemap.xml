@@ -34,7 +34,13 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/cv.crtree.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/cv.gbt.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/cv.nn.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/cv.rforest.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/direct_marketing.html</loc>
@@ -59,6 +65,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/find_min.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/gbt.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/houseprices.html</loc>
@@ -88,6 +97,9 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/nn.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/onehot.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.confusion.html</loc>
   </url>
   <url>
@@ -104,6 +116,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.evalreg.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.gbt.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.logistic.html</loc>
@@ -133,10 +148,19 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.repeater.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.rforest.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.rforest.predict.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/plot.simulater.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/predict.crtree.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/predict.gbt.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/predict.logistic.html</loc>
@@ -154,10 +178,16 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/predict.regress.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/predict.rforest.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/predict_model.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/print.crtree.predict.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/print.gbt.predict.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/print.logistic.predict.html</loc>
@@ -173,6 +203,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/print.regress.predict.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/print.rforest.predict.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/print_predict_model.html</loc>
@@ -203,6 +236,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/repeater.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/rforest.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/rig.html</loc>
@@ -250,6 +286,9 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/store.nb.predict.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/store.rforest.predict.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.confusion.html</loc>
   </url>
   <url>
@@ -268,6 +307,9 @@
     <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.evalreg.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.gbt.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.logistic.html</loc>
   </url>
   <url>
@@ -284,6 +326,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.repeater.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.rforest.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/reference/summary.simulater.html</loc>

@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
       </span>
     </div>
 
@@ -170,8 +170,8 @@
 
     <pre class="usage"><span class='co'># S3 method for crtree</span>
 <span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>x</span>, <span class='kw'>plots</span> <span class='kw'>=</span> <span class='st'>"tree"</span>, <span class='kw'>orient</span> <span class='kw'>=</span> <span class='st'>"LR"</span>,
-  <span class='kw'>width</span> <span class='kw'>=</span> <span class='st'>"900px"</span>, <span class='kw'>labs</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>dec</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>shiny</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>custom</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
+  <span class='kw'>width</span> <span class='kw'>=</span> <span class='st'>"900px"</span>, <span class='kw'>labs</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>nrobs</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>dec</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>shiny</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>custom</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -195,6 +195,10 @@
     <tr>
       <th>labs</th>
       <td><p>Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)</p></td>
+    </tr>
+    <tr>
+      <th>nrobs</th>
+      <td><p>Number of data points to show in dashboard scatter plots (-1 for all)</p></td>
     </tr>
     <tr>
       <th>dec</th>
