@@ -7,3 +7,4 @@ radiant.model.Rproj
 .DS_Store
 cran-comments.md
 docs/
+.vscode/

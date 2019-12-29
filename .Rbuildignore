@@ -8,4 +8,4 @@ cran-comments.md
 _pkgdown.yml
 docs/
 vignettes/
-radiant.model.code-workspace
+.vscode/
