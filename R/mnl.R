@@ -488,7 +488,7 @@ plot.mnl <- function(
 #' @param object Return value from \code{\link{mnl}}
 #' @param pred_data Provide the dataframe to generate predictions (e.g., ketchup). The dataset must contain all columns used in the estimation
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
-#' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the level in the response variable of the mnl model will be used
+#' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels in the response variable of the mnl model will be used
 #' @param dec Number of decimals to show
 #' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
@@ -525,7 +525,6 @@ predict.mnl <- function(
   pfun <- function(model, pred, se, conf_lev) {
 
     ## need to make sure levels in original data and pred are the same
-    ## as predict.naiveBayes relies on this ordering
     set_levels <- function(name) {
       if (!is.null(model$model[[name]]) && is.factor(model$model[[name]])) {
         levs <- levels(model$model[[name]])

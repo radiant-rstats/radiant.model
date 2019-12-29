@@ -4,7 +4,8 @@ globalVariables(c(
   "total", "TN", "FN", "FP", "TP", "total", "profit", "precision", "ROME",
   "TPR", "nr_resp", "nr_obs", "cum_resp", "cum_resp_rate", "pred",
   "cum_prop", "cum_gains", "obs", "everything", "r_data", "r_info", "fix_smart",
-  ".cooksd", ".std.resid", "index", "index.max", "logit", "predictor.value"
+  ".cooksd", ".std.resid", "index", "index.max", "logit", "predictor.value",
+  "label", "Feature"
 ))
 
 #' radiant.model
