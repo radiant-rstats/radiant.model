@@ -3,6 +3,7 @@ nn_plots <- c(
   "Network" = "net",
   "Olden" = "olden",
   "Garson" = "garson",
+  "Partial Dependence" = "pdp",
   "Dashboard" = "dashboard"
 )
 
@@ -182,7 +183,7 @@ output$ui_nn_predict_plot <- renderUI({
 output$ui_nn_plots <- renderUI({
   req(input$nn_type)
   if (input$nn_type != "regression") {
-    nn_plots <- nn_plots[-5]
+    nn_plots <- head(nn_plots, -1)
   }
   selectInput(
     "nn_plots", "Plots:", choices = nn_plots,
@@ -306,12 +307,13 @@ output$ui_nn <- renderUI({
 
 nn_plot <- reactive({
   if (nn_available() != "available") return()
-  # req(input$nn_plots)
   if (is_empty(input$nn_plots, "none")) return()
   res <- .nn()
   if (is.character(res)) return()
   if ("dashboard" %in% input$nn_plots) {
     plot_height <- 750
+  } else if ("pdp" %in% input$nn_plots) {
+    plot_height <- max(500, ceiling(length(res$evar) / 2) * 250)
   } else {
     mlt <- if ("net" %in% input$nn_plots) 45 else 30
     plot_height <- max(500, length(res$model$coefnames) * mlt)
@@ -331,11 +333,6 @@ nn_pred_plot_height <- function()
 ## output is called from the main radiant ui.R
 output$nn <- renderUI({
   register_print_output("summary_nn", ".summary_nn")
-  register_plot_output(
-    "plot_nn_net", ".plot_nn_net",
-    height_fun = "nn_plot_height",
-    width_fun = "nn_plot_width"
-  )
   register_print_output("predict_nn", ".predict_print_nn")
   register_plot_output(
     "predict_plot_nn", ".predict_plot_nn",

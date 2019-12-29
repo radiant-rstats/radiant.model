@@ -16,7 +16,7 @@
 
 \item{pad_x}{Padding for explanatory variable lables in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding}
 
-\item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
+\item{nrobs}{Number of data points to show in dashboard scatter plots (-1 for all)}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

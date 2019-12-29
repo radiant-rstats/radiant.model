@@ -299,7 +299,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
 #' @param size Font size used
 #' @param pad_x Padding for explanatory variable lables in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding
-#' @param nrobs Number of data points to show in scatter plots (-1 for all)
+#' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
@@ -346,6 +346,16 @@ plot.nn <- function(
     mar <- par(mar = c(0, 4.1, 0, 2.1))
     on.exit(par(mar = mar$mar))
     return(do.call(NeuralNetTools::plotnet, list(mod_in = x$model, x_names = x$coefnames, pad_x = pad_x, cex_val = size / 16)))
+  }
+
+  if ("pdp" %in% plots) {
+    ncol <- 2
+    for (pn in x$evar) {
+      plot_list[[pn]] <- pdp::partial(
+        x$model, pred.var = pn, plot = TRUE, rug = TRUE, 
+        prob = x$type == "classification", plot.engine = "ggplot2"
+      ) + labs(y = "")
+    }
   }
 
   if (x$type == "regression" && "dashboard" %in% plots) {
