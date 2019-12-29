@@ -323,6 +323,7 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
 #' @param orient Plot orientation for tree: LR for vertical and TD for horizontal
 #' @param width Plot width in pixels for tree (default is "900px")
 #' @param labs Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)
+#' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
 #' @param dec Decimal places to round results to
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
@@ -343,9 +344,11 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
 #'
 #' @export
 plot.crtree <- function(
-                        x, plots = "tree", orient = "LR",
-                        width = "900px", labs = TRUE, dec = 2,
-                        shiny = FALSE, custom = FALSE, ...) {
+  x, plots = "tree", orient = "LR",
+  width = "900px", labs = TRUE, 
+  nrobs = Inf, dec = 2,
+  shiny = FALSE, custom = FALSE, ...
+) {
   if (is_empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
       return(paste0("graph LR\n A[\"", x, "\"]") %>% DiagrammeR::DiagrammeR(.))
@@ -483,6 +486,7 @@ plot.crtree <- function(
   } else {
     if ("character" %in% class(x)) return(x)
     plot_list <- list()
+    ncol <- 1
     if ("prune" %in% plots) {
       if (is.null(x$unpruned)) {
         df <- data.frame(x$model$cptable, stringsAsFactors = FALSE)
@@ -552,12 +556,25 @@ plot.crtree <- function(
         coord_flip() +
         theme(axis.text.y = element_text(hjust = 0))
     }
+    if ("pdp" %in% plots) {
+      ncol <- 2
+      for (pn in x$evar) {
+        plot_list[[pn]] <- pdp::partial(
+          x$model, pred.var = pn, plot = TRUE, rug = TRUE, 
+          prob = x$type == "classification", plot.engine = "ggplot2", smooth = TRUE
+        ) + labs(y = "")
+      }
+    }
+    if (x$type == "regression" && "dashboard" %in% plots) {
+      plot_list <- plot.regress(x, plots = "dashboard", lines = "line", nrobs = nrobs, custom = TRUE)
+      ncol <- 2
+    }
 
     if (length(plot_list) > 0) {
       if (custom) {
         if (length(plot_list) == 1) plot_list[[1]] else plot_list
       } else {
-        patchwork::wrap_plots(plot_list, ncol = 1) %>%
+        patchwork::wrap_plots(plot_list, ncol = ncol) %>%
           {if (shiny) . else print(.)}
       }
     }

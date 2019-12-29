@@ -5,8 +5,8 @@
 \title{Plot method for the crtree function}
 \usage{
 \method{plot}{crtree}(x, plots = "tree", orient = "LR",
-  width = "900px", labs = TRUE, dec = 2, shiny = FALSE,
-  custom = FALSE, ...)
+  width = "900px", labs = TRUE, nrobs = Inf, dec = 2,
+  shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{crtree}}}
@@ -18,6 +18,8 @@
 \item{width}{Plot width in pixels for tree (default is "900px")}
 
 \item{labs}{Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)}
+
+\item{nrobs}{Number of data points to show in dashboard scatter plots (-1 for all)}
 
 \item{dec}{Decimal places to round results to}
 
