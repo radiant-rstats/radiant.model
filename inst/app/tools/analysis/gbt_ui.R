@@ -507,8 +507,7 @@ gbt_available <- reactive({
     req(input$gbt_nrobs)
     pinp <- c(pinp, nrobs = as_integer(input$gbt_nrobs))
   } else if (input$gbt_plots == "pdp") {
-    req(input$rf_pdp_sd)
-    pinp <- c(pinp, pdp_sd = input$rf_pdp_sd)
+    pinp <- c(pinp)
   }
   withProgress(message = "Generating plots", value = 1, {
     do.call(plot, c(list(x = .gbt()), pinp))
