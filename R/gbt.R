@@ -11,7 +11,7 @@
 #' @param learning_rate Learning rate (eta)
 #' @param min_split_loss Minimal improvement (gamma)
 #' @param nrounds Number of trees to create
-#' @param min_child_weight Minimum number of instances allowed in each node 
+#' @param min_child_weight Minimum number of instances allowed in each node
 #' @param subsample Subsample ratio of the training instances (0-1)
 #' @param early_stopping_rounds Early stopping rule
 #' @param wts Weights to use in estimation
@@ -40,7 +40,7 @@ gbt <- function(
   dataset, rvar, evar, type = "classification", lev = "",
   max_depth = 6, learning_rate = 0.3, min_split_loss = 0.01,
   min_child_weight = 1, subsample = 1,
-  nrounds = 100, early_stopping_rounds = 3, 
+  nrounds = 100, early_stopping_rounds = 3,
   wts = "None", seed = NA, check = "",
   data_filter = "", envir = parent.frame(), ...
 ) {
@@ -101,7 +101,7 @@ gbt <- function(
     if (lev != levels(rv)[1]) {
       dataset[[rvar]] <- relevel(dataset[[rvar]], lev)
     }
-  } 
+  }
 
   ## standardize data to limit stability issues ...
   if ("standardize" %in% check) {
@@ -215,7 +215,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   cat("Nr of rounds (trees) :", object$nrounds, "\n")
   cat("Early stopping rounds:", object$early_stopping_rounds, "\n")
   if (length(object$extra_args)) {
-    extra_args <- deparse(object$extra_args) %>% 
+    extra_args <- deparse(object$extra_args) %>%
       sub("list\\(", "", .) %>%
       sub("\\)$", "", .)
     cat("Additional arguments :", extra_args, "\n")
@@ -255,7 +255,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @seealso \code{\link{gbt}} to generate results
 #' @seealso \code{\link{summary.gbt}} to summarize results
 #' @seealso \code{\link{predict.gbt}} for prediction
-#' 
+#'
 #' @importFrom pdp partial
 #'
 #' @export
@@ -283,7 +283,7 @@ plot.gbt <- function(
         for (i in seq_len(nr)) {
           seed <- x$seed
           pdi <-  pdp::partial(
-            x$model, pred.var = fn[i], plot = FALSE, 
+            x$model, pred.var = fn[i], plot = FALSE,
             prob = x$type == "classification", train = dtx
           )
           effects[i] <- pdi[pdi[[1]] == 1, 2]
@@ -292,7 +292,7 @@ plot.gbt <- function(
         colnames(pgrid) <- fn
         base <-  pdp::partial(
           x$model, pred.var = fn,
-          pred.grid = pgrid, plot = FALSE, 
+          pred.grid = pgrid, plot = FALSE,
           prob = x$type == "classification", train = dtx
         )[1, "yhat"]
         pd <- data.frame(label = levels(mod_dat[[pn]]), yhat = c(base, effects)) %>%
@@ -303,7 +303,7 @@ plot.gbt <- function(
           labs(y = "")
       } else {
         plot_list[[pn]] <- pdp::partial(
-          x$model, pred.var = pn, plot = TRUE, rug = TRUE, 
+          x$model, pred.var = pn, plot = TRUE, rug = TRUE,
           prob = x$type == "classification", plot.engine = "ggplot2",
           smooth = TRUE, train = dtx
         ) + labs(y = "")
@@ -314,14 +314,18 @@ plot.gbt <- function(
     mod_dat <- x$model$model
     vimp <- data.frame(
       Feature = colnames(mod_dat)[-1],
-      Gain = NA
+      Gain = 0
     )
     for (i in colnames(mod_dat)[-1]) {
       if (is.factor(mod_dat[[i]])) {
         fn <- paste0(i, levels(mod_dat[[i]]))
-        vimp[vimp$Feature == i, "Gain"] <- sum(imp[imp$Feature %in% fn, "Gain"])
+        if (any(fn %in% imp$Feature)) {
+          vimp[vimp$Feature == i, "Gain"] <- sum(imp[imp$Feature %in% fn, "Gain"])
+        }
       } else {
-        vimp[vimp$Feature == i, "Gain"] <- imp[imp$Feature == i, "Gain"]
+        if (i %in% imp$Feature) {
+          vimp[vimp$Feature == i, "Gain"] <- imp[imp$Feature == i, "Gain"]
+        }
       }
     }
 
@@ -381,7 +385,7 @@ predict.gbt <- function(
   } else {
     df_name <- pred_data
   }
- 
+
   pfun <- function(model, pred, se, conf_lev) {
     frm <- formula("fake ~ .")
     ## ensure the factor levels in the prediction data are the
@@ -454,8 +458,8 @@ print.gbt.predict <- function(x, ..., n = 10)
 #' result <- gbt(dvd, "buy", c("coupon", "purch", "last"))
 #' cv.gbt(result, params = list(max_depth = 1:6))
 #' cv.gbt(
-#'   result, 
-#'   params = list(learning_rate = seq(0.1, 0.5, 0.1)), 
+#'   result,
+#'   params = list(learning_rate = seq(0.1, 0.5, 0.1)),
 #'   fun = profit, cost = 1, margin = 5, maximize = TRUE
 #' )
 #' result <- gbt(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
@@ -475,7 +479,7 @@ cv.gbt <- function(
   if (length(params) == 0) {
     params <- list(
       max_depth = 4:6, learning_rate = seq(0.1, 0.5, 0.1),
-      min_child_weight = 1, min_split_loss = 0.01, 
+      min_child_weight = 1, min_split_loss = 0.01,
       subsample = 1
     )
   }
@@ -508,7 +512,7 @@ cv.gbt <- function(
 
   params_base[c("nrounds", "nthreads", "silent")] <- NULL
   for (n in names(params)) {
-    params_base[[n]] <- params[[n]] 
+    params_base[[n]] <- params[[n]]
   }
   params <- params_base
 
@@ -568,8 +572,8 @@ cv.gbt <- function(
     fun_wrapper <- fun
   }
 
+  tf <- tempfile()
   nitt <- nrow(tune_grid)
-  model <- list() ## pre-defining so that capture.output will work
   withProgress(message = "Running cross-validation (gbt)", value = 0, {
     out <- list()
     for (i in seq_len(nitt)) {
@@ -578,11 +582,11 @@ cv.gbt <- function(
         cat("Working on", paste0(paste(colnames(cv_params), "=", cv_params), collapse = ", "), "\n")
       }
       for (j in seq_len(repeats)) {
-        if (is_empty(nrounds)) {
-          nrounds <- if (!is.null(cv_params$nrounds)) cv_params$nrounds else 500
-        }
+        if (is_empty(nrounds)) nrounds <- if (!is.null(cv_params$nrounds)) cv_params$nrounds else 500
+        cv_params$nrounds <- NULL
         set.seed(seed)
-        mess <- capture.output(model <<- xgboost::xgb.cv(
+        sink(tf) ## avoiding messages from xgboost::xgb.cv
+        model <- xgboost::xgb.cv(
           params = cv_params,
           data = train,
           nfold = K,
@@ -592,11 +596,11 @@ cv.gbt <- function(
           maximize = maximize,
           early_stopping_rounds = early_stopping_rounds,
           nthread = nthread
-        ))
-        model$evaluation_log
+        )
+        sink()
         out[[paste0(i, "-", j)]] <- as.data.frame(c(
           nrounds = nrounds, best_iteration = model$best_iteration,
-          model$evaluation_log[model$best_iteration, -1], cv_params 
+          model$evaluation_log[model$best_iteration, -1], cv_params
         ))
       }
       incProgress(1 / nitt, detail = paste("\nCompleted run", i, "out of", nitt))
@@ -605,8 +609,8 @@ cv.gbt <- function(
 
   out <- bind_rows(out)
   if (type == "classification") {
-    out[order(out[[3]], decreasing = TRUE), ]
+    out[order(out[[5]], decreasing = TRUE), ]
   } else {
-    out[order(out[[3]], decreasing = FALSE), ]
+    out[order(out[[5]], decreasing = FALSE), ]
   }
 }
