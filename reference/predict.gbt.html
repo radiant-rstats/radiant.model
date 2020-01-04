@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.2</span>
       </span>
     </div>
 
@@ -219,9 +219,9 @@
 #&gt; Prediction command   : pclass = levels(pclass) 
 #&gt; 
 #&gt;   sex pclass Prediction
-#&gt;  male    1st      0.457
-#&gt;  male    2nd      0.398
-#&gt;  male    3rd      0.403</div><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>gbt</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='st'>"carat:color"</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>)
+#&gt;  male    1st      0.404
+#&gt;  male    2nd      0.276
+#&gt;  male    3rd      0.289</div><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>gbt</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='st'>"carat:color"</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>)
 <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_cmd</span> <span class='kw'>=</span> <span class='st'>"carat = 1:3"</span>)</div><div class='output co'>#&gt; Gradiant Boosted Trees
 #&gt; Data                 : diamonds 
 #&gt; Response variable    : price 

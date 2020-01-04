@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.2</span>
       </span>
     </div>
 
@@ -169,10 +169,10 @@
     </div>
 
     <pre class="usage"><span class='fu'>gbt</span>(<span class='no'>dataset</span>, <span class='no'>rvar</span>, <span class='no'>evar</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"classification"</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>max_depth</span> <span class='kw'>=</span> <span class='fl'>6</span>, <span class='kw'>learning_rate</span> <span class='kw'>=</span> <span class='fl'>0.3</span>, <span class='kw'>min_split_loss</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
+  <span class='kw'>max_depth</span> <span class='kw'>=</span> <span class='fl'>6</span>, <span class='kw'>learning_rate</span> <span class='kw'>=</span> <span class='fl'>0.3</span>, <span class='kw'>min_split_loss</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>min_child_weight</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>subsample</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>nrounds</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(), <span class='no'>...</span>)</pre>
+  <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>nthread</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>,
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(), <span class='no'>...</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -226,16 +226,16 @@
       <td><p>Early stopping rule</p></td>
     </tr>
     <tr>
+      <th>nthread</th>
+      <td><p>Number of parallel threads to use. Defaults to 12 if available</p></td>
+    </tr>
+    <tr>
       <th>wts</th>
       <td><p>Weights to use in estimation</p></td>
     </tr>
     <tr>
       <th>seed</th>
       <td><p>Random seed to use as the starting point</p></td>
-    </tr>
-    <tr>
-      <th>check</th>
-      <td><p>Optional estimation parameters</p></td>
     </tr>
     <tr>
       <th>data_filter</th>
@@ -272,40 +272,259 @@
 #&gt; Explanatory variables: pclass, sex 
 #&gt; Max depth            : 6 
 #&gt; Learning rate (eta)  : 0.3 
-#&gt; Min split loss       : 0.01 
+#&gt; Min split loss       : 0 
 #&gt; Min child weight     : 1 
 #&gt; Sub-sample           : 1 
 #&gt; Nr of rounds (trees) : 100 
-#&gt; Early stopping rounds: 3 
-#&gt; Nr obs               : 1 
+#&gt; Early stopping rounds: 10 
+#&gt; Nr obs               : 1,043 
 #&gt; 
 #&gt; Iteration history:
 #&gt; 
-#&gt; [1]	train-error:0.213806 
-#&gt; [2]	train-error:0.213806 
-#&gt; [3]	train-error:0.213806 
-#&gt; [4]	train-error:0.213806 
+#&gt; [1]	train-auc:0.824504 
+#&gt; [2]	train-auc:0.824504 
+#&gt; [3]	train-auc:0.826267 
+#&gt; [4]	train-auc:0.826267 
+#&gt; [5]	train-auc:0.826267 
+#&gt; [6]	train-auc:0.826267 
+#&gt; [7]	train-auc:0.826267 
+#&gt; [8]	train-auc:0.826267 
+#&gt; [9]	train-auc:0.826267 
+#&gt; [10]	train-auc:0.826267 
+#&gt; [11]	train-auc:0.826267 
+#&gt; [12]	train-auc:0.826267 
+#&gt; [13]	train-auc:0.826267 
 #&gt; Stopping. Best iteration:
-#&gt; [1]	train-error:0.213806</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 23
+#&gt; [3]	train-auc:0.826267</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
+#&gt;  $ check                : chr ""
 #&gt;  $ model                :List of 14
 #&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
-#&gt;   ..$ raw            : raw [1:2556] 00 00 00 80 ...
-#&gt;   ..$ best_iteration : int 1
-#&gt;   ..$ best_ntreelimit: num 1
-#&gt;   ..$ best_score     : Named num 0.214
-#&gt;   .. ..- attr(*, "names")= chr "train-error"
-#&gt;   ..$ niter          : int 4
-#&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	4 obs. of  2 variables:
-#&gt;   .. ..$ iter       : num [1:4] 1 2 3 4
-#&gt;   .. ..$ train_error: num [1:4] 0.214 0.214 0.214 0.214
+#&gt;   ..$ raw            : raw [1:7517] 00 00 00 80 ...
+#&gt;   ..$ best_iteration : int 3
+#&gt;   ..$ best_ntreelimit: num 3
+#&gt;   ..$ best_score     : Named num 0.826
+#&gt;   .. ..- attr(*, "names")= chr "train-auc"
+#&gt;   ..$ niter          : int 13
+#&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	13 obs. of  2 variables:
+#&gt;   .. ..$ iter     : num [1:13] 1 2 3 4 5 6 7 8 9 10 ...
+#&gt;   .. ..$ train_auc: num [1:13] 0.825 0.825 0.826 0.826 0.826 ...
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
 #&gt;   ..$ call           : language xgb.train(params = params, data = dtrain, nrounds = nrounds, watchlist = watchlist,      verbose = verbose, print| __truncated__ ...
-#&gt;   ..$ params         :List of 7
+#&gt;   ..$ params         :List of 9
 #&gt;   .. ..$ max_depth       : num 6
 #&gt;   .. ..$ learning_rate   : num 0.3
-#&gt;   .. ..$ min_split_loss  : num 0.01
+#&gt;   .. ..$ min_split_loss  : num 0
 #&gt;   .. ..$ min_child_weight: num 1
 #&gt;   .. ..$ subsample       : num 1
+#&gt;   .. ..$ nthread         : num 12
+#&gt;   .. ..$ objective       : chr "binary:logistic"
+#&gt;   .. ..$ eval_metric     : chr "auc"
+#&gt;   .. ..$ silent          : num 1
+#&gt;   ..$ callbacks      :List of 3
+#&gt;   .. ..$ cb.print.evaluation:function (env = parent.frame())  
+#&gt;   .. .. ..- attr(*, "call")= language cb.print.evaluation(period = print_every_n)
+#&gt;   .. .. ..- attr(*, "name")= chr "cb.print.evaluation"
+#&gt;   .. ..$ cb.evaluation.log  :function (env = parent.frame(), finalize = FALSE)  
+#&gt;   .. .. ..- attr(*, "call")= language cb.evaluation.log()
+#&gt;   .. .. ..- attr(*, "name")= chr "cb.evaluation.log"
+#&gt;   .. ..$ cb.early.stop      :function (env = parent.frame(), finalize = FALSE)  
+#&gt;   .. .. ..- attr(*, "call")= language cb.early.stop(stopping_rounds = early_stopping_rounds, maximize = maximize,      verbose = verbose)
+#&gt;   .. .. ..- attr(*, "name")= chr "cb.early.stop"
+#&gt;   ..$ feature_names  : chr [1:3] "pclass2nd" "pclass3rd" "sexmale"
+#&gt;   ..$ nfeatures      : int 3
+#&gt;   ..$ importance     :Classes ‘data.table’ and 'data.frame':	3 obs. of  4 variables:
+#&gt;   .. ..$ Feature  : chr [1:3] "sexmale" "pclass3rd" "pclass2nd"
+#&gt;   .. ..$ Gain     : num [1:3] 0.7284 0.236 0.0356
+#&gt;   .. ..$ Cover    : num [1:3] 0.392 0.359 0.249
+#&gt;   .. ..$ Frequency: num [1:3] 0.206 0.413 0.381
+#&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
+#&gt;   ..$ model          :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
+#&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
+#&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
+#&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
+#&gt;   .. ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
+#&gt;   ..- attr(*, "class")= chr "xgb.Booster"
+#&gt;  $ output               : chr [1:18] "[1]\ttrain-auc:0.824504 " "Will train until train_auc hasn't improved in 10 rounds." "" "[2]\ttrain-auc:0.824504 " ...
+#&gt;  $ check_args           :function (arg, default, inp = gbt_input)  
+#&gt;  $ extra_args_names     : NULL
+#&gt;  $ extra_args           : list()
+#&gt;  $ gbt_input            :List of 10
+#&gt;   ..$ max_depth            : num 6
+#&gt;   ..$ learning_rate        : num 0.3
+#&gt;   ..$ min_split_loss       : num 0
+#&gt;   ..$ nrounds              : num 100
+#&gt;   ..$ min_child_weight     : num 1
+#&gt;   ..$ subsample            : num 1
+#&gt;   ..$ early_stopping_rounds: num 10
+#&gt;   ..$ nthread              : num 12
+#&gt;   ..$ objective            : chr "binary:logistic"
+#&gt;   ..$ eval_metric          : chr "auc"
+#&gt;  $ not_vary             : chr(0) 
+#&gt;  $ nr_obs               : int 1043
+#&gt;  $ df_name              : chr "titanic"
+#&gt;  $ vars                 : chr [1:2] "pclass" "sex"
+#&gt;  $ rvar                 : chr "survived"
+#&gt;  $ evar                 : chr [1:2] "pclass" "sex"
+#&gt;  $ type                 : chr "classification"
+#&gt;  $ lev                  : chr "Yes"
+#&gt;  $ max_depth            : num 6
+#&gt;  $ learning_rate        : num 0.3
+#&gt;  $ min_split_loss       : num 0
+#&gt;  $ min_child_weight     : num 1
+#&gt;  $ subsample            : num 1
+#&gt;  $ nrounds              : num 100
+#&gt;  $ early_stopping_rounds: num 10
+#&gt;  $ nthread              : num 12
+#&gt;  $ wts                  : NULL
+#&gt;  $ seed                 : chr NA
+#&gt;  $ data_filter          : chr ""
+#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>eval_metric</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='st'>"error@"</span>, <span class='fl'>0.5</span>/<span class='fl'>6</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
+#&gt;  $ check                : chr ""
+#&gt;  $ model                :List of 14
+#&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
+#&gt;   ..$ raw            : raw [1:6445] 00 00 00 80 ...
+#&gt;   ..$ best_iteration : int 1
+#&gt;   ..$ best_ntreelimit: num 1
+#&gt;   ..$ best_score     : Named num 0.593
+#&gt;   .. ..- attr(*, "names")= chr "train-error@0.0833333"
+#&gt;   ..$ niter          : int 11
+#&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	11 obs. of  2 variables:
+#&gt;   .. ..$ iter                 : num [1:11] 1 2 3 4 5 6 7 8 9 10 ...
+#&gt;   .. ..$ train_error@0.0833333: num [1:11] 0.593 0.593 0.593 0.593 0.593 ...
+#&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
+#&gt;   ..$ call           : language xgb.train(params = params, data = dtrain, nrounds = nrounds, watchlist = watchlist,      verbose = verbose, print| __truncated__ ...
+#&gt;   ..$ params         :List of 9
+#&gt;   .. ..$ max_depth       : num 6
+#&gt;   .. ..$ learning_rate   : num 0.3
+#&gt;   .. ..$ min_split_loss  : num 0
+#&gt;   .. ..$ min_child_weight: num 1
+#&gt;   .. ..$ subsample       : num 1
+#&gt;   .. ..$ nthread         : num 12
+#&gt;   .. ..$ objective       : chr "binary:logistic"
+#&gt;   .. ..$ eval_metric     : chr "error@0.0833333333333333"
+#&gt;   .. ..$ silent          : num 1
+#&gt;   ..$ callbacks      :List of 3
+#&gt;   .. ..$ cb.print.evaluation:function (env = parent.frame())  
+#&gt;   .. .. ..- attr(*, "call")= language cb.print.evaluation(period = print_every_n)
+#&gt;   .. .. ..- attr(*, "name")= chr "cb.print.evaluation"
+#&gt;   .. ..$ cb.evaluation.log  :function (env = parent.frame(), finalize = FALSE)  
+#&gt;   .. .. ..- attr(*, "call")= language cb.evaluation.log()
+#&gt;   .. .. ..- attr(*, "name")= chr "cb.evaluation.log"
+#&gt;   .. ..$ cb.early.stop      :function (env = parent.frame(), finalize = FALSE)  
+#&gt;   .. .. ..- attr(*, "call")= language cb.early.stop(stopping_rounds = early_stopping_rounds, maximize = maximize,      verbose = verbose)
+#&gt;   .. .. ..- attr(*, "name")= chr "cb.early.stop"
+#&gt;   ..$ feature_names  : chr [1:3] "pclass2nd" "pclass3rd" "sexmale"
+#&gt;   ..$ nfeatures      : int 3
+#&gt;   ..$ importance     :Classes ‘data.table’ and 'data.frame':	3 obs. of  4 variables:
+#&gt;   .. ..$ Feature  : chr [1:3] "sexmale" "pclass3rd" "pclass2nd"
+#&gt;   .. ..$ Gain     : num [1:3] 0.7291 0.2356 0.0353
+#&gt;   .. ..$ Cover    : num [1:3] 0.393 0.364 0.243
+#&gt;   .. ..$ Frequency: num [1:3] 0.208 0.415 0.377
+#&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
+#&gt;   ..$ model          :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
+#&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
+#&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
+#&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
+#&gt;   .. ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
+#&gt;   ..- attr(*, "class")= chr "xgb.Booster"
+#&gt;  $ output               : chr [1:16] "[1]\ttrain-error@0.0833333:0.592522 " "Will train until train_error@0.0833333 hasn't improved in 10 rounds." "" "[2]\ttrain-error@0.0833333:0.592522 " ...
+#&gt;  $ check_args           :function (arg, default, inp = gbt_input)  
+#&gt;  $ extra_args_names     : chr "eval_metric"
+#&gt;  $ extra_args           :List of 1
+#&gt;   ..$ eval_metric: chr "error@0.0833333333333333"
+#&gt;  $ gbt_input            :List of 10
+#&gt;   ..$ max_depth            : num 6
+#&gt;   ..$ learning_rate        : num 0.3
+#&gt;   ..$ min_split_loss       : num 0
+#&gt;   ..$ nrounds              : num 100
+#&gt;   ..$ min_child_weight     : num 1
+#&gt;   ..$ subsample            : num 1
+#&gt;   ..$ early_stopping_rounds: num 10
+#&gt;   ..$ nthread              : num 12
+#&gt;   ..$ objective            : chr "binary:logistic"
+#&gt;   ..$ eval_metric          : chr "error@0.0833333333333333"
+#&gt;  $ not_vary             : chr(0) 
+#&gt;  $ nr_obs               : int 1043
+#&gt;  $ df_name              : chr "titanic"
+#&gt;  $ vars                 : chr [1:2] "pclass" "sex"
+#&gt;  $ rvar                 : chr "survived"
+#&gt;  $ evar                 : chr [1:2] "pclass" "sex"
+#&gt;  $ type                 : chr "classification"
+#&gt;  $ lev                  : chr "Yes"
+#&gt;  $ max_depth            : num 6
+#&gt;  $ learning_rate        : num 0.3
+#&gt;  $ min_split_loss       : num 0
+#&gt;  $ min_child_weight     : num 1
+#&gt;  $ subsample            : num 1
+#&gt;  $ nrounds              : num 100
+#&gt;  $ early_stopping_rounds: num 10
+#&gt;  $ nthread              : num 12
+#&gt;  $ wts                  : NULL
+#&gt;  $ seed                 : chr NA
+#&gt;  $ data_filter          : chr ""
+#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"clarity"</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>()</div><div class='output co'>#&gt; Gradient Boosted Trees (XGBoost)
+#&gt; Type                 : Regression
+#&gt; Data                 : diamonds
+#&gt; Response variable    : price
+#&gt; Explanatory variables: carat, clarity 
+#&gt; Max depth            : 6 
+#&gt; Learning rate (eta)  : 0.3 
+#&gt; Min split loss       : 0 
+#&gt; Min child weight     : 1 
+#&gt; Sub-sample           : 1 
+#&gt; Nr of rounds (trees) : 100 
+#&gt; Early stopping rounds: 10 
+#&gt; Nr obs               : 3,000 
+#&gt; 
+#&gt; Iteration history:
+#&gt; 
+#&gt; [1]	train-rmse:4004.124756 
+#&gt; [2]	train-rmse:2934.489990 
+#&gt; [3]	train-rmse:2209.099365 
+#&gt; [4]	train-rmse:1731.832275 
+#&gt; [5]	train-rmse:1429.542236 
+#&gt; [6]	train-rmse:1236.558594 
+#&gt; [7]	train-rmse:1112.986206 
+#&gt; [8]	train-rmse:1041.411133 
+#&gt; [9]	train-rmse:994.494568 
+#&gt; [10]	train-rmse:968.976013 
+#&gt; ...
+#&gt; [91]	train-rmse:747.640930 
+#&gt; [92]	train-rmse:747.166992 
+#&gt; [93]	train-rmse:745.880554 
+#&gt; [94]	train-rmse:744.933777 
+#&gt; [95]	train-rmse:744.060425 
+#&gt; [96]	train-rmse:743.978699 
+#&gt; [97]	train-rmse:743.872742 
+#&gt; [98]	train-rmse:743.621277 
+#&gt; [99]	train-rmse:743.458862 
+#&gt; [100]	train-rmse:743.281799 </div><div class='input'><span class='no'>rig_wrap</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>(<span class='no'>preds</span>, <span class='no'>dtrain</span>) {
+  <span class='no'>labels</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>xgboost</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/xgboost/man/getinfo.html'>getinfo</a></span>(<span class='no'>dtrain</span>, <span class='st'>"label"</span>)
+  <span class='no'>value</span> <span class='kw'>&lt;-</span> <span class='fu'>rig</span>(<span class='no'>preds</span>, <span class='no'>labels</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='fl'>1</span>)
+  <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>metric</span> <span class='kw'>=</span> <span class='st'>"rig"</span>, <span class='kw'>value</span> <span class='kw'>=</span> <span class='no'>value</span>)
+}
+<span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>eval_metric</span> <span class='kw'>=</span> <span class='no'>rig_wrap</span>, <span class='kw'>maximize</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
+#&gt;  $ check                : chr ""
+#&gt;  $ model                :List of 14
+#&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
+#&gt;   ..$ raw            : raw [1:17685] 00 00 00 80 ...
+#&gt;   ..$ best_iteration : int 25
+#&gt;   ..$ best_ntreelimit: num 25
+#&gt;   ..$ best_score     : Named num 0.315
+#&gt;   .. ..- attr(*, "names")= chr "train-rig"
+#&gt;   ..$ niter          : int 35
+#&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	35 obs. of  2 variables:
+#&gt;   .. ..$ iter     : num [1:35] 1 2 3 4 5 6 7 8 9 10 ...
+#&gt;   .. ..$ train_rig: num [1:35] 0.124 0.204 0.249 0.276 0.292 ...
+#&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
+#&gt;   ..$ call           : language xgb.train(params = params, data = dtrain, nrounds = nrounds, watchlist = watchlist,      verbose = verbose, print| __truncated__ ...
+#&gt;   ..$ params         :List of 8
+#&gt;   .. ..$ max_depth       : num 6
+#&gt;   .. ..$ learning_rate   : num 0.3
+#&gt;   .. ..$ min_split_loss  : num 0
+#&gt;   .. ..$ min_child_weight: num 1
+#&gt;   .. ..$ subsample       : num 1
+#&gt;   .. ..$ nthread         : num 12
 #&gt;   .. ..$ objective       : chr "binary:logistic"
 #&gt;   .. ..$ silent          : num 1
 #&gt;   ..$ callbacks      :List of 3
@@ -322,9 +541,9 @@
 #&gt;   ..$ nfeatures      : int 3
 #&gt;   ..$ importance     :Classes ‘data.table’ and 'data.frame':	3 obs. of  4 variables:
 #&gt;   .. ..$ Feature  : chr [1:3] "sexmale" "pclass3rd" "pclass2nd"
-#&gt;   .. ..$ Gain     : num [1:3] 0.7464 0.219 0.0346
-#&gt;   .. ..$ Cover    : num [1:3] 0.418 0.418 0.165
-#&gt;   .. ..$ Frequency: num [1:3] 0.222 0.444 0.333
+#&gt;   .. ..$ Gain     : num [1:3] 0.7281 0.2362 0.0357
+#&gt;   .. ..$ Cover    : num [1:3] 0.415 0.333 0.252
+#&gt;   .. ..$ Frequency: num [1:3] 0.218 0.395 0.388
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
 #&gt;   ..$ model          :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
 #&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
@@ -332,19 +551,30 @@
 #&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
 #&gt;   .. ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
 #&gt;   ..- attr(*, "class")= chr "xgb.Booster"
-#&gt;  $ output               : chr [1:9] "[1]\ttrain-error:0.213806 " "Will train until train_error hasn't improved in 3 rounds." "" "[2]\ttrain-error:0.213806 " ...
-#&gt;  $ extra_args           : list()
-#&gt;  $ gbt_input            :List of 8
+#&gt;  $ output               : chr [1:40] "[1]\ttrain-rig:0.124424 " "Will train until train_rig hasn't improved in 10 rounds." "" "[2]\ttrain-rig:0.203935 " ...
+#&gt;  $ check_args           :function (arg, default, inp = gbt_input)  
+#&gt;  $ extra_args_names     : chr [1:2] "eval_metric" "maximize"
+#&gt;  $ extra_args           :List of 2
+#&gt;   ..$ eval_metric:function (preds, dtrain)  
+#&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x11eb5a18&gt; 
+#&gt;   ..$ maximize   : logi TRUE
+#&gt;  $ gbt_input            :List of 11
 #&gt;   ..$ max_depth            : num 6
 #&gt;   ..$ learning_rate        : num 0.3
-#&gt;   ..$ min_split_loss       : num 0.01
+#&gt;   ..$ min_split_loss       : num 0
 #&gt;   ..$ nrounds              : num 100
 #&gt;   ..$ min_child_weight     : num 1
 #&gt;   ..$ subsample            : num 1
-#&gt;   ..$ early_stopping_rounds: num 3
+#&gt;   ..$ early_stopping_rounds: num 10
+#&gt;   ..$ nthread              : num 12
 #&gt;   ..$ objective            : chr "binary:logistic"
-#&gt;  $ objective            : chr "binary:logistic"
+#&gt;   ..$ eval_metric          :function (preds, dtrain)  
+#&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x11eb5a18&gt; 
+#&gt;   ..$ maximize             : logi TRUE
 #&gt;  $ not_vary             : chr(0) 
+#&gt;  $ nr_obs               : int 1043
 #&gt;  $ df_name              : chr "titanic"
 #&gt;  $ vars                 : chr [1:2] "pclass" "sex"
 #&gt;  $ rvar                 : chr "survived"
@@ -353,52 +583,16 @@
 #&gt;  $ lev                  : chr "Yes"
 #&gt;  $ max_depth            : num 6
 #&gt;  $ learning_rate        : num 0.3
-#&gt;  $ min_split_loss       : num 0.01
+#&gt;  $ min_split_loss       : num 0
 #&gt;  $ min_child_weight     : num 1
 #&gt;  $ subsample            : num 1
 #&gt;  $ nrounds              : num 100
-#&gt;  $ early_stopping_rounds: num 3
+#&gt;  $ early_stopping_rounds: num 10
+#&gt;  $ nthread              : num 12
 #&gt;  $ wts                  : NULL
 #&gt;  $ seed                 : chr NA
-#&gt;  $ check                : chr ""
 #&gt;  $ data_filter          : chr ""
-#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"clarity"</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>()</div><div class='output co'>#&gt; Gradient Boosted Trees (XGBoost)
-#&gt; Type                 : Regression
-#&gt; Data                 : diamonds
-#&gt; Response variable    : price
-#&gt; Explanatory variables: carat, clarity 
-#&gt; Max depth            : 6 
-#&gt; Learning rate (eta)  : 0.3 
-#&gt; Min split loss       : 0.01 
-#&gt; Min child weight     : 1 
-#&gt; Sub-sample           : 1 
-#&gt; Nr of rounds (trees) : 100 
-#&gt; Early stopping rounds: 3 
-#&gt; Nr obs               : 1 
-#&gt; 
-#&gt; Iteration history:
-#&gt; 
-#&gt; [1]	train-rmse:4004.123047 
-#&gt; [2]	train-rmse:2934.489990 
-#&gt; [3]	train-rmse:2209.100098 
-#&gt; [4]	train-rmse:1731.832153 
-#&gt; [5]	train-rmse:1429.542358 
-#&gt; [6]	train-rmse:1236.558594 
-#&gt; [7]	train-rmse:1112.986206 
-#&gt; [8]	train-rmse:1041.411255 
-#&gt; [9]	train-rmse:994.494995 
-#&gt; [10]	train-rmse:968.975891 
-#&gt; ...
-#&gt; [91]	train-rmse:747.641052 
-#&gt; [92]	train-rmse:747.167053 
-#&gt; [93]	train-rmse:745.880493 
-#&gt; [94]	train-rmse:744.933533 
-#&gt; [95]	train-rmse:744.060547 
-#&gt; [96]	train-rmse:743.978455 
-#&gt; [97]	train-rmse:743.872314 
-#&gt; [98]	train-rmse:743.621338 
-#&gt; [99]	train-rmse:743.458862 
-#&gt; [100]	train-rmse:743.281921 </div><div class='input'>
+#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
