@@ -215,6 +215,8 @@ articles:
     - pkgdown/nn
     - pkgdown/nb
     - pkgdown/crtree
+    - pkgdown/rforest
+    - pkgdown/gbt
     - pkgdown/evalreg
     - pkgdown/evalbin
     - pkgdown/crs

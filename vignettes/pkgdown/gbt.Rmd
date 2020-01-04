@@ -1,0 +1,10 @@
+---
+title: "Model > Gradient Boosted Trees"
+author: "Vincent R. Nijs, Rady School of Management (UCSD)"
+---
+
+```{r child = "_gbt.Rmd"}
+```
+
+```{r child = "_footer.md"}
+```

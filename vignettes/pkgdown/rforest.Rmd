@@ -1,0 +1,10 @@
+---
+title: "Model > Random Forest"
+author: "Vincent R. Nijs, Rady School of Management (UCSD)"
+---
+
+```{r child = "_rforest.Rmd"}
+```
+
+```{r child = "_footer.md"}
+```

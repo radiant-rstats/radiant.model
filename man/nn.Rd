@@ -2,7 +2,7 @@
 % Please edit documentation in R/nn.R
 \name{nn}
 \alias{nn}
-\title{Neural Networks}
+\title{Neural Networks using nnet}
 \usage{
 nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
   decay = 0.5, wts = "None", seed = NA, check = "standardize",
@@ -39,7 +39,7 @@ nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
 A list with all variables defined in nn as an object of class nn
 }
 \description{
-Neural Networks
+Neural Networks using nnet
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
