@@ -358,6 +358,9 @@
     <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/evalreg.html</loc>
   </url>
   <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/gbt.html</loc>
+  </url>
+  <url>
     <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/logistic.html</loc>
   </url>
   <url>
@@ -371,6 +374,9 @@
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/regress.html</loc>
+  </url>
+  <url>
+    <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/rforest.html</loc>
   </url>
   <url>
     <loc>https://radiant-rstats.github.io/radiant.model/articles/pkgdown/simulater.html</loc>
