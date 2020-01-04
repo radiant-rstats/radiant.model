@@ -1,5 +1,6 @@
-# radiant.model 1.3.1
+# radiant.model 1.3.2
 
+* Improvements to cv.gbt to allow previously setup evaluation functions to be used in cross validation for hyper parameter tuning 
 * Random Forest module using the `ranger` package. Includes a `cv.rforest` function for tuning using cross-validation
 * Gradient Boosted Trees module using the `xgboost` package. Includes a `cv.gbt` function for tuning using cross-validation. For convenience, all data.frame-to-matrix-conversion is handled by radiant
 * Partial Dependence Plots for all trees-based estimation modules and for neural networks

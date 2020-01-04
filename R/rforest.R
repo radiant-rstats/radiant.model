@@ -12,9 +12,9 @@
 #' @param min.node.size Minimal node size
 #' @param sample.fraction Fraction of observations to sample. Default is 1 for sampling with replacement and 0.632 for sampling without replacement
 #' @param replace Sample with (TRUE) or without (FALSE) replacement. If replace is NULL it will be reset to TRUE if the sample.fraction is equal to 1 and will be set to FALSE otherwise
+#' @param num.threads Number of parallel threads to use. Defaults to 12 if available
 #' @param wts Case weights to use in estimation
 #' @param seed Random seed to use as the starting point
-#' @param check Optional estimation parameters
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param envir Environment to extract data from
 #' @param ... Further arguments to pass to ranger
@@ -24,6 +24,7 @@
 #' @examples
 #' rforest(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' rforest(titanic, "survived", c("pclass", "sex")) %>% str()
+#' rforest(titanic, "survived", c("pclass", "sex"), max.depth = 1)
 #' rforest(diamonds, "price", c("carat", "clarity"), type = "regression") %>% summary()
 #'
 #' @seealso \code{\link{summary.rforest}} to summarize results
@@ -38,7 +39,7 @@ rforest <- function(
   dataset, rvar, evar, type = "classification", lev = "",
   mtry = NULL, num.trees = 100, min.node.size = 1,
   sample.fraction = 1, replace = NULL,
-  wts = "None", seed = NA, check = "",
+  num.threads = 12, wts = "None", seed = NA, 
   data_filter = "", envir = parent.frame(), ...
 ) {
 
@@ -100,11 +101,6 @@ rforest <- function(
     probability <- FALSE
   }
 
-  ## standardize data to limit stability issues ...
-  if ("standardize" %in% check) {
-    dataset <- scale_df(dataset, wts = wts)
-  }
-
   vars <- evar
   ## in case : is used
   if (length(vars) < (ncol(dataset) - 1)) {
@@ -125,6 +121,7 @@ rforest <- function(
     importance = "permutation",
     sample.fraction = sample.fraction,
     replace = replace,
+    num.threads = num.threads,
     case.weights = wts,
     data = dataset,
     ...
@@ -154,6 +151,9 @@ rforest <- function(
   model$model <- dataset
 
   rm(dataset, envir, rforest_input) ## dataset not needed elsewhere
+
+  ## needed to work with prediction functions
+  check <- ""    
 
   as.list(environment()) %>% add_class(c("rforest", "model"))
 }
@@ -199,6 +199,7 @@ summary.rforest <- function(object, ...) {
   cat("Number of trees      :", object$num.trees, "\n")
   cat("Min node size        :", object$min.node.size, "\n")
   cat("Sample fraction      :", object$sample.fraction, "\n")
+  cat("Number of threads    :", object$num.threads, "\n")
   if (length(object$extra_args)) {
     extra_args <- deparse(object$extra_args) %>%
       sub("list\\(", "", .) %>%
@@ -226,7 +227,9 @@ summary.rforest <- function(object, ...) {
 #' @param plots Plots to produce for the specified Random Forest model. Use "" to avoid showing any plots (default). Options are ...
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
 #' @param qtiles Show 25th and 75th quitiles in partial-dependence plots
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. 
+#'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples 
+#'   and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -305,9 +308,12 @@ plot.rforest <- function(
 #'
 #' @param object Return value from \code{\link{rforest}}
 #' @param pred_data Provide the dataframe to generate predictions (e.g., diamonds). The dataset must contain all columns used in the estimation
-#' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
-#' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels in the response variable of the rforest model will be used
-#' @param OOB Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared to determine of OOB predictions should be used
+#' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different 
+#'   levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
+#' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels 
+#'   in the response variable of the rforest model will be used
+#' @param OOB Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared 
+#'   to determine of OOB predictions should be used
 #' @param dec Number of decimals to show
 #' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
@@ -534,6 +540,8 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
 #'   result, mtry = 1:3, min.node.size = seq(1, 10, 5),
 #'   num.trees = c(100, 200), sample.fraction = 0.632
 #' )
+#' result <- rforest(titanic, "survived", c("pclass", "sex"), max.depth = 1)
+#' cv.rforest(result, mtry = 1:3, min.node.size = seq(1, 10, 5))
 #' cv.rforest(result, mtry = 1:3, num.trees = c(100, 200), fun = profit, cost = 1, margin = 5)
 #' result <- rforest(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
 #' cv.rforest(result, mtry = 1:3, min.node.size = 1)

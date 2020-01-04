@@ -14,9 +14,9 @@
 #' @param min_child_weight Minimum number of instances allowed in each node
 #' @param subsample Subsample ratio of the training instances (0-1)
 #' @param early_stopping_rounds Early stopping rule
+#' @param nthread Number of parallel threads to use. Defaults to 12 if available
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
-#' @param check Optional estimation parameters
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param envir Environment to extract data from
 #' @param ... Further arguments to pass to xgboost
@@ -26,7 +26,14 @@
 #' @examples
 #' gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' gbt(titanic, "survived", c("pclass", "sex")) %>% str()
+#' gbt(titanic, "survived", c("pclass", "sex"), eval_metric = paste0("error@", 0.5/6)) %>% str()
 #' gbt(diamonds, "price", c("carat", "clarity"), type = "regression") %>% summary()
+#' rig_wrap <- function(preds, dtrain) {
+#'   labels <- xgboost::getinfo(dtrain, "label")
+#'   value <- rig(preds, labels, lev = 1)
+#'   list(metric = "rig", value = value)
+#' }
+#' gbt(titanic, "survived", c("pclass", "sex"), eval_metric = rig_wrap, maximize = TRUE) %>% str()
 #'
 #' @seealso \code{\link{summary.gbt}} to summarize results
 #' @seealso \code{\link{plot.gbt}} to plot results
@@ -38,10 +45,10 @@
 #' @export
 gbt <- function(
   dataset, rvar, evar, type = "classification", lev = "",
-  max_depth = 6, learning_rate = 0.3, min_split_loss = 0.01,
+  max_depth = 6, learning_rate = 0.3, min_split_loss = 0,
   min_child_weight = 1, subsample = 1,
-  nrounds = 100, early_stopping_rounds = 3,
-  wts = "None", seed = NA, check = "",
+  nrounds = 100, early_stopping_rounds = 10,
+  nthread = 12, wts = "None", seed = NA,
   data_filter = "", envir = parent.frame(), ...
 ) {
 
@@ -52,10 +59,7 @@ gbt <- function(
 
   vars <- c(rvar, evar)
 
-  ## remove at some point
-  wts <- NULL
-
-  if (is_empty(wts)) {
+  if (is_empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -65,6 +69,7 @@ gbt <- function(
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- get_data(dataset, vars, filt = data_filter, envir = envir) %>%
     mutate_if(is.Date, as.numeric)
+  nr_obs <- nrow(dataset)
 
   if (!is_empty(wts, "None")) {
     if (exists("wtsname")) {
@@ -103,29 +108,13 @@ gbt <- function(
     }
   }
 
-  ## standardize data to limit stability issues ...
-  if ("standardize" %in% check) {
-    dataset <- scale_df(dataset, wts = wts)
-  }
-
   vars <- evar
   ## in case : is used
   if (length(vars) < (ncol(dataset) - 1)) {
     vars <- evar <- colnames(dataset)[-1]
   }
 
-  dtx <- onehot(dataset[, -1, drop = FALSE])[, -1, drop = FALSE]
-  if (type == "classification") {
-    objective <- "binary:logistic"
-    dty <- as.integer(dataset[[rvar]] == lev)
-  } else {
-    objective <- "reg:linear"
-    dty <- dataset[[rvar]]
-  }
-
   gbt_input <- list(
-    data = dtx,
-    label = dty,
     max_depth = max_depth,
     learning_rate = learning_rate,
     min_split_loss = min_split_loss,
@@ -133,10 +122,30 @@ gbt <- function(
     min_child_weight = min_child_weight,
     subsample = subsample,
     early_stopping_rounds = early_stopping_rounds,
-    objective = objective,
-    ...
+    nthread = nthread
   )
+
+  ## checking for extra args
   extra_args <- list(...)
+  extra_args_names <- names(extra_args)
+  check_args <- function(arg, default, inp = gbt_input) {
+    if (!arg %in% extra_args_names) inp[[arg]] <- default
+    inp
+  }
+
+  if (type == "classification") {
+    gbt_input <- check_args("objective", "binary:logistic")
+    gbt_input <- check_args("eval_metric", "auc")
+    dty <- as.integer(dataset[[rvar]] == lev)
+  } else {
+    gbt_input <- check_args("objective", "reg:linear")
+    gbt_input <- check_args("eval_metric", "rmse")
+    dty <- dataset[[rvar]]
+  }
+
+  ## adding data
+  dtx <- onehot(dataset[, -1, drop = FALSE])[, -1, drop = FALSE]
+  gbt_input <- c(gbt_input, list(data = dtx, label = dty), ...)
 
   ## based on http://stackoverflow.com/a/14324316/1974918
   seed <- gsub("[^0-9]", "", seed)
@@ -148,6 +157,7 @@ gbt <- function(
     set.seed(seed)
   }
 
+  ## capturing the iteration history
   output <- capture.output(model <<- do.call(xgboost::xgboost, gbt_input))
 
   ## adding residuals for regression models
@@ -165,6 +175,9 @@ gbt <- function(
 
   rm(dataset, dty, dtx, rv, envir) ## dataset not needed elsewhere
   gbt_input$data <- gbt_input$label <- NULL
+
+  ## needed to work with prediction functions
+  check <- ""    
 
   as.list(environment()) %>% add_class(c("gbt", "model"))
 }
@@ -217,7 +230,8 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   if (length(object$extra_args)) {
     extra_args <- deparse(object$extra_args) %>%
       sub("list\\(", "", .) %>%
-      sub("\\)$", "", .)
+      sub("\\)$", "", .) %>%
+      sub(" {2,}", " ", .)
     cat("Additional arguments :", extra_args, "\n")
   }
   if (!is_empty(object$seed)) {
@@ -227,7 +241,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
-    cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n")
+    cat("Nr obs               :", format_nr(object$nr_obs, dec = 0), "\n")
   }
 
   if (prn == TRUE) {
@@ -387,7 +401,6 @@ predict.gbt <- function(
   }
 
   pfun <- function(model, pred, se, conf_lev) {
-    frm <- formula("fake ~ .")
     ## ensure the factor levels in the prediction data are the
     ## same as in the data used for estimation
     est_data <- model$model[, -1, drop = FALSE]
@@ -428,12 +441,12 @@ print.gbt.predict <- function(x, ..., n = 10)
 #' @details See \url{https://radiant-rstats.github.io/docs/model/gbt.html} for an example in Radiant
 #'
 #' @param object Object of type "gbt" or "ranger"
-#' @param K Number of cross validation passes to use
+#' @param K Number of cross validation passes to use (aka nfold)
 #' @param repeats Repeated cross validation
 #' @param params List of parameters (see XGBoost documentation)
 #' @param nrounds Number of trees to create
 #' @param early_stopping_rounds Early stopping rule
-#' @param nthread Number of parallel threads to use. Defaults to the maximum number of threads available
+#' @param nthread Number of parallel threads to use. Defaults to 12 if available
 #' @param train An optional xgb.DMatrix object containing the original training data. Not needed when using Radiant's gbt function
 #' @param type Model type ("classification" or "regression")
 #' @param trace Print progress
@@ -457,32 +470,32 @@ print.gbt.predict <- function(x, ..., n = 10)
 #' \dontrun{
 #' result <- gbt(dvd, "buy", c("coupon", "purch", "last"))
 #' cv.gbt(result, params = list(max_depth = 1:6))
+#' cv.gbt(result, params = list(max_depth = 1:6), fun = "logloss")
 #' cv.gbt(
 #'   result,
-#'   params = list(learning_rate = seq(0.1, 0.5, 0.1)),
-#'   fun = profit, cost = 1, margin = 5, maximize = TRUE
+#'   params = list(learning_rate = seq(0.1, 1.0, 0.1)),
+#'   maximize = TRUE, fun = profit, cost = 1, margin = 5
 #' )
 #' result <- gbt(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
 #' cv.gbt(result, params = list(max_depth = 1:2, min_child_weight = 1:2))
 #' cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)), fun = Rsq, maximize = TRUE)
 #' cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)), fun = MAE, maximize = FALSE)
+#' rig_wrap <- function(preds, dtrain) {
+#'   labels <- xgboost::getinfo(dtrain, "label")
+#'   value <- rig(preds, labels, lev = 1)
+#'   list(metric = "rig", value = value)
+#' }
+#' result <- gbt(titanic, "survived", c("pclass", "sex"), eval_metric = rig_wrap, maximize = TRUE)
+#' cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)))
 #' }
 #'
 #' @export
 cv.gbt <- function(
   object, K = 5, repeats = 1, params = list(),
-  nrounds = 500, early_stopping_rounds = 10, nthread = 4,
+  nrounds = 500, early_stopping_rounds = 10, nthread = 12,
   train = NULL, type = "classification",
   trace = TRUE, seed = 1234, maximize = NULL, fun, ...
 ) {
-
-  if (length(params) == 0) {
-    params <- list(
-      max_depth = 4:6, learning_rate = seq(0.1, 0.5, 0.1),
-      min_child_weight = 1, min_split_loss = 0.01,
-      subsample = 1
-    )
-  }
 
   if (inherits(object, "gbt")) {
     dv <- object$rvar
@@ -498,6 +511,12 @@ cv.gbt <- function(
     }
     train <- xgboost::xgb.DMatrix(data = dtx, label = dty)
     params_base <- object$model$params
+    if (is_empty(params_base[["eval_metric"]])) {
+      params_base[["eval_metric"]] <- object$extra_args[["eval_metric"]]
+    }
+    if (is_empty(params_base[["maximize"]])) {
+      params_base[["maximize"]] <- object$extra_args[["maximize"]]
+    }
   } else  if (!inherits(object, "xgb.Booster")) {
     stop("The model object does not seems to be a Gradient Boosted Tree")
   } else {
@@ -510,24 +529,35 @@ cv.gbt <- function(
     stop("Could not access data. Please use the 'train' argument to pass along a matrix created using xgboost::xgb.DMatrix")
   }
 
-  params_base[c("nrounds", "nthreads", "silent")] <- NULL
+  params_base[c("nrounds", "nthread", "silent")] <- NULL
   for (n in names(params)) {
     params_base[[n]] <- params[[n]]
   }
   params <- params_base
-
-  tune_grid <- expand.grid(params)
-  if (missing(fun)) {
-    if (type == "classification") {
-      fun <- "auc"
-    } else {
-      fun <- "rmse"
-    }
-  } else {
-    cn <- deparse(substitute(fun))
-    if (grepl(":{2,3}", cn)) cn <- sub("^.+:{2,3}", "", cn)
+  if (is_empty(maximize)) {
+    maximize <- params$maximize
   }
 
+  if (missing(fun)) {
+    if (type == "classification") {
+      if (length(params$eval_metric) == 0) {
+        fun <- params$eval_metric <- "auc"
+      } else if (is.character(params$eval_metric)) {
+        fun <- params$eval_metric
+      } else {
+        fun <- list("custom" = params$eval_metric)
+      }
+    } else {
+      if (length(params$eval_metric) == 0) {
+        fun <- params$eval_metric <- "rmse"
+      } else if (is.character(params$eval_metric)) {
+        fun <- params$eval_metric
+      } else {
+        fun <- list("custom" = params$eval_metric)
+      } 
+    }
+  } 
+  
   if (length(shiny::getDefaultReactiveDomain()) > 0) {
     trace <- FALSE
     incProgress <- shiny::incProgress
@@ -568,36 +598,52 @@ cv.gbt <- function(
         }
       }
     }
+    cn <- deparse(substitute(fun))
+    if (grepl(":{2,3}", cn)) cn <- sub("^.+:{2,3}", "", cn)
+    params$eval_metric <- cn
+  } else if (is.list(fun)) {
+    fun_wrapper <- fun[["custom"]]
+    params$eval_metric <- "custom"
   } else {
-    fun_wrapper <- fun
+    fun_wrapper <- params$eval_metric <- fun
   }
 
   tf <- tempfile()
+  tune_grid <- expand.grid(params)
   nitt <- nrow(tune_grid)
   withProgress(message = "Running cross-validation (gbt)", value = 0, {
     out <- list()
     for (i in seq_len(nitt)) {
       cv_params <- tune_grid[i, ]
+      if (!is_empty(cv_params$nrounds)) {
+        nrounds <- cv_params$nrounds
+        cv_params$nrounds <- NULL
+      }
       if (trace) {
         cat("Working on", paste0(paste(colnames(cv_params), "=", cv_params), collapse = ", "), "\n")
       }
       for (j in seq_len(repeats)) {
-        if (is_empty(nrounds)) nrounds <- if (!is.null(cv_params$nrounds)) cv_params$nrounds else 500
-        cv_params$nrounds <- NULL
         set.seed(seed)
         sink(tf) ## avoiding messages from xgboost::xgb.cv
-        model <- xgboost::xgb.cv(
-          params = cv_params,
+        cv_params_tmp <- cv_params
+        for (nm in c("eval_metric", "maximize", "early_stopping_rounds", "nthread")) {
+          cv_params_tmp[[nm]] <- NULL
+        }
+        model <- try(xgboost::xgb.cv(
+          params = cv_params_tmp,
           data = train,
           nfold = K,
-          nrounds = nrounds,
           print_every_n = 500,
           eval_metric = fun_wrapper,
           maximize = maximize,
           early_stopping_rounds = early_stopping_rounds,
+          nrounds = nrounds,
           nthread = nthread
-        )
+        ))
         sink()
+        if (inherits(model, "try-error")) {
+          stop(model)
+        }
         out[[paste0(i, "-", j)]] <- as.data.frame(c(
           nrounds = nrounds, best_iteration = model$best_iteration,
           model$evaluation_log[model$best_iteration, -1], cv_params

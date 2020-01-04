@@ -237,7 +237,7 @@ output$ui_gbt <- renderUI({
           tr(
             td(numericInput(
               "gbt_min_split_loss", label = "Min split loss:", min = 0.00001, max = 1000,
-              step = 0.01, value = state_init("gbt_min_split_loss", 0.01)
+              step = 0.01, value = state_init("gbt_min_split_loss", 0)
             ), width = "50%"),
             td(numericInput(
               "gbt_min_child_weight", label = "Min child weight:", min = 1, max = 100,

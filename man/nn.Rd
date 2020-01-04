@@ -6,7 +6,7 @@
 \usage{
 nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
   decay = 0.5, wts = "None", seed = NA, check = "standardize",
-  data_filter = "", envir = parent.frame())
+  form, data_filter = "", envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -28,6 +28,8 @@ nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
 \item{seed}{Random seed to use as the starting point}
 
 \item{check}{Optional estimation parameters ("standardize" is the default)}
+
+\item{form}{Optional formula to use instead of rvar and evar}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 

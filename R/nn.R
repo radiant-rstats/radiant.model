@@ -12,6 +12,7 @@
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
 #' @param check Optional estimation parameters ("standardize" is the default)
+#' @param form Optional formula to use instead of rvar and evar
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param envir Environment to extract data from
 #'
@@ -34,8 +35,18 @@ nn <- function(
   type = "classification", lev = "",
   size = 1, decay = .5, wts = "None",
   seed = NA, check = "standardize",
+  form,
   data_filter = "", envir = parent.frame()
 ) {
+
+  if (!missing(form)) {
+    form <- as.formula(format(form))
+    paste0(format(form), collapse = "")
+
+    vars <- all.vars(form)
+    rvar <- vars[1]
+    evar <- vars[-1]
+  }
 
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
@@ -110,9 +121,11 @@ nn <- function(
     vars <- evar <- colnames(dataset)[-1]
   }
 
+  if (missing(form)) form <- as.formula(paste(rvar, "~ . "))
+
   ## use decay http://stats.stackexchange.com/a/70146/61693
   nninput <- list(
-    formula = as.formula(paste(rvar, "~ . ")),
+    formula = form,
     rang = .1, size = size, decay = decay, weights = wts,
     maxit = 10000, linout = linout, entropy = entropy,
     skip = FALSE, trace = FALSE, data = dataset
@@ -352,7 +365,7 @@ plot.nn <- function(
     ncol <- 2
     for (pn in x$evar) {
       plot_list[[pn]] <- pdp::partial(
-        x$model, pred.var = pn, plot = TRUE, rug = TRUE, 
+        x$model, pred.var = pn, plot = TRUE, rug = TRUE,
         prob = x$type == "classification", plot.engine = "ggplot2"
       ) + labs(y = "")
     }

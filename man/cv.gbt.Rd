@@ -5,14 +5,14 @@
 \title{Cross-validation for Gradient Boosted Trees}
 \usage{
 cv.gbt(object, K = 5, repeats = 1, params = list(), nrounds = 500,
-  early_stopping_rounds = 10, nthread = 4, train = NULL,
+  early_stopping_rounds = 10, nthread = 12, train = NULL,
   type = "classification", trace = TRUE, seed = 1234,
   maximize = NULL, fun, ...)
 }
 \arguments{
 \item{object}{Object of type "gbt" or "ranger"}
 
-\item{K}{Number of cross validation passes to use}
+\item{K}{Number of cross validation passes to use (aka nfold)}
 
 \item{repeats}{Repeated cross validation}
 
@@ -22,7 +22,7 @@ cv.gbt(object, K = 5, repeats = 1, params = list(), nrounds = 500,
 
 \item{early_stopping_rounds}{Early stopping rule}
 
-\item{nthread}{Number of parallel threads to use. Defaults to the maximum number of threads available}
+\item{nthread}{Number of parallel threads to use. Defaults to 12 if available}
 
 \item{train}{An optional xgb.DMatrix object containing the original training data. Not needed when using Radiant's gbt function}
 
@@ -51,15 +51,23 @@ See \url{https://radiant-rstats.github.io/docs/model/gbt.html} for an example in
 \dontrun{
 result <- gbt(dvd, "buy", c("coupon", "purch", "last"))
 cv.gbt(result, params = list(max_depth = 1:6))
+cv.gbt(result, params = list(max_depth = 1:6), fun = "logloss")
 cv.gbt(
-  result, 
-  params = list(learning_rate = seq(0.1, 0.5, 0.1)), 
-  fun = profit, cost = 1, margin = 5, maximize = TRUE
+  result,
+  params = list(learning_rate = seq(0.1, 1.0, 0.1)),
+  maximize = TRUE, fun = profit, cost = 1, margin = 5
 )
 result <- gbt(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
 cv.gbt(result, params = list(max_depth = 1:2, min_child_weight = 1:2))
 cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)), fun = Rsq, maximize = TRUE)
 cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)), fun = MAE, maximize = FALSE)
+rig_wrap <- function(preds, dtrain) {
+  labels <- xgboost::getinfo(dtrain, "label")
+  value <- rig(preds, labels, lev = 1)
+  list(metric = "rig", value = value)
+}
+result <- gbt(titanic, "survived", c("pclass", "sex"), eval_metric = rig_wrap, maximize = TRUE)
+cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)))
 }
 
 }

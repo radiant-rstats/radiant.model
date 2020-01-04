@@ -5,10 +5,10 @@
 \title{Gradient Boosted Trees using XGBoost}
 \usage{
 gbt(dataset, rvar, evar, type = "classification", lev = "",
-  max_depth = 6, learning_rate = 0.3, min_split_loss = 0.01,
+  max_depth = 6, learning_rate = 0.3, min_split_loss = 0,
   min_child_weight = 1, subsample = 1, nrounds = 100,
-  early_stopping_rounds = 3, wts = "None", seed = NA, check = "",
-  data_filter = "", envir = parent.frame(), ...)
+  early_stopping_rounds = 10, nthread = 12, wts = "None",
+  seed = NA, data_filter = "", envir = parent.frame(), ...)
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -35,11 +35,11 @@ gbt(dataset, rvar, evar, type = "classification", lev = "",
 
 \item{early_stopping_rounds}{Early stopping rule}
 
+\item{nthread}{Number of parallel threads to use. Defaults to 12 if available}
+
 \item{wts}{Weights to use in estimation}
 
 \item{seed}{Random seed to use as the starting point}
-
-\item{check}{Optional estimation parameters}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 
@@ -59,7 +59,14 @@ See \url{https://radiant-rstats.github.io/docs/model/gbt.html} for an example in
 \examples{
 gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
 gbt(titanic, "survived", c("pclass", "sex")) \%>\% str()
+gbt(titanic, "survived", c("pclass", "sex"), eval_metric = paste0("error@", 0.5/6)) \%>\% str()
 gbt(diamonds, "price", c("carat", "clarity"), type = "regression") \%>\% summary()
+rig_wrap <- function(preds, dtrain) {
+  labels <- xgboost::getinfo(dtrain, "label")
+  value <- rig(preds, labels, lev = 1)
+  list(metric = "rig", value = value)
+}
+gbt(titanic, "survived", c("pclass", "sex"), eval_metric = rig_wrap, maximize = TRUE) \%>\% str()
 
 }
 \seealso{

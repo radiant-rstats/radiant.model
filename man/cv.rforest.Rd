@@ -47,6 +47,8 @@ cv.rforest(
   result, mtry = 1:3, min.node.size = seq(1, 10, 5),
   num.trees = c(100, 200), sample.fraction = 0.632
 )
+result <- rforest(titanic, "survived", c("pclass", "sex"), max.depth = 1)
+cv.rforest(result, mtry = 1:3, min.node.size = seq(1, 10, 5))
 cv.rforest(result, mtry = 1:3, num.trees = c(100, 200), fun = profit, cost = 1, margin = 5)
 result <- rforest(diamonds, "price", c("carat", "color", "clarity"), type = "regression")
 cv.rforest(result, mtry = 1:3, min.node.size = 1)

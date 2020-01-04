@@ -6,8 +6,9 @@
 \usage{
 rforest(dataset, rvar, evar, type = "classification", lev = "",
   mtry = NULL, num.trees = 100, min.node.size = 1,
-  sample.fraction = 1, replace = NULL, wts = "None", seed = NA,
-  check = "", data_filter = "", envir = parent.frame(), ...)
+  sample.fraction = 1, replace = NULL, num.threads = 12,
+  wts = "None", seed = NA, data_filter = "",
+  envir = parent.frame(), ...)
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -30,11 +31,11 @@ rforest(dataset, rvar, evar, type = "classification", lev = "",
 
 \item{replace}{Sample with (TRUE) or without (FALSE) replacement. If replace is NULL it will be reset to TRUE if the sample.fraction is equal to 1 and will be set to FALSE otherwise}
 
+\item{num.threads}{Number of parallel threads to use. Defaults to 12 if available}
+
 \item{wts}{Case weights to use in estimation}
 
 \item{seed}{Random seed to use as the starting point}
-
-\item{check}{Optional estimation parameters}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 
@@ -54,6 +55,7 @@ See \url{https://radiant-rstats.github.io/docs/model/rforest.html} for an exampl
 \examples{
 rforest(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
 rforest(titanic, "survived", c("pclass", "sex")) \%>\% str()
+rforest(titanic, "survived", c("pclass", "sex"), max.depth = 1)
 rforest(diamonds, "price", c("carat", "clarity"), type = "regression") \%>\% summary()
 
 }
