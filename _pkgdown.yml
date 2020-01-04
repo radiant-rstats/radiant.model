@@ -95,6 +95,26 @@ reference:
     - print.crtree.predict
     - plot.crtree
     - cv.crtree
+- title: Model > Random Forest
+  desc: Estimate a random forest of classification or regression trees
+  contents:
+    - rforest
+    - summary.rforest
+    - predict.rforest
+    - print.rforest.predict
+    - plot.rforest.predict
+    - store.rforest.predict
+    - plot.rforest
+    - cv.rforest
+- title: Model > Gradient Boosted Trees
+  desc: Estimate a gradient boosted trees for regression of classification
+  contents:
+    - gbt
+    - summary.gbt
+    - predict.gbt
+    - print.gbt.predict
+    - plot.gbt
+    - cv.gbt
 - title: Model > Evaluate regression
   desc: Evaluate regression models
   contents:
@@ -115,6 +135,7 @@ reference:
     - summary.confusion
     - plot.confusion
     - auc
+    - rig
 - title: Model > Collaborative filtering
   desc: Esitmate collaborative filtering models
   contents:
@@ -152,6 +173,7 @@ reference:
     - plot.model.predict
     - scale_df
     - minmax
+    - onehot
     - predict_model
     - print_predict_model
     - store.model

@@ -1,4 +1,4 @@
-#' Neural Networks
+#' Neural Networks using nnet
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
