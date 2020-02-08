@@ -1,3 +1,7 @@
+# radiant.model 1.3.3
+
+* Avoid rouding the profit measures in _Model > Evaluate classification_
+
 # radiant.model 1.3.2
 
 * Improvements to cv.gbt to allow previously setup evaluation functions to be used in cross validation for hyper parameter tuning 

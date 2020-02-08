@@ -4,9 +4,21 @@
 \alias{nn}
 \title{Neural Networks using nnet}
 \usage{
-nn(dataset, rvar, evar, type = "classification", lev = "", size = 1,
-  decay = 0.5, wts = "None", seed = NA, check = "standardize",
-  form, data_filter = "", envir = parent.frame())
+nn(
+  dataset,
+  rvar,
+  evar,
+  type = "classification",
+  lev = "",
+  size = 1,
+  decay = 0.5,
+  wts = "None",
+  seed = NA,
+  check = "standardize",
+  form,
+  data_filter = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}

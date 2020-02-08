@@ -4,8 +4,7 @@
 \alias{plot.nb.predict}
 \title{Plot method for nb.predict function}
 \usage{
-\method{plot}{nb.predict}(x, xvar = "", facet_row = ".",
-  facet_col = ".", color = ".class", ...)
+\method{plot}{nb.predict}(x, xvar = "", facet_row = ".", facet_col = ".", color = ".class", ...)
 }
 \arguments{
 \item{x}{Return value from predict function predict.nb}

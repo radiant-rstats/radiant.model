@@ -456,7 +456,6 @@ confusion <- function(
   dataset <- group_by_at(dataset, .vars = "Type") %>%
     mutate(index = profit / max(profit)) %>%
     ungroup()
-  dataset <- mutate(dataset, profit = as.integer(round(profit, 0)))
 
   for (i in 1:nrow(dataset)) {
     tmp <- slice(dataset, i)
@@ -510,11 +509,13 @@ summary.confusion <- function(object, dec = 3, ...) {
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
   cat("\n")
 
-  as.data.frame(object$dataset[, 1:11], stringsAsFactors = FALSE) %>%
+  dataset <- mutate(object$dataset, profit = as.integer(round(profit, 0)))
+  as.data.frame(dataset[, 1:11], stringsAsFactors = FALSE) %>%
     format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
   cat("\n")
-  as.data.frame(object$dataset[, c(1, 2, 13:19)], stringsAsFactors = FALSE) %>%
+
+  as.data.frame(dataset[, c(1, 2, 13:19)], stringsAsFactors = FALSE) %>%
     format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
 }

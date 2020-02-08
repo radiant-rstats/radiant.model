@@ -4,8 +4,7 @@
 \alias{plot.gbt}
 \title{Plot method for the gbt function}
 \usage{
-\method{plot}{gbt}(x, plots = "", nrobs = Inf, shiny = FALSE,
-  custom = FALSE, ...)
+\method{plot}{gbt}(x, plots = "", nrobs = Inf, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{gbt}}}

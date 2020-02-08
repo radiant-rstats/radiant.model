@@ -4,8 +4,7 @@
 \alias{plot.repeater}
 \title{Plot repeated simulation}
 \usage{
-\method{plot}{repeater}(x, bins = 20, shiny = FALSE, custom = FALSE,
-  ...)
+\method{plot}{repeater}(x, bins = 20, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{repeater}}}

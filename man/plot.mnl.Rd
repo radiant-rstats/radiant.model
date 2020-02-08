@@ -4,9 +4,16 @@
 \alias{plot.mnl}
 \title{Plot method for the mnl function}
 \usage{
-\method{plot}{mnl}(x, plots = "coef", conf_lev = 0.95,
-  intercept = FALSE, nrobs = -1, shiny = FALSE, custom = FALSE,
-  ...)
+\method{plot}{mnl}(
+  x,
+  plots = "coef",
+  conf_lev = 0.95,
+  intercept = FALSE,
+  nrobs = -1,
+  shiny = FALSE,
+  custom = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from \code{\link{mnl}}}

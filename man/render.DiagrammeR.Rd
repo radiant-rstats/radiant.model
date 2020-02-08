@@ -4,8 +4,7 @@
 \alias{render.DiagrammeR}
 \title{Method to render DiagrammeR plots}
 \usage{
-\method{render}{DiagrammeR}(object,
-  shiny = shiny::getDefaultReactiveDomain(), ...)
+\method{render}{DiagrammeR}(object, shiny = shiny::getDefaultReactiveDomain(), ...)
 }
 \arguments{
 \item{object}{DiagrammeR plot}

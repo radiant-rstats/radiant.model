@@ -4,8 +4,7 @@
 \alias{summary.crtree}
 \title{Summary method for the crtree function}
 \usage{
-\method{summary}{crtree}(object, prn = TRUE, splits = FALSE,
-  cptab = FALSE, modsum = FALSE, ...)
+\method{summary}{crtree}(object, prn = TRUE, splits = FALSE, cptab = FALSE, modsum = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{crtree}}}

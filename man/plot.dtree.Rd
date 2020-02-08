@@ -4,8 +4,15 @@
 \alias{plot.dtree}
 \title{Plot method for the dtree function}
 \usage{
-\method{plot}{dtree}(x, symbol = "$", dec = 2, final = FALSE,
-  orient = "LR", width = "900px", ...)
+\method{plot}{dtree}(
+  x,
+  symbol = "$",
+  dec = 2,
+  final = FALSE,
+  orient = "LR",
+  width = "900px",
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from \code{\link{dtree}}}

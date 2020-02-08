@@ -4,7 +4,6 @@
 \name{radiant.model-deprecated}
 \alias{radiant.model-deprecated}
 \alias{ann}
-\alias{radiant.model-deprecated-package}
 \title{Deprecated function(s) in the radiant.model package}
 \usage{
 ann(...)

@@ -4,9 +4,19 @@
 \alias{logistic}
 \title{Logistic regression}
 \usage{
-logistic(dataset, rvar, evar, lev = "", int = "", wts = "None",
-  check = "", form, ci_type, data_filter = "",
-  envir = parent.frame())
+logistic(
+  dataset,
+  rvar,
+  evar,
+  lev = "",
+  int = "",
+  wts = "None",
+  check = "",
+  form,
+  ci_type,
+  data_filter = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}

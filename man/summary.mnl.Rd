@@ -4,8 +4,7 @@
 \alias{summary.mnl}
 \title{Summary method for the mnl function}
 \usage{
-\method{summary}{mnl}(object, sum_check = "", conf_lev = 0.95,
-  test_var = "", dec = 3, ...)
+\method{summary}{mnl}(object, sum_check = "", conf_lev = 0.95, test_var = "", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{mnl}}}

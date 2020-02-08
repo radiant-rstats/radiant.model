@@ -3,7 +3,6 @@
 \docType{package}
 \name{radiant.model}
 \alias{radiant.model}
-\alias{radiant.model-package}
 \title{radiant.model}
 \usage{
 radiant.model(state, ...)

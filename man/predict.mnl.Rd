@@ -4,8 +4,15 @@
 \alias{predict.mnl}
 \title{Predict method for the mnl function}
 \usage{
-\method{predict}{mnl}(object, pred_data = NULL, pred_cmd = "",
-  pred_names = "", dec = 3, envir = parent.frame(), ...)
+\method{predict}{mnl}(
+  object,
+  pred_data = NULL,
+  pred_cmd = "",
+  pred_names = "",
+  dec = 3,
+  envir = parent.frame(),
+  ...
+)
 }
 \arguments{
 \item{object}{Return value from \code{\link{mnl}}}

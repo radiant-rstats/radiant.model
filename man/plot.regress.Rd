@@ -4,9 +4,17 @@
 \alias{plot.regress}
 \title{Plot method for the regress function}
 \usage{
-\method{plot}{regress}(x, plots = "", lines = "", conf_lev = 0.95,
-  intercept = FALSE, nrobs = -1, shiny = FALSE, custom = FALSE,
-  ...)
+\method{plot}{regress}(
+  x,
+  plots = "",
+  lines = "",
+  conf_lev = 0.95,
+  intercept = FALSE,
+  nrobs = -1,
+  shiny = FALSE,
+  custom = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from \code{\link{regress}}}

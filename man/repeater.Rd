@@ -4,9 +4,19 @@
 \alias{repeater}
 \title{Repeated simulation}
 \usage{
-repeater(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
-  byvar = ".sim", fun = "sum", form = "", seed = NULL, name = "",
-  envir = parent.frame())
+repeater(
+  dataset,
+  nr = 12,
+  vars = "",
+  grid = "",
+  sum_vars = "",
+  byvar = ".sim",
+  fun = "sum",
+  form = "",
+  seed = NULL,
+  name = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Return value from the simulater function}

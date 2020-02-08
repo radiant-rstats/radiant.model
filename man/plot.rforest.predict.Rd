@@ -4,8 +4,7 @@
 \alias{plot.rforest.predict}
 \title{Plot method for rforest.predict function}
 \usage{
-\method{plot}{rforest.predict}(x, xvar = "", facet_row = ".",
-  facet_col = ".", color = "none", ...)
+\method{plot}{rforest.predict}(x, xvar = "", facet_row = ".", facet_col = ".", color = "none", ...)
 }
 \arguments{
 \item{x}{Return value from predict function predict.rforest}
