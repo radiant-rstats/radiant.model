@@ -168,8 +168,18 @@
     <p>Confusion matrix</p>
     </div>
 
-    <pre class="usage"><span class='fu'>confusion</span>(<span class='no'>dataset</span>, <span class='no'>pred</span>, <span class='no'>rvar</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>cost</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>margin</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>train</span> <span class='kw'>=</span> <span class='st'>"All"</span>, <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(), <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>confusion</span>(
+  <span class='no'>dataset</span>,
+  <span class='no'>pred</span>,
+  <span class='no'>rvar</span>,
+  <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>cost</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>margin</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>train</span> <span class='kw'>=</span> <span class='st'>"All"</span>,
+  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(),
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -246,7 +256,7 @@
 #&gt;   ..$ RIG      : num [1:2] -0.757 1
 #&gt;   ..$ accuracy : num [1:2] 0.491 1
 #&gt;   ..$ kappa    : num [1:2] -0.0194 1
-#&gt;   ..$ profit   : int [1:2] -4926 5246
+#&gt;   ..$ profit   : num [1:2] -4926 5246
 #&gt;   ..$ index    : num [1:2] -0.939 1
 #&gt;   ..$ ROME     : num [1:2] -0.495 1
 #&gt;   ..$ contact  : num [1:2] 0.498 0.262

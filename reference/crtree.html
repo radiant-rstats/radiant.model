@@ -168,11 +168,29 @@
     <p>Classification and regression trees based on the rpart package</p>
     </div>
 
-    <pre class="usage"><span class='fu'>crtree</span>(<span class='no'>dataset</span>, <span class='no'>rvar</span>, <span class='no'>evar</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>,
-  <span class='kw'>minsplit</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>minbucket</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span>(<span class='no'>minsplit</span>/<span class='fl'>3</span>), <span class='kw'>cp</span> <span class='kw'>=</span> <span class='fl'>0.001</span>,
-  <span class='kw'>pcp</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>nodes</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>, <span class='kw'>split</span> <span class='kw'>=</span> <span class='st'>"gini"</span>,
-  <span class='kw'>prior</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>adjprob</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>cost</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>margin</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>())</pre>
+    <pre class="usage"><span class='fu'>crtree</span>(
+  <span class='no'>dataset</span>,
+  <span class='no'>rvar</span>,
+  <span class='no'>evar</span>,
+  <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>,
+  <span class='kw'>minsplit</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>minbucket</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span>(<span class='no'>minsplit</span>/<span class='fl'>3</span>),
+  <span class='kw'>cp</span> <span class='kw'>=</span> <span class='fl'>0.001</span>,
+  <span class='kw'>pcp</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>nodes</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>,
+  <span class='kw'>split</span> <span class='kw'>=</span> <span class='st'>"gini"</span>,
+  <span class='kw'>prior</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>adjprob</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>cost</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>margin</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>()
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -332,7 +350,7 @@
 #&gt;   .. .. ..- attr(*, "order")= int [1:2] 1 1
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xea21460&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1019c528&gt; 
 #&gt;   .. .. ..- attr(*, "predvars")= language list(price, carat, clarity)
 #&gt;   .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "numeric" "numeric" "factor"
 #&gt;   .. .. .. ..- attr(*, "names")= chr [1:3] "price" "carat" "clarity"
@@ -381,7 +399,7 @@
 #&gt;   ..- attr(*, "class")= chr "rpart"
 #&gt;  $ crtree_input:List of 6
 #&gt;   ..$ formula:Class 'formula'  language price ~ .
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xea21460&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1019c528&gt; 
 #&gt;   ..$ data   :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	3000 obs. of  3 variables:
 #&gt;   .. ..$ price  : int [1:3000] 580 650 630 706 1080 3082 3328 4229 1895 3546 ...
 #&gt;   .. ..$ carat  : num [1:3000] 0.32 0.34 0.3 0.35 0.4 0.6 0.88 0.93 0.51 1.01 ...

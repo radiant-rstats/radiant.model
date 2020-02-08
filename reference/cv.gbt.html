@@ -168,10 +168,22 @@
     <p>Cross-validation for Gradient Boosted Trees</p>
     </div>
 
-    <pre class="usage"><span class='fu'>cv.gbt</span>(<span class='no'>object</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>5</span>, <span class='kw'>repeats</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(), <span class='kw'>nrounds</span> <span class='kw'>=</span> <span class='fl'>500</span>,
-  <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>nthread</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>train</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"classification"</span>, <span class='kw'>trace</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>,
-  <span class='kw'>maximize</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>fun</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>cv.gbt</span>(
+  <span class='no'>object</span>,
+  <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>5</span>,
+  <span class='kw'>repeats</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>params</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(),
+  <span class='kw'>nrounds</span> <span class='kw'>=</span> <span class='fl'>500</span>,
+  <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>nthread</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>train</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"classification"</span>,
+  <span class='kw'>trace</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>1234</span>,
+  <span class='kw'>maximize</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='no'>fun</span>,
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

@@ -168,8 +168,16 @@
     <p>Linear regression using OLS</p>
     </div>
 
-    <pre class="usage"><span class='fu'>regress</span>(<span class='no'>dataset</span>, <span class='no'>rvar</span>, <span class='no'>evar</span>, <span class='kw'>int</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='no'>form</span>,
-  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>())</pre>
+    <pre class="usage"><span class='fu'>regress</span>(
+  <span class='no'>dataset</span>,
+  <span class='no'>rvar</span>,
+  <span class='no'>evar</span>,
+  <span class='kw'>int</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>check</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='no'>form</span>,
+  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>()
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -293,7 +301,7 @@
 #&gt;   .. .. ..- attr(*, "order")= int [1:2] 1 1
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x10bc8730&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0xa7129e0&gt; 
 #&gt;   .. .. ..- attr(*, "predvars")= language list(price, carat, clarity)
 #&gt;   .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "numeric" "numeric" "factor"
 #&gt;   .. .. .. ..- attr(*, "names")= chr [1:3] "price" "carat" "clarity"
@@ -311,7 +319,7 @@
 #&gt;   .. .. .. ..- attr(*, "order")= int [1:2] 1 1
 #&gt;   .. .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x10bc8730&gt; 
+#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0xa7129e0&gt; 
 #&gt;   .. .. .. ..- attr(*, "predvars")= language list(price, carat, clarity)
 #&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr [1:3] "numeric" "numeric" "factor"
 #&gt;   .. .. .. .. ..- attr(*, "names")= chr [1:3] "price" "carat" "clarity"
