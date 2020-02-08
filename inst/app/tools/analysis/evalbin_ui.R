@@ -338,7 +338,6 @@ download_handler(
 )
 
 dl_confusion_tab <- function(path) {
-  print(.confusion())
   dat <- .confusion()$dataset
   if (!is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
 }
