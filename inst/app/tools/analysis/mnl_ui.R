@@ -6,7 +6,7 @@ mnl_predict <- c(
   "Data & Command" = "datacmd"
 )
 mnl_check <- c(
-  "Drop intercept" = "no_int", "Standardize" = "standardize", 
+  "Drop intercept" = "no_int", "Standardize" = "standardize",
   "Center" = "center", "Stepwise" = "stepwise-backward"
 )
 mnl_sum_check <- c(
@@ -105,16 +105,9 @@ mnl_pred_plot_inputs <- reactive({
 })
 
 output$ui_mnl_rvar <- renderUI({
-
-  # withProgress(message = "Acquiring variable information", value = 1, {
-  #   isFct <- "factor" == .get_class()
-  #   vars <- varnames()[isFct]
-  # })
-
   withProgress(message = "Acquiring variable information", value = 1, {
     vars <- groupable_vars()
   })
-
   init <- isolate(input$mnl_rvar)
   selectInput(
     inputId = "mnl_rvar", label = "Response variable:", choices = vars,
@@ -124,13 +117,16 @@ output$ui_mnl_rvar <- renderUI({
 
 output$ui_mnl_lev <- renderUI({
   req(available(input$mnl_rvar))
-  levs <- .get_data()[[input$mnl_rvar]] %>%
-    as.factor() %>%
-    levels()
-  selectInput(
-    inputId = "mnl_lev", label = "Choose base level:",
-    choices = levs, selected = state_init("mnl_lev")
-  )
+  rvar <- .get_data()[[input$mnl_rvar]]
+  levs <- unique(rvar)
+  if (length(levs) > 50) {
+    HTML("<label>More than 50 levels. Please choose another response variable</label>")
+  } else {
+    selectInput(
+      inputId = "mnl_lev", label = "Choose base level:",
+      choices = levs, selected = state_init("mnl_lev")
+    )
+  }
 })
 
 output$ui_mnl_evar <- renderUI({

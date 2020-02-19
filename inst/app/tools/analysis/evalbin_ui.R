@@ -39,14 +39,17 @@ output$ui_ebin_rvar <- renderUI({
 
 output$ui_ebin_lev <- renderUI({
   req(available(input$ebin_rvar))
-  levs <- .get_data()[[input$ebin_rvar]] %>%
-    as.factor() %>%
-    levels()
-  selectInput(
-    inputId = "ebin_lev", label = "Choose level:",
-    choices = levs,
-    selected = state_init("ebin_lev")
-  )
+  rvar <- .get_data()[[input$ebin_rvar]]
+  levs <- unique(rvar)
+  if (length(levs) > 50) {
+    HTML("<label>More than 50 levels. Please choose another response variable</label>")
+  } else {
+    selectInput(
+      inputId = "ebin_lev", label = "Choose level:",
+      choices = levs,
+      selected = state_init("ebin_lev")
+    )
+  }
 })
 
 output$ui_ebin_pred <- renderUI({
