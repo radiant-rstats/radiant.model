@@ -168,27 +168,11 @@
     <p>Simulate data for decision analysis</p>
     </div>
 
-    <pre class="usage"><span class='fu'>simulater</span>(
-  <span class='kw'>const</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>lnorm</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>norm</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>unif</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>discrete</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>binom</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>pois</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>sequ</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>grid</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>form</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>funcs</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nexact</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>ncorr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>nr</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>dataset</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>()
-)</pre>
+    <pre class="usage"><span class='fu'>simulater</span>(<span class='kw'>const</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>lnorm</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>norm</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>unif</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>discrete</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>binom</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>pois</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>sequ</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>grid</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>form</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>funcs</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nexact</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>ncorr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>nr</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>dataset</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>())</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -308,16 +292,16 @@
 #&gt;   ..$ form    : chr "profit = demand * (price - cost)"
 #&gt;   ..$ funcs   :length 0 expression()
 #&gt;   .. ..- attr(*, "srcref")= list()
-#&gt;   .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0xd7976c8&gt; 
+#&gt;   .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x12361e48&gt; 
 #&gt;   .. ..- attr(*, "wholeSrcref")= 'srcref' int  1 0 2 0 0 0 1 2
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0xd7976c8&gt; 
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x12361e48&gt; 
 #&gt;   ..$ seed    : num 1234
 #&gt;   ..$ nexact  : logi FALSE
 #&gt;   ..$ name    : chr ""
 #&gt;   ..$ nr      : num 1000
 #&gt;   ..$ dataset : NULL
 #&gt;   ..$ envir   : language parent.frame()
-#&gt;  - attr(*, "description")= chr "\n### Simulated data\n\nFormulas:\n\nprofit = demand \\* (price - cost)\n\nDate: 2020-02-22 04:25:41"</div><div class='input'>
+#&gt;  - attr(*, "description")= chr "\n### Simulated data\n\nFormulas:\n\nprofit = demand \\* (price - cost)\n\nDate: 2020-02-22 06:01:41"</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
