@@ -957,7 +957,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   extra_args <- attr(x, "radiant_extra_args")
   if (!is_empty(extra_args)) {
-    extra_args <- deparse(extra_args) %>% 
+    extra_args <- deparse(extra_args) %>%
       sub("list\\(", "", .) %>%
       sub("\\)$", "", .)
     cat("Additional arguments :", extra_args, "\n")

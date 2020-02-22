@@ -4,15 +4,8 @@
 \alias{predict.nb}
 \title{Predict method for the nb function}
 \usage{
-\method{predict}{nb}(
-  object,
-  pred_data = NULL,
-  pred_cmd = "",
-  pred_names = "",
-  dec = 3,
-  envir = parent.frame(),
-  ...
-)
+\method{predict}{nb}(object, pred_data = NULL, pred_cmd = "",
+  pred_names = "", dec = 3, envir = parent.frame(), ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{nb}}}

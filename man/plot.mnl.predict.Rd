@@ -4,7 +4,8 @@
 \alias{plot.mnl.predict}
 \title{Plot method for mnl.predict function}
 \usage{
-\method{plot}{mnl.predict}(x, xvar = "", facet_row = ".", facet_col = ".", color = ".class", ...)
+\method{plot}{mnl.predict}(x, xvar = "", facet_row = ".",
+  facet_col = ".", color = ".class", ...)
 }
 \arguments{
 \item{x}{Return value from predict function predict.mnl}

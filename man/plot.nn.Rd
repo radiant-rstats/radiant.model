@@ -4,16 +4,8 @@
 \alias{plot.nn}
 \title{Plot method for the nn function}
 \usage{
-\method{plot}{nn}(
-  x,
-  plots = "garson",
-  size = 12,
-  pad_x = 0.9,
-  nrobs = -1,
-  shiny = FALSE,
-  custom = FALSE,
-  ...
-)
+\method{plot}{nn}(x, plots = "garson", size = 12, pad_x = 0.9,
+  nrobs = -1, shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{nn}}}

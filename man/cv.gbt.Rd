@@ -4,22 +4,10 @@
 \alias{cv.gbt}
 \title{Cross-validation for Gradient Boosted Trees}
 \usage{
-cv.gbt(
-  object,
-  K = 5,
-  repeats = 1,
-  params = list(),
-  nrounds = 500,
-  early_stopping_rounds = 10,
-  nthread = 12,
-  train = NULL,
-  type = "classification",
-  trace = TRUE,
-  seed = 1234,
-  maximize = NULL,
-  fun,
-  ...
-)
+cv.gbt(object, K = 5, repeats = 1, params = list(), nrounds = 500,
+  early_stopping_rounds = 10, nthread = 12, train = NULL,
+  type = "classification", trace = TRUE, seed = 1234,
+  maximize = NULL, fun, ...)
 }
 \arguments{
 \item{object}{Object of type "gbt" or "ranger"}

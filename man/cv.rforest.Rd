@@ -4,19 +4,9 @@
 \alias{cv.rforest}
 \title{Cross-validation for a Random Forest}
 \usage{
-cv.rforest(
-  object,
-  K = 5,
-  repeats = 1,
-  mtry = 1:10,
-  num.trees = NULL,
-  min.node.size = 1,
-  sample.fraction = NA,
-  trace = TRUE,
-  seed = 1234,
-  fun,
-  ...
-)
+cv.rforest(object, K = 5, repeats = 1, mtry = 1:10,
+  num.trees = NULL, min.node.size = 1, sample.fraction = NA,
+  trace = TRUE, seed = 1234, fun, ...)
 }
 \arguments{
 \item{object}{Object of type "rforest" or "ranger"}

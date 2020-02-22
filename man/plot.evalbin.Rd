@@ -4,14 +4,8 @@
 \alias{plot.evalbin}
 \title{Plot method for the evalbin function}
 \usage{
-\method{plot}{evalbin}(
-  x,
-  plots = c("lift", "gains"),
-  size = 13,
-  shiny = FALSE,
-  custom = FALSE,
-  ...
-)
+\method{plot}{evalbin}(x, plots = c("lift", "gains"), size = 13,
+  shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{evalbin}}}

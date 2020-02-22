@@ -4,15 +4,8 @@
 \alias{sensitivity.dtree}
 \title{Evaluate sensitivity of the decision tree}
 \usage{
-\method{sensitivity}{dtree}(
-  object,
-  vars = NULL,
-  decs = NULL,
-  envir = parent.frame(),
-  shiny = FALSE,
-  custom = FALSE,
-  ...
-)
+\method{sensitivity}{dtree}(object, vars = NULL, decs = NULL,
+  envir = parent.frame(), shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{dtree}}}

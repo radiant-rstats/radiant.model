@@ -4,7 +4,8 @@
 \alias{nb}
 \title{Naive Bayes using e1071::naiveBayes}
 \usage{
-nb(dataset, rvar, evar, laplace = 0, data_filter = "", envir = parent.frame())
+nb(dataset, rvar, evar, laplace = 0, data_filter = "",
+  envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}

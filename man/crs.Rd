@@ -4,7 +4,8 @@
 \alias{crs}
 \title{Collaborative Filtering}
 \usage{
-crs(dataset, id, prod, pred, rate, data_filter = "", envir = parent.frame())
+crs(dataset, id, prod, pred, rate, data_filter = "",
+  envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}

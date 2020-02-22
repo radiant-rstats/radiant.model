@@ -4,18 +4,9 @@
 \alias{plot.crtree}
 \title{Plot method for the crtree function}
 \usage{
-\method{plot}{crtree}(
-  x,
-  plots = "tree",
-  orient = "LR",
-  width = "900px",
-  labs = TRUE,
-  nrobs = Inf,
-  dec = 2,
-  shiny = FALSE,
-  custom = FALSE,
-  ...
-)
+\method{plot}{crtree}(x, plots = "tree", orient = "LR",
+  width = "900px", labs = TRUE, nrobs = Inf, dec = 2,
+  shiny = FALSE, custom = FALSE, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{crtree}}}

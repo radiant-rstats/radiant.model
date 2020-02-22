@@ -844,6 +844,9 @@ write.coeff <- function(
     return(invisible())
   }
 
+  has_int <- sum(nchar(object$int)) > 0
+  check <- object$check
+
   ## calculating the mean and sd for each variable
   ## extract formula from http://stackoverflow.com/a/9694281/1974918
   frm <- formula(object$model$terms)
@@ -851,13 +854,13 @@ write.coeff <- function(
   dataset <- object$model$model
   cn <- colnames(dataset)
 
-  if ("center" %in% object$check) {
+  if ("center" %in% check) {
     ms <- attr(object$model$model, "radiant_ms")
     if (!is.null(ms)) {
       icn <- intersect(cn, names(ms))
       dataset[icn] <- lapply(icn, function(var) dataset[[var]] + ms[[var]])
     }
-  } else if ("standardize" %in% object$check) {
+  } else if ("standardize" %in% check) {
     ms <- attr(object$model$model, "radiant_ms")
     sds <- attr(object$model$model, "radiant_sds")
     if (!is.null(ms) && !is.null(sds)) {
@@ -878,7 +881,7 @@ write.coeff <- function(
   cmn <- apply(mm, 2, min, na.rm = TRUE)
   dummy <- apply(mm, 2, function(x) (sum(x == max(x)) + sum(x == min(x))) == length(x))
 
-  if ("standardize" %in% object$check) {
+  if ("standardize" %in% check) {
     cat("Standardized coefficients selected\n\n", file = file)
   } else {
     cat("Standardized coefficients not selected\n\n", file = file)
@@ -896,12 +899,31 @@ write.coeff <- function(
   if (mod_class == "logistic") {
     object$importance <- pmax(object$OR, 1 / object$OR)
     object$OR[intc] <- object$`OR%`[intc] <- 0
+    if ("standardize" %in% check) {
+      if (has_int) {
+        object$OR_normal <- object$`OR%_normal` <- "-"
+      } else {
+        object$OR_normal <- exp(object$coefficient / (sf*object$sd))
+        object$OR_normal[object$dummy == 1] <- object$OR[object$dummy == 1]
+        object$`OR%_normal` <- with(object, ifelse(OR_normal < 1, -(1-OR_normal), OR_normal-1))
+        object$OR_normal[intc] <- object$`OR%_normal`[intc] <- 0
+      }
+    }
   } else if (mod_class == "mnl") {
     object$importance <- pmax(object$RRR, 1 / object$RRR)
     object$RRR[intc] <- 0
   } else {
-    object$coeff
-    object$importance <- abs(object$coeff)
+    object$importance <- abs(object$coefficient)
+    # if ("standardize" %in% check) {
+    #   if (has_int) {
+    #     object$coeff_normal <- "-"
+    #   } else {
+    #     # need to also adjust for sd(Y)
+    #     object$coeff_normal <- object$coefficient / (sf*object$sd)
+    #     object$coeff_normal[object$dummy == 1] <- object$coefficient[object$dummy == 1]
+    #     object$coeff_normal[intc] <- 0
+    #   }
+    # }
   }
 
   object$importance[intc] <- 0

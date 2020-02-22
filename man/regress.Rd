@@ -4,16 +4,8 @@
 \alias{regress}
 \title{Linear regression using OLS}
 \usage{
-regress(
-  dataset,
-  rvar,
-  evar,
-  int = "",
-  check = "",
-  form,
-  data_filter = "",
-  envir = parent.frame()
-)
+regress(dataset, rvar, evar, int = "", check = "", form,
+  data_filter = "", envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}

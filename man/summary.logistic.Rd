@@ -4,7 +4,8 @@
 \alias{summary.logistic}
 \title{Summary method for the logistic function}
 \usage{
-\method{summary}{logistic}(object, sum_check = "", conf_lev = 0.95, test_var = "", dec = 3, ...)
+\method{summary}{logistic}(object, sum_check = "", conf_lev = 0.95,
+  test_var = "", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{logistic}}}

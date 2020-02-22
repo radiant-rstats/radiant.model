@@ -4,17 +4,8 @@
 \alias{mnl}
 \title{Multinomial logistic regression}
 \usage{
-mnl(
-  dataset,
-  rvar,
-  evar,
-  lev = "",
-  int = "",
-  wts = "None",
-  check = "",
-  data_filter = "",
-  envir = parent.frame()
-)
+mnl(dataset, rvar, evar, lev = "", int = "", wts = "None",
+  check = "", data_filter = "", envir = parent.frame())
 }
 \arguments{
 \item{dataset}{Dataset}

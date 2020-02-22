@@ -4,16 +4,9 @@
 \alias{predict.crtree}
 \title{Predict method for the crtree function}
 \usage{
-\method{predict}{crtree}(
-  object,
-  pred_data = NULL,
-  pred_cmd = "",
-  conf_lev = 0.95,
-  se = FALSE,
-  dec = 3,
-  envir = parent.frame(),
-  ...
-)
+\method{predict}{crtree}(object, pred_data = NULL, pred_cmd = "",
+  conf_lev = 0.95, se = FALSE, dec = 3, envir = parent.frame(),
+  ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{crtree}}}

@@ -4,14 +4,8 @@
 \alias{predict.gbt}
 \title{Predict method for the gbt function}
 \usage{
-\method{predict}{gbt}(
-  object,
-  pred_data = NULL,
-  pred_cmd = "",
-  dec = 3,
-  envir = parent.frame(),
-  ...
-)
+\method{predict}{gbt}(object, pred_data = NULL, pred_cmd = "",
+  dec = 3, envir = parent.frame(), ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{gbt}}}
