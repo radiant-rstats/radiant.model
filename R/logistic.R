@@ -55,7 +55,7 @@ logistic <- function(
   } else if (is_string(wts)) {
     wtsname <- wts
     vars <- c(rvar, evar, wtsname)
-  } 
+  }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   if (any(evar == ".")) {
@@ -181,7 +181,8 @@ logistic <- function(
 
   coeff$sig_star <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$OR <- exp(coeff$coefficient)
-  coeff <- coeff[, c("label", "OR", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
+  coeff$`OR%` <- with(coeff, ifelse(OR < 1, -(1-OR), OR-1))
+  coeff <- coeff[, c("label", "OR", "OR%", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
 
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, envir)
@@ -201,6 +202,8 @@ logistic <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
+#'
+#' result <- logistic(titanic, "survived", "pclass", lev = "Yes")
 #' result <- logistic(titanic, "survived", "pclass", lev = "Yes")
 #' summary(result, test_var = "pclass")
 #' res <- logistic(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")
@@ -265,9 +268,11 @@ summary.logistic <- function(
   coeff <- object$coeff
   coeff$label %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
-  coeff[, 2:6] %<>% format_df(dec)
+  coeff[, c(2, 4:7)] %<>% format_df(dec)
+  coeff[["OR%"]] %<>% format_nr(perc = TRUE, dec = dec - 2)
   coeff$p.value[p.small] <- "< .001"
-  dplyr::rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- ""; .} %>% print(row.names = FALSE)
+  dplyr::rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- .$`OR%`[1] <- ""; .} %>%
+    print(row.names = FALSE)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
 
   logit_fit <- glance(object$model)
@@ -337,7 +342,7 @@ summary.logistic <- function(
       ci_tab <- cnfint(object$model, level = conf_lev, vcov = object$vcov) %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
-        cbind(select(object$coeff, 3), .)
+        cbind(select_at(object$coeff, "coefficient"), .)
 
       if ("confint" %in% sum_check) {
         ci_tab %T>%
@@ -828,7 +833,6 @@ write.coeff <- function(
 ) {
   if (inherits(object, "regress")) {
     mod_class <- "regress"
-  # } else if ("logistic" %in% class(object)) {
   } else if (inherits(object, "logistic")) {
     mod_class <- "logistic"
   } else if (inherits(object, "mnl")) {
@@ -891,7 +895,7 @@ write.coeff <- function(
 
   if (mod_class == "logistic") {
     object$importance <- pmax(object$OR, 1 / object$OR)
-    object$OR[intc] <- 0
+    object$OR[intc] <- object$`OR%`[intc] <- 0
   } else if (mod_class == "mnl") {
     object$importance <- pmax(object$RRR, 1 / object$RRR)
     object$RRR[intc] <- 0

@@ -26,6 +26,8 @@ Summary method for the logistic function
 See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an example in Radiant
 }
 \examples{
+
+result <- logistic(titanic, "survived", "pclass", lev = "Yes")
 result <- logistic(titanic, "survived", "pclass", lev = "Yes")
 summary(result, test_var = "pclass")
 res <- logistic(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")

@@ -1,5 +1,6 @@
-# radiant.model 1.3.4
+# radiant.model 1.3.5
 
+* Adding `OR%` change as a columns in output for _Model > Logistic regression_ and the `write.coeff` function
 * Restrict max number of levels in a "groupable" variable used in _Model > Evaluate classification_ and _Model > Multinomial logistic regression_ to no more than 50
 * Avoid rouding the profit measures in _Model > Evaluate classification_
 
