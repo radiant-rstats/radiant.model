@@ -853,6 +853,7 @@ write.coeff <- function(
   tlabs <- attr(object$model$term, "term.labels")
   dataset <- object$model$model
   cn <- colnames(dataset)
+  wts <- object$wts
 
   if ("center" %in% check) {
     ms <- attr(object$model$model, "radiant_ms")
@@ -875,17 +876,26 @@ write.coeff <- function(
   mm <- model.matrix(frm, model.frame(frm, dataset))[,-1]
 
   ## generate summary statistics
-  cms <- colMeans(mm, na.rm = TRUE)
-  csds <- apply(mm, 2, sd, na.rm = TRUE)
+  if (length(wts) == 0) {
+    cms <- colMeans(mm, na.rm = TRUE)
+    csds <- apply(mm, 2, sd, na.rm = TRUE)
+    wts_mess <- " "
+  } else {
+    cms <- apply(mm, 2, weighted.mean, wts, na.rm = TRUE)
+    csds <- apply(mm, 2, weighted.sd, wts, na.rm = TRUE)
+    wts_mess <- " -- estimated with weights -- "
+  }
+
   cmx <- apply(mm, 2, max, na.rm = TRUE)
   cmn <- apply(mm, 2, min, na.rm = TRUE)
   dummy <- apply(mm, 2, function(x) (sum(x == max(x)) + sum(x == min(x))) == length(x))
 
   if ("standardize" %in% check) {
-    cat("Standardized coefficients selected\n\n", file = file)
+    mess <- paste0("Standardized coefficients", wts_mess, "shown\n\n")
   } else {
-    cat("Standardized coefficients not selected\n\n", file = file)
+    mess <- paste0("Non-standardized coefficients", wts_mess, "shown\n\n")
   }
+  cat(mess, file = file)
 
   object <- object[["coeff"]]
   object$dummy <- c(0L, dummy)

@@ -1,3 +1,8 @@
+# radiant.model 1.3.6
+
+* Use weighted mean and sd in write.coeff function when needed
+* Added flexibility in using constants while defining the spec for other randomly generated variables
+
 # radiant.model 1.3.5
 
 * Adding `OR%` change as a columns in output for _Model > Logistic regression_ and the `write.coeff` function
