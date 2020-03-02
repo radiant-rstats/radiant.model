@@ -4,11 +4,24 @@
 \alias{rforest}
 \title{Random Forest using Ranger}
 \usage{
-rforest(dataset, rvar, evar, type = "classification", lev = "",
-  mtry = NULL, num.trees = 100, min.node.size = 1,
-  sample.fraction = 1, replace = NULL, num.threads = 12,
-  wts = "None", seed = NA, data_filter = "",
-  envir = parent.frame(), ...)
+rforest(
+  dataset,
+  rvar,
+  evar,
+  type = "classification",
+  lev = "",
+  mtry = NULL,
+  num.trees = 100,
+  min.node.size = 1,
+  sample.fraction = 1,
+  replace = NULL,
+  num.threads = 12,
+  wts = "None",
+  seed = NA,
+  data_filter = "",
+  envir = parent.frame(),
+  ...
+)
 }
 \arguments{
 \item{dataset}{Dataset}

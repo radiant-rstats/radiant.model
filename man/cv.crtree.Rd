@@ -4,8 +4,17 @@
 \alias{cv.crtree}
 \title{Cross-validation for Classification and Regression Trees}
 \usage{
-cv.crtree(object, K = 5, repeats = 1, cp, pcp = seq(0, 0.01,
-  length.out = 11), seed = 1234, trace = TRUE, fun, ...)
+cv.crtree(
+  object,
+  K = 5,
+  repeats = 1,
+  cp,
+  pcp = seq(0, 0.01, length.out = 11),
+  seed = 1234,
+  trace = TRUE,
+  fun,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of type "rpart" or "crtree" to use as a starting point for cross validation}

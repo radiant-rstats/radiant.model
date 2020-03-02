@@ -4,9 +4,16 @@
 \alias{predict.rforest}
 \title{Predict method for the rforest function}
 \usage{
-\method{predict}{rforest}(object, pred_data = NULL, pred_cmd = "",
-  pred_names = "", OOB = NULL, dec = 3, envir = parent.frame(),
-  ...)
+\method{predict}{rforest}(
+  object,
+  pred_data = NULL,
+  pred_cmd = "",
+  pred_names = "",
+  OOB = NULL,
+  dec = 3,
+  envir = parent.frame(),
+  ...
+)
 }
 \arguments{
 \item{object}{Return value from \code{\link{rforest}}}

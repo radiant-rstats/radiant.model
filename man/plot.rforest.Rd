@@ -4,8 +4,15 @@
 \alias{plot.rforest}
 \title{Plot method for the rforest function}
 \usage{
-\method{plot}{rforest}(x, plots = "", nrobs = Inf, qtiles = FALSE,
-  shiny = FALSE, custom = FALSE, ...)
+\method{plot}{rforest}(
+  x,
+  plots = "",
+  nrobs = Inf,
+  qtiles = FALSE,
+  shiny = FALSE,
+  custom = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from \code{\link{rforest}}}

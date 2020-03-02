@@ -4,8 +4,15 @@
 \alias{plot.model.predict}
 \title{Plot method for model.predict functions}
 \usage{
-\method{plot}{model.predict}(x, xvar = "", facet_row = ".",
-  facet_col = ".", color = "none", conf_lev = 0.95, ...)
+\method{plot}{model.predict}(
+  x,
+  xvar = "",
+  facet_row = ".",
+  facet_col = ".",
+  color = "none",
+  conf_lev = 0.95,
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from predict functions (e.g., predict.regress)}

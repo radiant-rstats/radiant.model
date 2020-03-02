@@ -4,9 +4,18 @@
 \alias{evalbin}
 \title{Evaluate the performance of different (binary) classification models}
 \usage{
-evalbin(dataset, pred, rvar, lev = "", qnt = 10, cost = 1,
-  margin = 2, train = "All", data_filter = "",
-  envir = parent.frame())
+evalbin(
+  dataset,
+  pred,
+  rvar,
+  lev = "",
+  qnt = 10,
+  cost = 1,
+  margin = 2,
+  train = "All",
+  data_filter = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}

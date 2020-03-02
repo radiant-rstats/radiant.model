@@ -4,11 +4,29 @@
 \alias{crtree}
 \title{Classification and regression trees based on the rpart package}
 \usage{
-crtree(dataset, rvar, evar, type = "", lev = "", wts = "None",
-  minsplit = 2, minbucket = round(minsplit/3), cp = 0.001,
-  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
-  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
-  data_filter = "", envir = parent.frame())
+crtree(
+  dataset,
+  rvar,
+  evar,
+  type = "",
+  lev = "",
+  wts = "None",
+  minsplit = 2,
+  minbucket = round(minsplit/3),
+  cp = 0.001,
+  pcp = NA,
+  nodes = NA,
+  K = 10,
+  seed = 1234,
+  split = "gini",
+  prior = NA,
+  adjprob = TRUE,
+  cost = NA,
+  margin = NA,
+  check = "",
+  data_filter = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}

@@ -4,8 +4,17 @@
 \alias{cv.nn}
 \title{Cross-validation for a Neural Network}
 \usage{
-cv.nn(object, K = 5, repeats = 1, decay = seq(0, 1, 0.2),
-  size = 1:5, seed = 1234, trace = TRUE, fun, ...)
+cv.nn(
+  object,
+  K = 5,
+  repeats = 1,
+  decay = seq(0, 1, 0.2),
+  size = 1:5,
+  seed = 1234,
+  trace = TRUE,
+  fun,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of type "nn" or "nnet"}

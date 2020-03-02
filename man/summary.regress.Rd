@@ -4,8 +4,7 @@
 \alias{summary.regress}
 \title{Summary method for the regress function}
 \usage{
-\method{summary}{regress}(object, sum_check = "", conf_lev = 0.95,
-  test_var = "", dec = 3, ...)
+\method{summary}{regress}(object, sum_check = "", conf_lev = 0.95, test_var = "", dec = 3, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}

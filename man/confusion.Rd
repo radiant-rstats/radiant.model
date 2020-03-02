@@ -4,8 +4,18 @@
 \alias{confusion}
 \title{Confusion matrix}
 \usage{
-confusion(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
-  train = "All", data_filter = "", envir = parent.frame(), ...)
+confusion(
+  dataset,
+  pred,
+  rvar,
+  lev = "",
+  cost = 1,
+  margin = 2,
+  train = "All",
+  data_filter = "",
+  envir = parent.frame(),
+  ...
+)
 }
 \arguments{
 \item{dataset}{Dataset}

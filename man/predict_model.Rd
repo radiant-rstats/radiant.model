@@ -4,9 +4,18 @@
 \alias{predict_model}
 \title{Predict method for model functions}
 \usage{
-predict_model(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3, envir = parent.frame(),
-  ...)
+predict_model(
+  object,
+  pfun,
+  mclass,
+  pred_data = NULL,
+  pred_cmd = "",
+  conf_lev = 0.95,
+  se = FALSE,
+  dec = 3,
+  envir = parent.frame(),
+  ...
+)
 }
 \arguments{
 \item{object}{Return value from \code{\link{regress}}}

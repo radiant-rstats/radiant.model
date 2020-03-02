@@ -4,8 +4,13 @@
 \alias{plot.confusion}
 \title{Plot method for the confusion matrix}
 \usage{
-\method{plot}{confusion}(x, vars = c("kappa", "index", "ROME", "AUC"),
-  scale_y = TRUE, size = 13, ...)
+\method{plot}{confusion}(
+  x,
+  vars = c("kappa", "index", "ROME", "AUC"),
+  scale_y = TRUE,
+  size = 13,
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from \code{\link{confusion}}}

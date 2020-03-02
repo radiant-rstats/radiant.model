@@ -4,8 +4,7 @@
 \alias{scale_df}
 \title{Center or standardize variables in a data frame}
 \usage{
-scale_df(dataset, center = TRUE, scale = TRUE, sf = 2, wts = NULL,
-  calc = TRUE)
+scale_df(dataset, center = TRUE, scale = TRUE, sf = 2, wts = NULL, calc = TRUE)
 }
 \arguments{
 \item{dataset}{Data frame}

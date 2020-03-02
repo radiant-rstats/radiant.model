@@ -4,8 +4,7 @@
 \alias{plot.nb}
 \title{Plot method for the nb function}
 \usage{
-\method{plot}{nb}(x, plots = "correlations", lev = "All levels",
-  nrobs = 1000, ...)
+\method{plot}{nb}(x, plots = "correlations", lev = "All levels", nrobs = 1000, ...)
 }
 \arguments{
 \item{x}{Return value from \code{\link{nb}}}

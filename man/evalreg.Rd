@@ -4,8 +4,14 @@
 \alias{evalreg}
 \title{Evaluate the performance of different regression models}
 \usage{
-evalreg(dataset, pred, rvar, train = "All", data_filter = "",
-  envir = parent.frame())
+evalreg(
+  dataset,
+  pred,
+  rvar,
+  train = "All",
+  data_filter = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}
