@@ -10,8 +10,13 @@
     } else if (is.na(x)) {
       x
     } else {
-      cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluated first\n\n\n'))
-      NA
+      ret <- try(eval(parse(text = paste0("with(dataset, ", x, ")"))), silent = TRUE)
+      if (inherits(ret, "try-error")) {
+        cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluated first\n\n\n'))
+        NA
+      } else {
+        ret
+      }
     }
   } else {
     ret
@@ -30,8 +35,13 @@
     } else if (is.na(x)) {
       x
     } else {
-      cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluated first\n\n\n'))
-      NA
+      ret <- try(eval(parse(text = paste0("with(dataset, ", x, ")"))), silent = TRUE)
+      if (inherits(ret, "try-error")) {
+        cat(glue('"{x}" not (yet) defined when called. Note that simulation\nvariables of type "Constant" are always evaluated first\n\n\n'))
+        NA
+      } else {
+        ret
+      }
     }
   } else {
     ret
@@ -93,12 +103,18 @@ simulater <- function(
     data <- attr(dataset, "radiant_sim_call")$data
   }
 
+  ## needed to be exported functions
+  if (!exists(".as_num") || !exists(".as_int")) {
+    .as_num <- radiant.model::.as_num
+    .as_int <- radiant.model::.as_int
+  }
+
   grid %<>% sim_cleaner()
   if (grid != "" && length(dataset) == 0) {
     s <- grid %>% sim_splitter()
     for (i in 1:length(s)) {
       if (is_empty(s[[i]][4])) s[[i]][4] <- 1
-      s[[i]] %>% {dataset[[.[1]]] <<- seq(radiant.model::.as_num(.[2], dataset), radiant.model::.as_num(.[3], dataset), radiant.model::.as_num(.[4], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- seq(.as_num(.[2], dataset), .as_num(.[3], dataset), .as_num(.[4], dataset))}
     }
     dataset <- as.list(expand.grid(dataset) %>% as.data.frame(stringsAsFactors = FALSE))
     nr <- length(dataset[[1]])
@@ -109,12 +125,28 @@ simulater <- function(
     return(add_class(mess, "simulater"))
   }
 
+  ## fetching data if needed
+  if (!is_empty(data, "none") && is_string(data)) {
+    if (exists(data, envir = envir)) {
+      data <- get_data(data, envir = envir)
+    } else {
+      stop(paste0("Data set ", data, " cannot be found", call. = FALSE))
+    }
+  }
+
+  ## adding data to dataset list
+  if (is.data.frame(data)) {
+    for (i in colnames(data)) {
+      dataset[[i]] <- data[[i]]
+    }
+  }
+
   ## parsing constant
   const %<>% sim_cleaner()
   if (const != "") {
     s <- const %>% sim_splitter()
     for (i in 1:length(s)) {
-      s[[i]] %>% {dataset[[.[1]]] <<- radiant.model::.as_num(.[2], dataset)}
+      s[[i]] %>% {dataset[[.[1]]] <<- .as_num(.[2], dataset)}
     }
   }
 
@@ -123,7 +155,7 @@ simulater <- function(
   if (unif != "") {
     s <- unif %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- runif(nr, radiant.model::.as_num(.[2], dataset), radiant.model::.as_num(.[3], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- runif(nr, .as_num(.[2], dataset), .as_num(.[3], dataset))}
   }
 
   ## parsing log normal
@@ -131,12 +163,12 @@ simulater <- function(
   if (lnorm != "") {
     s <- lnorm %>% sim_splitter()
     for (i in 1:length(s)) {
-      sdev <- radiant.model::.as_num(s[[i]][3], dataset)
+      sdev <- .as_num(s[[i]][3], dataset)
       if (is.na(sdev) || !sdev > 0) {
         mess <- c("error", paste0("All log-normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
-      s[[i]] %>% {dataset[[.[1]]] <<- rlnorm(nr, radiant.model::.as_num(.[2], dataset), sdev)}
+      s[[i]] %>% {dataset[[.[1]]] <<- rlnorm(nr, .as_num(.[2], dataset), sdev)}
     }
   }
 
@@ -146,7 +178,7 @@ simulater <- function(
     s <- norm %>% sim_splitter()
     means <- sds <- nms <- c()
     for (i in 1:length(s)) {
-      sdev <- radiant.model::.as_num(s[[i]][3], dataset)
+      sdev <- .as_num(s[[i]][3], dataset)
       if (is.na(sdev) || !sdev > 0) {
         mess <- c("error", paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
@@ -154,21 +186,21 @@ simulater <- function(
       if (is_empty(ncorr) || length(s) == 1) {
         if (nexact) {
           s[[i]] %>% {
-            dataset[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + radiant.model::.as_num(.[2], dataset)
+            dataset[[.[1]]] <<- scale(rnorm(nr, 0, 1)) * sdev + .as_num(.[2], dataset)
           }
         } else {
           s[[i]] %>% {
-            dataset[[.[1]]] <<- rnorm(nr, radiant.model::.as_num(.[2], dataset), sdev)
+            dataset[[.[1]]] <<- rnorm(nr, .as_num(.[2], dataset), sdev)
           }
         }
       } else {
         nms <- c(nms, s[[i]][1])
-        means <- c(means, radiant.model::.as_num(s[[i]][2], dataset))
+        means <- c(means, .as_num(s[[i]][2], dataset))
         sds <- c(sds, sdev)
       }
     }
     if (!is_empty(ncorr) && length(nms) > 1) {
-      ncorr <- gsub(",", " ", ncorr) %>% strsplit("\\s+") %>% unlist() %>% radiant.model::.as_num(dataset)
+      ncorr <- gsub(",", " ", ncorr) %>% strsplit("\\s+") %>% unlist() %>% .as_num(dataset)
       ncorr_nms <- combn(nms, 2) %>% apply(., 2, paste, collapse = "-")
       if (length(ncorr) == 1 && length(ncorr_nms) > 2) {
         ncorr <- rep(ncorr, length(ncorr_nms))
@@ -199,7 +231,7 @@ simulater <- function(
   if (binom != "") {
     s <- binom %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- rbinom(nr, radiant.model::.as_int(.[2], dataset), radiant.model::.as_num(.[3], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- rbinom(nr, .as_int(.[2], dataset), .as_num(.[3], dataset))}
   }
 
   ## parsing poisson
@@ -207,7 +239,7 @@ simulater <- function(
   if (pois != "") {
     s <- pois %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, radiant.model::.as_int(.[2], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, .as_int(.[2], dataset))}
   }
 
   ## parsing sequence
@@ -215,23 +247,7 @@ simulater <- function(
   if (sequ != "") {
     s <- sequ %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- seq(radiant.model::.as_num(.[2]), radiant.model::.as_num(.[3]), length.out = radiant.model::.as_num(nr))}
-  }
-
-  ## fetching data if needed
-  if (!is_empty(data, "none") && is_string(data)) {
-    if (exists(data, envir = envir)) {
-      data <- get_data(data, envir = envir)
-    } else {
-      stop(paste0("Data set ", data, " cannot be found", call. = FALSE))
-    }
-  }
-
-  ## adding data to dataset list
-  if (is.data.frame(data)) {
-    for (i in colnames(data)) {
-      dataset[[i]] <- data[[i]]
-    }
+      s[[i]] %>% {dataset[[.[1]]] <<- seq(.as_num(.[2], dataset), .as_num(.[3], dataset), length.out = .as_num(nr, dataset))}
   }
 
   ## parsing discrete
@@ -239,15 +255,18 @@ simulater <- function(
   if (discrete != "") {
     s <- discrete %>% sim_splitter()
     for (i in 1:length(s)) {
-      dpar <- s[[i]][-1] %>% gsub(",", " ", .) %>% strsplit("\\s+") %>% unlist() %>% strsplit("/")
-      asNum <- function(x) ifelse(length(x) > 1, radiant.model::.as_num(x[1]) / radiant.model::.as_num(x[2]), radiant.model::.as_num(x[1]))
+      dpar <- s[[i]][-1] %>%
+        gsub(",", " ", .) %>%
+        strsplit("\\s+") %>%
+        unlist() %>%
+        strsplit("/")
+      asNum <- function(x) ifelse(length(x) > 1, .as_num(x[1], dataset) / .as_num(x[2], dataset), .as_num(x, dataset))
       dpar <- sshhr(try(sapply(dpar, asNum) %>% matrix(ncol = 2), silent = TRUE))
-
       if (inherits(dpar, "try-error") || any(is.na(dpar))) {
         mess <- c("error", paste0("Input for discrete variable # ", i, " contains an error. Please review the input carefully"))
         return(add_class(mess, "simulater"))
       } else if (sum(dpar[, 2]) != 1) {
-        mess <- c("error", paste0("Probabilities for discrete variable # ", i, " do not sum to 1 (", round(sum(dpar[[2]]), 3), ")"))
+        mess <- c("error", paste0("Probabilities for discrete variable # ", i, " do not sum to 1 (", sum(dpar[, 2]), ")"))
         return(add_class(mess, "simulater"))
       }
 
@@ -498,7 +517,7 @@ plot.simulater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
 #'   vars = c("E","price"),
 #'   sum_vars = "profit",
 #'   byvar = ".sim",
-#'   form = "profit_365 = profit < 36500",
+#'   form = "profit_365 = profit_sum < 36500",
 #'   seed = 1234,
 #' )
 #'
@@ -526,6 +545,12 @@ repeater <- function(
     }
   }
 
+  ## needed to be exported functions
+  if (!exists(".as_num") || !exists(".as_int")) {
+    .as_num <- radiant.model::.as_num
+    .as_int <- radiant.model::.as_int
+  }
+
   if (is_string(dataset)) {
     sim_df_name <- dataset
     dataset <- get_data(dataset, envir = envir)
@@ -549,7 +574,7 @@ repeater <- function(
       for (i in 1:length(s)) {
         if (is_empty(s[[i]][4])) s[[i]][4] <- 1
         s[[i]] %>% {
-          grid_list[[.[1]]] <<- seq(radiant.model::.as_num(.[2]), radiant.model::.as_num(.[3], dataset), radiant.model::.as_num(.[4], dataset))
+          grid_list[[.[1]]] <<- seq(.as_num(.[2], dataset), .as_num(.[3], dataset), .as_num(.[4], dataset))
         }
       }
     }
@@ -992,9 +1017,11 @@ sim_cleaner <- function(x) {
 #'
 #' @export
 sim_splitter <- function(x, symbol = " ") {
-  strsplit(x, ";") %>%
+  strsplit(x, "(;|\n)") %>%
     extract2(1) %>%
-    strsplit(., symbol)
+    # from https://stackoverflow.com/a/16644618/1974918
+    gsub("\\s+(?=[^(\\)]*\\))", "", ., perl = TRUE) %>%
+    strsplit(symbol)
 }
 
 #' Find maximum value of a vector

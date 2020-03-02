@@ -223,6 +223,7 @@ output$ui_rep_fun <- renderUI({
   choices <- list(
     "sum" = "sum", "mean" = "mean", "median" = "median",
     "min" = "min", "max" = "max", "sd" = "sd", "var" = "var",
+    "sdprop" = "sdprop", "varprop" = "varprop",
     "p01" = "p01", "p025" = "p025", "p05" = "p05", "p10" = "p10",
     "p25" = "p25", "p75" = "p75", "p90" = "p90", "p95" = "p95",
     "p975" = "p975", "p99" = "p99",
