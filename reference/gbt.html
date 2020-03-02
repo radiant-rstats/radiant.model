@@ -75,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.6</span>
       </span>
     </div>
 
@@ -168,11 +168,26 @@
     <p>Gradient Boosted Trees using XGBoost</p>
     </div>
 
-    <pre class="usage"><span class='fu'>gbt</span>(<span class='no'>dataset</span>, <span class='no'>rvar</span>, <span class='no'>evar</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"classification"</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>,
-  <span class='kw'>max_depth</span> <span class='kw'>=</span> <span class='fl'>6</span>, <span class='kw'>learning_rate</span> <span class='kw'>=</span> <span class='fl'>0.3</span>, <span class='kw'>min_split_loss</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>min_child_weight</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>subsample</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>nrounds</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>nthread</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>,
-  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(), <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>gbt</span>(
+  <span class='no'>dataset</span>,
+  <span class='no'>rvar</span>,
+  <span class='no'>evar</span>,
+  <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"classification"</span>,
+  <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>max_depth</span> <span class='kw'>=</span> <span class='fl'>6</span>,
+  <span class='kw'>learning_rate</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,
+  <span class='kw'>min_split_loss</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>min_child_weight</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>subsample</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>nrounds</span> <span class='kw'>=</span> <span class='fl'>100</span>,
+  <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>nthread</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>wts</span> <span class='kw'>=</span> <span class='st'>"None"</span>,
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>data_filter</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>envir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(),
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -480,21 +495,21 @@
 #&gt; 
 #&gt; [1]	train-rmse:4004.124512 
 #&gt; [2]	train-rmse:2934.489990 
-#&gt; [3]	train-rmse:2209.099121 
-#&gt; [4]	train-rmse:1731.832275 
+#&gt; [3]	train-rmse:2209.099365 
+#&gt; [4]	train-rmse:1731.832153 
 #&gt; [5]	train-rmse:1429.542236 
 #&gt; [6]	train-rmse:1236.558716 
 #&gt; [7]	train-rmse:1112.986206 
 #&gt; [8]	train-rmse:1041.411133 
 #&gt; [9]	train-rmse:994.494568 
-#&gt; [10]	train-rmse:968.975952 
+#&gt; [10]	train-rmse:968.976013 
 #&gt; ...
-#&gt; [91]	train-rmse:747.640991 
+#&gt; [91]	train-rmse:747.640930 
 #&gt; [92]	train-rmse:747.166992 
 #&gt; [93]	train-rmse:745.880615 
 #&gt; [94]	train-rmse:744.933716 
 #&gt; [95]	train-rmse:744.060425 
-#&gt; [96]	train-rmse:743.978760 
+#&gt; [96]	train-rmse:743.978699 
 #&gt; [97]	train-rmse:743.872742 
 #&gt; [98]	train-rmse:743.621277 
 #&gt; [99]	train-rmse:743.458862 
@@ -557,7 +572,7 @@
 #&gt;  $ extra_args           :List of 2
 #&gt;   ..$ eval_metric:function (preds, dtrain)  
 #&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x120bd010&gt; 
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x10bdda18&gt; 
 #&gt;   ..$ maximize   : logi TRUE
 #&gt;  $ gbt_input            :List of 11
 #&gt;   ..$ max_depth            : num 6
@@ -571,7 +586,7 @@
 #&gt;   ..$ objective            : chr "binary:logistic"
 #&gt;   ..$ eval_metric          :function (preds, dtrain)  
 #&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x120bd010&gt; 
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x10bdda18&gt; 
 #&gt;   ..$ maximize             : logi TRUE
 #&gt;  $ not_vary             : chr(0) 
 #&gt;  $ nr_obs               : int 1043
