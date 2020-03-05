@@ -1,5 +1,6 @@
-# radiant.model 1.3.6
+# radiant.model 1.3.7
 
+* Fix to write.coeff when one or more coefficients have a missing value
 * Use weighted mean and sd in write.coeff function when needed
 * Added flexibility in using constants while defining the spec for other randomly generated variables
 

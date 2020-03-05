@@ -30,4 +30,7 @@ regress(
   write.coeff(sort = TRUE) \%>\%
   format_df(dec = 3)
 
+logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\%
+  write.coeff(intercept = FALSE, sort = TRUE) \%>\%
+  format_df(dec = 2)
 }

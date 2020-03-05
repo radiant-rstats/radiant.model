@@ -825,6 +825,9 @@ minmax <- function(dataset) {
 #'   write.coeff(sort = TRUE) %>%
 #'   format_df(dec = 3)
 #'
+#' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
+#'   write.coeff(intercept = FALSE, sort = TRUE) %>%
+#'   format_df(dec = 2)
 #' @importFrom stats model.frame
 #'
 #' @export
@@ -850,7 +853,7 @@ write.coeff <- function(
   ## calculating the mean and sd for each variable
   ## extract formula from http://stackoverflow.com/a/9694281/1974918
   frm <- formula(object$model$terms)
-  tlabs <- attr(object$model$term, "term.labels")
+  coeff <- object$model$coeff
   dataset <- object$model$model
   cn <- colnames(dataset)
   wts <- object$wts
@@ -874,6 +877,10 @@ write.coeff <- function(
 
   ## create the model.matrix
   mm <- model.matrix(frm, model.frame(frm, dataset))[,-1]
+
+  ## removing columns where the corresponding coeff is missing
+  cn <- intersect(colnames(mm), names(na.omit(coeff)))
+  mm <- mm[,cn, drop = FALSE]
 
   ## generate summary statistics
   if (length(wts) == 0) {
