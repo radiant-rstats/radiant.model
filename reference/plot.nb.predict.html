@@ -169,7 +169,7 @@
     </div>
 
     <pre class="usage"><span class='co'># S3 method for nb.predict</span>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>x</span>, <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>facet_row</span> <span class='kw'>=</span> <span class='st'>"."</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"."</span>, <span class='kw'>color</span> <span class='kw'>=</span> <span class='st'>".class"</span>, <span class='no'>...</span>)</pre>
+<span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(<span class='no'>x</span>, <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>facet_row</span> <span class='kw'>=</span> <span class='st'>"."</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"."</span>, <span class='kw'>color</span> <span class='kw'>=</span> <span class='st'>".class"</span>, <span class='no'>...</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -210,8 +210,8 @@
   <span class='no'>result</span>,
   <span class='kw'>pred_cmd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass = levels(pclass)"</span>, <span class='st'>"sex = levels(sex)"</span>, <span class='st'>"age = seq(0, 100, 20)"</span>)
 )
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>pred</span>, <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"age"</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"sex"</span>, <span class='kw'>facet_row</span> <span class='kw'>=</span> <span class='st'>"pclass"</span>)</div><div class='img'><img src='plot.nb.predict-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='no'>pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_data</span> <span class='kw'>=</span> <span class='no'>titanic</span>)
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>pred</span>, <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"age"</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"sex"</span>)</div><div class='img'><img src='plot.nb.predict-2.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(<span class='no'>pred</span>, <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"age"</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"sex"</span>, <span class='kw'>facet_row</span> <span class='kw'>=</span> <span class='st'>"pclass"</span>)</div><div class='img'><img src='plot.nb.predict-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='no'>pred</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_data</span> <span class='kw'>=</span> <span class='no'>titanic</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(<span class='no'>pred</span>, <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"age"</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"sex"</span>)</div><div class='img'><img src='plot.nb.predict-2.png' alt='' width='700' height='433' /></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

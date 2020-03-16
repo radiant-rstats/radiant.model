@@ -161,9 +161,9 @@
 <a href="#report-rmd" class="anchor"></a>Report &gt; Rmd</h3>
 <p>Add code to <a href="https://radiant-rstats.github.io/docs/data/report_rmd.html" target="_blank"><em>Report &gt; Rmd</em></a> to (re)create the analysis by clicking the <i title="report results" class="fa fa-edit"></i> icon on the bottom left of your screen or by pressing <code>ALT-enter</code> on your keyboard.</p>
 <p><code>Rsq</code>, <code>RSME</code>, and <code>MAE</code> are plotted by default. It is possible to customize the plotted results through <em>Report &gt; Rmd</em>. To change the plot use, for example:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(result, <span class="dt">vars =</span> <span class="st">"Rsq"</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/plot.html">plot</a></span>(result, <span class="dt">vars =</span> <span class="st">"Rsq"</span>)</a></code></pre></div>
 <p>The plot can be further customized using <code>ggplot2</code> commands (see example below)). See <a href="https://radiant-rstats.github.io/docs/data/visualize.html" target="_blank"><em>Data &gt; Visualize</em></a> for details.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(result, <span class="dt">vars =</span> <span class="st">"Rsq"</span>) <span class="op">+</span></a>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/plot.html">plot</a></span>(result, <span class="dt">vars =</span> <span class="st">"Rsq"</span>) <span class="op">+</span></a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="st">  </span><span class="kw">labs</span>(<span class="dt">caption =</span> <span class="st">"Based on data from ..."</span>)</a></code></pre></div>
 </div>
 <div id="r-functions" class="section level3">

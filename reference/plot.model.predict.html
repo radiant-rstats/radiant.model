@@ -169,7 +169,7 @@
     </div>
 
     <pre class="usage"><span class='co'># S3 method for model.predict</span>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(
+<span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(
   <span class='no'>x</span>,
   <span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>""</span>,
   <span class='kw'>facet_row</span> <span class='kw'>=</span> <span class='st'>"."</span>,
@@ -220,9 +220,9 @@
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'>regress</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"carat"</span>, <span class='st'>"clarity"</span>)) <span class='kw'>%&gt;%</span>
   <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='kw'>pred_cmd</span> <span class='kw'>=</span> <span class='st'>"carat = 1:10"</span>) <span class='kw'>%&gt;%</span>
-  <span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"carat"</span>)</div><div class='img'><img src='plot.model.predict-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>logistic</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>, <span class='st'>"age"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>) <span class='kw'>%&gt;%</span>
+  <span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(<span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"carat"</span>)</div><div class='img'><img src='plot.model.predict-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>logistic</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>, <span class='st'>"age"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>) <span class='kw'>%&gt;%</span>
   <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='kw'>pred_cmd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass = levels(pclass)"</span>, <span class='st'>"sex = levels(sex)"</span>, <span class='st'>"age = 0:100"</span>)) <span class='kw'>%&gt;%</span>
-  <span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"age"</span>, <span class='kw'>color</span> <span class='kw'>=</span> <span class='st'>"sex"</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"pclass"</span>)</div><div class='img'><img src='plot.model.predict-2.png' alt='' width='700' height='433' /></div><div class='input'>
+  <span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(<span class='kw'>xvar</span> <span class='kw'>=</span> <span class='st'>"age"</span>, <span class='kw'>color</span> <span class='kw'>=</span> <span class='st'>"sex"</span>, <span class='kw'>facet_col</span> <span class='kw'>=</span> <span class='st'>"pclass"</span>)</div><div class='img'><img src='plot.model.predict-2.png' alt='' width='700' height='433' /></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
