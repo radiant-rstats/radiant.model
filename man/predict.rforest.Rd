@@ -20,13 +20,13 @@
 
 \item{pred_data}{Provide the dataframe to generate predictions (e.g., diamonds). The dataset must contain all columns used in the estimation}
 
-\item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different 
+\item{pred_cmd}{Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different
 levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')}
 
-\item{pred_names}{Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels 
+\item{pred_names}{Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels
 in the response variable of the rforest model will be used}
 
-\item{OOB}{Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared 
+\item{OOB}{Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared
 to determine of OOB predictions should be used}
 
 \item{dec}{Number of decimals to show}

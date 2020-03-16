@@ -39,7 +39,7 @@ rforest <- function(
   dataset, rvar, evar, type = "classification", lev = "",
   mtry = NULL, num.trees = 100, min.node.size = 1,
   sample.fraction = 1, replace = NULL,
-  num.threads = 12, wts = "None", seed = NA, 
+  num.threads = 12, wts = "None", seed = NA,
   data_filter = "", envir = parent.frame(), ...
 ) {
 
@@ -153,7 +153,7 @@ rforest <- function(
   rm(dataset, envir, rforest_input) ## dataset not needed elsewhere
 
   ## needed to work with prediction functions
-  check <- ""    
+  check <- ""
 
   as.list(environment()) %>% add_class(c("rforest", "model"))
 }
@@ -227,8 +227,8 @@ summary.rforest <- function(object, ...) {
 #' @param plots Plots to produce for the specified Random Forest model. Use "" to avoid showing any plots (default). Options are ...
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
 #' @param qtiles Show 25th and 75th quitiles in partial-dependence plots
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. 
-#'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples 
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned.
+#'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples
 #'   and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
@@ -308,11 +308,11 @@ plot.rforest <- function(
 #'
 #' @param object Return value from \code{\link{rforest}}
 #' @param pred_data Provide the dataframe to generate predictions (e.g., diamonds). The dataset must contain all columns used in the estimation
-#' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different 
+#' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different
 #'   levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
-#' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels 
+#' @param pred_names Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels
 #'   in the response variable of the rforest model will be used
-#' @param OOB Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared 
+#' @param OOB Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared
 #'   to determine of OOB predictions should be used
 #' @param dec Number of decimals to show
 #' @param envir Environment to extract data from
@@ -550,15 +550,14 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
 #'
 #' @export
 cv.rforest <- function(
-  object, K = 5, repeats = 1, mtry = 1:10, num.trees = NULL, min.node.size = 1, sample.fraction = NA,
+  object, K = 5, repeats = 1, mtry = 1:5, num.trees = NULL, min.node.size = 1, sample.fraction = NA,
   trace = TRUE, seed = 1234, fun, ...
 ) {
-
   if (inherits(object, "rforest")) object <- object$model
   if (inherits(object, "ranger")) {
     dv <- as.character(object$call$formula[[2]])
     m <- eval(object$call[["data"]])
-    if (max(mtry) > ncol(m) - 1) mtry <- seq_len(ncol(m) - 1)
+    mtry <- mtry[mtry < ncol(m)]
     weights <- eval(object$call[["case.weights"]])
     if (is.numeric(m[[dv]])) {
       type <- "regression"

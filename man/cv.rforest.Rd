@@ -8,7 +8,7 @@ cv.rforest(
   object,
   K = 5,
   repeats = 1,
-  mtry = 1:10,
+  mtry = 1:5,
   num.trees = NULL,
   min.node.size = 1,
   sample.fraction = NA,
