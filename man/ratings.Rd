@@ -4,7 +4,9 @@
 \name{ratings}
 \alias{ratings}
 \title{Movie ratings}
-\format{A data frame with 110 rows and 4 variables}
+\format{
+A data frame with 110 rows and 4 variables
+}
 \usage{
 data(ratings)
 }

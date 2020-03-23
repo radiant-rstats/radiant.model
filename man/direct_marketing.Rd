@@ -4,7 +4,9 @@
 \name{direct_marketing}
 \alias{direct_marketing}
 \title{Direct marketing data}
-\format{A data frame with 1,000 rows and 12 variables}
+\format{
+A data frame with 1,000 rows and 12 variables
+}
 \usage{
 data(direct_marketing)
 }

@@ -19,5 +19,4 @@ One hot encoding of data.frames
 \examples{
 head(onehot(diamonds, df = TRUE))
 head(onehot(diamonds, all = TRUE, df = TRUE))
-
 }

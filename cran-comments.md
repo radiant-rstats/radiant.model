@@ -4,6 +4,24 @@ This is a resubmission. In this version I have fixed several bugs and added seve
 
 ## Test environments
 
+* local OS X install, R 3.6.3
+* local Windows install, R 3.6.2
+* ubuntu "trusty" (on travis-ci), R release and devel
+* win-builder
+* rhub
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the size of the app/ directory. This is mostly due to screenshot used in the documentation. If this is problematic, please let me know and I'll try for a work-around. 
+
+# Previous cran-comments
+
+## Resubmission
+
+This is a resubmission. In this version I have fixed several bugs and added several new features (see NEWS.md for details).
+
+## Test environments
+
 * local OS X install, R 3.6.1
 * local Windows install, R 3.6.1
 * ubuntu "trusty" (on travis-ci), R release and devel
@@ -14,7 +32,6 @@ This is a resubmission. In this version I have fixed several bugs and added seve
 
 There were no ERRORs, WARNINGs, or NOTEs. 
 
-# Previous cran-comments
 
 ## Resubmission
 

@@ -4,7 +4,9 @@
 \name{movie_contract}
 \alias{movie_contract}
 \title{Movie contract decision tree}
-\format{A nested list for decision and chance nodes, probabilities and payoffs}
+\format{
+A nested list for decision and chance nodes, probabilities and payoffs
+}
 \usage{
 data(movie_contract)
 }

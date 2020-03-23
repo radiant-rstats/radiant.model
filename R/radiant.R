@@ -1,5 +1,6 @@
 #' Launch radiant.model in the default browser
 #'
+#' @description Launch radiant.model in the default web browser
 #' @details See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials
 #'
 #' @param state Path to state file to load
@@ -79,14 +80,13 @@ render.DiagrammeR <- function(object, shiny = shiny::getDefaultReactiveDomain(),
 #' @param dataset Dataset to endcode
 #' @param all Extract all factor levels (e.g., for tree-based models)
 #' @param df Return a data.frame (tibble)
-#' 
+#'
 #' @examples
 #' head(onehot(diamonds, df = TRUE))
 #' head(onehot(diamonds, all = TRUE, df = TRUE))
-#' 
 #' @importFrom stats contrasts
-#' 
-#' @export 
+#'
+#' @export
 onehot <- function(dataset, all = FALSE, df = FALSE) {
   if (all) {
     mm <- model.matrix(~ 0 + .,
@@ -96,9 +96,9 @@ onehot <- function(dataset, all = FALSE, df = FALSE) {
         contrasts,
         contrasts = FALSE
       )
-    ) 
+    )
   } else {
-    mm <- model.matrix(~ ., model.frame(~ ., dataset))
+    mm <- model.matrix(~., model.frame(~., dataset))
   }
   if (df) as.data.frame(mm, stringsAsFactors = FALSE) else mm
 }

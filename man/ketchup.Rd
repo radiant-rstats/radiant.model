@@ -4,7 +4,9 @@
 \name{ketchup}
 \alias{ketchup}
 \title{Data on ketchup choices}
-\format{A data frame with 2,798 rows and 14 variables}
+\format{
+A data frame with 2,798 rows and 14 variables
+}
 \usage{
 data(ketchup)
 }

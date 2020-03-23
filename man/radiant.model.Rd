@@ -13,9 +13,7 @@ radiant.model(state, ...)
 \item{...}{additional arguments to pass to shiny::runApp (e.g, port = 8080)}
 }
 \description{
-radiant.model
-
-Launch radiant.model in the default browser
+Launch radiant.model in the default web browser
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs} for documentation and tutorials

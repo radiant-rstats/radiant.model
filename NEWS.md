@@ -1,3 +1,7 @@
+# radiant.model 1.3.9
+
+* Minor adjustments in anticipation of dplyr 1.0.0
+
 # radiant.model 1.3.8
 
 * Fix for cv.rforest when the max of `mtry` exceeds the number of explanatory variables

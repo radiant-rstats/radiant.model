@@ -4,7 +4,9 @@
 \name{catalog}
 \alias{catalog}
 \title{Catalog sales for men's and women's apparel}
-\format{A data frame with 200 rows and 5 variables}
+\format{
+A data frame with 200 rows and 5 variables
+}
 \usage{
 data(catalog)
 }

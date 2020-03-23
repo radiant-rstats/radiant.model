@@ -4,7 +4,9 @@
 \name{dvd}
 \alias{dvd}
 \title{Data on DVD sales}
-\format{A data frame with 20,000 rows and 4 variables}
+\format{
+A data frame with 20,000 rows and 4 variables
+}
 \usage{
 data(dvd)
 }
