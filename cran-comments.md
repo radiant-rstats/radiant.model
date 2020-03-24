@@ -1,5 +1,22 @@
 ## Resubmission
 
+This is a resubmission. In this version I have removed screenshots used in the documentation and linked to images on the documentation website instead to reduce package size. 
+
+## Test environments
+
+* local OS X install, R 3.6.3
+* local Windows install, R 3.6.3
+* ubuntu "trusty" (on travis-ci), R release and devel
+* win-builder
+* rhub
+
+## R CMD check results
+
+There were no ERRORs, WARNINGs, or NOTEs. 
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I have fixed several bugs and added several new features (see NEWS.md for details).
 
 ## Test environments
