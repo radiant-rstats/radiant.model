@@ -1,3 +1,7 @@
+# radiant.model 1.3.11
+
+* Improvement in calculating PDP for categorical variables in plot.gbt based on suggestion by @benmarchi (https://github.com/radiant-rstats/radiant.model/issues/4)
+
 # radiant.model 1.3.9
 
 * Minor adjustments in anticipation of dplyr 1.0.0
