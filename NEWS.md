@@ -1,5 +1,6 @@
-# radiant.model 1.3.11
+# radiant.model 1.3.12
 
+* Fix for _Model > Decision analysis_. Indent levels could be affected when the input file contains blank lines
 * Improvement in calculating PDP for categorical variables in plot.gbt based on suggestion by @benmarchi (https://github.com/radiant-rstats/radiant.model/issues/4)
 
 # radiant.model 1.3.9
