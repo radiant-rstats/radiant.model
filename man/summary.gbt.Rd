@@ -22,7 +22,6 @@ See \url{https://radiant-rstats.github.io/docs/model/gbt.html} for an example in
 \examples{
 result <- gbt(titanic, "survived", "pclass", lev = "Yes")
 summary(result)
-
 }
 \seealso{
 \code{\link{gbt}} to generate results

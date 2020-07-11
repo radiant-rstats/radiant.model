@@ -1,3 +1,8 @@
+# radiant.model 1.3.13
+
+* Fix for issue introduced by version 0.7.0 of the broom package related to degrees of freedom in linear regression
+* Fix for NoLD issue identified by CRAN
+
 # radiant.model 1.3.12
 
 * Fix for _Model > Decision analysis_. Indent levels could be affected when the input file contains blank lines

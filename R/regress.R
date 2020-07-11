@@ -216,9 +216,6 @@ summary.regress <- function(
     return("\nInsufficient observations to estimate model")
   }
 
-  ## adjusting df for included intercept term
-  df_int <- if (attr(object$model$terms, "intercept")) 1L else 0L
-
   reg_fit <- glance(object$model) %>% round(dec)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
@@ -227,8 +224,8 @@ summary.regress <- function(
   if (nrow(coeff) == 1) return("\nModel contains only an intercept. No additional output shown")
 
   if (reg_fit["p.value"] < .001) reg_fit["p.value"] <- "< .001"
-  cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df - df_int, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
-  cat("\nNr obs:", format_nr(reg_fit$df + reg_fit$df.residual, dec = 0), "\n\n")
+  cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
+  cat("\nNr obs:", format_nr(reg_fit$nobs, dec = 0), "\n\n")
 
   if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")

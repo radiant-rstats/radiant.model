@@ -284,7 +284,7 @@ summary.logistic <- function(
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
-    nobs <- logit_fit$df.null + 1
+    nobs <- logit_fit$nobs
   }
 
   ## chi-squared test of overall model fit (p-value) - http://www.ats.ucla.edu/stat/r/dae/logit.htm
@@ -479,7 +479,7 @@ plot.logistic <- function(
     model <- x$model$model
     model$.fitted <- predict(x$model, type = "response")
   } else {
-    model <- broom::augment(x$model, type.predict = "response") %>% as.data.frame()
+    model <- broom::augment(x$model, type.predict = "response")
   }
 
   ## adjustment in case max > 1 (e.g., values are 1 and 2)
@@ -552,7 +552,7 @@ plot.logistic <- function(
       model <- sample_n(model, nrobs, replace = FALSE)
     }
     for (i in evar) {
-      if ("factor" %in% class(model[, i])) {
+      if ("factor" %in% class(model[[i]])) {
         plot_list[[paste0("scatter_", i)]] <- ggplot(model, aes_string(x = i, fill = rvar)) +
           geom_bar(position = "fill", alpha = 0.5) +
           labs(y = "")

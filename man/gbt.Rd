@@ -74,7 +74,7 @@ See \url{https://radiant-rstats.github.io/docs/model/gbt.html} for an example in
 \examples{
 gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
 gbt(titanic, "survived", c("pclass", "sex")) \%>\% str()
-gbt(titanic, "survived", c("pclass", "sex"), eval_metric = paste0("error@", 0.5/6)) \%>\% str()
+gbt(titanic, "survived", c("pclass", "sex"), eval_metric = paste0("error@", 0.5 / 6)) \%>\% str()
 gbt(diamonds, "price", c("carat", "clarity"), type = "regression") \%>\% summary()
 rig_wrap <- function(preds, dtrain) {
   labels <- xgboost::getinfo(dtrain, "label")
@@ -82,7 +82,6 @@ rig_wrap <- function(preds, dtrain) {
   list(metric = "rig", value = value)
 }
 gbt(titanic, "survived", c("pclass", "sex"), eval_metric = rig_wrap, maximize = TRUE) \%>\% str()
-
 }
 \seealso{
 \code{\link{summary.gbt}} to summarize results

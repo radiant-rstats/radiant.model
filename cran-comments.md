@@ -1,5 +1,23 @@
 ## Resubmission
 
+This is a resubmission. In this version I have addressed an issue introduced by a change in broom 0.7.0 and attempted to address the NoLD issue identified by CRAN.
+
+## Test environments
+
+* local OS X install, R 4.0.2
+* local Windows install, R 4.0.2
+* ubuntu "trusty" (on travis-ci), R release and devel
+* win-builder
+* rhub
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely only on the web (shiny) interface available for radiant.model.
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I have removed screenshots used in the documentation and linked to images on the documentation website instead to reduce package size. 
 
 ## Test environments
@@ -13,7 +31,8 @@ This is a resubmission. In this version I have removed screenshots used in the d
 ## R CMD check results
 
 There were no ERRORs, WARNINGs, or NOTEs. 
-# Previous cran-comments
+
+
 
 ## Resubmission
 

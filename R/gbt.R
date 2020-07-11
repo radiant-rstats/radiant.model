@@ -43,12 +43,12 @@
 #'
 #' @export
 gbt <- function(
-                dataset, rvar, evar, type = "classification", lev = "",
-                max_depth = 6, learning_rate = 0.3, min_split_loss = 0,
-                min_child_weight = 1, subsample = 1,
-                nrounds = 100, early_stopping_rounds = 10,
-                nthread = 12, wts = "None", seed = NA,
-                data_filter = "", envir = parent.frame(), ...
+  dataset, rvar, evar, type = "classification", lev = "",
+  max_depth = 6, learning_rate = 0.3, min_split_loss = 0,
+  min_child_weight = 1, subsample = 1,
+  nrounds = 100, early_stopping_rounds = 10,
+  nthread = 12, wts = "None", seed = NA,
+  data_filter = "", envir = parent.frame(), ...
 ) {
 
   if (rvar %in% evar) {
@@ -258,7 +258,9 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Gradient Boosted Tree model. Use "" to avoid showing any plots (default). Options are ...
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{http://docs.ggplot2.org} for options.
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. 
+#'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). 
+#'   See examples and \url{http://docs.ggplot2.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
@@ -271,8 +273,8 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #'
 #' @export
 plot.gbt <- function(
-                     x, plots = "", nrobs = Inf,
-                     shiny = FALSE, custom = FALSE, ...
+  x, plots = "", nrobs = Inf,
+  shiny = FALSE, custom = FALSE, ...
 ) {
 
   if (is.character(x) || !inherits(x$model, "xgb.Booster")) return(x)
@@ -299,7 +301,7 @@ plot.gbt <- function(
             x$model, pred.var = fn[i], plot = FALSE,
             prob = x$type == "classification", train = dtx_cat
           )
-          effects[i] <- pdi[pdi[[1]] == 1, 2]
+          effects[i] <- pdi[pdi[[1]] > 0, 2]
         }
         pgrid <- as.data.frame(matrix(0, ncol = nr))
         colnames(pgrid) <- fn
