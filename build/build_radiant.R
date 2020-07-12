@@ -17,6 +17,8 @@ dirsrc <- "../minicran/src/contrib"
 
 if (rv == "3.3") {
   dirmac <- fs::path("../minicran/bin/macosx/mavericks/contrib", rv)
+} else if (as.numeric(substr(rv, 1, 1)) >= 4) {
+  dirmac <- fs::path("../minicran/bin/macosx/contrib", rv)
 } else {
   dirmac <- fs::path("../minicran/bin/macosx/el-capitan/contrib", rv)
 }

@@ -7,7 +7,7 @@ This is a resubmission. In this version I have addressed an issue introduced by 
 * local OS X install, R 4.0.2
 * local Windows install, R 4.0.2
 * ubuntu "trusty" (on travis-ci), R release and devel
-* win-builder
+* win-builder (devel)
 * rhub
 
 ## R CMD check results

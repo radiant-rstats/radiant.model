@@ -45,17 +45,17 @@ The odds-ratios from the logistic regression can be interpreted as follows:
 - Compared to female passengers, the odds of survival for male passengers was 91.7% lower, keeping all other variables in the model constant.
 - For an increase in passenger age of 1 year the odds of survival decreased by 3.4%, keeping all other variables in the model constant.
 
-<p align="center"><img src="figures_model/logistic_summary.png"></p>
+<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/logistic_summary.png"></p>
 
 In addition to the numerical output provided in the _Summary_ tab we can also evaluate the link between `survival`, `class`, `sex`, and `age` visually (see _Plot_ tab). In the screenshot below we see a coefficient (or rather an odds-ratio) plot with confidence intervals. The relative importance of gender and class compared to age clearly stands out. Note: click the check box for standardized coefficients (i.e., `standardize`) in the _Summary_ tab and see if your conclusion changes.
 
-<p align="center"><img src="figures_model/logistic_plot.png"></p>
+<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/logistic_plot.png"></p>
 
 Probabilities, are often more convenient for interpretation than coefficients or odds from a logistic regression model. We can use the _Predict_ tab to predict probabilities for different values of the explanatory variable(s) (i.e., a common use of Logistic regression models). First, select the type of input for prediction using the `Prediction input type` dropdown. Choose either an existing dataset for prediction ("Data") or specify a command ("Command") to generate the prediction inputs. If you choose to enter a command you must specify at least one variable and one value in the **Prediction command** box to get a prediction. If you do not specify a value for each variable in the model either the mean value or the most frequent level will be used. It is only possible to predict outcomes based on variables used in the model (e.g., `age` must be one of the selected explanatory variables to predict survival probability for a 90 year old passenger).
 
 To see how survival probabilities change across passenger classes select `Command` from the `Prediction input type` dropdown in the _Predict_ tab, type `pclass = levels(pclass)`, and press return.
 
-<p align="center"><img src="figures_model/logistic_predict.png"></p>
+<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/logistic_predict.png"></p>
 
 The figure above shows that the probabilities drop sharply for 2nd and 3rd class passengers compared to 1st class passengers. For males of average age (approx. 30 yo in the sample) the survival probability was close to 50%. For 30 yo, male, 3rd class passengers this probability was closer to 9%.
 
@@ -88,7 +88,7 @@ To see the effects for age type `age = seq(0, 100, 20)` in the **Prediction comm
 
 For a more comprehensive overview of the influence of gender, age, and passenger class on the chances of survival we can generate a full table of probabilities by selecting `Data` from the `Prediction input` dropdown in the _Predict_ tab and selecting `titanic` from the `Prediction data` dropdown. There are too many numbers to easily interpret in table form but the figure gives a clear overview of how survival probabilities change with `age`, `gender`, and `pclass`:
 
-<p align="center"><img src="figures_model/logistic_predict_data.png"></p>
+<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/logistic_predict_data.png"></p>
 
 You can also create a dataset for input in _Data > Transform_ using `Expand grid` or in a spreadsheet and then paste it into Radiant through the _Data > Manage_ tab. You can also load csv data as input. For example, paste the following link `https://radiant-rstats.github.io/docs/examples/glm_pred.csv` file into Radiant through the _Data > Manage_ tab and try to generate the same predictions. Hint: Use `csv (url)` to load the data link above.
 
@@ -100,7 +100,7 @@ We will use the dataset `dvd.rds`, available for download from <a href="https://
 
 To keep the example simple, we use only information on the value of the coupon customers received. Hence, `buy` is our response variable and `coupon` is our explanatory (or predictor) variable.
 
-<p align="center"><img src="figures_model/logistic_dvd.png"></p>
+<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/logistic_dvd.png"></p>
 
 The regression output shows that coupon value is a statistically significant predictor of customer purchase. The coefficient from the logistic regression is 0.701 and the odds ratio is equal to 2.015 (i.e., $e^{0.701}$). Because the odds ratio is larger than 1, a higher coupon value is associated with higher odds of purchase. Also, because the p.value for the coefficient is smaller than 0.05 we conclude that (1) the coefficient is statistically significantly different from 0 and (2) the odds ratio is statistically significantly different from 1. An odds ratio of 1 is equivalent to a coefficient estimate of 0 in a linear regression and implies that the explanatory (or predictor) variable has no effect on the response variable. The estimated odds ratio of 2.015 suggests that the odds of purchase increase by 101.6% for each dollar increase in coupon value.
 

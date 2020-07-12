@@ -229,7 +229,7 @@ summary.rforest <- function(object, ...) {
 #' @param qtiles Show 25th and 75th quitiles in partial-dependence plots
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned.
 #'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples
-#'   and \url{http://docs.ggplot2.org} for options.
+#'   and \url{https://ggplot2.tidyverse.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
