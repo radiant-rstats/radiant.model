@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -35,7 +39,7 @@
 
 <!-- docsearch -->
 <script src="../docsearch.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.3/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
 <link href="../docsearch.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
@@ -43,7 +47,6 @@
 
 <meta property="og:title" content="Multinomial logistic regression — mnl" />
 <meta property="og:description" content="Multinomial logistic regression" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -61,7 +64,7 @@
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -75,7 +78,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.13</span>
       </span>
     </div>
 
@@ -240,8 +243,7 @@
   <span class='kw'>rvar</span> <span class='kw'>=</span> <span class='st'>"choice"</span>,
   <span class='kw'>evar</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"price.heinz28"</span>, <span class='st'>"price.heinz32"</span>, <span class='st'>"price.heinz41"</span>, <span class='st'>"price.hunts32"</span>),
   <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"heinz28"</span>
-)
-<span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>(<span class='no'>result</span>)</div><div class='output co'>#&gt; List of 16
+)</div><div class='output co'>#&gt; <span class='warning'>Warning: NaNs produced</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>(<span class='no'>result</span>)</div><div class='output co'>#&gt; List of 16
 #&gt;  $ umod       :List of 26
 #&gt;   ..$ n            : num [1:3] 1 0 4
 #&gt;   ..$ nunits       : int 6
@@ -272,7 +274,7 @@
 #&gt;   .. .. ..- attr(*, "order")= int(0) 
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11c138c8&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1029eea8&gt; 
 #&gt;   .. .. ..- attr(*, "predvars")= language list(choice)
 #&gt;   .. .. ..- attr(*, "dataClasses")= Named chr "factor"
 #&gt;   .. .. .. ..- attr(*, "names")= chr "choice"
@@ -296,7 +298,7 @@
 #&gt;   .. .. .. ..- attr(*, "order")= int(0) 
 #&gt;   .. .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11c138c8&gt; 
+#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1029eea8&gt; 
 #&gt;   .. .. .. ..- attr(*, "predvars")= language list(choice)
 #&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr "factor"
 #&gt;   .. .. .. .. ..- attr(*, "names")= chr "choice"
@@ -304,8 +306,8 @@
 #&gt;  $ coeff      :'data.frame':	15 obs. of  8 variables:
 #&gt;   ..$ level      : chr [1:15] "heinz32" "heinz32" "heinz32" "heinz32" ...
 #&gt;   ..$ label      : chr [1:15] "(Intercept)" "price.heinz28" "price.heinz32" "price.heinz41" ...
-#&gt;   ..$ RRR        : num [1:15] 118.647 3 0.101 0.686 1.055 ...
-#&gt;   ..$ coefficient: num [1:15] 4.7762 1.0987 -2.2963 -0.377 0.0532 ...
+#&gt;   ..$ RRR        : num [1:15] 4.7762 1.0987 NaN NaN 0.0532 ...
+#&gt;   ..$ coefficient: num [1:15] 1.5636 0.0941 NaN NaN -2.9336 ...
 #&gt;   ..$ std.error  : num [1:15] 0.7403 0.0761 0.1348 0.1185 0.1031 ...
 #&gt;   ..$ z.value    : num [1:15] 6.452 14.439 -17.033 -3.182 0.516 ...
 #&gt;   ..$ p.value    : num [1:15] 0.0000000001106116796162242107301839029508214867769666511776449624449 0.00000000000000000000000000000000000000000| __truncated__ ...
@@ -343,7 +345,7 @@
 #&gt;   .. .. ..- attr(*, "order")= int [1:4] 1 1 1 1
 #&gt;   .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11c138c8&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1029eea8&gt; 
 #&gt;   .. .. ..- attr(*, "predvars")= language list(choice, price.heinz28, price.heinz32, price.heinz41, price.hunts32)
 #&gt;   .. .. ..- attr(*, "dataClasses")= Named chr [1:5] "factor" "numeric" "numeric" "numeric" ...
 #&gt;   .. .. .. ..- attr(*, "names")= chr [1:5] "choice" "price.heinz28" "price.heinz32" "price.heinz41" ...
@@ -375,7 +377,7 @@
 #&gt;   .. .. .. ..- attr(*, "order")= int [1:4] 1 1 1 1
 #&gt;   .. .. .. ..- attr(*, "intercept")= int 1
 #&gt;   .. .. .. ..- attr(*, "response")= int 1
-#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11c138c8&gt; 
+#&gt;   .. .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1029eea8&gt; 
 #&gt;   .. .. .. ..- attr(*, "predvars")= language list(choice, price.heinz28, price.heinz32, price.heinz41, price.hunts32)
 #&gt;   .. .. .. ..- attr(*, "dataClasses")= Named chr [1:5] "factor" "numeric" "numeric" "numeric" ...
 #&gt;   .. .. .. .. ..- attr(*, "names")= chr [1:5] "choice" "price.heinz28" "price.heinz32" "price.heinz41" ...
@@ -385,7 +387,7 @@
 #&gt;   ..- attr(*, "class")= chr [1:2] "multinom" "nnet"
 #&gt;  $ mnl_input  :List of 5
 #&gt;   ..$ formula:Class 'formula'  language choice ~ price.heinz28 + price.heinz32 + price.heinz41 + price.hunts32
-#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11c138c8&gt; 
+#&gt;   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x1029eea8&gt; 
 #&gt;   ..$ weights: NULL
 #&gt;   ..$ data   :'data.frame':	2798 obs. of  5 variables:
 #&gt;   .. ..$ choice       : Factor w/ 4 levels "heinz28","heinz32",..: 1 1 1 1 1 1 1 3 1 1 ...
@@ -393,7 +395,6 @@
 #&gt;   .. ..$ price.heinz32: num [1:2798] 3.7 4.3 2.5 3.7 3 ...
 #&gt;   .. ..$ price.heinz41: num [1:2798] 4.6 4.6 4.6 4.6 4.6 ...
 #&gt;   .. ..$ price.hunts32: num [1:2798] 3.4 4.4 4.8 3.4 4.8 ...
-#&gt;   .. ..- attr(*, "description")= chr "## Choice of ketchup brands\n\nChoice behavior for 300 individuals in a panel of households in Springfield, Mis"| __truncated__
 #&gt;   ..$ model  : logi TRUE
 #&gt;   ..$ trace  : logi FALSE
 #&gt;  $ mmx        :List of 2
@@ -402,13 +403,11 @@
 #&gt;   .. ..$ price.heinz32: num 0.3
 #&gt;   .. ..$ price.heinz41: num 2
 #&gt;   .. ..$ price.hunts32: num 0.3
-#&gt;   .. ..- attr(*, "description")= chr "## Choice of ketchup brands\n\nChoice behavior for 300 individuals in a panel of households in Springfield, Mis"| __truncated__
 #&gt;   ..$ max:'data.frame':	1 obs. of  4 variables:
 #&gt;   .. ..$ price.heinz28: num 12
 #&gt;   .. ..$ price.heinz32: num 4.3
 #&gt;   .. ..$ price.heinz41: num 7.2
 #&gt;   .. ..$ price.hunts32: num 8.7
-#&gt;   .. ..- attr(*, "description")= chr "## Choice of ketchup brands\n\nChoice behavior for 300 individuals in a panel of households in Springfield, Mis"| __truncated__
 #&gt;  $ rv         : Factor w/ 4 levels "heinz28","heinz32",..: 1 1 1 1 1 1 1 3 1 1 ...
 #&gt;  $ not_vary   : chr(0) 
 #&gt;  $ df_name    : chr "ketchup"
@@ -423,16 +422,10 @@
 #&gt;  - attr(*, "class")= chr [1:3] "mnl" "model" "list"</div><div class='input'>
 </div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -443,7 +436,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -35,7 +39,7 @@
 
 <!-- docsearch -->
 <script src="../docsearch.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.1/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/docsearch.js/2.6.3/docsearch.min.css" integrity="sha256-QOSRU/ra9ActyXkIBbiIB144aDBdtvXBcNc3OTNuX/Q=" crossorigin="anonymous" />
 <link href="../docsearch.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
 
@@ -43,7 +47,6 @@
 
 <meta property="og:title" content="Gradient Boosted Trees using XGBoost — gbt" />
 <meta property="og:description" content="Gradient Boosted Trees using XGBoost" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -61,7 +64,7 @@
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -75,7 +78,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">radiant.model</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.13</span>
       </span>
     </div>
 
@@ -312,13 +315,13 @@
 #&gt; Stopping. Best iteration:
 #&gt; [3]	train-auc:0.826267</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
 #&gt;  $ check                : chr ""
-#&gt;  $ model                :List of 14
+#&gt;  $ model                :List of 15
 #&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
-#&gt;   ..$ raw            : raw [1:7517] 00 00 00 80 ...
-#&gt;   ..$ best_iteration : int 3
-#&gt;   ..$ best_ntreelimit: num 3
-#&gt;   ..$ best_score     : Named num 0.826
-#&gt;   .. ..- attr(*, "names")= chr "train-auc"
+#&gt;   ..$ raw            : raw [1:9966] 43 4f 4e 46 ...
+#&gt;   ..$ best_iteration : num 3
+#&gt;   ..$ best_ntreelimit: int 3
+#&gt;   ..$ best_score     : num 0.826
+#&gt;   ..$ best_msg       : chr "[3]\ttrain-auc:0.826267"
 #&gt;   ..$ niter          : int 13
 #&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	13 obs. of  2 variables:
 #&gt;   .. ..$ iter     : num [1:13] 1 2 3 4 5 6 7 8 9 10 ...
@@ -326,15 +329,15 @@
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
 #&gt;   ..$ call           : language xgb.train(params = params, data = dtrain, nrounds = nrounds, watchlist = watchlist,      verbose = verbose, print| __truncated__ ...
 #&gt;   ..$ params         :List of 9
-#&gt;   .. ..$ max_depth       : num 6
-#&gt;   .. ..$ learning_rate   : num 0.3
-#&gt;   .. ..$ min_split_loss  : num 0
-#&gt;   .. ..$ min_child_weight: num 1
-#&gt;   .. ..$ subsample       : num 1
-#&gt;   .. ..$ nthread         : num 12
-#&gt;   .. ..$ objective       : chr "binary:logistic"
-#&gt;   .. ..$ eval_metric     : chr "auc"
-#&gt;   .. ..$ silent          : num 1
+#&gt;   .. ..$ max_depth          : num 6
+#&gt;   .. ..$ learning_rate      : num 0.3
+#&gt;   .. ..$ min_split_loss     : num 0
+#&gt;   .. ..$ min_child_weight   : num 1
+#&gt;   .. ..$ subsample          : num 1
+#&gt;   .. ..$ nthread            : num 12
+#&gt;   .. ..$ objective          : chr "binary:logistic"
+#&gt;   .. ..$ eval_metric        : chr "auc"
+#&gt;   .. ..$ validate_parameters: logi TRUE
 #&gt;   ..$ callbacks      :List of 3
 #&gt;   .. ..$ cb.print.evaluation:function (env = parent.frame())  
 #&gt;   .. .. ..- attr(*, "call")= language cb.print.evaluation(period = print_every_n)
@@ -353,7 +356,7 @@
 #&gt;   .. ..$ Cover    : num [1:3] 0.392 0.359 0.249
 #&gt;   .. ..$ Frequency: num [1:3] 0.206 0.413 0.381
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
-#&gt;   ..$ model          :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
+#&gt;   ..$ model          : tibble [1,043 × 3] (S3: tbl_df/tbl/data.frame)
 #&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
 #&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
 #&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
@@ -393,15 +396,15 @@
 #&gt;  $ wts                  : NULL
 #&gt;  $ seed                 : chr NA
 #&gt;  $ data_filter          : chr ""
-#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>eval_metric</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='st'>"error@"</span>, <span class='fl'>0.5</span>/<span class='fl'>6</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
+#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>eval_metric</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='st'>"error@"</span>, <span class='fl'>0.5</span> / <span class='fl'>6</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
 #&gt;  $ check                : chr ""
-#&gt;  $ model                :List of 14
+#&gt;  $ model                :List of 15
 #&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
-#&gt;   ..$ raw            : raw [1:6445] 00 00 00 80 ...
-#&gt;   ..$ best_iteration : int 1
-#&gt;   ..$ best_ntreelimit: num 1
-#&gt;   ..$ best_score     : Named num 0.593
-#&gt;   .. ..- attr(*, "names")= chr "train-error@0.0833333"
+#&gt;   ..$ raw            : raw [1:8906] 43 4f 4e 46 ...
+#&gt;   ..$ best_iteration : num 1
+#&gt;   ..$ best_ntreelimit: int 1
+#&gt;   ..$ best_score     : num 0.593
+#&gt;   ..$ best_msg       : chr "[1]\ttrain-error@0.0833333:0.592522"
 #&gt;   ..$ niter          : int 11
 #&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	11 obs. of  2 variables:
 #&gt;   .. ..$ iter                 : num [1:11] 1 2 3 4 5 6 7 8 9 10 ...
@@ -409,15 +412,15 @@
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
 #&gt;   ..$ call           : language xgb.train(params = params, data = dtrain, nrounds = nrounds, watchlist = watchlist,      verbose = verbose, print| __truncated__ ...
 #&gt;   ..$ params         :List of 9
-#&gt;   .. ..$ max_depth       : num 6
-#&gt;   .. ..$ learning_rate   : num 0.3
-#&gt;   .. ..$ min_split_loss  : num 0
-#&gt;   .. ..$ min_child_weight: num 1
-#&gt;   .. ..$ subsample       : num 1
-#&gt;   .. ..$ nthread         : num 12
-#&gt;   .. ..$ objective       : chr "binary:logistic"
-#&gt;   .. ..$ eval_metric     : chr "error@0.0833333333333333"
-#&gt;   .. ..$ silent          : num 1
+#&gt;   .. ..$ max_depth          : num 6
+#&gt;   .. ..$ learning_rate      : num 0.3
+#&gt;   .. ..$ min_split_loss     : num 0
+#&gt;   .. ..$ min_child_weight   : num 1
+#&gt;   .. ..$ subsample          : num 1
+#&gt;   .. ..$ nthread            : num 12
+#&gt;   .. ..$ objective          : chr "binary:logistic"
+#&gt;   .. ..$ eval_metric        : chr "error@0.0833333333333333"
+#&gt;   .. ..$ validate_parameters: logi TRUE
 #&gt;   ..$ callbacks      :List of 3
 #&gt;   .. ..$ cb.print.evaluation:function (env = parent.frame())  
 #&gt;   .. .. ..- attr(*, "call")= language cb.print.evaluation(period = print_every_n)
@@ -436,7 +439,7 @@
 #&gt;   .. ..$ Cover    : num [1:3] 0.393 0.364 0.243
 #&gt;   .. ..$ Frequency: num [1:3] 0.208 0.415 0.377
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
-#&gt;   ..$ model          :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
+#&gt;   ..$ model          : tibble [1,043 × 3] (S3: tbl_df/tbl/data.frame)
 #&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
 #&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
 #&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
@@ -493,21 +496,21 @@
 #&gt; 
 #&gt; Iteration history:
 #&gt; 
-#&gt; [1]	train-rmse:4004.124512 
+#&gt; [01:28:31] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.
+#&gt; 
 #&gt; [2]	train-rmse:2934.489990 
-#&gt; [3]	train-rmse:2209.099365 
-#&gt; [4]	train-rmse:1731.832275 
+#&gt; [3]	train-rmse:2209.099121 
+#&gt; [4]	train-rmse:1731.832153 
 #&gt; [5]	train-rmse:1429.542236 
-#&gt; [6]	train-rmse:1236.558594 
+#&gt; [6]	train-rmse:1236.558716 
 #&gt; [7]	train-rmse:1112.986206 
 #&gt; [8]	train-rmse:1041.411133 
-#&gt; [9]	train-rmse:994.494629 
-#&gt; [10]	train-rmse:968.976013 
+#&gt; [9]	train-rmse:994.494568 
 #&gt; ...
 #&gt; [91]	train-rmse:747.640930 
 #&gt; [92]	train-rmse:747.167053 
 #&gt; [93]	train-rmse:745.880615 
-#&gt; [94]	train-rmse:744.933777 
+#&gt; [94]	train-rmse:744.933716 
 #&gt; [95]	train-rmse:744.060425 
 #&gt; [96]	train-rmse:743.978699 
 #&gt; [97]	train-rmse:743.872742 
@@ -520,28 +523,28 @@
 }
 <span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>eval_metric</span> <span class='kw'>=</span> <span class='no'>rig_wrap</span>, <span class='kw'>maximize</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
 #&gt;  $ check                : chr ""
-#&gt;  $ model                :List of 14
+#&gt;  $ model                :List of 15
 #&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
-#&gt;   ..$ raw            : raw [1:17685] 00 00 00 80 ...
-#&gt;   ..$ best_iteration : int 25
-#&gt;   ..$ best_ntreelimit: num 25
-#&gt;   ..$ best_score     : Named num 0.315
-#&gt;   .. ..- attr(*, "names")= chr "train-rig"
-#&gt;   ..$ niter          : int 35
-#&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	35 obs. of  2 variables:
-#&gt;   .. ..$ iter     : num [1:35] 1 2 3 4 5 6 7 8 9 10 ...
-#&gt;   .. ..$ train_rig: num [1:35] 0.124 0.204 0.249 0.276 0.292 ...
+#&gt;   ..$ raw            : raw [1:8838] 43 4f 4e 46 ...
+#&gt;   ..$ best_iteration : num 1
+#&gt;   ..$ best_ntreelimit: int 1
+#&gt;   ..$ best_score     : num 0.124
+#&gt;   ..$ best_msg       : chr "[1]\ttrain-rig:0.124424"
+#&gt;   ..$ niter          : int 11
+#&gt;   ..$ evaluation_log :Classes ‘data.table’ and 'data.frame':	11 obs. of  2 variables:
+#&gt;   .. ..$ iter     : num [1:11] 1 2 3 4 5 6 7 8 9 10 ...
+#&gt;   .. ..$ train_rig: num [1:11] 0.124 0.124 0.124 0.124 0.124 ...
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
 #&gt;   ..$ call           : language xgb.train(params = params, data = dtrain, nrounds = nrounds, watchlist = watchlist,      verbose = verbose, print| __truncated__ ...
 #&gt;   ..$ params         :List of 8
-#&gt;   .. ..$ max_depth       : num 6
-#&gt;   .. ..$ learning_rate   : num 0.3
-#&gt;   .. ..$ min_split_loss  : num 0
-#&gt;   .. ..$ min_child_weight: num 1
-#&gt;   .. ..$ subsample       : num 1
-#&gt;   .. ..$ nthread         : num 12
-#&gt;   .. ..$ objective       : chr "binary:logistic"
-#&gt;   .. ..$ silent          : num 1
+#&gt;   .. ..$ max_depth          : num 6
+#&gt;   .. ..$ learning_rate      : num 0.3
+#&gt;   .. ..$ min_split_loss     : num 0
+#&gt;   .. ..$ min_child_weight   : num 1
+#&gt;   .. ..$ subsample          : num 1
+#&gt;   .. ..$ nthread            : num 12
+#&gt;   .. ..$ objective          : chr "binary:logistic"
+#&gt;   .. ..$ validate_parameters: logi TRUE
 #&gt;   ..$ callbacks      :List of 3
 #&gt;   .. ..$ cb.print.evaluation:function (env = parent.frame())  
 #&gt;   .. .. ..- attr(*, "call")= language cb.print.evaluation(period = print_every_n)
@@ -556,23 +559,23 @@
 #&gt;   ..$ nfeatures      : int 3
 #&gt;   ..$ importance     :Classes ‘data.table’ and 'data.frame':	3 obs. of  4 variables:
 #&gt;   .. ..$ Feature  : chr [1:3] "sexmale" "pclass3rd" "pclass2nd"
-#&gt;   .. ..$ Gain     : num [1:3] 0.7281 0.2362 0.0357
-#&gt;   .. ..$ Cover    : num [1:3] 0.415 0.333 0.252
-#&gt;   .. ..$ Frequency: num [1:3] 0.218 0.395 0.388
+#&gt;   .. ..$ Gain     : num [1:3] 0.7291 0.2356 0.0353
+#&gt;   .. ..$ Cover    : num [1:3] 0.393 0.364 0.243
+#&gt;   .. ..$ Frequency: num [1:3] 0.208 0.415 0.377
 #&gt;   .. ..- attr(*, ".internal.selfref")=&lt;externalptr&gt; 
-#&gt;   ..$ model          :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	1043 obs. of  3 variables:
+#&gt;   ..$ model          : tibble [1,043 × 3] (S3: tbl_df/tbl/data.frame)
 #&gt;   .. ..$ survived: Factor w/ 2 levels "Yes","No": 1 1 2 2 2 1 1 2 1 2 ...
 #&gt;   .. ..$ pclass  : Factor w/ 3 levels "1st","2nd","3rd": 1 1 1 1 1 1 1 1 1 1 ...
 #&gt;   .. ..$ sex     : Factor w/ 2 levels "female","male": 1 2 1 2 1 2 1 2 1 2 ...
 #&gt;   .. ..- attr(*, "description")= chr "## Titanic\n\nThis dataset describes the survival status of individual passengers on the Titanic. The titanic d"| __truncated__
 #&gt;   ..- attr(*, "class")= chr "xgb.Booster"
-#&gt;  $ output               : chr [1:40] "[1]\ttrain-rig:0.124424 " "Will train until train_rig hasn't improved in 10 rounds." "" "[2]\ttrain-rig:0.203935 " ...
+#&gt;  $ output               : chr [1:16] "[1]\ttrain-rig:0.124424 " "Will train until train_rig hasn't improved in 10 rounds." "" "[2]\ttrain-rig:0.124424 " ...
 #&gt;  $ check_args           :function (arg, default, inp = gbt_input)  
 #&gt;  $ extra_args_names     : chr [1:2] "eval_metric" "maximize"
 #&gt;  $ extra_args           :List of 2
 #&gt;   ..$ eval_metric:function (preds, dtrain)  
 #&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0xd7640a0&gt; 
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x11da2060&gt; 
 #&gt;   ..$ maximize   : logi TRUE
 #&gt;  $ gbt_input            :List of 11
 #&gt;   ..$ max_depth            : num 6
@@ -586,7 +589,7 @@
 #&gt;   ..$ objective            : chr "binary:logistic"
 #&gt;   ..$ eval_metric          :function (preds, dtrain)  
 #&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0xd7640a0&gt; 
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x11da2060&gt; 
 #&gt;   ..$ maximize             : logi TRUE
 #&gt;  $ not_vary             : chr(0) 
 #&gt;  $ nr_obs               : int 1043
@@ -607,19 +610,12 @@
 #&gt;  $ wts                  : NULL
 #&gt;  $ seed                 : chr NA
 #&gt;  $ data_filter          : chr ""
-#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div><div class='input'>
-</div></pre>
+#&gt;  - attr(*, "class")= chr [1:3] "gbt" "model" "list"</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -630,7 +626,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

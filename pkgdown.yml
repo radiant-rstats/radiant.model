@@ -1,7 +1,8 @@
 pandoc: '2.2'
-pkgdown: 1.4.1
+pkgdown: 1.5.1
 pkgdown_sha: ~
 articles: []
+last_built: 2020-07-12T01:28Z
 urls:
   reference: https://radiant-rstats.github.io/radiant.model/reference
   article: https://radiant-rstats.github.io/radiant.model/articles
