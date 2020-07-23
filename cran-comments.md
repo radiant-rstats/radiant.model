@@ -1,6 +1,8 @@
 ## Resubmission
 
-This is a resubmission. In this version I have addressed an issue introduced by a change in broom 0.7.0 and attempted to address the NoLD issue identified by CRAN.
+This is a resubmission. In this version I have addressed an issue introduced by a change in broom 0.7.0 and attempted to address the NoLD issue identified by CRAN. 
+
+The NoLD message I received previously refers to "xgb.attr which is a function from the XGBoost package that is not used explicitly in radiant.model so I believe this is an upstream issue.  If the NoLD issue persists in this submission, is it possible to still accept it to get rid of the current build errors and give me more time to work with the XGBoost developers to figure out the NoLD problem?
 
 ## Test environments
 

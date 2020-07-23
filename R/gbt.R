@@ -24,7 +24,6 @@
 #' @return A list with all variables defined in gbt as an object of class gbt
 #'
 #' @examples
-#' gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' gbt(titanic, "survived", c("pclass", "sex")) %>% str()
 #' gbt(titanic, "survived", c("pclass", "sex"), eval_metric = paste0("error@", 0.5 / 6)) %>% str()
 #' gbt(diamonds, "price", c("carat", "clarity"), type = "regression") %>% summary()
@@ -190,7 +189,7 @@ gbt <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- gbt(titanic, "survived", "pclass", lev = "Yes")
+#' result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' summary(result)
 #' @seealso \code{\link{gbt}} to generate results
 #' @seealso \code{\link{plot.gbt}} to plot results
@@ -242,7 +241,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
     cat("Nr obs               :", format_nr(object$nr_obs, dec = 0), "\n")
   }
 
-  if (prn == TRUE) {
+  if (isTRUE(prn)) {
     cat("\nIteration history:\n\n")
     ih <- object$output[c(-2, -3)]
     if (length(ih) > 20) ih <- c(head(ih, 10), "...", tail(ih, 10))
@@ -258,8 +257,8 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Gradient Boosted Tree model. Use "" to avoid showing any plots (default). Options are ...
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
-#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. 
-#'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). 
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned.
+#'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.).
 #'   See examples and \url{https://ggplot2.tidyverse.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'

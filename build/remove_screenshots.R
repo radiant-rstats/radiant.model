@@ -10,7 +10,7 @@ cat("--", file = "figures/place_holder.txt")
 
 fn <- list.files(pattern = "\\.(md|Rmd)$")
 for (f in fn) {
-  org <- readLines(f)
+  org <- readLines(f, warn = FALSE)
   changed <- gsub("figures_model/", "https://radiant-rstats.github.io/docs/model/figures_model/", org)
   cat(changed, file = f, sep = "\n")
 }
