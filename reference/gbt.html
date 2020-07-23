@@ -282,38 +282,7 @@
 <p><code>predict.gbt</code> for prediction</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>()</div><div class='output co'>#&gt; Gradient Boosted Trees (XGBoost)
-#&gt; Type                 : Classification
-#&gt; Data                 : titanic
-#&gt; Response variable    : survived
-#&gt; Level                : Yes in survived
-#&gt; Explanatory variables: pclass, sex 
-#&gt; Max depth            : 6 
-#&gt; Learning rate (eta)  : 0.3 
-#&gt; Min split loss       : 0 
-#&gt; Min child weight     : 1 
-#&gt; Sub-sample           : 1 
-#&gt; Nr of rounds (trees) : 100 
-#&gt; Early stopping rounds: 10 
-#&gt; Nr obs               : 1,043 
-#&gt; 
-#&gt; Iteration history:
-#&gt; 
-#&gt; [1]	train-auc:0.824504 
-#&gt; [2]	train-auc:0.824504 
-#&gt; [3]	train-auc:0.826267 
-#&gt; [4]	train-auc:0.826267 
-#&gt; [5]	train-auc:0.826267 
-#&gt; [6]	train-auc:0.826267 
-#&gt; [7]	train-auc:0.826267 
-#&gt; [8]	train-auc:0.826267 
-#&gt; [9]	train-auc:0.826267 
-#&gt; [10]	train-auc:0.826267 
-#&gt; [11]	train-auc:0.826267 
-#&gt; [12]	train-auc:0.826267 
-#&gt; [13]	train-auc:0.826267 
-#&gt; Stopping. Best iteration:
-#&gt; [3]	train-auc:0.826267</div><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
+    <pre class="examples"><div class='input'><span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>)) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span>()</div><div class='output co'>#&gt; List of 26
 #&gt;  $ check                : chr ""
 #&gt;  $ model                :List of 15
 #&gt;   ..$ handle         :Class 'xgb.Booster.handle' &lt;externalptr&gt; 
@@ -496,19 +465,19 @@
 #&gt; 
 #&gt; Iteration history:
 #&gt; 
-#&gt; [01:28:40] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.
+#&gt; [23:12:21] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.
 #&gt; 
 #&gt; [2]	train-rmse:2934.489990 
 #&gt; [3]	train-rmse:2209.099365 
 #&gt; [4]	train-rmse:1731.832153 
 #&gt; [5]	train-rmse:1429.542236 
 #&gt; [6]	train-rmse:1236.558594 
-#&gt; [7]	train-rmse:1112.986084 
+#&gt; [7]	train-rmse:1112.986206 
 #&gt; [8]	train-rmse:1041.411133 
-#&gt; [9]	train-rmse:994.494568 
+#&gt; [9]	train-rmse:994.494629 
 #&gt; ...
 #&gt; [91]	train-rmse:747.640930 
-#&gt; [92]	train-rmse:747.166992 
+#&gt; [92]	train-rmse:747.167053 
 #&gt; [93]	train-rmse:745.880615 
 #&gt; [94]	train-rmse:744.933777 
 #&gt; [95]	train-rmse:744.060425 
@@ -574,8 +543,8 @@
 #&gt;  $ extra_args_names     : chr [1:2] "eval_metric" "maximize"
 #&gt;  $ extra_args           :List of 2
 #&gt;   ..$ eval_metric:function (preds, dtrain)  
-#&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x142da118&gt; 
+#&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 4 13 8 1 13 1 4 8
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x135f89b0&gt; 
 #&gt;   ..$ maximize   : logi TRUE
 #&gt;  $ gbt_input            :List of 11
 #&gt;   ..$ max_depth            : num 6
@@ -588,8 +557,8 @@
 #&gt;   ..$ nthread              : num 12
 #&gt;   ..$ objective            : chr "binary:logistic"
 #&gt;   ..$ eval_metric          :function (preds, dtrain)  
-#&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 5 13 9 1 13 1 5 9
-#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x142da118&gt; 
+#&gt;   .. ..- attr(*, "srcref")= 'srcref' int [1:8] 4 13 8 1 13 1 4 8
+#&gt;   .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' &lt;environment: 0x135f89b0&gt; 
 #&gt;   ..$ maximize             : logi TRUE
 #&gt;  $ not_vary             : chr(0) 
 #&gt;  $ nr_obs               : int 1043

@@ -201,13 +201,13 @@
 <p><code>predict.gbt</code> for prediction</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='st'>"pclass"</span>, <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>)
+    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>)
 <span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>result</span>)</div><div class='output co'>#&gt; Gradient Boosted Trees (XGBoost)
 #&gt; Type                 : Classification
 #&gt; Data                 : titanic
 #&gt; Response variable    : survived
 #&gt; Level                : Yes in survived
-#&gt; Explanatory variables: pclass 
+#&gt; Explanatory variables: pclass, sex 
 #&gt; Max depth            : 6 
 #&gt; Learning rate (eta)  : 0.3 
 #&gt; Min split loss       : 0 
@@ -219,19 +219,21 @@
 #&gt; 
 #&gt; Iteration history:
 #&gt; 
-#&gt; [1]	train-auc:0.671628 
-#&gt; [2]	train-auc:0.671628 
-#&gt; [3]	train-auc:0.671628 
-#&gt; [4]	train-auc:0.671628 
-#&gt; [5]	train-auc:0.671628 
-#&gt; [6]	train-auc:0.671628 
-#&gt; [7]	train-auc:0.671628 
-#&gt; [8]	train-auc:0.671628 
-#&gt; [9]	train-auc:0.671628 
-#&gt; [10]	train-auc:0.671628 
-#&gt; [11]	train-auc:0.671628 
+#&gt; [1]	train-auc:0.824504 
+#&gt; [2]	train-auc:0.824504 
+#&gt; [3]	train-auc:0.826267 
+#&gt; [4]	train-auc:0.826267 
+#&gt; [5]	train-auc:0.826267 
+#&gt; [6]	train-auc:0.826267 
+#&gt; [7]	train-auc:0.826267 
+#&gt; [8]	train-auc:0.826267 
+#&gt; [9]	train-auc:0.826267 
+#&gt; [10]	train-auc:0.826267 
+#&gt; [11]	train-auc:0.826267 
+#&gt; [12]	train-auc:0.826267 
+#&gt; [13]	train-auc:0.826267 
 #&gt; Stopping. Best iteration:
-#&gt; [1]	train-auc:0.671628</div></pre>
+#&gt; [3]	train-auc:0.826267</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
