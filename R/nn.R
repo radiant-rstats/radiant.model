@@ -131,7 +131,7 @@ nn <- function(
     skip = FALSE, trace = FALSE, data = dataset
   )
 
-  ## based on http://stackoverflow.com/a/14324316/1974918
+  ## based on https://stackoverflow.com/a/14324316/1974918
   seed <- gsub("[^0-9]", "", seed)
   if (!is_empty(seed)) {
     if (exists(".Random.seed")) {

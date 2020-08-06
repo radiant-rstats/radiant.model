@@ -760,7 +760,7 @@ print.logistic.predict <- function(x, ..., n = 10)
 
 #' Confidence interval for robust estimators
 #'
-#' @details Wrapper for confint with robust standard errors. See \url{http://stackoverflow.com/a/3820125/1974918}
+#' @details Wrapper for confint with robust standard errors. See \url{https://stackoverflow.com/questions/3817182/vcovhc-and-confidence-interval/3820125#3820125}
 #'
 #' @param object A fitted model object
 #' @param level The confidence level required

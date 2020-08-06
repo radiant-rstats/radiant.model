@@ -2,19 +2,24 @@
 
 This is a resubmission. In this version I have addressed an issue introduced by a change in broom 0.7.0 and attempted to address the NoLD issue identified by CRAN. 
 
-The NoLD message I received previously refers to "xgb.attr which is a function from the XGBoost package that is not used explicitly in radiant.model so I believe this is an upstream issue.  If the NoLD issue persists in this submission, is it possible to still accept it to get rid of the current build errors and give me more time to work with the XGBoost developers to figure out the NoLD problem?
+The NoLD message I received previously refers to "xgb.attr which is a function from the XGBoost package that is not used explicitly in radiant.model. I have now confirmed this is an upstream issue in the xgboost package and create an with a reproducible example (see https://github.com/dmlc/xgboost/issues/5935). As a workaround until the issue is addressed in xgboost, I set `early_stopping_rounds` to 0 in the relevant examples in radiant.model. I hope this is acceptable.
+
+Since testing with R (NoLD) was a bit of a challenge, I created a docker image (vnijs/nold) with R-devel NoLD on Ubuntu with Rstudio and build tools available. See the repo (vnijs/NoLD/README.md) and dockerhub repo linked below. 
+
+https://github.com/vnijs/NoLD
+https://hub.docker.com/r/vnijs/nold
 
 ## Test environments
 
 * local OS X install, R 4.0.2
 * local Windows install, R 4.0.2
+* ubuntu 20.04, R Under development (unstable) (2020-08-03 r78964) with NoLD option set
 * ubuntu "trusty" (on travis-ci), R release and devel
 * win-builder (devel)
-* rhub
 
 ## R CMD check results
 
-There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely only on the web (shiny) interface available for radiant.model.
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
 
 # Previous cran-comments
 

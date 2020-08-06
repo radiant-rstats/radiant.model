@@ -24,7 +24,12 @@
 #' @return A list with all variables defined in gbt as an object of class gbt
 #'
 #' @examples
+#' \dontrun{
+#' gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' gbt(titanic, "survived", c("pclass", "sex")) %>% str()
+#' }
+#' gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes", early_stopping_rounds = 0) %>% summary()
+#' gbt(titanic, "survived", c("pclass", "sex"), early_stopping_rounds = 0) %>% str()
 #' gbt(titanic, "survived", c("pclass", "sex"), eval_metric = paste0("error@", 0.5 / 6)) %>% str()
 #' gbt(diamonds, "price", c("carat", "clarity"), type = "regression") %>% summary()
 #' rig_wrap <- function(preds, dtrain) {
@@ -145,7 +150,7 @@ gbt <- function(
   dtx <- onehot(dataset[, -1, drop = FALSE])[, -1, drop = FALSE]
   gbt_input <- c(gbt_input, list(data = dtx, label = dty), ...)
 
-  ## based on http://stackoverflow.com/a/14324316/1974918
+  ## based on https://stackoverflow.com/questions/14324096/setting-seed-locally-not-globally-in-r/14324316#14324316
   seed <- gsub("[^0-9]", "", seed)
   if (!is_empty(seed)) {
     if (exists(".Random.seed")) {
@@ -189,7 +194,7 @@ gbt <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+#' result <- gbt(titanic, "survived", c("pclass", "sex"), early_stopping_rounds = 0) %>% str()
 #' summary(result)
 #' @seealso \code{\link{gbt}} to generate results
 #' @seealso \code{\link{plot.gbt}} to plot results
@@ -263,7 +268,9 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+#' result <- gbt(titanic, "survived", c("pclass", "sex"), early_stopping_rounds = 0)
+#' plot(result)
+#'
 #' @seealso \code{\link{gbt}} to generate results
 #' @seealso \code{\link{summary.gbt}} to summarize results
 #' @seealso \code{\link{predict.gbt}} for prediction
@@ -376,7 +383,7 @@ plot.gbt <- function(
 #' @param ... further arguments passed to or from other methods
 #'
 #' @examples
-#' result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes")
+#' result <- gbt(titanic, "survived", c("pclass", "sex"), early_stopping_rounds = 0)
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' result <- gbt(diamonds, "price", "carat:color", type = "regression")
 #' predict(result, pred_cmd = "carat = 1:3")

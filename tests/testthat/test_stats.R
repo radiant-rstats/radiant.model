@@ -151,6 +151,16 @@ test_that("Neural Network - predict with date", {
   expect_equal(res1, res2)
 })
 
+context("Gradient Boosted Trees (gbt)")
+
+test_that("Gradient Boosting - NoLD test", {
+  result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes", early_stopping_rounds = 0)
+  res1 <- result$model$importance$Gain
+  print(res1)
+  res2 <- c(0.75822027, 0.20981152, 0.03196821)
+  expect_equal(res1, res2)
+})
+
 # context("Linear regression (plot.regress)")
 
 # test_that("regress - plots", {
