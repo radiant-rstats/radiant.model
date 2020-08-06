@@ -242,9 +242,9 @@ to determine of OOB predictions should be used</p></td>
 #&gt; Additional arguments : OOB = NULL 
 #&gt; 
 #&gt;   sex pclass   Yes    No
-#&gt;  male    1st 0.849 0.151
-#&gt;  male    2nd 0.784 0.216
-#&gt;  male    3rd 0.503 0.497</div><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>rforest</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='st'>"carat:color"</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>)
+#&gt;  male    1st 0.833 0.167
+#&gt;  male    2nd 0.816 0.184
+#&gt;  male    3rd 0.505 0.495</div><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>rforest</span>(<span class='no'>diamonds</span>, <span class='st'>"price"</span>, <span class='st'>"carat:color"</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"regression"</span>)
 <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_cmd</span> <span class='kw'>=</span> <span class='st'>"carat = 1:3"</span>)</div><div class='output co'>#&gt; Random Forest
 #&gt; Data                 : diamonds 
 #&gt; Response variable    : price 
@@ -253,9 +253,9 @@ to determine of OOB predictions should be used</p></td>
 #&gt; Additional arguments : OOB = NULL 
 #&gt; 
 #&gt;  clarity   cut color carat Prediction
-#&gt;      SI1 Ideal     G     1   3077.968
-#&gt;      SI1 Ideal     G     2   8501.826
-#&gt;      SI1 Ideal     G     3  10406.293</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_data</span> <span class='kw'>=</span> <span class='no'>diamonds</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>()</div><div class='output co'>#&gt; <span class='message'>Using OOB predictions after comparing the training and prediction data</span></div><div class='output co'>#&gt; <span class='message'>Using OOB predictions</span></div><div class='output co'>#&gt; Random Forest
+#&gt;      SI1 Ideal     G     1   3014.741
+#&gt;      SI1 Ideal     G     2   8309.019
+#&gt;      SI1 Ideal     G     3   9859.129</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span>(<span class='no'>result</span>, <span class='kw'>pred_data</span> <span class='kw'>=</span> <span class='no'>diamonds</span>) <span class='kw'>%&gt;%</span> <span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>()</div><div class='output co'>#&gt; <span class='message'>Using OOB predictions after comparing the training and prediction data</span></div><div class='output co'>#&gt; <span class='message'>Using OOB predictions</span></div><div class='output co'>#&gt; Random Forest
 #&gt; Data                 : diamonds 
 #&gt; Response variable    : price 
 #&gt; Explanatory variables: carat, clarity, cut, color 
@@ -263,12 +263,12 @@ to determine of OOB predictions should be used</p></td>
 #&gt; Additional arguments : OOB = NULL 
 #&gt; 
 #&gt;  carat clarity       cut color Prediction
-#&gt;  0.320     VS1     Ideal     H    663.540
-#&gt;  0.340     SI1 Very Good     G    564.848
-#&gt;  0.300     VS2 Very Good     G    563.690
-#&gt;  0.350    VVS2     Ideal     H    748.592
-#&gt;  0.400     VS2   Premium     F    953.361
-#&gt;  0.600    VVS1     Ideal     E   2861.361</div><div class='input'>
+#&gt;  0.320     VS1     Ideal     H    602.805
+#&gt;  0.340     SI1 Very Good     G    576.379
+#&gt;  0.300     VS2 Very Good     G    545.945
+#&gt;  0.350    VVS2     Ideal     H    748.498
+#&gt;  0.400     VS2   Premium     F   1009.561
+#&gt;  0.600    VVS1     Ideal     E   2865.482</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

@@ -215,7 +215,8 @@ See examples and <a href='https://ggplot2.tidyverse.org'>https://ggplot2.tidyver
 <p><code>predict.gbt</code> for prediction</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>lev</span> <span class='kw'>=</span> <span class='st'>"Yes"</span>)</div></pre>
+    <pre class="examples"><div class='input'><span class='no'>result</span> <span class='kw'>&lt;-</span> <span class='fu'>gbt</span>(<span class='no'>titanic</span>, <span class='st'>"survived"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"pclass"</span>, <span class='st'>"sex"</span>), <span class='kw'>early_stopping_rounds</span> <span class='kw'>=</span> <span class='fl'>0</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>(<span class='no'>result</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
