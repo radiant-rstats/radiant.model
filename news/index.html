@@ -373,7 +373,7 @@
 <li>Cross validation functions for decision trees (<code>cv.crtree</code>) and neural networks(<code>cv.nn</code>) that can use various performance metrics for during evaluation e.g., <code>auc</code> or <code>profit</code>
 </li>
 <li>Option to add square and cube terms in <em>Model &gt; Linear regression</em> and <em>Model &gt; Logistic regression</em>.</li>
-<li>Option to pass additional arguments to <code><a href="https://rdrr.io/pkg/shiny/man/runApp.html">shiny::runApp</a></code> when starting radiant such as the port to use. For example, radiant.model::radiant.model(“<a href="https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda" class="uri">https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda</a>”, port = 8080)</li>
+<li>Option to pass additional arguments to <code><a href="https://shiny.rstudio.com/reference/shiny/latest/runApp.html">shiny::runApp</a></code> when starting radiant such as the port to use. For example, radiant.model::radiant.model(“<a href="https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda" class="uri">https://github.com/radiant-rstats/docs/raw/gh-pages/examples/demo-dvd-rnd.state.rda</a>”, port = 8080)</li>
 <li>Avoid empty string showing up in auto-generated code for model prediction (i.e., <code>pred_data</code> or <code>pred_cmd</code>)</li>
 <li>Fix for VIF based on <code>car</code> for <code>regress</code> and <code>logistic</code>
 </li>
@@ -414,7 +414,7 @@
 <h2 class="hasAnchor">
 <a href="#major-changes-1" class="anchor"></a>Major changes</h2>
 <ul>
-<li>Various changes to the code to accomodate the use of <code><a href="https://rdrr.io/pkg/shiny/man/makeReactiveBinding.html">shiny::makeReactiveBinding</a></code>. The advantage is that the code generated for <em>Report &gt; Rmd</em> and <em>Report &gt; R</em> will no longer have to use <code>r_data</code> to store and access data. This means that code generated and used in the Radiant browser interface will be directly usable without the browser interface as well.</li>
+<li>Various changes to the code to accomodate the use of <code><a href="https://shiny.rstudio.com/reference/shiny/latest/makeReactiveBinding.html">shiny::makeReactiveBinding</a></code>. The advantage is that the code generated for <em>Report &gt; Rmd</em> and <em>Report &gt; R</em> will no longer have to use <code>r_data</code> to store and access data. This means that code generated and used in the Radiant browser interface will be directly usable without the browser interface as well.</li>
 <li>Improved documentation and examples</li>
 </ul>
 </div>
