@@ -63,15 +63,15 @@ Then in the Monday tree you would refer to `tuesday_emv` in spots where you need
 
 After specifying the tree structure in the editor, press the `Calculate` button to see the `Initial` and `Final` decision tree in text format on the right side of the screen (see screen shot below). The initial tree simply shows the tree structure that was specified, together with the node types, probabilities, costs, and payoffs. The final tree shows the optimal decision strategy determined by `folding-back` the tree. In this case, the optimal decision is to `Sign with Movie Company` because this decision has a higher **Expected Monetary Value (EMV)**.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/dtree_model.png"></p>
+<p align="center"><img src="figures_model/dtree_model.png"></p>
 
 For a visual representation of the decision tree open the _Plot_ tab. If you already clicked the `Calculate` button in the _Model_ tab you will see a graph of the `Initial` decision tree (see screen shot below). Decision nodes are shown in green and chance nodes in orange. If the tree does not look as you intended/expected, return to the _Model_ tab and edit the tree structure.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/dtree_plot_initial.png"></p>
+<p align="center"><img src="figures_model/dtree_plot_initial.png"></p>
 
 The `Final` graph shows the optimal decision determined by `folding-back` the tree. The optimal decision is to `Sign with Movie Company` because this decision has a higher **Expected Monetary Value**. Note that the optimal decision at each decision node is shown by a thicker line connecting to the nodes.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/dtree_plot_final.png"></p>
+<p align="center"><img src="figures_model/dtree_plot_final.png"></p>
 
 The EMV for `Sign with TV Network` is \$900,000. If we ignore costs the expected payoff from `Sign with Movie Company` is:
 
@@ -83,7 +83,7 @@ The EMV from signing with the movie company is however $960,000 - 5,000 = 955,00
 
 In the `Sign contract` example it is clear that `Sign with Movie Company` is the preferred option. However, suppose the legal fees associated with this option were $10,000, or $30,000, would we still choose the same option? This is where the _Sensitivity_ tab is useful. Here we can evaluate how decisions (e.g., `Sign with Movie Company` and `Sign with TV Network`) would change if the legal fee changes. Enter 0 as the `Min` value, 80000 as the `Max value`, 10000 as the `Step` size, and then press the <i class="fa fa-plus"></i> icon. After pressing `Evaluate sensitivity` a graph will be shown that illustrates how payoffs for the decisions change. Notice that for legal fees higher than \$60,000 `Sign with TV Network` produces the highest EMV.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/dtree_sensitivity.png"></p>
+<p align="center"><img src="figures_model/dtree_sensitivity.png"></p>
 
 ## Video Tutorials
 

@@ -96,16 +96,16 @@ To download a table as a csv-files click the download button on the top-right of
 
 The Lift and Gains charts below show little evidence of overfitting and suggest that targeting approximately 65% of customers would maximize profits.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/evalbin_lift_gains.png"></p>
+<p align="center"><img src="figures_model/evalbin_lift_gains.png"></p>
 
 <!-- This insight is confirmed by looking at the confusion matrix. The True Positive Rate in the training and test sample are 94.0% and 93.4% respectively.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/evalbin_confusion.png"></p>
+<p align="center"><img src="figures_model/evalbin_confusion.png"></p>
 -->
 
 The prediction used in the screen shots above was derived from a logistic regression on the `dvd` data. The data is available through the _Data > Manage_ tab (i.e., choose `Examples` from the `Load data of type` drop-down and press `Load`). The model was estimated using _Model > Logistic regression (GLM)_. The predictions shown below were generated in the _Predict_ tab.
 
-<p align="center"><img src="https://radiant-rstats.github.io/docs/model/figures_model/evalbin_logistic.png"></p>
+<p align="center"><img src="figures_model/evalbin_logistic.png"></p>
 
 ### R-functions
 
