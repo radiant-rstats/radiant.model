@@ -5,7 +5,7 @@
 #' @param dataset Dataset
 #' @param rvar The response variable in the model
 #' @param evar Explanatory variables in the model
-#' @param lev The level in the response variable to use as the basline
+#' @param lev The level in the response variable to use as the baseline
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.

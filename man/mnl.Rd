@@ -23,7 +23,7 @@ mnl(
 
 \item{evar}{Explanatory variables in the model}
 
-\item{lev}{The level in the response variable to use as the basline}
+\item{lev}{The level in the response variable to use as the baseline}
 
 \item{int}{Interaction term to include in the model}
 

@@ -21,7 +21,7 @@
 
 \item{nrobs}{Number of data points to show in dashboard scatter plots (-1 for all)}
 
-\item{qtiles}{Show 25th and 75th quitiles in partial-dependence plots}
+\item{qtiles}{Show 25th and 75th percentiles in partial-dependence plots}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

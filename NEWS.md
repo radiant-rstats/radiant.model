@@ -23,7 +23,7 @@
 
 * Adding `OR%` change as a columns in output for _Model > Logistic regression_ and the `write.coeff` function
 * Restrict max number of levels in a "groupable" variable used in _Model > Evaluate classification_ and _Model > Multinomial logistic regression_ to no more than 50
-* Avoid rouding the profit measures in _Model > Evaluate classification_
+* Avoid rounding the profit measures in _Model > Evaluate classificiation_
 
 # radiant.model 1.3.2
 
@@ -147,7 +147,7 @@
 
 ## Major changes
 
-* Various changes to the code to accomodate the use of `shiny::makeReactiveBinding`. The advantage is that the code generated for _Report > Rmd_ and _Report > R_ will no longer have to use `r_data` to store and access data. This means that code generated and used in the Radiant browser interface will be directly usable without the browser interface as well.
+* Various changes to the code to accommodate the use of `shiny::makeReactiveBinding`. The advantage is that the code generated for _Report > Rmd_ and _Report > R_ will no longer have to use `r_data` to store and access data. This means that code generated and used in the Radiant browser interface will be directly usable without the browser interface as well.
 * Improved documentation and examples
 
 # radiant.model 0.9.2.3

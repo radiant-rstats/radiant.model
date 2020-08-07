@@ -226,7 +226,7 @@ summary.rforest <- function(object, ...) {
 #' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Random Forest model. Use "" to avoid showing any plots (default). Options are ...
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
-#' @param qtiles Show 25th and 75th quitiles in partial-dependence plots
+#' @param qtiles Show 25th and 75th percentiles in partial-dependence plots
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned.
 #'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples
 #'   and \url{https://ggplot2.tidyverse.org} for options.
@@ -522,7 +522,7 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
 #' @param fun Function to use for model evaluation (i.e., auc for classification and RMSE for regression)
 #' @param ... Additional arguments to be passed to 'fun'
 #'
-#' @return A data.frame sorted by the mean of the perforestormance metric
+#' @return A data.frame sorted by the mean of the performance metric
 #'
 #' @seealso \code{\link{rforest}} to generate an initial model that can be passed to cv.rforest
 #' @seealso \code{\link{Rsq}} to calculate an R-squared measure for a regression

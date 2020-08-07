@@ -42,7 +42,7 @@ cv.rforest(
 \item{...}{Additional arguments to be passed to 'fun'}
 }
 \value{
-A data.frame sorted by the mean of the perforestormance metric
+A data.frame sorted by the mean of the performance metric
 }
 \description{
 Cross-validation for a Random Forest

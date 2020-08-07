@@ -22,7 +22,7 @@
 
 \item{size}{Font size used}
 
-\item{pad_x}{Padding for explanatory variable lables in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding}
+\item{pad_x}{Padding for explanatory variable labels in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding}
 
 \item{nrobs}{Number of data points to show in dashboard scatter plots (-1 for all)}
 

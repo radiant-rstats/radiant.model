@@ -311,7 +311,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
 #' @param size Font size used
-#' @param pad_x Padding for explanatory variable lables in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding
+#' @param pad_x Padding for explanatory variable labels in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
 #' @param ... further arguments passed to or from other methods
