@@ -1,7 +1,8 @@
-# radiant.model 1.3.13
+# radiant.model 1.3.14
 
 * Fix for issue introduced by version 0.7.0 of the broom package related to degrees of freedom in linear regression
-* Fix for NoLD issue identified by CRAN
+* Fix for NoLD issue (XGBoost) identified by CRAN on Linux
+* Fix for NoLD issue (XGBoost) identified by CRAN on Solaris
 
 # radiant.model 1.3.12
 
