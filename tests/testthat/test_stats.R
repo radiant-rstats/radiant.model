@@ -155,10 +155,9 @@ context("Gradient Boosted Trees (gbt)")
 
 test_that("Gradient Boosting - NoLD test", {
   result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes", early_stopping_rounds = 0)
-  res1 <- result$model$importance$Gain
-  print(res1)
-  res2 <- c(0.75822027, 0.20981152, 0.03196821)
-  expect_equal(res1, res2)
+  res1 <- round(result$model$importance$Gain, 3)
+  res2 <- c(0.758, 0.210, 0.032)
+  expect_equal(res1, res2, tolerance = 1e-3)
 })
 
 # context("Linear regression (plot.regress)")
