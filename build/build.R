@@ -1,12 +1,8 @@
-## could this ensure inst/rstudio/*.dcf are ignored during build?
-## see https://stackoverflow.com/a/42907049/1974918
-# devtools::use_build_ignore(c("inst/rstudio"))
-
 setwd(rstudioapi::getActiveProject())
 curr <- getwd()
 pkg <- basename(curr)
 
-## building packages for mac and windows
+## building package for mac and windows
 rv <- R.Version()
 rv <- paste(rv$major, substr(rv$minor, 1, 1), sep = ".")
 
