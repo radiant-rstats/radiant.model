@@ -1,5 +1,20 @@
 ## Resubmission
 
+This is a resubmission. In this version I have updated to URL that were being forwarded from https://www.rstudio.com to https://rstudio.com. I also added single quotes around software names such as 'radiant.data' in the Description field of the DESCRIPTION file.
+
+## Test environments
+
+* local OS X install, R 4.0.2
+* Windows (development) through devtools::check_win_devel()
+
+## R CMD check result
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I have tried to address the NoLD issue in a test uncovered by CRAN on Solaris. The tests all pass on a linux based NoLD set. However, I do not have access to a Solaris system to double check.
 
 ## Test environments
@@ -10,8 +25,6 @@ This is a resubmission. In this version I have tried to address the NoLD issue i
 ## R CMD check result
 
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
-
-# Previous cran-comments
 
 ## Resubmission
 
