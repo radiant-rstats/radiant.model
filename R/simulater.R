@@ -239,7 +239,7 @@ simulater <- function(
   if (pois != "") {
     s <- pois %>% sim_splitter()
     for (i in 1:length(s))
-      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, .as_int(.[2], dataset))}
+      s[[i]] %>% {dataset[[.[1]]] <<- rpois(nr, .as_num(.[2], dataset))}
   }
 
   ## parsing sequence
