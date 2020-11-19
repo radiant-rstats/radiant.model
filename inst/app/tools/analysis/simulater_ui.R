@@ -763,6 +763,7 @@ radiant_sim_auto <- reactive({
     for (i in nms) {
       auto_nms[[paste0("{sim ", i, "}")]] <- strsplit(inp[[i]], ";")[[1]] %>%
         strsplit(., "(\\s+|=)") %>%
+        base::Filter(length, .) %>%
         sapply(., `[[`, 1)
     }
 
