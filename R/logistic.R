@@ -19,7 +19,6 @@
 #' @examples
 #' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' logistic(titanic, "survived", c("pclass", "sex")) %>% str()
-#'
 #' @seealso \code{\link{summary.logistic}} to summarize the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
@@ -29,9 +28,9 @@
 #'
 #' @export
 logistic <- function(
-  dataset, rvar, evar, lev = "", int = "",
-  wts = "None", check = "", form, ci_type,
-  data_filter = "", envir = parent.frame()
+                     dataset, rvar, evar, lev = "", int = "",
+                     wts = "None", check = "", form, ci_type,
+                     data_filter = "", envir = parent.frame()
 ) {
 
   if (!missing(form)) {
@@ -181,7 +180,7 @@ logistic <- function(
 
   coeff$sig_star <- sig_stars(coeff$p.value) %>% format(justify = "left")
   coeff$OR <- exp(coeff$coefficient)
-  coeff$`OR%` <- with(coeff, ifelse(OR < 1, -(1-OR), OR-1))
+  coeff$`OR%` <- with(coeff, ifelse(OR < 1, -(1 - OR), OR - 1))
   coeff <- coeff[, c("label", "OR", "OR%", "coefficient", "std.error", "z.value", "p.value", "sig_star")]
 
   ## remove elements no longer needed
@@ -209,7 +208,6 @@ logistic <- function(
 #' res <- logistic(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")
 #' summary(res, sum_check = c("vif", "confint", "odds"))
 #' titanic %>% logistic("survived", c("pclass", "sex", "age"), lev = "Yes") %>% summary("vif")
-#'
 #' @seealso \code{\link{logistic}} to generate the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
@@ -219,8 +217,8 @@ logistic <- function(
 #'
 #' @export
 summary.logistic <- function(
-  object, sum_check = "", conf_lev = .95,
-  test_var = "", dec = 3, ...
+                             object, sum_check = "", conf_lev = .95,
+                             test_var = "", dec = 3, ...
 ) {
 
   if (is.character(object)) return(object)
@@ -447,6 +445,8 @@ summary.logistic <- function(
 #' @param plots Plots to produce for the specified GLM model. Use "" to avoid showing any plots (default). "dist" shows histograms (or frequency bar plots) of all variables in the model. "scatter" shows scatter plots (or box plots for factors) for the response variable with each explanatory variable. "coef" provides a coefficient plot and "influence" shows (potentially) influential observations
 #' @param conf_lev Confidence level to use for coefficient and odds confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE or FALSE). FALSE is the default
+#' @param incl Which variables to include in a coefficient plot
+#' @param excl Which variables to exclude in a coefficient plot
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
@@ -455,7 +455,6 @@ summary.logistic <- function(
 #' @examples
 #' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' plot(result, plots = "coef")
-#'
 #' @seealso \code{\link{logistic}} to generate results
 #' @seealso \code{\link{plot.logistic}} to plot results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
@@ -465,9 +464,9 @@ summary.logistic <- function(
 #'
 #' @export
 plot.logistic <- function(
-  x, plots = "coef", conf_lev = .95,
-  intercept = FALSE, nrobs = -1,
-  shiny = FALSE, custom = FALSE, ...
+                          x, plots = "coef", conf_lev = .95,
+                          intercept = FALSE, incl = NULL, excl = NULL,
+                          nrobs = -1, shiny = FALSE, custom = FALSE, ...
 ) {
 
   if (is.character(x) || !inherits(x$model, "glm")) return(x)
@@ -524,7 +523,7 @@ plot.logistic <- function(
       cnfint <- confint.default
     }
 
-    plot_list[["coef"]] <- cnfint(x$model, level = conf_lev, vcov = x$vcov) %>%
+    coef_df <- cnfint(x$model, level = conf_lev, vcov = x$vcov) %>%
       exp(.) %>%
       data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
@@ -532,18 +531,28 @@ plot.logistic <- function(
       cbind(select(x$coeff, 2), .) %>%
       set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
-      mutate(variable = rownames(.)) %>%
-      ggplot() +
-        geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
-        geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
-        labs(y = yl, x = "") +
-        ## can't use coord_trans together with coord_flip
-        ## http://stackoverflow.com/a/26185278/1974918
-        # scale_x_discrete(limits = {if (intercept) rev(x$coeff$`  `) else rev(x$coeff$`  `[-1])}) +
-        scale_x_discrete(limits = {if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])}) +
-        scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
-        coord_flip() +
-        theme(axis.text.y = element_text(hjust = 0))
+      mutate(variable = rownames(.))
+
+    if (length(incl) > 0) {
+      incl <- paste0("^(", paste0(incl, "[|]*", collapse = "|"), ")")
+      if (length(incl) > 0) coef_df <- coef_df[grepl(incl, coef_df$variable), ]
+    }
+    if (length(excl) > 0) {
+      excl <- paste0("^(", paste0(excl, "[|]*", collapse = "|"), ")")
+      if (length(excl) > 0) coef_df <- coef_df[!grepl(excl, coef_df$variable), ]
+    }
+    coef_labels <- coef_df$variable
+
+    plot_list[["coef"]] <- ggplot(coef_df) +
+      geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
+      geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
+      labs(y = yl, x = "") +
+      ## can't use coord_trans together with coord_flip
+      ## http://stackoverflow.com/a/26185278/1974918
+      scale_x_discrete(limits = rev(coef_labels)) +
+      scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("scatter" %in% plots) {
@@ -637,7 +646,7 @@ plot.logistic <- function(
     plot_list[["linearity"]] <- ggplot(mod, aes(logit, predictor.value)) +
       geom_point(size = 0.5, alpha = 0.5) +
       geom_smooth(method = "loess") +
-      facet_wrap(~ predictors, scales = "free_y") +
+      facet_wrap(~predictors, scales = "free_y") +
       labs(
         title = "Checking linearity assumption",
         y = NULL,
@@ -671,12 +680,11 @@ plot.logistic <- function(
 #'
 #' @examples
 #' result <- logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes")
-#'   predict(result, pred_cmd = "pclass = levels(pclass)")
+#' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
 #'   predict(pred_cmd = "sex = c('male','female')")
 #' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>%
 #'   predict(pred_data = titanic)
-#'
 #' @seealso \code{\link{logistic}} to generate the result
 #' @seealso \code{\link{summary.logistic}} to summarize results
 #' @seealso \code{\link{plot.logistic}} to plot results
@@ -684,9 +692,9 @@ plot.logistic <- function(
 #'
 #' @export
 predict.logistic <- function(
-  object, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = TRUE, interval = "confidence",
-  dec = 3, envir = parent.frame(), ...
+                             object, pred_data = NULL, pred_cmd = "",
+                             conf_lev = 0.95, se = TRUE, interval = "confidence",
+                             dec = 3, envir = parent.frame(), ...
 ) {
 
   if (is.character(object)) return(object)
@@ -729,8 +737,8 @@ predict.logistic <- function(
         ci_perc <- ci_label(cl = conf_lev)
         pred_val <- data.frame(
           Prediction = ilink(pred_val[["fit"]]),
-          ymax = ilink(pred_val[["fit"]] - qnorm(.5 + conf_lev/2) * pred_val[["se.fit"]]),
-          ymin = ilink(pred_val[["fit"]] + qnorm(.5 + conf_lev/2) * pred_val[["se.fit"]]),
+          ymax = ilink(pred_val[["fit"]] - qnorm(.5 + conf_lev / 2) * pred_val[["se.fit"]]),
+          ymin = ilink(pred_val[["fit"]] + qnorm(.5 + conf_lev / 2) * pred_val[["se.fit"]]),
           stringsAsFactors = FALSE
         ) %>%
           set_colnames(c("Prediction", ci_perc[1], ci_perc[2]))
@@ -772,7 +780,7 @@ print.logistic.predict <- function(x, ..., n = 10)
 #'
 #' @export
 confint_robust <- function(
-  object, level = 0.95, dist = "norm", vcov = NULL, ...
+                           object, level = 0.95, dist = "norm", vcov = NULL, ...
 ) {
   fac <- ((1 - level) / 2) %>%
     c(., 1 - .)
@@ -819,8 +827,8 @@ minmax <- function(dataset) {
 #' @examples
 #'
 #' regress(
-#'  diamonds, rvar = "price", evar = c("carat", "clarity", "color", "x"),
-#'  int = c("carat:clarity", "clarity:color", "I(x^2)"), check = "standardize"
+#'   diamonds, rvar = "price", evar = c("carat", "clarity", "color", "x"),
+#'   int = c("carat:clarity", "clarity:color", "I(x^2)"), check = "standardize"
 #' ) %>%
 #'   write.coeff(sort = TRUE) %>%
 #'   format_df(dec = 3)
@@ -832,7 +840,7 @@ minmax <- function(dataset) {
 #'
 #' @export
 write.coeff <- function(
-  object, file = "", sort = FALSE, intercept = TRUE
+                        object, file = "", sort = FALSE, intercept = TRUE
 ) {
   if (inherits(object, "regress")) {
     mod_class <- "regress"
@@ -876,11 +884,11 @@ write.coeff <- function(
   }
 
   ## create the model.matrix
-  mm <- model.matrix(frm, model.frame(frm, dataset))[,-1]
+  mm <- model.matrix(frm, model.frame(frm, dataset))[, -1]
 
   ## removing columns where the corresponding coeff is missing
   cn <- intersect(colnames(mm), names(na.omit(coeff)))
-  mm <- mm[,cn, drop = FALSE]
+  mm <- mm[, cn, drop = FALSE]
 
   ## generate summary statistics
   if (length(wts) == 0) {
@@ -920,9 +928,9 @@ write.coeff <- function(
       if (has_int) {
         object$OR_normal <- object$`OR%_normal` <- "-"
       } else {
-        object$OR_normal <- exp(object$coefficient / (sf*object$sd))
+        object$OR_normal <- exp(object$coefficient / (sf * object$sd))
         object$OR_normal[object$dummy == 1] <- object$OR[object$dummy == 1]
-        object$`OR%_normal` <- with(object, ifelse(OR_normal < 1, -(1-OR_normal), OR_normal-1))
+        object$`OR%_normal` <- with(object, ifelse(OR_normal < 1, -(1 - OR_normal), OR_normal - 1))
         object$OR_normal[intc] <- object$`OR%_normal`[intc] <- 0
       }
     }
@@ -949,7 +957,7 @@ write.coeff <- function(
     object[-1, ] <- arrange(object[-1, ], desc(.data$importance))
 
   if (!intercept)
-    object <- slice(object, -1)   ## slice will ensure a tibble / data.frame is returned
+    object <- slice(object, -1) ## slice will ensure a tibble / data.frame is returned
 
   if (!is_empty(file)) {
     sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))
