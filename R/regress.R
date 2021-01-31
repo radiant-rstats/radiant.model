@@ -380,6 +380,8 @@ summary.regress <- function(
 #' @param lines Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line", "loess")
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
+#' @param incl Which variables to include in a coefficient plot
+#' @param excl Which variables to exclude in a coefficient plot
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
@@ -406,6 +408,7 @@ summary.regress <- function(
 plot.regress <- function(
   x, plots = "", lines = "",
   conf_lev = .95, intercept = FALSE,
+  incl = NULL, excl = NULL,
   nrobs = -1, shiny = FALSE,
   custom = FALSE, ...
 ) {
@@ -522,24 +525,36 @@ plot.regress <- function(
       cnfint <- confint
     }
 
-    plot_list[["coef"]] <- cnfint(x$model, level = conf_lev, dist = "t") %>%
+    coef_df <- cnfint(x$model, level = conf_lev, dist = "t") %>%
       data.frame(stringsAsFactors = FALSE) %>%
       na.omit() %>%
       set_colnames(c("Low", "High")) %>%
       cbind(select(x$coeff, 2), .) %>%
       set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
-      mutate(variable = rownames(.)) %>%
-      ggplot() +
+      mutate(variable = factor(rownames(.), levels = rownames(.)))
+
+    if (length(incl) > 0) {
+      incl <- paste0("^(", paste0(incl, "[|]*", collapse = "|"), ")")
+      incl <- grepl(incl, coef_df$variable)
+      if (isTRUE(intercept)) incl[1] <- TRUE
+      coef_df <- coef_df[incl, ]
+    }
+    if (length(excl) > 0) {
+      excl <- paste0("^(", paste0(excl, "[|]*", collapse = "|"), ")")
+      if (isTRUE(intercept)) excl[1] <- FALSE
+      coef_df <- coef_df[!excl, ]
+    }
+    coef_df <- droplevels(coef_df)
+
+    plot_list[["coef"]] <- ggplot(coef_df) +
       geom_pointrange(aes_string(
         x = "variable", y = "coefficient",
         ymin = "Low", ymax = "High"
       )) +
       geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
       labs(y = yl, x = "") +
-      scale_x_discrete(limits = {
-        if (intercept) rev(x$coeff$label) else rev(x$coeff$label[-1])
-      }) +
+      scale_x_discrete(limits = rev(coef_df$variable)) +
       coord_flip() +
       theme(axis.text.y = element_text(hjust = 0))
   }

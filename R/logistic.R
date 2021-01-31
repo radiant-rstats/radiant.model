@@ -464,9 +464,9 @@ summary.logistic <- function(
 #'
 #' @export
 plot.logistic <- function(
-                          x, plots = "coef", conf_lev = .95,
-                          intercept = FALSE, incl = NULL, excl = NULL,
-                          nrobs = -1, shiny = FALSE, custom = FALSE, ...
+  x, plots = "coef", conf_lev = .95,
+  intercept = FALSE, incl = NULL, excl = NULL,
+  nrobs = -1, shiny = FALSE, custom = FALSE, ...
 ) {
 
   if (is.character(x) || !inherits(x$model, "glm")) return(x)
@@ -531,17 +531,24 @@ plot.logistic <- function(
       cbind(select(x$coeff, 2), .) %>%
       set_rownames(x$coeff$label) %>%
       {if (!intercept) .[-1, ] else .} %>%
-      mutate(variable = rownames(.))
+      mutate(variable = factor(rownames(.), levels = rownames(.)))
+
+    # addressing issues with extremely high upper bounds
+    coef_df[coef_df$High > 10000, c("Low", "High")] <- NA
+    coef_df <- na.omit(coef_df)
 
     if (length(incl) > 0) {
       incl <- paste0("^(", paste0(incl, "[|]*", collapse = "|"), ")")
-      if (length(incl) > 0) coef_df <- coef_df[grepl(incl, coef_df$variable), ]
+      incl <- grepl(incl, coef_df$variable)
+      if (isTRUE(intercept)) incl[1] <- TRUE
+      coef_df <- coef_df[incl, ]
     }
     if (length(excl) > 0) {
       excl <- paste0("^(", paste0(excl, "[|]*", collapse = "|"), ")")
-      if (length(excl) > 0) coef_df <- coef_df[!grepl(excl, coef_df$variable), ]
+      if (isTRUE(intercept)) excl[1] <- TRUE
+      coef_df <- coef_df[!excl, ]
     }
-    coef_labels <- coef_df$variable
+    coef_df <- droplevels(coef_df)
 
     plot_list[["coef"]] <- ggplot(coef_df) +
       geom_pointrange(aes_string(x = "variable", y = "OR", ymin = "Low", ymax = "High")) +
@@ -549,7 +556,7 @@ plot.logistic <- function(
       labs(y = yl, x = "") +
       ## can't use coord_trans together with coord_flip
       ## http://stackoverflow.com/a/26185278/1974918
-      scale_x_discrete(limits = rev(coef_labels)) +
+      scale_x_discrete(limits = rev(coef_df$variable)) +
       scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
       coord_flip() +
       theme(axis.text.y = element_text(hjust = 0))

@@ -1,3 +1,7 @@
+# radiant.model 1.3.15
+
+* Allow user to include or exclude variables from the coefficient plot in linear and logistic regression
+
 # radiant.model 1.3.14
 
 * Fix for issue introduced by version 0.7.0 of the broom package related to degrees of freedom in linear regression

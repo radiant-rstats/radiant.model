@@ -24,8 +24,8 @@ Write coefficients and importance scores to csv or or return as a data.frame
 \examples{
 
 regress(
- diamonds, rvar = "price", evar = c("carat", "clarity", "color", "x"),
- int = c("carat:clarity", "clarity:color", "I(x^2)"), check = "standardize"
+  diamonds, rvar = "price", evar = c("carat", "clarity", "color", "x"),
+  int = c("carat:clarity", "clarity:color", "I(x^2)"), check = "standardize"
 ) \%>\%
   write.coeff(sort = TRUE) \%>\%
   format_df(dec = 3)

@@ -33,7 +33,6 @@ summary(result, test_var = "pclass")
 res <- logistic(titanic, "survived", c("pclass", "sex"), int = "pclass:sex", lev = "Yes")
 summary(res, sum_check = c("vif", "confint", "odds"))
 titanic \%>\% logistic("survived", c("pclass", "sex", "age"), lev = "Yes") \%>\% summary("vif")
-
 }
 \seealso{
 \code{\link{logistic}} to generate the results

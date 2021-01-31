@@ -10,6 +10,8 @@
   lines = "",
   conf_lev = 0.95,
   intercept = FALSE,
+  incl = NULL,
+  excl = NULL,
   nrobs = -1,
   shiny = FALSE,
   custom = FALSE,
@@ -26,6 +28,10 @@
 \item{conf_lev}{Confidence level used to estimate confidence intervals (.95 is the default)}
 
 \item{intercept}{Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default}
+
+\item{incl}{Which variables to include in a coefficient plot}
+
+\item{excl}{Which variables to exclude in a coefficient plot}
 
 \item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
 

@@ -138,6 +138,16 @@ output$ui_reg_evar <- renderUI({
   )
 })
 
+output$ui_reg_incl <- renderUI({
+  req(available(input$reg_evar))
+  vars <- input$reg_evar
+  selectInput(
+    inputId = "reg_incl", label = "Explanatory variables to include:", choices = vars,
+    selected = state_multiple("reg_incl", vars, vars),
+    multiple = TRUE, size = min(10, length(vars)), selectize = FALSE
+  )
+})
+
 output$ui_reg_test_var <- renderUI({
   req(available(input$reg_evar))
   vars <- input$reg_evar
@@ -316,6 +326,7 @@ output$ui_regress <- renderUI({
         ),
         conditionalPanel(
           condition = "input.reg_plots == 'coef'",
+          uiOutput("ui_reg_incl"),
           checkboxInput("reg_intercept", "Include intercept", state_init("reg_intercept", FALSE))
         ),
         conditionalPanel(
@@ -375,10 +386,14 @@ reg_plot <- reactive({
     plot_height <- 150 * nrVars
     plot_width <- 150 * nrVars
   } else if (input$reg_plots == "coef") {
-    plot_height <- 300 + 20 * length(.regress()$model$coefficients)
+    if (input$reg_plots == "coef") {
+      incl <- paste0("^(", paste0(input$reg_incl, "[|]*", collapse = "|"), ")")
+      nr_coeff <- sum(grepl(incl, .regress()$coeff$label))
+      plot_height <- 300 + 20 * nr_coeff
+    }
   } else if (input$reg_plots %in% c("scatter", "resid_pred")) {
     plot_height <- (plot_height / 2) * ceiling((nrVars - 1) / 2)
-  } 
+  }
 
   list(plot_width = plot_width, plot_height = plot_height)
 })

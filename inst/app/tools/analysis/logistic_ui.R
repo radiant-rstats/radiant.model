@@ -145,6 +145,16 @@ output$ui_logit_evar <- renderUI({
   )
 })
 
+output$ui_logit_incl <- renderUI({
+  req(available(input$logit_evar))
+  vars <- input$logit_evar
+  selectInput(
+    inputId = "logit_incl", label = "Explanatory variables to include:", choices = vars,
+    selected = state_multiple("logit_incl", vars, vars),
+    multiple = TRUE, size = min(10, length(vars)), selectize = FALSE
+  )
+})
+
 output$ui_logit_wts <- renderUI({
   req(available(input$logit_rvar), available(input$logit_evar))
   isNum <- .get_class() %in% c("integer", "numeric", "ts")
@@ -360,6 +370,7 @@ output$ui_logistic <- renderUI({
         ),
         conditionalPanel(
           condition = "input.logit_plots == 'coef'",
+          uiOutput("ui_logit_incl"),
           checkboxInput("logit_intercept", "Include intercept", state_init("logit_intercept", FALSE))
         ),
         conditionalPanel(
@@ -410,7 +421,11 @@ logit_plot <- reactive({
     plot_width <- 150 * nrVars
   }
   if (input$logit_plots == "scatter") plot_height <- 300 * nrVars
-  if (input$logit_plots == "coef") plot_height <- 300 + 20 * length(.logistic()$model$coefficients)
+  if (input$logit_plots == "coef") {
+    incl <- paste0("^(", paste0(input$logit_incl, "[|]*", collapse = "|"), ")")
+    nr_coeff <- sum(grepl(incl, .logistic()$coeff$label))
+    plot_height <- 300 + 20 * nr_coeff
+  }
 
   list(plot_width = plot_width, plot_height = plot_height)
 })

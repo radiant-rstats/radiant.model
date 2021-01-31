@@ -53,7 +53,6 @@ See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an examp
 \examples{
 logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
 logistic(titanic, "survived", c("pclass", "sex")) \%>\% str()
-
 }
 \seealso{
 \code{\link{summary.logistic}} to summarize the results
