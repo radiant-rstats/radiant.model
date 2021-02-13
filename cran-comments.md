@@ -1,5 +1,20 @@
 ## Resubmission
 
+This is a resubmission. Thanks for Kurt I was able to fix an error uncovered in CRAN testing.
+
+## Test environments
+
+* Local Windows install, R 4.0.3
+* Windows (development) through devtools::check_win_devel()
+
+## R CMD check result
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I have updated to URL that were being forwarded from https://www.rstudio.com to https://rstudio.com. I also added single quotes around software names such as 'radiant.data' in the Description field of the DESCRIPTION file.
 
 ## Test environments
@@ -11,7 +26,6 @@ This is a resubmission. In this version I have updated to URL that were being fo
 
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
 
-# Previous cran-comments
 
 ## Resubmission
 

@@ -32,8 +32,7 @@ See \url{https://radiant-rstats.github.io/docs/model/crs.html} for an example in
 }
 \examples{
 crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
-    rate = "Ratings", data_filter = "training == 1") \%>\% str()
-
+  rate = "Ratings", data_filter = "training == 1") \%>\% str()
 }
 \seealso{
 \code{\link{summary.crs}} to summarize results

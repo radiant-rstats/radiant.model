@@ -1,6 +1,7 @@
 # radiant.model 1.3.15
 
 * Allow user to include or exclude variables from the coefficient plot in linear and logistic regression
+* Fix for error on R-dev in _Model > Collaborative filtering_ ("Error in xtfrm.data.frame(x) : cannot xtfrm data frames") 
 
 # radiant.model 1.3.14
 

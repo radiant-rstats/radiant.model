@@ -17,14 +17,13 @@
 #'
 #' @examples
 #' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
-#'     rate = "Ratings", data_filter = "training == 1") %>% str()
-#'
+#'   rate = "Ratings", data_filter = "training == 1") %>% str()
 #' @importFrom dplyr distinct_at
 #'
 #' @export
 crs <- function(
-  dataset, id, prod, pred, rate, 
-  data_filter = "", envir = parent.frame()
+                dataset, id, prod, pred, rate,
+                data_filter = "", envir = parent.frame()
 ) {
 
   vars <- c(id, prod, rate)
@@ -44,7 +43,7 @@ crs <- function(
     return("Rows are not unique. Data not appropriate for collaborative filtering" %>% add_class("crs"))
   }
 
-  dataset <- spread(dataset, !! prod, !! rate) %>%
+  dataset <- spread(dataset, !!prod, !!rate) %>%
     as.data.frame(stringsAsFactors = FALSE)
 
   idv <- select_at(dataset, .vars = id)
@@ -55,7 +54,7 @@ crs <- function(
   if (any(grepl(":", pred))) {
     pred <- select(
       dataset[1, , drop = FALSE],
-      !!! rlang::parse_exprs(paste0(pred, collapse = ";"))
+      !!!rlang::parse_exprs(paste0(pred, collapse = ";"))
     ) %>% colnames()
   }
 
@@ -71,14 +70,14 @@ crs <- function(
   ## indices
   cn <- colnames(dataset)
   nind <- which(cn %in% pred)
-  ind <- (1:length(cn))[-nind]
+  ind <- (seq_along(cn))[-nind]
 
   ## average scores and rankings
   avg <- dataset[uid, , drop = FALSE] %>%
     select(nind) %>%
     summarise_all(mean, na.rm = TRUE)
   ravg <- avg
-  ravg[1, ] <- min_rank(desc(avg))
+  ravg[1, ] <- min_rank(desc(as.vector(avg)))
   ravg <- mutate_all(ravg, as.integer)
 
   ## actual scores and rankings (if available, else will be NA)
@@ -136,7 +135,7 @@ crs <- function(
       bind_cols(
         gather(act, "product", "rating", -1, factor_key = TRUE),
         select_at(gather(ract, "product", "ranking", -1, factor_key = TRUE), .vars = "ranking"),
-        select_at(gather(cf, "product", "cf", -1, factor_key = TRUE),, .vars = "cf"),
+        select_at(gather(cf, "product", "cf", -1, factor_key = TRUE), , .vars = "cf"),
         select_at(gather(rcf, "product", "cf_rank", -1, factor_key = TRUE), .vars = "cf_rank")
       ),
       data.frame(
@@ -168,8 +167,7 @@ crs <- function(
 #'
 #' @examples
 #' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
-#'     rate = "Ratings", data_filter = "training == 1") %>% summary()
-#'
+#'   rate = "Ratings", data_filter = "training == 1") %>% summary()
 #' @export
 summary.crs <- function(object, n = 36, dec = 2, ...) {
   if (is.character(object)) return(cat(object))
@@ -289,7 +287,7 @@ store.crs <- function(dataset, object, name, ...) {
   if (missing(name)) {
     object$recommendations
   } else {
-     stop(
+    stop(
       paste0(
         "This function is deprecated. Use the code below instead:\n\n",
         name, " <- ", deparse(substitute(object)), "$recommendations\nregister(\"",
