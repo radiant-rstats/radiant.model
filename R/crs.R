@@ -77,7 +77,7 @@ crs <- function(
     select(nind) %>%
     summarise_all(mean, na.rm = TRUE)
   ravg <- avg
-  ravg[1, ] <- min_rank(desc(as.vector(avg)))
+  ravg[1, ] <- min_rank(desc(as.numeric(avg)))
   ravg <- mutate_all(ravg, as.integer)
 
   ## actual scores and rankings (if available, else will be NA)
