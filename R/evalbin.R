@@ -579,7 +579,7 @@ plot.confusion <- function(
   p
 }
 
-#' Area Under the Curve (AUC)
+#' Area Under the RO Curve (AUC)
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
 #'
