@@ -2,7 +2,7 @@
 % Please edit documentation in R/evalbin.R
 \name{auc}
 \alias{auc}
-\title{Area Under the Curve (AUC)}
+\title{Area Under the RO Curve (AUC)}
 \usage{
 auc(pred, rvar, lev)
 }
@@ -17,7 +17,7 @@ auc(pred, rvar, lev)
 AUC statistic
 }
 \description{
-Area Under the Curve (AUC)
+Area Under the RO Curve (AUC)
 }
 \details{
 See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
