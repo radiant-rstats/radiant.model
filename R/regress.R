@@ -105,7 +105,7 @@ regress <- function(
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
-  coeff <- tidy(model) %>% as.data.frame()
+  coeff <- tidy(model) %>% na.omit() %>% as.data.frame()
   colnames(coeff) <- c("  ", "coefficient", "std.error", "t.value", "p.value")
 
   if ("robust" %in% check) {

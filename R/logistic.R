@@ -160,7 +160,7 @@ logistic <- function(
     attr(model$model, "radiant_sf") <- attr(dataset, "radiant_sf")
   }
 
-  coeff <- tidy(model) %>% as.data.frame()
+  coeff <- tidy(model) %>% na.omit() %>% as.data.frame()
   colnames(coeff) <- c("label", "coefficient", "std.error", "z.value", "p.value")
   hasLevs <- sapply(select(dataset, -1), function(x) is.factor(x) || is.logical(x) || is.character(x))
   if (sum(hasLevs) > 0) {
@@ -267,7 +267,7 @@ summary.logistic <- function(
   coeff$label %<>% format(justify = "left")
   p.small <- coeff$p.value < .001
   coeff[, c(2, 4:7)] %<>% format_df(dec)
-  coeff[["OR%"]] %<>% format_nr(perc = TRUE, dec = dec - 2)
+  coeff[["OR%"]] %<>% format_nr(perc = TRUE, dec = dec - 2, na.rm=FALSE)
   coeff$p.value[p.small] <- "< .001"
   dplyr::rename(coeff, `  ` = "label", ` ` = "sig_star") %>% {.$OR[1] <- .$`OR%`[1] <- ""; .} %>%
     print(row.names = FALSE)

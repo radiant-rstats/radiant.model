@@ -1,3 +1,7 @@
+# radiant.model 1.3.16
+
+* Remove missing values from _tidied_ model output
+
 # radiant.model 1.3.15
 
 * Allow user to include or exclude variables from the coefficient plot in linear and logistic regression

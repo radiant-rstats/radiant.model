@@ -132,7 +132,7 @@ mnl <- function(
     model <- do.call(nnet::multinom, mnl_input)
   }
 
-  coeff <- tidy(model) %>% as.data.frame()
+  coeff <- tidy(model) %>% na.omit() %>% as.data.frame()
   coeff$estimate <- log(coeff$estimate)
 
   ## needed for prediction if standardization or centering is used
