@@ -1,6 +1,10 @@
+# radiant.model 1.3.17
+
+* Log transformation of nnet::multinom estimates is no longer needed
+
 # radiant.model 1.3.16
 
-* Remove missing values from _tidied_ model output
+* Remove missing values from _tidy_ model output
 
 # radiant.model 1.3.15
 

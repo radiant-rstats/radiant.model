@@ -133,7 +133,6 @@ mnl <- function(
   }
 
   coeff <- tidy(model) %>% na.omit() %>% as.data.frame()
-  coeff$estimate <- log(coeff$estimate)
 
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
