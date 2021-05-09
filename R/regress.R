@@ -432,7 +432,8 @@ plot.regress <- function(
   vars <- c(rvar, evar)
 
   flines <- sub("loess", "", lines) %>% sub("line", "", .)
-  nlines <- sub("jitter", "", lines)
+  # not clear why this was needed in the first place
+  # nlines <- sub("jitter", "", lines)
 
   if (any(plots %in% c("dashboard", "scatter", "resid_pred")) && !is_empty(nrobs)) {
     nrobs <- as.integer(nrobs)
@@ -493,7 +494,7 @@ plot.regress <- function(
           visualize(xvar = i, yvar = rvar, type = "scatter", check = flines, alpha = 0.2, custom = TRUE)
       } else {
         plot_list[[paste0("scatter", i)]] <- select_at(model, .vars = c(i, rvar)) %>%
-          visualize(xvar = i, yvar = rvar, type = "scatter", check = nlines, custom = TRUE)
+          visualize(xvar = i, yvar = rvar, type = "scatter", check = lines, custom = TRUE)
       }
     }
   }
@@ -506,7 +507,7 @@ plot.regress <- function(
           labs(y = "residuals")
       } else {
         plot_list[[paste0("resid_", i)]] <- select_at(model, .vars = c(i, ".resid")) %>%
-          visualize(xvar = i, yvar = ".resid", type = "scatter", check = nlines, custom = TRUE) +
+          visualize(xvar = i, yvar = ".resid", type = "scatter", check = lines, custom = TRUE) +
           labs(y = "residuals")
       }
     }
