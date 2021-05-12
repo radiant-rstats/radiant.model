@@ -1,5 +1,6 @@
-# radiant.model 1.3.17
+# radiant.model 1.4.0
 
+* Allow jitter in regression plots with scatter 
 * Log transformation of nnet::multinom estimates is no longer needed
 
 # radiant.model 1.3.16
