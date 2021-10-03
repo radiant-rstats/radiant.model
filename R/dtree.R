@@ -292,7 +292,13 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
 
     ## based on http://stackoverflow.com/a/14656351/1974918
     tmp <- as.relistable(yl[base::setdiff(names(yl), "variables")]) %>% unlist()
-    for (i in seq_along(vn)) tmp <- gsub(vn[i], vars[[i]], tmp, fixed = TRUE)
+
+    for (i in seq_along(vn)) {
+      # only substitute variable values for probabilities (p)
+      # payoffs (payoff) and costs (cost)
+      toSub <- grepl("(\\.p$)|(\\.payoff$)|(\\.cost$)|(^p$)|(^payoff$)|(^cost$)", names(tmp))
+      tmp[toSub] <- gsub(vn[i], vars[[i]], tmp[toSub], fixed = TRUE)
+    }
 
     ## any characters left in p, payoff, or cost fields?
     isNot <- grepl("(.p$)|(.payoff$)|(.cost$)", names(tmp))
@@ -755,7 +761,7 @@ sensitivity.dtree <- function(
     dat <- gather(ret[[i]], "decisions", "payoffs", !! base::setdiff(names(ret[[i]]), "values"))
     plot_list[[i]] <-
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
-      geom_line() + geom_point() +
+      geom_line() + geom_point(aes_string(shape = "decisions"), size = 2) +
       labs(
         title = paste0("Sensitivity of decisions to changes in ", i),
         x = i
