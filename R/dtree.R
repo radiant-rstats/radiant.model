@@ -425,7 +425,8 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
   list(
     jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt,
     type_none = type_none, prob_check = prob_check, cost_check = cost_check,
-    payoff = jl$Get(function(x) x$payoff)
+    payoff = jl$Get(function(x) x$payoff),
+    prob = jl$Get(function(x) x$p)
   ) %>%
     add_class("dtree")
 }
