@@ -139,7 +139,7 @@ dtree_parser <- function(yl) {
 #'
 #' @importFrom yaml yaml.load
 #' @importFrom stringr str_match
-#' @importFrom data.tree as.Node Clone isLeaf isNotLeaf
+#' @importFrom data.tree as.Node Clone isLeaf isNotLeaf Get
 #'
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{plot.dtree}} to plot results
@@ -422,11 +422,22 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     return(err %>% add_class(c("dtree", "dtree-error")))
   }
 
+  payoff <- jl$Get(function(x) x$payoff)
+  prob <- jl$Get(function(x) x$p)
+
+  solution_df <- data.frame(
+    level = jl$Get(function(x) x$level),
+    label = names(payoff),
+    payoff = payoff,
+    prob = prob,
+    cost = jl$Get(function(x) x$cost),
+    type = jl$Get(function(x) x$type)
+  )
+
   list(
     jl_init = jl_init, jl = jl, yl = yl, vars = vars, opt = opt,
     type_none = type_none, prob_check = prob_check, cost_check = cost_check,
-    payoff = jl$Get(function(x) x$payoff),
-    prob = jl$Get(function(x) x$p)
+    payoff = payoff, prob = prob, solution_df = solution_df
   ) %>%
     add_class("dtree")
 }
