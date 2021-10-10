@@ -15,6 +15,20 @@ There were no ERRORs or WARNINGs. There was one NOTE related to the number of no
 
 ## Resubmission
 
+This is a resubmission. In this version I have fixed a few bugs (see NEWS.md for details) and addressed a URL forwarding issues uncovered by CRAN.
+
+## Test environments
+
+* Ubuntu Linux through WSL2: R 4.0.5
+* Windows (development) through devtools::check_win_devel()
+
+## R CMD check result
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
+
+
+## Resubmission
+
 This is a resubmission. Thanks for Kurt I was able to fix an error uncovered in CRAN testing.
 
 ## Test environments

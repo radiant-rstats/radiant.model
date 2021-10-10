@@ -1,3 +1,8 @@
+# radiant.model 1.4.1
+
+* Fixed an issue where variables used in Decision Analysis with a one letter label caused problems evaluating the tree correctly
+* Provide easier access to payoffs, probabilities, etc. from a solved Decisions Analysis tree
+
 # radiant.model 1.4.0
 
 * Allow jitter in regression plots with scatter 

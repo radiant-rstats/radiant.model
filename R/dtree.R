@@ -135,7 +135,7 @@ dtree_parser <- function(yl) {
 #' @param base List of variable definitions from a base tree used when calling a sub-tree
 #' @param envir Environment to extract data from
 #'
-#' @return A list with the initial tree and the calculated tree
+#' @return A list with the initial tree, the calculated tree, and a data.frame with results (i.e., payoffs, probabilities, etc.)
 #'
 #' @importFrom yaml yaml.load
 #' @importFrom stringr str_match
@@ -148,6 +148,9 @@ dtree_parser <- function(yl) {
 #' @examples
 #' yaml::as.yaml(movie_contract) %>% cat()
 #' dtree(movie_contract, opt = "max") %>% summary(output = TRUE)
+#' dtree(movie_contract)$payoff
+#' dtree(movie_contract)$prob
+#' dtree(movie_contract)$solution_df
 #'
 #' @export
 dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) {
