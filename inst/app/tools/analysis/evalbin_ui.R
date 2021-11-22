@@ -148,7 +148,7 @@ output$ui_evalbin <- renderUI({
 
 ebin_plot_width <- function() 700
 ebin_plot_height <- function() {
-  if (is_empty(input$ebin_plots)) 200 else length(input$ebin_plots) * 500
+  if (radiant.data::is_empty(input$ebin_plots)) 200 else length(input$ebin_plots) * 500
 }
 
 confusion_plot_width <- function() 650
@@ -201,7 +201,7 @@ output$evalbin <- renderUI({
 })
 
 .evalbin <- eventReactive(input$ebin_run, {
-  if (!is_empty(r_info[["filter_error"]])) {
+  if (!radiant.data::is_empty(r_info[["filter_error"]])) {
     "An invalid filter has been set for this dataset. Please\nadjust the filter in the Data > View tab and try again" %>%
       add_class("evalbin")
   } else {
@@ -216,7 +216,7 @@ output$evalbin <- renderUI({
 .summary_evalbin <- reactive({
   if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-    is_empty(input$ebin_lev)) {
+   radiant.data::is_empty(input$ebin_lev)) {
     return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
   }
   summary(.evalbin(), prn = input$ebin_show_tab)
@@ -226,10 +226,10 @@ output$evalbin <- renderUI({
   if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
   isolate({
     if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-        is_empty(input$ebin_lev)) {
+       radiant.data::is_empty(input$ebin_lev)) {
       return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>%
         suggest_data("titanic"))
-    } else if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && is_empty(input$data_filter)))) {
+    } else if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && radiant.data::is_empty(input$data_filter)))) {
       return("** Filter required. To set a filter go to Data > View and click the filter checkbox **")
     }
   })
@@ -238,11 +238,11 @@ output$evalbin <- renderUI({
 
 .confusion <- eventReactive(input$ebin_run, {
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-    is_empty(input$ebin_lev)) {
+   radiant.data::is_empty(input$ebin_lev)) {
     return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>%
       suggest_data("titanic"))
   }
-  if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && is_empty(input$data_filter)))) {
+  if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && radiant.data::is_empty(input$data_filter)))) {
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **")
   }
   withProgress(message = "Evaluating models", value = 1, {
@@ -256,7 +256,7 @@ output$evalbin <- renderUI({
   if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
   isolate({
     if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-      is_empty(input$ebin_lev)) {
+     radiant.data::is_empty(input$ebin_lev)) {
       return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
     }
   })
@@ -273,7 +273,7 @@ output$evalbin <- renderUI({
 })
 
 observeEvent(input$evalbin_report, {
-  if (is_empty(input$ebin_rvar) || is_empty(input$ebin_pred)) return(invisible())
+  if (radiant.data::is_empty(input$ebin_rvar) ||radiant.data::is_empty(input$ebin_pred)) return(invisible())
 
   outputs <- c("summary")
   inp_out <- list(list(prn = input$ebin_show_tab), "")
@@ -295,7 +295,7 @@ observeEvent(input$evalbin_report, {
 })
 
 observeEvent(input$confusion_report, {
-  if (is_empty(input$ebin_rvar) || is_empty(input$ebin_pred)) return(invisible())
+  if (radiant.data::is_empty(input$ebin_rvar) ||radiant.data::is_empty(input$ebin_pred)) return(invisible())
 
   inp_out <- list("", "")
   outputs <- "summary"
@@ -329,7 +329,7 @@ observeEvent(input$confusion_report, {
 
 dl_ebin_tab <- function(path) {
   dat <- .evalbin()$dataset
-  if (!is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
+  if (!radiant.data::is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
 }
 
 download_handler(
@@ -342,7 +342,7 @@ download_handler(
 
 dl_confusion_tab <- function(path) {
   dat <- .confusion()$dataset
-  if (!is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
+  if (!radiant.data::is_empty(dat)) write.csv(dat, file = path, row.names = FALSE)
 }
 
 download_handler(

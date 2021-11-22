@@ -51,15 +51,15 @@ nn <- function(
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("nn"))
-  } else if (is_empty(size) || size < 1) {
+  } else if (radiant.data::is_empty(size) || size < 1) {
     return("Size should be larger than or equal to 1." %>% add_class("nn"))
-  } else if (is_empty(decay) || decay < 0) {
+  } else if (radiant.data::is_empty(decay) || decay < 0) {
     return("Decay should be larger than or equal to 0." %>% add_class("nn"))
   }
 
   vars <- c(rvar, evar)
 
-  if (is_empty(wts, "None")) {
+  if (radiant.data::is_empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -69,7 +69,7 @@ nn <- function(
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
 
-  if (!is_empty(wts)) {
+  if (!radiant.data::is_empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -133,7 +133,7 @@ nn <- function(
 
   ## based on https://stackoverflow.com/a/14324316/1974918
   seed <- gsub("[^0-9]", "", seed)
-  if (!is_empty(seed)) {
+  if (!radiant.data::is_empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit(.Random.seed <<- gseed)
@@ -261,7 +261,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
     cat("Activation function  : Linear (regression)")
   }
   cat("\nData                 :", object$df_name)
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -274,7 +274,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
   }
   cat("Network size         :", object$size, "\n")
   cat("Parameter decay      :", object$decay, "\n")
-  if (!is_empty(object$seed)) {
+  if (!radiant.data::is_empty(object$seed)) {
     cat("Seed                 :", object$seed, "\n")
   }
 
@@ -282,7 +282,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
   nweights <- length(object$model$wts)
   cat("Network              :", network, "with", nweights, "weights\n")
 
-  if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n")

@@ -79,7 +79,7 @@ output$ui_nb_rvar <- renderUI({
     vars <- varnames()[isFct]
   })
 
-  init <- if (is_empty(input$logit_rvar)) isolate(input$nb_rvar) else input$logit_rvar
+  init <- if (radiant.data::is_empty(input$logit_rvar)) isolate(input$nb_rvar) else input$logit_rvar
   selectInput(
     inputId = "nb_rvar", label = "Response variable:", choices = vars,
     selected = state_single("nb_rvar", vars, init), multiple = FALSE
@@ -108,7 +108,7 @@ output$ui_nb_evar <- renderUI({
   }
 
   ## initialize to variables selected for logistic regression
-  init <- if (is_empty(input$logit_evar)) isolate(input$nb_evar) else input$logit_evar
+  init <- if (radiant.data::is_empty(input$logit_evar)) isolate(input$nb_evar) else input$logit_evar
   selectInput(
     inputId = "nb_evar", label = "Explanatory variables:",
     choices = vars,
@@ -199,7 +199,7 @@ output$ui_nb <- renderUI({
           "input.nb_predict == 'data' | input.nb_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_nb_store_pred_name")),
-            tags$td(actionButton("nb_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
+            tags$td(actionButton("nb_store_pred", "Store", icon = icon("plus")), class = "top")
           )
         )
       ),
@@ -225,7 +225,7 @@ output$ui_nb <- renderUI({
 
 nb_plot <- reactive({
   if (nb_available() != "available") return()
-  if (is_empty(input$nb_plots, "none")) return()
+  if (radiant.data::is_empty(input$nb_plots, "none")) return()
   req(input$nb_lev)
 
   nb_res <- .nb()
@@ -327,12 +327,12 @@ nb_available <- reactive({
 .predict_nb <- reactive({
   if (nb_available() != "available") return(nb_available())
   if (not_pressed(input$nb_run)) return("** Press the Estimate button to estimate the model **")
-  if (is_empty(input$nb_predict, "none")) return("** Select prediction input **")
+  if (radiant.data::is_empty(input$nb_predict, "none")) return("** Select prediction input **")
 
-  if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && is_empty(input$nb_pred_data)) {
+  if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && radiant.data::is_empty(input$nb_pred_data)) {
     return("** Select data for prediction **")
   }
-  if (input$nb_predict == "cmd" && is_empty(input$nb_pred_cmd)) {
+  if (input$nb_predict == "cmd" && radiant.data::is_empty(input$nb_pred_cmd)) {
     return("** Enter prediction commands **")
   }
 
@@ -354,18 +354,18 @@ nb_available <- reactive({
   req(
     pressed(input$nb_run), input$nb_pred_plot,
     available(input$nb_xvar),
-    !is_empty(input$nb_predict, "none")
+    !radiant.data::is_empty(input$nb_predict, "none")
   )
 
   ## needs more testing ...
   # if (nb_available() != "available") return(nb_available())
   # # req(input$nb_pred_plot, available(input$nb_xvar))
   # if (not_pressed(input$nb_run)) return(invisible())
-  # if (is_empty(input$nb_predict, "none")) return(invisible())
-  # if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && is_empty(input$nb_pred_data)) {
+  # if (radiant.data::is_empty(input$nb_predict, "none")) return(invisible())
+  # if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && radiant.data::is_empty(input$nb_pred_data)) {
   #   return(invisible())
   # }
-  # if (input$nb_predict == "cmd" && is_empty(input$nb_pred_cmd)) {
+  # if (input$nb_predict == "cmd" && radiant.data::is_empty(input$nb_pred_cmd)) {
   #   return(invisible())
   # }
 
@@ -377,7 +377,7 @@ nb_available <- reactive({
 .plot_nb <- reactive({
   if (not_pressed(input$nb_run)) {
     return("** Press the Estimate button to estimate the model **")
-  } else if (is_empty(input$nb_plots, "none")) {
+  } else if (radiant.data::is_empty(input$nb_plots, "none")) {
     return("Please select a naive Bayes plot from the drop-down menu")
   } else if (nb_available() != "available") {
     return(nb_available())
@@ -393,7 +393,7 @@ nb_available <- reactive({
 })
 
 observeEvent(input$nb_store_pred, {
-  req(!is_empty(input$nb_pred_data), pressed(input$nb_run))
+  req(!radiant.data::is_empty(input$nb_pred_data), pressed(input$nb_run))
   pred <- .predict_nb()
   if (is.null(pred)) return()
   fixed <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
@@ -410,27 +410,27 @@ observeEvent(input$nb_store_pred, {
 })
 
 observeEvent(input$nb_report, {
-  if (is_empty(input$nb_evar)) return(invisible())
+  if (radiant.data::is_empty(input$nb_evar)) return(invisible())
   outputs <- c("summary")
   inp_out <- list("", "")
   figs <- FALSE
-  if (!is_empty(input$nb_plots, "none")) {
+  if (!radiant.data::is_empty(input$nb_plots, "none")) {
     inp_out[[2]] <- clean_args(nb_plot_inputs(), nb_plot_args[-1])
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }
   xcmd <- ""
-  if (!is_empty(input$nb_predict, "none") &&
-     (!is_empty(input$nb_pred_data) || !is_empty(input$nb_pred_cmd))) {
+  if (!radiant.data::is_empty(input$nb_predict, "none") &&
+     (!radiant.data::is_empty(input$nb_pred_data) || !radiant.data::is_empty(input$nb_pred_cmd))) {
     pred_args <- clean_args(nb_pred_inputs(), nb_pred_args[-1])
 
-    if (!is_empty(pred_args$pred_cmd)) {
+    if (!radiant.data::is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }
 
-    if (!is_empty(pred_args$pred_data)) {
+    if (!radiant.data::is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
@@ -441,7 +441,7 @@ observeEvent(input$nb_report, {
     xcmd <- paste0("print(pred, n = 10)")
     if (input$nb_predict %in% c("data", "datacmd")) {
       name <- input$nb_store_pred_name
-      if (!is_empty(name)) {
+      if (!radiant.data::is_empty(name)) {
         name <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
           fix_names() %>%
           deparse(., control = getOption("dctrl"), width.cutoff = 500L)
@@ -451,7 +451,7 @@ observeEvent(input$nb_report, {
       )
     }
 
-    if (input$nb_pred_plot && !is_empty(input$nb_xvar)) {
+    if (input$nb_pred_plot && !radiant.data::is_empty(input$nb_xvar)) {
       inp_out[[3 + figs]] <- clean_args(nb_pred_plot_inputs(), nb_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"
       outputs <- c(outputs, "plot")

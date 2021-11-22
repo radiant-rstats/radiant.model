@@ -16,7 +16,7 @@ dtree(yl, opt = "max", base = character(0), envir = parent.frame())
 \item{envir}{Environment to extract data from}
 }
 \value{
-A list with the initial tree and the calculated tree
+A list with the initial tree, the calculated tree, and a data.frame with results (i.e., payoffs, probabilities, etc.)
 }
 \description{
 Create a decision tree
@@ -27,6 +27,9 @@ See \url{https://radiant-rstats.github.io/docs/model/dtree.html} for an example 
 \examples{
 yaml::as.yaml(movie_contract) \%>\% cat()
 dtree(movie_contract, opt = "max") \%>\% summary(output = TRUE)
+dtree(movie_contract)$payoff
+dtree(movie_contract)$prob
+dtree(movie_contract)$solution_df
 
 }
 \seealso{

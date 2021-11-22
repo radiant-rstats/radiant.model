@@ -50,7 +50,7 @@ rforest <- function(
 
   vars <- c(rvar, evar)
 
-  if (is_empty(wts, "None")) {
+  if (radiant.data::is_empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -61,7 +61,7 @@ rforest <- function(
   dataset <- get_data(dataset, vars, filt = data_filter, envir = envir) %>%
     mutate_if(is.Date, as.numeric)
 
-  if (!is_empty(wts)) {
+  if (!radiant.data::is_empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -107,7 +107,7 @@ rforest <- function(
     vars <- evar <- colnames(dataset)[-1]
   }
 
-  if (is_empty(replace)) {
+  if (radiant.data::is_empty(replace)) {
     replace <- ifelse(sample.fraction < 1, FALSE, TRUE)
   }
 
@@ -130,7 +130,7 @@ rforest <- function(
 
   ## based on https://stackoverflow.com/a/14324316/1974918
   seed <- gsub("[^0-9]", "", seed)
-  if (!is_empty(seed)) {
+  if (!radiant.data::is_empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit(.Random.seed <<- gseed)
@@ -184,7 +184,7 @@ summary.rforest <- function(object, ...) {
     cat("Type                 : Regression")
   }
   cat("\nData                 :", object$df_name)
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -206,7 +206,7 @@ summary.rforest <- function(object, ...) {
       sub("\\)$", "", .)
     cat("Additional arguments :", extra_args, "\n")
   }
-  if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n")
@@ -347,7 +347,7 @@ predict.rforest <- function(
   pfun <- function(model, pred, se, conf_lev, OOB = OOB) {
 
     pred <- mutate_if(pred, is.Date, as.numeric)
-    if (is_empty(OOB)) {
+    if (radiant.data::is_empty(OOB)) {
       if (isTRUE(dplyr::all_equal(select(model$model, -1), pred))) {
         message("Using OOB predictions after comparing the training and prediction data")
         OOB <- TRUE
@@ -369,7 +369,7 @@ predict.rforest <- function(
       } else {
         if (ncol(pred_val) == 1) {
           pred_names <- "Prediction"
-        } else if (is_empty(pred_names)) {
+        } else if (radiant.data::is_empty(pred_names)) {
           pred_names <- colnames(pred_val)
         }
         pred_val <- select(pred_val, 1:min(ncol(pred_val), length(pred_names))) %>%
@@ -429,7 +429,7 @@ plot.rforest.predict <- function(
   }
 
   ## should work with req in regress_ui but doesn't
-  if (is_empty(xvar)) return(invisible())
+  if (radiant.data::is_empty(xvar)) return(invisible())
   if (is.character(x)) return(x)
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
@@ -488,7 +488,7 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
   ## as.vector removes all attributes from df
   df <- as.vector(object[, pvars, drop = FALSE])
 
-  if (is_empty(name)) {
+  if (radiant.data::is_empty(name)) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name
@@ -575,10 +575,10 @@ cv.rforest <- function(
     stop("The model object does not seems to be a random forest")
   }
 
-  if (is_empty(num.trees)) {
+  if (radiant.data::is_empty(num.trees)) {
     num.trees <- object$call[["num.trees"]]
   }
-  if (is_empty(sample.fraction)) {
+  if (radiant.data::is_empty(sample.fraction)) {
     sample.fraction <- object$call[["sample.fraction"]]
     sample.fraction <- ifelse(is.null(sample.fraction), 1, sample.fraction)
   } else {

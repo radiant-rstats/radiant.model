@@ -1,8 +1,3 @@
-#sim_const, #sim_discrete, #sim_binom, #sim_norm, #sim_unif,
-#sim_sequ, #rep_grid {
-  max-width: 234px;
-}
-
 #sim_form, #rep_form {
   width: 100%;
 }

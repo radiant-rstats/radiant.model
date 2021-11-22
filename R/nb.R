@@ -91,7 +91,7 @@ summary.nb <- function(object, dec = 3, ...) {
 
   cat("Naive Bayes Classifier")
   cat("\nData                 :", object$df_name)
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -137,7 +137,7 @@ summary.nb <- function(object, dec = 3, ...) {
 #' @export
 plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000, ...) {
   if (is.character(x)) return(x)
-  if (is_empty(plots[1])) return(invisible())
+  if (radiant.data::is_empty(plots[1])) return(invisible())
 
   rvar <- x$model$model[[1]]
 
@@ -255,7 +255,7 @@ predict.nb <- function(
 
     if (!inherits(pred_val, "try-error")) {
       pred_val %<>% as.data.frame(stringsAsFactors = FALSE)
-      if (all(is_empty(pred_names))) pred_names <- colnames(pred_val)
+      if (all(radiant.data::is_empty(pred_names))) pred_names <- colnames(pred_val)
       pred_val %<>% select(1:min(ncol(pred_val), length(pred_names))) %>%
         set_colnames(pred_names)
     }
@@ -305,7 +305,7 @@ plot.nb.predict <- function(
 ) {
 
   ## should work with req in regress_ui but doesn't
-  if (is_empty(xvar)) return(invisible())
+  if (radiant.data::is_empty(xvar)) return(invisible())
 
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
@@ -361,7 +361,7 @@ store.nb.predict <- function(dataset, object, name = NULL, ...) {
   ## as.vector removes all attributes from df
   df <- as.vector(object[, pvars])
 
-  if (is_empty(name)) {
+  if (radiant.data::is_empty(name)) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name

@@ -35,11 +35,11 @@ evalbin <- function(
   if (is.na(cost)) cost <- 0
   if (is.na(margin)) margin <- 0
 
-  if (!train %in% c("", "All") && is_empty(data_filter)) {
+  if (!train %in% c("", "All") && radiant.data::is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalbin"))
   }
 
-  if (is_empty(qnt)) qnt <- 10
+  if (radiant.data::is_empty(qnt)) qnt <- 10
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   dat_list <- list()
@@ -171,7 +171,7 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 
   cat("Evaluate predictions for binary response models\n")
   cat("Data        :", object$df_name, "\n")
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Results for :", object$train, "\n")
@@ -334,7 +334,7 @@ confusion <- function(
   train = "All", data_filter = "", envir = parent.frame(), ...
 ) {
 
-  if (!train %in% c("", "All") && is_empty(data_filter)) {
+  if (!train %in% c("", "All") && radiant.data::is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
   }
 
@@ -499,7 +499,7 @@ summary.confusion <- function(object, dec = 3, ...) {
 
   cat("Confusion matrix\n")
   cat("Data       :", object$df_name, "\n")
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("Filter     :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Results for:", object$train, "\n")

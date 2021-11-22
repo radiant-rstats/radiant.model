@@ -133,7 +133,7 @@ observeEvent(input$dataset, {
 })
 
 observeEvent(input$crtree_cost, {
-  if (!is_empty(input$crtree_cost)) {
+  if (!radiant.data::is_empty(input$crtree_cost)) {
     updateNumericInput(session = session, inputId = "crtree_prior", value = NA)
   }
 })
@@ -143,7 +143,7 @@ output$ui_crtree_predict_plot <- renderUI({
 })
 
 output$ui_crtree_width <- renderUI({
-  init <- ifelse(is_empty(input$get_screen_width), 900, (input$get_screen_width - 400))
+  init <- ifelse(radiant.data::is_empty(input$get_screen_width), 900, (input$get_screen_width - 400))
   init <- init - init %% 100
   numericInput(
     "crtree_width",
@@ -255,7 +255,7 @@ output$ui_crtree <- renderUI({
           condition = "input.tabs_crtree == 'Summary'",
           tags$table(
             tags$td(uiOutput("ui_crtree_store_res_name")),
-            tags$td(actionButton("crtree_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
+            tags$td(actionButton("crtree_store_res", "Store", icon = icon("plus")), class = "top")
           )
         )
       ),
@@ -297,7 +297,7 @@ output$ui_crtree <- renderUI({
           "input.crtree_predict == 'data' | input.crtree_predict == 'datacmd'",
           tags$table(
             tags$td(textInput("crtree_store_pred_name", "Store predictions:", state_init("crtree_store_pred_name", "pred_crtree"))),
-            tags$td(actionButton("crtree_store_pred", "Store", icon("plus")), style = "padding-top:30px;")
+            tags$td(actionButton("crtree_store_pred", "Store", icon("plus")), class = "top")
           )
         )
       ),
@@ -322,7 +322,7 @@ output$ui_crtree <- renderUI({
                 c("Left-right" = "LR", "Top-down" = "TD", "Right-left" = "RL", "Bottom-Top" = "BT"),
                 state_init("crtree_orient", "LR"), width = "116px"
               ),
-              style = "padding-top:15px;"
+              style = "padding-top:16.5px;"
             ),
             tags$td(uiOutput("ui_crtree_width"), width = "100%")
           )
@@ -339,7 +339,7 @@ output$ui_crtree <- renderUI({
 
 crtree_plot <- reactive({
   if (crtree_available() != "available") return()
-  if (is_empty(input$crtree_plots, "none")) return()
+  if (radiant.data::is_empty(input$crtree_plots, "none")) return()
   res <- .crtree()
   # if (is.character(res)) return()
   nr_vars <- length(res$evar)
@@ -464,12 +464,12 @@ crtree_available <- reactive({
 .predict_crtree <- reactive({
   if (not_pressed(input$crtree_run)) return("** Press the Estimate button to estimate the model **")
   if (crtree_available() != "available") return(crtree_available())
-  if (is_empty(input$crtree_predict, "none")) return("** Select prediction input **")
+  if (radiant.data::is_empty(input$crtree_predict, "none")) return("** Select prediction input **")
 
   if ((input$crtree_predict == "data" || input$crtree_predict == "datacmd") &&
-    is_empty(input$crtree_pred_data)) {
+   radiant.data::is_empty(input$crtree_pred_data)) {
     "** Select data for prediction **"
-  } else if (input$crtree_predict == "cmd" && is_empty(input$crtree_pred_cmd)) {
+  } else if (input$crtree_predict == "cmd" && radiant.data::is_empty(input$crtree_pred_cmd)) {
     "** Enter prediction commands **"
   } else {
 
@@ -491,7 +491,7 @@ crtree_available <- reactive({
   req(
     pressed(input$crtree_run), input$crtree_pred_plot,
     available(input$crtree_xvar),
-    !is_empty(input$crtree_predict, "none")
+    !radiant.data::is_empty(input$crtree_predict, "none")
   )
 
   withProgress(message = "Generating prediction plot", value = 1, {
@@ -504,7 +504,7 @@ crtree_available <- reactive({
     "** Press the Estimate button to estimate the model **"
   } else if (crtree_available() != "available") {
     crtree_available()
-  } else if (is_empty(input$crtree_plots)) {
+  } else if (radiant.data::is_empty(input$crtree_plots)) {
     "Please select a plot type from the drop-down menu"
   } else {
     ret <- .crtree()
@@ -533,7 +533,7 @@ observeEvent(input$crtree_store_res, {
 })
 
 observeEvent(input$crtree_store_pred, {
-  req(!is_empty(input$crtree_pred_data), pressed(input$crtree_run))
+  req(!radiant.data::is_empty(input$crtree_pred_data), pressed(input$crtree_run))
   pred <- .predict_crtree()
   if (is.null(pred)) return()
   fixed <- fix_names(input$crtree_store_pred_name)
@@ -548,13 +548,13 @@ observeEvent(input$crtree_store_pred, {
 })
 
 observeEvent(input$crtree_report, {
-  if (is_empty(input$crtree_evar)) return(invisible())
+  if (radiant.data::is_empty(input$crtree_evar)) return(invisible())
 
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE), "")
   figs <- FALSE
 
-  if (!is_empty(input$crtree_store_res_name)) {
+  if (!radiant.data::is_empty(input$crtree_store_res_name)) {
     fixed <- fix_names(input$crtree_store_res_name)
     updateTextInput(session, "crtree_store_res_name", value = fixed)
     xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
@@ -562,17 +562,17 @@ observeEvent(input$crtree_report, {
     xcmd <- ""
   }
 
-  if (!is_empty(input$crtree_predict, "none") &&
-    (!is_empty(input$crtree_pred_data) || !is_empty(input$crtree_pred_cmd))) {
+  if (!radiant.data::is_empty(input$crtree_predict, "none") &&
+    (!radiant.data::is_empty(input$crtree_pred_data) || !radiant.data::is_empty(input$crtree_pred_cmd))) {
     pred_args <- clean_args(crtree_pred_inputs(), crtree_pred_args[-1])
 
-    if (!is_empty(pred_args$pred_cmd)) {
+    if (!radiant.data::is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }
 
-    if (!is_empty(pred_args$pred_data)) {
+    if (!radiant.data::is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
@@ -590,7 +590,7 @@ observeEvent(input$crtree_report, {
       )
     }
 
-    if (input$crtree_pred_plot && !is_empty(input$crtree_xvar)) {
+    if (input$crtree_pred_plot && !radiant.data::is_empty(input$crtree_xvar)) {
       inp_out[[3 + figs]] <- clean_args(crtree_pred_plot_inputs(), crtree_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"
       outputs <- c(outputs, "plot")
@@ -599,8 +599,8 @@ observeEvent(input$crtree_report, {
   }
 
   if (input$crtree_plots != "none") {
-    width <- ifelse(is_empty(input$crtree_width), "\"900px\"", paste0("\"", input$crtree_width, "px\""))
-    orient <- ifelse(is_empty(input$crtree_orient), "\"TD\"", paste0("\"", input$crtree_orient, "\""))
+    width <- ifelse(radiant.data::is_empty(input$crtree_width), "\"900px\"", paste0("\"", input$crtree_width, "px\""))
+    orient <- ifelse(radiant.data::is_empty(input$crtree_orient), "\"TD\"", paste0("\"", input$crtree_orient, "\""))
     if (input$crtree_plots == "tree") {
       xcmd <- paste0(xcmd, "\n# plot(result, plots = \"prune\", custom = FALSE)")
       xcmd <- paste0(xcmd, "\nplot(result, orient = ", orient, ", width = ", width, ") %>% render()")

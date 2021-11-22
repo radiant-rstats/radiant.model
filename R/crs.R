@@ -174,7 +174,7 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 
   cat("Collaborative filtering")
   cat("\nData       :", object$df_name)
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("\nFilter     :", gsub("\\n", "", object$data_filter))
   }
   cat("\nUser id    :", object$id)

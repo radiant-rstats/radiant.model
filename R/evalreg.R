@@ -25,7 +25,7 @@ evalreg <- function(
   data_filter = "", envir = parent.frame()
 ) {
 
-  if (!train %in% c("", "All") && is_empty(data_filter)) {
+  if (!train %in% c("", "All") && radiant.data::is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalreg"))
   }
 
@@ -90,7 +90,7 @@ summary.evalreg <- function(object, dec = 3, ...) {
   if (is.character(object)) return(object)
   cat("Evaluate predictions for regression models\n")
   cat("Data        :", object$df_name, "\n")
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Results for :", object$train, "\n")

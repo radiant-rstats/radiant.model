@@ -16,3 +16,6 @@ for (f in fn) {
 }
 
 setwd(cdir)
+
+# remove after revering the changes from the code above
+unlink("inst/app/tools/help/figures/place_holder.txt")

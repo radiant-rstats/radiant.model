@@ -49,7 +49,7 @@ logistic <- function(
 
   vars <- c(rvar, evar)
 
-  if (is_empty(wts, "None")) {
+  if (radiant.data::is_empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -73,7 +73,7 @@ logistic <- function(
     }
   }
 
-  if (!is_empty(wts)) {
+  if (!radiant.data::is_empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -239,7 +239,7 @@ summary.logistic <- function(
 
   cat("Logistic regression (GLM)")
   cat("\nData                 :", object$df_name)
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -278,7 +278,7 @@ summary.logistic <- function(
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
   logit_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>%
     round(dec)
-  if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
@@ -368,7 +368,7 @@ summary.logistic <- function(
     }
   }
 
-  if (!is_empty(test_var)) {
+  if (!radiant.data::is_empty(test_var)) {
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
@@ -470,7 +470,7 @@ plot.logistic <- function(
 ) {
 
   if (is.character(x) || !inherits(x$model, "glm")) return(x)
-  if (is_empty(plots[1])) return("Please select a logistic regression plot from the drop-down menu")
+  if (radiant.data::is_empty(plots[1])) return("Please select a logistic regression plot from the drop-down menu")
 
   if ("(weights)" %in% colnames(x$model$model) &&
     min(x$model$model[["(weights)"]]) == 0) {
@@ -966,7 +966,7 @@ write.coeff <- function(
   if (!intercept)
     object <- slice(object, -1) ## slice will ensure a tibble / data.frame is returned
 
-  if (!is_empty(file)) {
+  if (!radiant.data::is_empty(file)) {
     sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))
   } else {
     object

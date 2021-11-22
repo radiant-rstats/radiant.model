@@ -73,9 +73,9 @@ output$ui_gbt_rvar <- renderUI({
   })
 
   init <- if (input$gbt_type == "classification") {
-    if (is_empty(input$logit_rvar)) isolate(input$gbt_rvar) else input$logit_rvar
+    if (radiant.data::is_empty(input$logit_rvar)) isolate(input$gbt_rvar) else input$logit_rvar
   } else {
-    if (is_empty(input$reg_rvar)) isolate(input$gbt_rvar) else input$reg_rvar
+    if (radiant.data::is_empty(input$reg_rvar)) isolate(input$gbt_rvar) else input$reg_rvar
   }
 
   selectInput(
@@ -94,7 +94,7 @@ output$ui_gbt_lev <- renderUI({
     as_factor() %>%
     levels()
 
-  init <- if (is_empty(input$logit_lev)) isolate(input$gbt_lev) else input$logit_lev
+  init <- if (radiant.data::is_empty(input$logit_lev)) isolate(input$gbt_lev) else input$logit_lev
   selectInput(
     inputId = "gbt_lev", label = "Choose first level:",
     choices = levs,
@@ -111,10 +111,10 @@ output$ui_gbt_evar <- renderUI({
 
   init <- if (input$gbt_type == "classification") {
     # input$logit_evar
-    if (is_empty(input$logit_evar)) isolate(input$gbt_evar) else input$logit_evar
+    if (radiant.data::is_empty(input$logit_evar)) isolate(input$gbt_evar) else input$logit_evar
   } else {
     # input$reg_evar
-    if (is_empty(input$reg_evar)) isolate(input$gbt_evar) else input$reg_evar
+    if (radiant.data::is_empty(input$reg_evar)) isolate(input$gbt_evar) else input$reg_evar
   }
 
   selectInput(
@@ -307,7 +307,7 @@ output$ui_gbt <- renderUI({
           "input.gbt_predict == 'data' | input.gbt_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_gbt_store_pred_name")),
-            tags$td(actionButton("gbt_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
+            tags$td(actionButton("gbt_store_pred", "Store", icon = icon("plus")), class = "top")
           )
         )
       ),
@@ -323,7 +323,7 @@ output$ui_gbt <- renderUI({
       #   condition = "input.tabs_gbt == 'Summary'",
       #   tags$table(
       #     tags$td(uiOutput("ui_gbt_store_res_name")),
-      #     tags$td(actionButton("gbt_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
+      #     tags$td(actionButton("gbt_store_res", "Store", icon = icon("plus")), class = "top")
       #   )
       # )
     ),
@@ -338,7 +338,7 @@ output$ui_gbt <- renderUI({
 gbt_plot <- reactive({
   # req(input$gbt_plots)
   if (gbt_available() != "available") return()
-  if (is_empty(input$gbt_plots, "none")) return()
+  if (radiant.data::is_empty(input$gbt_plots, "none")) return()
   res <- .gbt()
   if (is.character(res)) return()
   nr_vars <- length(res$evar)
@@ -436,13 +436,13 @@ gbt_available <- reactive({
 .gbt <- eventReactive(input$gbt_run, {
   gbti <- gbt_inputs()
   gbti$envir <- r_data
-  if (is_empty(gbti$max_depth)) gbti$max_depth <- 6
-  if (is_empty(gbti$learning_rate)) gbti$learning_rate <- 0.3
-  if (is_empty(gbti$min_split_loss)) gbti$min_split_loss <- 0.01
-  if (is_empty(gbti$min_child_weight)) gbti$min_child_weight <- 1
-  if (is_empty(gbti$subsample)) gbti$subsample <- 1
-  if (is_empty(gbti$nrounds)) gbti$nrounds <- 100
-  if (is_empty(gbti$early_stopping_rounds)) gbti["early_stopping_rounds"] <- list(NULL)
+  if (radiant.data::is_empty(gbti$max_depth)) gbti$max_depth <- 6
+  if (radiant.data::is_empty(gbti$learning_rate)) gbti$learning_rate <- 0.3
+  if (radiant.data::is_empty(gbti$min_split_loss)) gbti$min_split_loss <- 0.01
+  if (radiant.data::is_empty(gbti$min_child_weight)) gbti$min_child_weight <- 1
+  if (radiant.data::is_empty(gbti$subsample)) gbti$subsample <- 1
+  if (radiant.data::is_empty(gbti$nrounds)) gbti$nrounds <- 100
+  if (radiant.data::is_empty(gbti$early_stopping_rounds)) gbti["early_stopping_rounds"] <- list(NULL)
 
   withProgress(
     message = "Estimating model", value = 1,
@@ -459,12 +459,12 @@ gbt_available <- reactive({
 .predict_gbt <- reactive({
   if (not_pressed(input$gbt_run)) return("** Press the Estimate button to estimate the model **")
   if (gbt_available() != "available") return(gbt_available())
-  if (is_empty(input$gbt_predict, "none")) return("** Select prediction input **")
+  if (radiant.data::is_empty(input$gbt_predict, "none")) return("** Select prediction input **")
 
-  if ((input$gbt_predict == "data" || input$gbt_predict == "datacmd") && is_empty(input$gbt_pred_data)) {
+  if ((input$gbt_predict == "data" || input$gbt_predict == "datacmd") && radiant.data::is_empty(input$gbt_pred_data)) {
     return("** Select data for prediction **")
   }
-  if (input$gbt_predict == "cmd" && is_empty(input$gbt_pred_cmd)) {
+  if (input$gbt_predict == "cmd" && radiant.data::is_empty(input$gbt_pred_cmd)) {
     return("** Enter prediction commands **")
   }
 
@@ -486,7 +486,7 @@ gbt_available <- reactive({
   req(
     pressed(input$gbt_run), input$gbt_pred_plot,
     available(input$gbt_xvar),
-    !is_empty(input$gbt_predict, "none")
+    !radiant.data::is_empty(input$gbt_predict, "none")
   )
 
   withProgress(message = "Generating prediction plot", value = 1, {
@@ -499,7 +499,7 @@ gbt_available <- reactive({
     return("** Press the Estimate button to estimate the model **")
   } else if (gbt_available() != "available") {
     return(gbt_available())
-  } else if (is_empty(input$gbt_plots, "none")) {
+  } else if (radiant.data::is_empty(input$gbt_plots, "none")) {
     return("Please select a gradient boosted trees plot from the drop-down menu")
   }
   pinp <- list(plots = input$gbt_plots, shiny = TRUE)
@@ -527,7 +527,7 @@ gbt_available <- reactive({
 # })
 
 observeEvent(input$gbt_store_pred, {
-  req(!is_empty(input$gbt_pred_data), pressed(input$gbt_run))
+  req(!radiant.data::is_empty(input$gbt_pred_data), pressed(input$gbt_run))
   pred <- .predict_gbt()
   if (is.null(pred)) return()
   fixed <- fix_names(input$gbt_store_pred_name)
@@ -542,13 +542,13 @@ observeEvent(input$gbt_store_pred, {
 })
 
 observeEvent(input$gbt_report, {
-  if (is_empty(input$gbt_rvar)) return(invisible())
+  if (radiant.data::is_empty(input$gbt_rvar)) return(invisible())
 
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE), "")
   figs <- FALSE
 
-  if (!is_empty(input$gbt_plots, "none")) {
+  if (!radiant.data::is_empty(input$gbt_plots, "none")) {
     if (input$gbt_type == "regression" && input$gbt_plots == "dashboard") {
       inp_out[[2]] <- list(plots = input$gbt_plots, nrobs = as_integer(input$gbt_nrobs), custom = FALSE)
     } else {
@@ -558,7 +558,7 @@ observeEvent(input$gbt_report, {
     figs <- TRUE
   }
 
-  if (!is_empty(input$gbt_store_res_name)) {
+  if (!radiant.data::is_empty(input$gbt_store_res_name)) {
     fixed <- fix_names(input$gbt_store_res_name)
     updateTextInput(session, "gbt_store_res_name", value = fixed)
     xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
@@ -566,17 +566,17 @@ observeEvent(input$gbt_report, {
     xcmd <- ""
   }
 
-  if (!is_empty(input$gbt_predict, "none") &&
-    (!is_empty(input$gbt_pred_data) || !is_empty(input$gbt_pred_cmd))) {
+  if (!radiant.data::is_empty(input$gbt_predict, "none") &&
+    (!radiant.data::is_empty(input$gbt_pred_data) || !radiant.data::is_empty(input$gbt_pred_cmd))) {
     pred_args <- clean_args(gbt_pred_inputs(), gbt_pred_args[-1])
 
-    if (!is_empty(pred_args$pred_cmd)) {
+    if (!radiant.data::is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }
 
-    if (!is_empty(pred_args$pred_data)) {
+    if (!radiant.data::is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
@@ -593,7 +593,7 @@ observeEvent(input$gbt_report, {
       )
     }
 
-    if (input$gbt_pred_plot && !is_empty(input$gbt_xvar)) {
+    if (input$gbt_pred_plot && !radiant.data::is_empty(input$gbt_xvar)) {
       inp_out[[3 + figs]] <- clean_args(gbt_pred_plot_inputs(), gbt_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"
       outputs <- c(outputs, "plot")

@@ -1,5 +1,21 @@
 ## Resubmission
 
+This is a resubmission. In this version is addressed a function clash with `rlang` (i.e., `is_empty`) and made adjustments to work with the latest version of `shiny` and `bootstrap4`
+
+## Test environments
+
+* local Ubuntu 20.04 install, R 4.1.0
+* local Ubuntu 20.04 through WSL2, R 4.0.5
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs, WARNINGs, or NOTEs. 
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I have fixed a few bugs (see NEWS.md for details) and addressed a URL forwarding issues uncovered by CRAN.
 
 ## Test environments
@@ -10,8 +26,6 @@ This is a resubmission. In this version I have fixed a few bugs (see NEWS.md for
 ## R CMD check result
 
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.model.
-
-# Previous cran-comments
 
 ## Resubmission
 

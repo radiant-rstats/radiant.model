@@ -180,7 +180,7 @@ summary.regress <- function(
 
   cat("Linear regression (OLS)\n")
   cat("Data     :", object$df_name, "\n")
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
   }
   cat("Response variable    :", object$rvar, "\n")
@@ -304,7 +304,7 @@ summary.regress <- function(
     }
   }
 
-  if (!is_empty(test_var)) {
+  if (!radiant.data::is_empty(test_var)) {
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
@@ -435,7 +435,7 @@ plot.regress <- function(
   # not clear why this was needed in the first place
   # nlines <- sub("jitter", "", lines)
 
-  if (any(plots %in% c("dashboard", "scatter", "resid_pred")) && !is_empty(nrobs)) {
+  if (any(plots %in% c("dashboard", "scatter", "resid_pred")) && !radiant.data::is_empty(nrobs)) {
     nrobs <- as.integer(nrobs)
     if (nrobs > 0 && nrobs < nrow(model)) {
       model <- sample_n(model, nrobs, replace = FALSE)
@@ -712,13 +712,13 @@ predict_model <- function(
 ) {
 
   if (is.character(object)) return(object)
-  if (is_empty(pred_data) && is_empty(pred_cmd)) {
+  if (radiant.data::is_empty(pred_data) && radiant.data::is_empty(pred_cmd)) {
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
   }
 
   pred_type <- "cmd"
   vars <- object$evar
-  if (!is_empty(pred_cmd) && is_empty(pred_data)) {
+  if (!radiant.data::is_empty(pred_cmd) && radiant.data::is_empty(pred_data)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "radiant_ms")
@@ -813,7 +813,7 @@ predict_model <- function(
       return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars_in], collapse = ", ")))
     }
 
-    if (!is_empty(pred_cmd)) {
+    if (!radiant.data::is_empty(pred_cmd)) {
       pred_cmd %<>% paste0(., collapse = ";") %>%
         gsub("\"", "\'", .) %>%
         gsub("\\s+", " ", .) %>%
@@ -943,19 +943,19 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   cat(header)
   cat("\nData                 :", attr(x, "radiant_df_name"), "\n")
-  if (!is_empty(data_filter)) {
+  if (!radiant.data::is_empty(data_filter)) {
     cat("Filter               :", gsub("\\n", "", data_filter), "\n")
   }
   cat("Response variable    :", attr(x, "radiant_rvar"), "\n")
-  if (!is_empty(attr(x, "radiant_lev"))) {
+  if (!radiant.data::is_empty(attr(x, "radiant_lev"))) {
     cat("Level(s)             :", paste0(attr(x, "radiant_lev"), collapse = ", "), "in", attr(x, "radiant_rvar"), "\n")
   }
   cat("Explanatory variables:", paste0(attr(x, "radiant_evar"), collapse = ", "), "\n")
-  if (!is_empty(attr(x, "radiant_wtsname"))) {
+  if (!radiant.data::is_empty(attr(x, "radiant_wtsname"))) {
     cat("Weights used         :", attr(x, "radiant_wtsname"), "\n")
   }
 
-  if (!is_empty(attr(x, "radiant_interval"), "none")) {
+  if (!radiant.data::is_empty(attr(x, "radiant_interval"), "none")) {
     cat("Interval             :", attr(x, "radiant_interval"), "\n")
   }
 
@@ -969,7 +969,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   }
 
   extra_args <- attr(x, "radiant_extra_args")
-  if (!is_empty(extra_args)) {
+  if (!radiant.data::is_empty(extra_args)) {
     extra_args <- deparse(extra_args) %>%
       sub("list\\(", "", .) %>%
       sub("\\)$", "", .)
@@ -1032,7 +1032,7 @@ plot.model.predict <- function(
 
   if (is.character(x)) return(x)
   ## should work with req in regress_ui but doesn't
-  if (is_empty(xvar)) return(invisible())
+  if (radiant.data::is_empty(xvar)) return(invisible())
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
   }
@@ -1118,7 +1118,7 @@ plot.model.predict <- function(
 #' @export
 store.model.predict <- function(dataset, object, name = "prediction", ...) {
 
-  if (is_empty(name)) name <- "prediction"
+  if (radiant.data::is_empty(name)) name <- "prediction"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
   ind <- which(colnames(object) == "Prediction")
@@ -1199,7 +1199,7 @@ var_check <- function(ev, cn, intv = c()) {
   ## if : is used to select a range of variables evar is updated
   vars <- ev
   if (length(vars) < length(cn)) vars <- ev <- cn
-  if (!is_empty(intv)) {
+  if (!radiant.data::is_empty(intv)) {
     if (all(unlist(strsplit(intv[!grepl("\\^", intv)], ":")) %in% vars)) {
       vars <- c(vars, intv)
     } else {

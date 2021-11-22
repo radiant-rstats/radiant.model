@@ -1,3 +1,8 @@
+# radiant.model 1.4.2
+
+* Fixed `is_empty` function clash with `rlang`
+* Adjustments to work with the latest version of `shiny` and `bootstrap4`
+
 # radiant.model 1.4.1
 
 * Fixed an issue where variables used in Decision Analysis with a one letter label caused problems evaluating the tree correctly

@@ -124,7 +124,7 @@ output$evalreg <- renderUI({
 })
 
 observeEvent(input$evalreg_report, {
-  if (is_empty(input$ereg_pred)) return(invisible())
+  if (radiant.data::is_empty(input$ereg_pred)) return(invisible())
 
   inp_out <- list("", "")
   outputs <- "summary"
@@ -148,7 +148,7 @@ observeEvent(input$evalreg_report, {
 
 dl_ereg_tab <- function(path) {
   .evalreg() %>%
-    {if (!is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+    {if (!radiant.data::is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
 }
 
 download_handler(

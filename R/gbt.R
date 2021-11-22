@@ -62,7 +62,7 @@ gbt <- function(
 
   vars <- c(rvar, evar)
 
-  if (is_empty(wts, "None")) {
+  if (radiant.data::is_empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -74,7 +74,7 @@ gbt <- function(
     mutate_if(is.Date, as.numeric)
   nr_obs <- nrow(dataset)
 
-  if (!is_empty(wts, "None")) {
+  if (!radiant.data::is_empty(wts, "None")) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -152,7 +152,7 @@ gbt <- function(
 
   ## based on https://stackoverflow.com/questions/14324096/setting-seed-locally-not-globally-in-r/14324316#14324316
   seed <- gsub("[^0-9]", "", seed)
-  if (!is_empty(seed)) {
+  if (!radiant.data::is_empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit(.Random.seed <<- gseed)
@@ -211,7 +211,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
     cat("Type                 : Regression")
   }
   cat("\nData                 :", object$df_name)
-  if (!is_empty(object$data_filter)) {
+  if (!radiant.data::is_empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
   }
   cat("\nResponse variable    :", object$rvar)
@@ -236,11 +236,11 @@ summary.gbt <- function(object, prn = TRUE, ...) {
       sub(" {2,}", " ", .)
     cat("Additional arguments :", extra_args, "\n")
   }
-  if (!is_empty(object$seed)) {
+  if (!radiant.data::is_empty(object$seed)) {
     cat("Seed                 :", object$seed, "\n")
   }
 
-  if (!is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", format_nr(object$nr_obs, dec = 0), "\n")
@@ -517,10 +517,10 @@ cv.gbt <- function(
     }
     train <- xgboost::xgb.DMatrix(data = dtx, label = dty)
     params_base <- object$model$params
-    if (is_empty(params_base[["eval_metric"]])) {
+    if (radiant.data::is_empty(params_base[["eval_metric"]])) {
       params_base[["eval_metric"]] <- object$extra_args[["eval_metric"]]
     }
-    if (is_empty(params_base[["maximize"]])) {
+    if (radiant.data::is_empty(params_base[["maximize"]])) {
       params_base[["maximize"]] <- object$extra_args[["maximize"]]
     }
   } else if (!inherits(object, "xgb.Booster")) {
@@ -540,7 +540,7 @@ cv.gbt <- function(
     params_base[[n]] <- params[[n]]
   }
   params <- params_base
-  if (is_empty(maximize)) {
+  if (radiant.data::is_empty(maximize)) {
     maximize <- params$maximize
   }
 
@@ -621,7 +621,7 @@ cv.gbt <- function(
     out <- list()
     for (i in seq_len(nitt)) {
       cv_params <- tune_grid[i, ]
-      if (!is_empty(cv_params$nrounds)) {
+      if (!radiant.data::is_empty(cv_params$nrounds)) {
         nrounds <- cv_params$nrounds
         cv_params$nrounds <- NULL
       }

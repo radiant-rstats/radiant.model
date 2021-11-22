@@ -214,8 +214,8 @@ output$ui_mnl_show_interactions <- renderUI({
 output$ui_mnl_int <- renderUI({
   choices <- character(0)
   if (isolate("mnl_show_interactions" %in% names(input)) &&
-    is_empty(input$mnl_show_interactions)) {
-  } else if (is_empty(input$mnl_show_interactions)) {
+   radiant.data::is_empty(input$mnl_show_interactions)) {
+  } else if (radiant.data::is_empty(input$mnl_show_interactions)) {
     return()
   } else {
     vars <- input$mnl_evar
@@ -363,7 +363,7 @@ output$ui_mnl <- renderUI({
           "input.mnl_predict == 'data' | input.mnl_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_mnl_store_pred_name")),
-            tags$td(actionButton("mnl_store_pred", "Store", icon = icon("plus")), style = "padding-top:30px;")
+            tags$td(actionButton("mnl_store_pred", "Store", icon = icon("plus")), class = "top")
           )
         )
       ),
@@ -398,7 +398,7 @@ output$ui_mnl <- renderUI({
         tags$table(
           # tags$td(textInput("mnl_store_res_name", "Store residuals:", state_init("mnl_store_res_name", "residuals_logit"))),
           tags$td(uiOutput("ui_mnl_store_res_name")),
-          tags$td(actionButton("mnl_store_res", "Store", icon = icon("plus")), style = "padding-top:30px;")
+          tags$td(actionButton("mnl_store_res", "Store", icon = icon("plus")), class = "top")
         )
       )
     ),
@@ -411,7 +411,7 @@ output$ui_mnl <- renderUI({
 
 mnl_plot <- reactive({
   if (mnl_available() != "available") return()
-  if (is_empty(input$mnl_plots, "none")) return()
+  if (radiant.data::is_empty(input$mnl_plots, "none")) return()
 
   plot_height <- 500
   plot_width <- 650
@@ -519,11 +519,11 @@ mnl_available <- reactive({
 .predict_mnl <- reactive({
   if (not_pressed(input$mnl_run)) return("** Press the Estimate button to estimate the model **")
   if (mnl_available() != "available") return(mnl_available())
-  if (is_empty(input$mnl_predict, "none")) return("** Select prediction input **")
-  if ((input$mnl_predict == "data" || input$mnl_predict == "datacmd") && is_empty(input$mnl_pred_data)) {
+  if (radiant.data::is_empty(input$mnl_predict, "none")) return("** Select prediction input **")
+  if ((input$mnl_predict == "data" || input$mnl_predict == "datacmd") && radiant.data::is_empty(input$mnl_pred_data)) {
     return("** Select data for prediction **")
   }
-  if (input$mnl_predict == "cmd" && is_empty(input$mnl_pred_cmd)) {
+  if (input$mnl_predict == "cmd" && radiant.data::is_empty(input$mnl_pred_cmd)) {
     return("** Enter prediction commands **")
   }
 
@@ -544,7 +544,7 @@ mnl_available <- reactive({
   req(
     pressed(input$mnl_run), input$mnl_pred_plot,
     available(input$mnl_xvar),
-    !is_empty(input$mnl_predict, "none")
+    !radiant.data::is_empty(input$mnl_predict, "none")
   )
 
   withProgress(message = "Generating prediction plot", value = 1, {
@@ -555,7 +555,7 @@ mnl_available <- reactive({
 .plot_mnl <- reactive({
   if (not_pressed(input$mnl_run)) {
     return("** Press the Estimate button to estimate the model **")
-  } else if (is_empty(input$mnl_plots, "none")) {
+  } else if (radiant.data::is_empty(input$mnl_plots, "none")) {
     return("Please select a mnl regression plot from the drop-down menu")
   } else if (mnl_available() != "available") {
     return(mnl_available())
@@ -576,16 +576,16 @@ observeEvent(input$mnl_report, {
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(mnl_sum_inputs(), mnl_sum_args[-1])
   figs <- FALSE
-  if (!is_empty(input$mnl_plots, "none")) {
+  if (!radiant.data::is_empty(input$mnl_plots, "none")) {
     inp_out[[2]] <- clean_args(mnl_plot_inputs(), mnl_plot_args[-1])
     inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }
 
-  if (!is_empty(input$mnl_store_res_name)) {
+  if (!radiant.data::is_empty(input$mnl_store_res_name)) {
     name <- input$mnl_store_res_name
-    if (!is_empty(name)) {
+    if (!radiant.data::is_empty(name)) {
       name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
         fix_names() %T>%
         updateTextInput(session, "mnl_store_res_name", value = .) %>%
@@ -598,17 +598,17 @@ observeEvent(input$mnl_report, {
     xcmd <- ""
   }
 
-  if (!is_empty(input$mnl_predict, "none") &&
-     (!is_empty(input$mnl_pred_data) || !is_empty(input$mnl_pred_cmd))) {
+  if (!radiant.data::is_empty(input$mnl_predict, "none") &&
+     (!radiant.data::is_empty(input$mnl_pred_data) || !radiant.data::is_empty(input$mnl_pred_cmd))) {
     pred_args <- clean_args(mnl_pred_inputs(), mnl_pred_args[-1])
 
-    if (!is_empty(pred_args$pred_cmd)) {
+    if (!radiant.data::is_empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }
 
-    if (!is_empty(pred_args$pred_data)) {
+    if (!radiant.data::is_empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
@@ -620,7 +620,7 @@ observeEvent(input$mnl_report, {
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$mnl_predict %in% c("data", "datacmd")) {
       name <- input$mnl_store_pred_name
-      if (!is_empty(name)) {
+      if (!radiant.data::is_empty(name)) {
         name <- unlist(strsplit(input$mnl_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
           fix_names() %>%
           deparse(., control = getOption("dctrl"), width.cutoff = 500L)
@@ -632,7 +632,7 @@ observeEvent(input$mnl_report, {
 
     # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/mnl_predictions.csv\", row.names = FALSE)")
 
-    if (input$mnl_pred_plot && !is_empty(input$mnl_xvar)) {
+    if (input$mnl_pred_plot && !radiant.data::is_empty(input$mnl_xvar)) {
       inp_out[[3 + figs]] <- clean_args(mnl_pred_plot_inputs(), mnl_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"
       outputs <- c(outputs, "plot")
@@ -667,7 +667,7 @@ observeEvent(input$mnl_store_res, {
 })
 
 observeEvent(input$mnl_store_pred, {
-  req(!is_empty(input$mnl_pred_data), pressed(input$mnl_run))
+  req(!radiant.data::is_empty(input$mnl_pred_data), pressed(input$mnl_run))
   pred <- .predict_mnl()
   if (is.null(pred)) return()
   fixed <- unlist(strsplit(input$mnl_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
