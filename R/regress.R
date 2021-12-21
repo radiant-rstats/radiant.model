@@ -1139,7 +1139,8 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
   vars <- colnames(object)[seq_len(ind - 1)]
   indr <- indexr(dataset, vars = vars, filt = "", cmd = attr(object, "radiant_pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
-  pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
+  # pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
+  pred[indr$ind, ] <- df %>% mutate(across(everything(), as.vector))
 
   dataset[, name] <- pred
   dataset

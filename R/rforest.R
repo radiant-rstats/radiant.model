@@ -486,7 +486,8 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
   pvars <- base::setdiff(attr(object, "radiant_vars"), attr(object, "radiant_evar"))
 
   ## as.vector removes all attributes from df
-  df <- as.vector(object[, pvars, drop = FALSE])
+  # df <- as.vector(object[, pvars, drop = FALSE])
+  df <- object[, pvars, drop = FALSE] %>% mutate(across(everything(), as.vector))
 
   if (radiant.data::is_empty(name)) {
     name <- pvars

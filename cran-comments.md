@@ -1,6 +1,32 @@
 ## Resubmission
 
+This is a resubmission. In this version is addressed the `as.vector` issue communicated by Martin Maechler due to a breaking changed in the R-development version. The key element of the email is shown below. This submissions should address the issue in radiant.model that was causing errors.
+
+The reason is that we/I have introduced a new
+as.vector.data.frame() method, and saying in NEWS
+
+    • as.vector() gains a data.frame method which returns a
+      simple named list, also obeying a long standing     
+      ‘FIXME’ to enable as.vector(<data.frame>, mode="list").
+      This will break code relying on 'as.vector(<data.frame>)' to
+      return the unchanged data frame.
+
+## Test environments
+
+* local Ubuntu 20.04 through WSL2, R 4.0.5
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs, WARNINGs, or NOTEs. 
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version is addressed a function clash with `rlang` (i.e., `is_empty`) and made adjustments to work with the latest version of `shiny` and `bootstrap4`
+
+Update: Fixed the package size issue. Resubmitting version 1.4.2
 
 ## Test environments
 
@@ -12,7 +38,6 @@ This is a resubmission. In this version is addressed a function clash with `rlan
 
 There were no ERRORs, WARNINGs, or NOTEs. 
 
-# Previous cran-comments
 
 ## Resubmission
 

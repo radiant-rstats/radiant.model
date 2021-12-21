@@ -1,3 +1,7 @@
+# radiant.model 1.4.3
+
+* Fix for breaking change in as.vector for data.frames in the development version of R
+
 # radiant.model 1.4.2
 
 * Fixed `is_empty` function clash with `rlang`
