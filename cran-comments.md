@@ -1,6 +1,6 @@
 ## Resubmission
 
-This is a resubmission. In this version is addressed the `as.vector` issue communicated by Martin Maechler due to a breaking changed in the R-development version. The key element of the email is shown below. This submissions should address the issue in radiant.model that was causing errors.
+This is a resubmission. In this version I addressed the `as.vector` issue communicated by Martin Maechler due to a breaking changed in R-devel. The key element of the email is shown below. This submissions should address the issue in radiant.model that was causing errors.
 
 The reason is that we/I have introduced a new
 as.vector.data.frame() method, and saying in NEWS
