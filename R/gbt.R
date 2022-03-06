@@ -636,7 +636,7 @@ cv.gbt <- function(
           cv_params_tmp[[nm]] <- NULL
         }
         model <- try(xgboost::xgb.cv(
-          params = cv_params_tmp,
+          params = as.list(cv_params_tmp),
           data = train,
           nfold = K,
           print_every_n = 500,
