@@ -22,14 +22,11 @@
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   evalbin(c("pred1", "pred2"), "buy") %>%
 #'   str()
-#'
 #' @export
-evalbin <- function(
-  dataset, pred, rvar, lev = "",
-  qnt = 10, cost = 1, margin = 2,
-  train = "All", data_filter = "",
-  envir = parent.frame()
-) {
+evalbin <- function(dataset, pred, rvar, lev = "",
+                    qnt = 10, cost = 1, margin = 2,
+                    train = "All", data_filter = "",
+                    envir = parent.frame()) {
 
   ## in case no inputs were provided
   if (is.na(cost)) cost <- 0
@@ -77,13 +74,18 @@ evalbin <- function(
     if (is.factor(rv)) {
       levs <- levels(rv)
     } else {
-      levs <- rv %>% as.character() %>% as.factor() %>% levels()
+      levs <- rv %>%
+        as.character() %>%
+        as.factor() %>%
+        levels()
     }
 
     if (lev == "") {
       lev <- levs[1]
     } else {
-      if (!lev %in% levs) return(add_class("Level provided not found", "evalbin"))
+      if (!lev %in% levs) {
+        return(add_class("Level provided not found", "evalbin"))
+      }
     }
 
     ## transformation to TRUE/FALSE depending on the selected level (lev)
@@ -101,7 +103,7 @@ evalbin <- function(
       lg_list[[pname]] <-
         dataset %>%
         select_at(.vars = c(pred[j], rvar)) %>%
-        mutate(!! pred[j] := radiant.data::xtile(.data[[pred[j]]], n = qnt, rev = TRUE)) %>%
+        mutate(!!pred[j] := radiant.data::xtile(.data[[pred[j]]], n = qnt, rev = TRUE)) %>%
         setNames(c(qnt_name, rvar)) %>%
         group_by_at(.vars = qnt_name) %>%
         summarise(
@@ -112,11 +114,12 @@ evalbin <- function(
           resp_rate = nr_resp / nr_obs,
           gains = nr_resp / tot_resp
         ) %>%
-        {if (first(.$resp_rate) < last(.$resp_rate)) {
-           mutate_all(., rev)
-         } else {
-           .
-         }
+        {
+          if (first(.$resp_rate) < last(.$resp_rate)) {
+            mutate_all(., rev)
+          } else {
+            .
+          }
         } %>%
         mutate(
           profit = margin * cumsum(nr_resp) - cost * cumsum(nr_obs),
@@ -164,10 +167,11 @@ evalbin <- function(
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   evalbin(c("pred1", "pred2"), "buy") %>%
 #'   summary()
-#'
 #' @export
 summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
 
   cat("Evaluate predictions for binary response models\n")
   cat("Data        :", object$df_name, "\n")
@@ -206,14 +210,10 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   evalbin(c("pred1", "pred2"), "buy") %>%
 #'   plot()
-#'
 #' @export
-plot.evalbin <- function(
-  x, plots = c("lift", "gains"),
-  size = 13, shiny = FALSE,
-  custom = FALSE, ...
-) {
-
+plot.evalbin <- function(x, plots = c("lift", "gains"),
+                         size = 13, shiny = FALSE,
+                         custom = FALSE, ...) {
   if (is.character(x) || is.null(x$dataset) || any(is.na(x$dataset$cum_lift)) ||
     is.null(plots)) {
     return(invisible())
@@ -295,7 +295,9 @@ plot.evalbin <- function(
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
       patchwork::wrap_plots(plot_list, ncol = 1) %>%
-        {if (shiny) . else print(.)}
+        {
+          if (shiny) . else print(.)
+        }
     }
   }
 }
@@ -325,15 +327,11 @@ plot.evalbin <- function(
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   confusion(c("pred1", "pred2"), "buy") %>%
 #'   str()
-#'
 #' @importFrom psych cohen.kappa
 #'
 #' @export
-confusion <- function(
-  dataset, pred, rvar, lev = "", cost = 1, margin = 2,
-  train = "All", data_filter = "", envir = parent.frame(), ...
-) {
-
+confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
+                      train = "All", data_filter = "", envir = parent.frame(), ...) {
   if (!train %in% c("", "All") && radiant.data::is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click the filter checkbox **" %>% add_class("confusion"))
   }
@@ -370,10 +368,15 @@ confusion <- function(
       if (is.factor(rv)) {
         lev <- levels(rv)[1]
       } else {
-        lev <- as.character(rv) %>% as.factor() %>% levels() %>% .[1]
+        lev <- as.character(rv) %>%
+          as.factor() %>%
+          levels() %>%
+          .[1]
       }
     } else {
-      if (!lev %in% dataset[[rvar]]) return(add_class("Please update the selected level in the response variable", "confusion"))
+      if (!lev %in% dataset[[rvar]]) {
+        return(add_class("Please update the selected level in the response variable", "confusion"))
+      }
     }
 
     ## transformation to TRUE/FALSE depending on the selected level (lev)
@@ -492,10 +495,11 @@ confusion <- function(
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   confusion(c("pred1", "pred2"), "buy") %>%
 #'   summary()
-#'
 #' @export
 summary.confusion <- function(object, dec = 3, ...) {
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
 
   cat("Confusion matrix\n")
   cat("Data       :", object$df_name, "\n")
@@ -509,7 +513,7 @@ summary.confusion <- function(object, dec = 3, ...) {
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
   cat("\n")
 
-  dataset <- mutate(object$dataset, profit = as.integer(round(profit, 0)))
+  dataset <- mutate(object$dataset, profit = round(profit, dec))
   as.data.frame(dataset[, 1:11], stringsAsFactors = FALSE) %>%
     format_df(dec = dec, mark = ",") %>%
     print(row.names = FALSE)
@@ -537,17 +541,15 @@ summary.confusion <- function(object, dec = 3, ...) {
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   confusion(c("pred1", "pred2"), "buy") %>%
 #'   plot()
-#'
 #' @export
-plot.confusion <- function(
-  x, vars = c("kappa", "index", "ROME", "AUC"),
-  scale_y = TRUE, size = 13, ...
-) {
-
-  if (is.character(x) || is.null(x)) return(invisible())
+plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
+                           scale_y = TRUE, size = 13, ...) {
+  if (is.character(x) || is.null(x)) {
+    return(invisible())
+  }
   dataset <- x$dataset %>%
     mutate_at(.vars = c("TN", "FN", "FP", "TP"), .funs = list(~ if (is.numeric(.)) . / total else .)) %>%
-    gather("Metric", "Value", !! vars, factor_key = TRUE) %>%
+    gather("Metric", "Value", !!vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
   ## what data was used in evaluation? All, Training, Test, or Both
@@ -555,12 +557,14 @@ plot.confusion <- function(
 
   if (scale_y) {
     p <- visualize(
-      dataset, xvar = "Predictor", yvar = "Value", type = "bar",
+      dataset,
+      xvar = "Predictor", yvar = "Value", type = "bar",
       facet_row = "Metric", fill = "Type", axes = "scale_y", custom = TRUE
     )
   } else {
     p <- visualize(
-      dataset, xvar = "Predictor", yvar = "Value", type = "bar",
+      dataset,
+      xvar = "Predictor", yvar = "Value", type = "bar",
       facet_row = "Metric", fill = "Type", custom = TRUE
     )
   }
@@ -596,7 +600,6 @@ plot.confusion <- function(
 #' @examples
 #' auc(runif(20000), dvd$buy, "yes")
 #' auc(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes")
-#'
 #' @export
 auc <- function(pred, rvar, lev) {
   ## adapted from https://stackoverflow.com/a/50202118/1974918
@@ -630,18 +633,17 @@ auc <- function(pred, rvar, lev) {
 #' @examples
 #' rig(runif(20000), dvd$buy, "yes")
 #' rig(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes")
-#'
 #' @export
 rig <- function(pred, rvar, lev, crv = 0.0000001, na.rm = TRUE) {
   if (!is.logical(rvar)) {
     lev <- check_lev(rvar, lev)
     rvar <- rvar == lev
   }
-  mo = mean(rvar, na.rm = na.rm)
-  pred = pmin(pmax(pred, crv, na.rm = na.rm), 1 - crv, na.rm = na.rm)
-  llpred = mean(-log(pred) * rvar - log(1 - pred) * (1 - rvar))
-  llbase = mean(-log(mo) * rvar - log(1 - mo)*(1 - rvar))
-  round((1 - llpred/llbase), 6)
+  mo <- mean(rvar, na.rm = na.rm)
+  pred <- pmin(pmax(pred, crv, na.rm = na.rm), 1 - crv, na.rm = na.rm)
+  llpred <- mean(-log(pred) * rvar - log(1 - pred) * (1 - rvar))
+  llbase <- mean(-log(mo) * rvar - log(1 - mo) * (1 - rvar))
+  round((1 - llpred / llbase), 6)
 }
 
 #' Calculate Profit based on cost:margin ratio
@@ -659,14 +661,13 @@ rig <- function(pred, rvar, lev, crv = 0.0000001, na.rm = TRUE) {
 #' profit(runif(20000), dvd$buy, "yes", cost = 1, margin = 2)
 #' profit(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes", cost = 1, margin = 20)
 #' profit(ifelse(dvd$buy == "yes", 1, 0), dvd$buy)
-#'
 #' @export
 profit <- function(pred, rvar, lev, cost = 1, margin = 2) {
   if (!is.logical(rvar)) {
     lev <- check_lev(rvar, lev)
     rvar <- rvar == lev
   }
-  break_even = cost/margin
+  break_even <- cost / margin
   TP <- rvar & (pred > break_even)
   FP <- !rvar & (pred > break_even)
   margin * sum(TP) - cost * sum(TP, FP)

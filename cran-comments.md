@@ -1,5 +1,20 @@
 ## Resubmission
 
+This is a resubmission. In this version I have fixed bugs and updated documentation (see NEWS.md for details).
+
+## Test environments
+
+* macOS, R 4.2.0
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.data.
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I addressed the `as.vector` issue communicated by Martin Maechler due to a breaking changed in R-devel. The key element of the email is shown below. This submissions should address the issue in radiant.model that was causing errors.
 
 The reason is that we/I have introduced a new
@@ -19,8 +34,6 @@ as.vector.data.frame() method, and saying in NEWS
 ## R CMD check results
 
 There were no ERRORs, WARNINGs, or NOTEs. 
-
-# Previous cran-comments
 
 ## Resubmission
 

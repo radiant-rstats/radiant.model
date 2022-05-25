@@ -22,7 +22,6 @@
 #' nn(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
 #' nn(titanic, "survived", c("pclass", "sex")) %>% str()
 #' nn(diamonds, "price", c("carat", "clarity"), type = "regression") %>% summary()
-#'
 #' @seealso \code{\link{summary.nn}} to summarize results
 #' @seealso \code{\link{plot.nn}} to plot results
 #' @seealso \code{\link{predict.nn}} for prediction
@@ -30,15 +29,12 @@
 #' @importFrom nnet nnet
 #'
 #' @export
-nn <- function(
-  dataset, rvar, evar,
-  type = "classification", lev = "",
-  size = 1, decay = .5, wts = "None",
-  seed = NA, check = "standardize",
-  form,
-  data_filter = "", envir = parent.frame()
-) {
-
+nn <- function(dataset, rvar, evar,
+               type = "classification", lev = "",
+               size = 1, decay = .5, wts = "None",
+               seed = NA, check = "standardize",
+               form,
+               data_filter = "", envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
     paste0(format(form), collapse = "")
@@ -91,7 +87,8 @@ nn <- function(
   rv <- dataset[[rvar]]
 
   if (type == "classification") {
-    linout <- FALSE; entropy <- TRUE
+    linout <- FALSE
+    entropy <- TRUE
     if (lev == "") {
       if (is.factor(rv)) {
         lev <- levels(rv)[1]
@@ -106,7 +103,8 @@ nn <- function(
     ## transformation to TRUE/FALSE depending on the selected level (lev)
     dataset[[rvar]] <- dataset[[rvar]] == lev
   } else {
-    linout <- TRUE; entropy <- FALSE
+    linout <- TRUE
+    entropy <- FALSE
   }
 
   ## standardize data to limit stability issues ...
@@ -177,13 +175,12 @@ nn <- function(
 #' @seealso \code{\link{copy_attr}} to copy attributes from a training to a test dataset
 #'
 #' @export
-scale_df <- function(
-  dataset, center = TRUE, scale = TRUE,
-  sf = 2, wts = NULL, calc = TRUE
-) {
-
+scale_df <- function(dataset, center = TRUE, scale = TRUE,
+                     sf = 2, wts = NULL, calc = TRUE) {
   isNum <- sapply(dataset, function(x) is.numeric(x))
-  if (length(isNum) == 0 || sum(isNum) == 0) return(dataset)
+  if (length(isNum) == 0 || sum(isNum) == 0) {
+    return(dataset)
+  }
   cn <- names(isNum)[isNum]
 
   ## remove set_attr calls when dplyr removes and keep attributes appropriately
@@ -207,7 +204,9 @@ scale_df <- function(
   } else {
     ms <- attr(dataset, "radiant_ms")
     sds <- attr(dataset, "radiant_sds")
-    if (is.null(ms) && is.null(sds)) return(dataset)
+    if (is.null(ms) && is.null(sds)) {
+      return(dataset)
+    }
   }
   if (center && scale) {
     icn <- intersect(names(ms), cn)
@@ -226,7 +225,7 @@ scale_df <- function(
   } else if (scale) {
     icn <- intersect(names(sds), cn)
     dataset[icn] <- lapply(icn, function(var) dataset[[var]] / (sf * sds[[var]]))
-      set_attr("radiant_sds", sds) %>%
+    set_attr("radiant_sds", sds) %>%
       set_attr("radiant_sf", sf) %>%
       set_attr("description", descr)
   } else {
@@ -245,15 +244,15 @@ scale_df <- function(
 #' @examples
 #' result <- nn(titanic, "survived", "pclass", lev = "Yes")
 #' summary(result)
-#'
 #' @seealso \code{\link{nn}} to generate results
 #' @seealso \code{\link{plot.nn}} to plot results
 #' @seealso \code{\link{predict.nn}} for prediction
 #'
 #' @export
 summary.nn <- function(object, prn = TRUE, ...) {
-
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
   cat("Neural Network\n")
   if (object$type == "classification") {
     cat("Activation function  : Logistic (classification)")
@@ -320,7 +319,6 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 #' plot(result, plots = "net")
 #' plot(result, plots = "olden")
-#'
 #' @seealso \code{\link{nn}} to generate results
 #' @seealso \code{\link{summary.nn}} to summarize results
 #' @seealso \code{\link{predict.nn}} for prediction
@@ -329,12 +327,11 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @importFrom graphics par
 #'
 #' @export
-plot.nn <- function(
-  x, plots = "garson", size = 12, pad_x = 0.9, nrobs = -1,
-  shiny = FALSE, custom = FALSE, ...
-) {
-
-  if (is.character(x) || !inherits(x$model, "nnet")) return(x)
+plot.nn <- function(x, plots = "garson", size = 12, pad_x = 0.9, nrobs = -1,
+                    shiny = FALSE, custom = FALSE, ...) {
+  if (is.character(x) || !inherits(x$model, "nnet")) {
+    return(x)
+  }
   plot_list <- list()
   ncol <- 1
 
@@ -365,7 +362,8 @@ plot.nn <- function(
     ncol <- 2
     for (pn in x$evar) {
       plot_list[[pn]] <- pdp::partial(
-        x$model, pred.var = pn, plot = TRUE, rug = TRUE,
+        x$model,
+        pred.var = pn, plot = TRUE, rug = TRUE,
         prob = x$type == "classification", plot.engine = "ggplot2"
       ) + labs(y = "")
     }
@@ -381,7 +379,9 @@ plot.nn <- function(
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
       patchwork::wrap_plots(plot_list, ncol = ncol) %>%
-        {if (shiny) . else print(.)}
+        {
+          if (shiny) . else print(.)
+        }
     }
   }
 }
@@ -403,17 +403,15 @@ plot.nn <- function(
 #' result <- nn(diamonds, "price", "carat:color", type = "regression")
 #' predict(result, pred_cmd = "carat = 1:3")
 #' predict(result, pred_data = diamonds) %>% head()
-#'
 #' @seealso \code{\link{nn}} to generate the result
 #' @seealso \code{\link{summary.nn}} to summarize results
 #'
 #' @export
-predict.nn <- function(
-  object, pred_data = NULL, pred_cmd = "",
-  dec = 3, envir = parent.frame(), ...
-) {
-
-  if (is.character(object)) return(object)
+predict.nn <- function(object, pred_data = NULL, pred_cmd = "",
+                       dec = 3, envir = parent.frame(), ...) {
+  if (is.character(object)) {
+    return(object)
+  }
 
   ## ensure you have a name for the prediction dataset
   if (is.data.frame(pred_data)) {
@@ -445,8 +443,9 @@ predict.nn <- function(
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.nn.predict <- function(x, ..., n = 10)
+print.nn.predict <- function(x, ..., n = 10) {
   print_predict_model(x, ..., n = n, header = "Neural Network")
+}
 
 #' Cross-validation for a Neural Network
 #'
@@ -485,15 +484,12 @@ print.nn.predict <- function(x, ..., n = 10)
 #' }
 #'
 #' @export
-cv.nn <- function(
-  object, K = 5, repeats = 1, decay = seq(0, 1, .2), size = 1:5,
-  seed = 1234, trace = TRUE, fun, ...
-) {
-
+cv.nn <- function(object, K = 5, repeats = 1, decay = seq(0, 1, .2), size = 1:5,
+                  seed = 1234, trace = TRUE, fun, ...) {
   if (inherits(object, "nn")) {
     ms <- attr(object$model$model, "radiant_ms")[[object$rvar]]
     sds <- attr(object$model$model, "radiant_sds")[[object$rvar]]
-    if(length(sds) == 0) {
+    if (length(sds) == 0) {
       sds <- sf <- 1
     } else {
       sf <- attr(object$model$model, "radiant_sf")
@@ -532,10 +528,10 @@ cv.nn <- function(
 
   if (missing(fun)) {
     if (type == "classification") {
-      fun = radiant.model::auc
+      fun <- radiant.model::auc
       cn <- "AUC (mean)"
     } else {
-      fun = radiant.model::RMSE
+      fun <- radiant.model::RMSE
       cn <- "RMSE (mean)"
     }
   } else {
@@ -565,7 +561,7 @@ cv.nn <- function(
           if (length(weights) > 0) {
             object$call[["weights"]] <- weights[rand != k]
           }
-          pred <- predict(eval(object$call), newdata = m[rand == k, , drop = FALSE])[,1]
+          pred <- predict(eval(object$call), newdata = m[rand == k, , drop = FALSE])[, 1]
           if (type == "classification") {
             if (missing(...)) {
               perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv]), lev)
@@ -583,8 +579,8 @@ cv.nn <- function(
           }
         }
       }
-      out[i,1:4] <- c(mean(perf), sd(perf), min(perf), max(perf))
-      incProgress(1/nitt, detail = paste("\nCompleted run", i, "out of", nitt))
+      out[i, 1:4] <- c(mean(perf), sd(perf), min(perf), max(perf))
+      incProgress(1 / nitt, detail = paste("\nCompleted run", i, "out of", nitt))
     }
   })
 

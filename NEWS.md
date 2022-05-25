@@ -1,3 +1,7 @@
+# radiant.model 1.4.4
+
+* Fix for change in input format for XGBoost that broke cross-validation
+
 # radiant.model 1.4.3
 
 * Fix for breaking change in as.vector for data.frames in the development version of R
