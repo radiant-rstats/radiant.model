@@ -291,7 +291,7 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
     cat("Priors               :", object$prior, "\n")
     cat("Adjusted prob.       :", object$adjprob, "\n")
   }
-  if (!radiant.data::is_empty(object$wts, "None") && class(object$wts) == "integer") {
+  if (!radiant.data::is_empty(object$wts, "None") && inherits(object$wts, "integer")) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n\n")
   } else {
     cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n\n")
@@ -345,7 +345,7 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
 #' @export
 plot.crtree <- function(
   x, plots = "tree", orient = "LR",
-  width = "900px", labs = TRUE, 
+  width = "900px", labs = TRUE,
   nrobs = Inf, dec = 2,
   shiny = FALSE, custom = FALSE, ...
 ) {
@@ -560,7 +560,7 @@ plot.crtree <- function(
       ncol <- 2
       for (pn in x$evar) {
         plot_list[[pn]] <- pdp::partial(
-          x$model, pred.var = pn, plot = TRUE, rug = TRUE, 
+          x$model, pred.var = pn, plot = TRUE, rug = TRUE,
           prob = x$type == "classification", plot.engine = "ggplot2", smooth = TRUE
         ) + labs(y = "")
       }
