@@ -7,8 +7,9 @@ ereg_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   ereg_args$data_filter <- if (input$show_filter) input$data_filter else ""
   ereg_args$dataset <- input$dataset
-  for (i in r_drop(names(ereg_args)))
+  for (i in r_drop(names(ereg_args))) {
     ereg_args[[i]] <- input[[paste0("ereg_", i)]]
+  }
   ereg_args
 })
 
@@ -45,7 +46,8 @@ output$ui_ereg_pred <- renderUI({
 
 output$ui_ereg_train <- renderUI({
   selectInput(
-    "ereg_train", label = "Show results for:", ereg_train,
+    "ereg_train",
+    label = "Show results for:", ereg_train,
     selected = state_single("ereg_train", "All")
   )
 })
@@ -111,7 +113,9 @@ output$evalreg <- renderUI({
 })
 
 .summary_evalreg <- reactive({
-  if (not_pressed(input$ereg_run)) return("** Press the Evaluate button to evaluate models **")
+  if (not_pressed(input$ereg_run)) {
+    return("** Press the Evaluate button to evaluate models **")
+  }
   if (not_available(input$ereg_rvar) || not_available(input$ereg_pred)) {
     return("This analysis requires a numeric response variable and one or more\nnumeric predictors. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("diamonds"))
   }
@@ -123,8 +127,10 @@ output$evalreg <- renderUI({
   plot(.evalreg())
 })
 
-observeEvent(input$evalreg_report, {
-  if (radiant.data::is_empty(input$ereg_pred)) return(invisible())
+evalreg_report <- function() {
+  if (radiant.data::is_empty(input$ereg_pred)) {
+    return(invisible())
+  }
 
   inp_out <- list("", "")
   outputs <- "summary"
@@ -144,28 +150,43 @@ observeEvent(input$evalreg_report, {
     fig.width = ereg_plot_width(),
     fig.height = ereg_plot_height()
   )
-})
+}
 
 dl_ereg_tab <- function(path) {
   .evalreg() %>%
-    {if (!radiant.data::is_empty(.$dat)) write.csv(.$dat, file = path, row.names = FALSE)}
+    (function(x) if (!radiant.data::is_empty(x$dat)) write.csv(x$dat, file = path, row.names = FALSE))
 }
 
 download_handler(
-  id = "dl_ereg_tab", 
-  fun = dl_ereg_tab, 
+  id = "dl_ereg_tab",
+  fun = dl_ereg_tab,
   fn = function() paste0(input$dataset, "_evalreg"),
   type = "csv",
   caption = "Save model evaluations"
 )
 
 download_handler(
-  id = "dlp_evalreg", 
-  fun = download_handler_plot, 
+  id = "dlp_evalreg",
+  fun = download_handler_plot,
   fn = function() paste0(input$dataset, "_evalreg"),
-  type = "png", 
+  type = "png",
   caption = "Save model evaluation plot",
   plot = .plot_evalreg,
   width = ereg_plot_width,
   height = ereg_plot_height
 )
+
+observeEvent(input$evalreg_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  evalreg_report()
+})
+
+observeEvent(input$evalreg_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_evalreg_screenshot")
+})
+
+observeEvent(input$modal_evalreg_screenshot, {
+  evalreg_report()
+  removeModal() ## remove shiny modal after save
+})

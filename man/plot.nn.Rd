@@ -42,7 +42,6 @@ See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in 
 result <- nn(titanic, "survived", c("pclass", "sex"), lev = "Yes")
 plot(result, plots = "net")
 plot(result, plots = "olden")
-
 }
 \seealso{
 \code{\link{nn}} to generate results

@@ -18,13 +18,13 @@ dtree_parser <- function(yl) {
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
   yl <- fix_smart(yl) %>%
-    gsub("[\x80-\xFF]", "", .) %>%
+    gsub("[^A-Za-z0-9$%\\:\\.\t \\-\\(\\)]", "", .) %>%
     gsub("\t", "    ", .)
 
   ## container to collect errors
   err <- c()
 
-  ## cheching if : is present in each line
+  ## checking if : is present in each line
   col_ln <- grepl("(?=:)|(?=^\\s*$)|(?=^\\s*#)", yl, perl = TRUE)
   if (any(!col_ln)) {
     err <- c(err, paste0("Each line in the tree input must have a ':'. Add a ':' in line(s): ", paste0(which(!col_ln), collapse = ", ")))
@@ -45,16 +45,23 @@ dtree_parser <- function(yl) {
   yl %<>% gsub("(^\\s*)cost(\\s*:)", "\\1cost\\2", ., ignore.case = TRUE, perl = TRUE)
 
   ## check type line is followed by a name
-  type_id <- yl %>% grepl("^\\s*type\\s*:\\s*(.*)$", ., perl = TRUE) %>% which()
-  type_cid <- yl %>% grepl("^\\s*type\\s*:\\s*((chance)|(decision)|())\\s*$", ., perl = TRUE) %>% which()
+  type_id <- yl %>%
+    grepl("^\\s*type\\s*:\\s*(.*)$", ., perl = TRUE) %>%
+    which()
+  type_cid <- yl %>%
+    grepl("^\\s*type\\s*:\\s*((chance)|(decision)|())\\s*$", ., perl = TRUE) %>%
+    which()
 
   if (!identical(type_id, type_cid)) {
     err <- c(err, paste0("Node type should be 'type: chance', or 'type: decision' in line(s): ", paste0(base::setdiff(type_id, type_cid), collapse = ", ")))
   }
 
   ## can't have # signs anywhere if line is not a comment
-  nc_id <- yl %>% grepl("^\\s*#", ., perl = TRUE) %>%
-    {. == FALSE} %>%
+  nc_id <- yl %>%
+    grepl("^\\s*#", ., perl = TRUE) %>%
+    {
+      . == FALSE
+    } %>%
     which()
 
   if (length(nc_id) > 0) {
@@ -88,7 +95,9 @@ dtree_parser <- function(yl) {
   }
 
   ## check indent of next line is the same for type defs
-  indent_type <- yl[type_cid] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
+  indent_type <- yl[type_cid] %>%
+    gsub("^(\\s*).*", "\\1", .) %>%
+    nchar()
 
   ## non-commented next node-name after type
   ncnn_id <- c()
@@ -96,7 +105,9 @@ dtree_parser <- function(yl) {
     ncnn_id <- c(ncnn_id, nn_id[nn_id > i][1])
   }
 
-  indent_next <- yl[ncnn_id] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
+  indent_next <- yl[ncnn_id] %>%
+    gsub("^(\\s*).*", "\\1", .) %>%
+    nchar()
 
   indent_issue <- is.na(indent_next) | indent_type == indent_next
 
@@ -105,10 +116,14 @@ dtree_parser <- function(yl) {
   }
 
   ## check indent for node names
-  indent_name <- yl[nn_id] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
+  indent_name <- yl[nn_id] %>%
+    gsub("^(\\s*).*", "\\1", .) %>%
+    nchar()
 
   ## check indent of next line for node names
-  indent_next <- yl[nn_id + 1] %>% gsub("^(\\s*).*", "\\1", .) %>% nchar()
+  indent_next <- yl[nn_id + 1] %>%
+    gsub("^(\\s*).*", "\\1", .) %>%
+    nchar()
   indent_issue <- indent_name >= indent_next
 
   ## can happen when last line in input is a node without a payoff or prob
@@ -172,7 +187,9 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     yl <- dtree_parser(yl)
 
     ## return errors if needed
-    if (inherits(yl, "dtree-error")) return(yl)
+    if (inherits(yl, "dtree-error")) {
+      return(yl)
+    }
 
     ## if the name of input-list in r_data is provided
     yl <- try(yaml::yaml.load(yl), silent = TRUE)
@@ -376,8 +393,9 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
     if (!isNum(node$payoff)) 0 else node$payoff
   }
 
-  prob_checker <- function(node)
+  prob_checker <- function(node) {
     if (!isNum(node$p)) 0 else node$p
+  }
 
   type_none <- ""
   prob_check <- ""
@@ -466,17 +484,19 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
 #' @seealso \code{\link{sensitivity.dtree}} to plot results
 #'
 #' @export
-summary.dtree <- function(
-  object, input = TRUE, output = FALSE,
-  dec = 2, ...
-) {
-  if (is.character(object)) return(cat(object))
+summary.dtree <- function(object, input = TRUE, output = FALSE,
+                          dec = 2, ...) {
+  if (is.character(object)) {
+    return(cat(object))
+  }
 
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
   print_money <- function(x) {
     x %>%
-      {if (isNum(.)) . else ""} %>%
+      {
+        if (isNum(.)) . else ""
+      } %>%
       formatC(
         digits = dec,
         decimal.mark = ".",
@@ -487,32 +507,43 @@ summary.dtree <- function(
 
   print_percent <- function(x) {
     x %>%
-      {if (isNum(.)) . else NA} %>%
+      {
+        if (isNum(.)) . else NA
+      } %>%
       data.tree::FormatPercent()
   }
 
-  rm_terminal <- function(x)
+  rm_terminal <- function(x) {
     x %>%
-      {if (is.na(.)) "" else .} %>%
-      {if (. == "terminal") "" else .}
+      {
+        if (is.na(.)) "" else .
+      } %>%
+      {
+        if (. == "terminal") "" else .
+      }
+  }
 
   format_dtree <- function(jl) {
     ## set parent type
     nt <- jl$Get(function(x) x$parent$type)
     jl$Set(ptype = nt)
 
-    data.tree::Traverse(jl) %>% {
-      data.frame(
-        ` ` = data.tree::Get(., "levelName"),
-        Probability = data.tree::Get(., "p", format = print_percent),
-        Payoff = data.tree::Get(., "payoff", format = print_money),
-        Cost = data.tree::Get(., "cost", format = print_money),
-        Type = data.tree::Get(., "ptype", format = rm_terminal),
-        check.names = FALSE,
-        stringsAsFactors = FALSE
-      )
-    } %>%
-      {.[[" "]] <- format(.[[" "]], justify = "left"); .} %>%
+    data.tree::Traverse(jl) %>%
+      {
+        data.frame(
+          ` ` = data.tree::Get(., "levelName"),
+          Probability = data.tree::Get(., "p", format = print_percent),
+          Payoff = data.tree::Get(., "payoff", format = print_money),
+          Cost = data.tree::Get(., "cost", format = print_money),
+          Type = data.tree::Get(., "ptype", format = rm_terminal),
+          check.names = FALSE,
+          stringsAsFactors = FALSE
+        )
+      } %>%
+      {
+        .[[" "]] <- format(.[[" "]], justify = "left")
+        .
+      } %>%
       format_df(mark = ",", dec = dec)
   }
 
@@ -688,7 +719,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
   ## use LR or TD
   paste(
     paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to), collapse = "\n"),
-    paste(ttip, collapse = "\n"), style, sep = "\n"
+    paste(ttip, collapse = "\n"), style,
+    sep = "\n"
   ) %>%
     ## address image size in pdf and html and allow zooming
     # DiagrammeR::mermaid(., width = "100%", height = "100%")
@@ -729,12 +761,9 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #'
 #' @export
-sensitivity.dtree <- function(
-  object, vars = NULL, decs = NULL,
-  envir = parent.frame(),
-  shiny = FALSE, custom = FALSE, ...
-) {
-
+sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
+                              envir = parent.frame(),
+                              shiny = FALSE, custom = FALSE, ...) {
   yl <- object$yl
 
   if (radiant.data::is_empty(vars)) {
@@ -742,7 +771,9 @@ sensitivity.dtree <- function(
   } else if (radiant.data::is_empty(decs)) {
     return("** No decisions were specified **")
   }
-  vars <- strsplit(vars, ";") %>% unlist() %>% strsplit(" ")
+  vars <- strsplit(vars, ";") %>%
+    unlist() %>%
+    strsplit(" ")
 
   calc_payoff <- function(x, nm) {
     yl$variables[[nm]] <- x
@@ -757,7 +788,10 @@ sensitivity.dtree <- function(
     tmp[1] <- paste(head(x, -3), collapse = " ")
     nms <<- c(nms, tmp[1])
     df <- data.frame(
-      values = tail(tmp, 3) %>% as.numeric() %>% {seq(.[1], .[2], .[3])},
+      values = tail(tmp, 3) %>% as.numeric() %>%
+        {
+          seq(.[1], .[2], .[3])
+        },
       stringsAsFactors = FALSE
     )
 
@@ -773,10 +807,11 @@ sensitivity.dtree <- function(
 
   plot_list <- list()
   for (i in names(ret)) {
-    dat <- gather(ret[[i]], "decisions", "payoffs", !! base::setdiff(names(ret[[i]]), "values"))
+    dat <- gather(ret[[i]], "decisions", "payoffs", !!base::setdiff(names(ret[[i]]), "values"))
     plot_list[[i]] <-
       ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
-      geom_line() + geom_point(aes_string(shape = "decisions"), size = 2) +
+      geom_line() +
+      geom_point(aes_string(shape = "decisions"), size = 2) +
       labs(
         title = paste0("Sensitivity of decisions to changes in ", i),
         x = i
@@ -788,7 +823,9 @@ sensitivity.dtree <- function(
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
       patchwork::wrap_plots(plot_list, ncol = 1) %>%
-        {if (shiny) . else print(.)}
+        {
+          if (shiny) . else print(.)
+        }
     }
   }
 }

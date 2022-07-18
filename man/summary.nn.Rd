@@ -22,7 +22,6 @@ See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in 
 \examples{
 result <- nn(titanic, "survived", "pclass", lev = "Yes")
 summary(result)
-
 }
 \seealso{
 \code{\link{nn}} to generate results

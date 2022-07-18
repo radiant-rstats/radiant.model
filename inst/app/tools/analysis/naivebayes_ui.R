@@ -409,7 +409,7 @@ observeEvent(input$nb_store_pred, {
   )
 })
 
-observeEvent(input$nb_report, {
+nb_report <- function() {
   if (radiant.data::is_empty(input$nb_evar)) return(invisible())
   outputs <- c("summary")
   inp_out <- list("", "")
@@ -469,7 +469,7 @@ observeEvent(input$nb_report, {
     fig.height = nb_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 dl_nb_pred <- function(path) {
   if (pressed(input$nb_run)) {
@@ -508,3 +508,18 @@ download_handler(
   width = nb_plot_width,
   height = nb_plot_height
 )
+
+observeEvent(input$nb_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  nb_report()
+})
+
+observeEvent(input$nb_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_nb_screenshot")
+})
+
+observeEvent(input$modal_nb_screenshot, {
+  nb_report()
+  removeModal() ## remove shiny modal after save
+})

@@ -569,7 +569,7 @@ logit_available <- reactive({
   }
 })
 
-observeEvent(input$logistic_report, {
+logistic_report <- function() {
   outputs <- c("summary")
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(logit_sum_inputs(), logit_sum_args[-1])
@@ -637,7 +637,7 @@ observeEvent(input$logistic_report, {
     fig.height = logit_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 observeEvent(input$logit_store_res, {
   req(pressed(input$logit_run))
@@ -722,3 +722,17 @@ download_handler(
   height = logit_plot_height
 )
 
+observeEvent(input$logistic_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  logistic_report()
+})
+
+observeEvent(input$logistic_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_logistic_screenshot")
+})
+
+observeEvent(input$modal_logistic_screenshot, {
+  logistic_report()
+  removeModal() ## remove shiny modal after save
+})

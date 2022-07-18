@@ -18,8 +18,9 @@ ebin_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
   ebin_args$data_filter <- if (input$show_filter) input$data_filter else ""
   ebin_args$dataset <- input$dataset
-  for (i in r_drop(names(ebin_args)))
+  for (i in r_drop(names(ebin_args))) {
     ebin_args[[i]] <- input[[paste0("ebin_", i)]]
+  }
   ebin_args
 })
 
@@ -64,7 +65,8 @@ output$ui_ebin_pred <- renderUI({
 
 output$ui_ebin_train <- renderUI({
   selectInput(
-    "ebin_train", label = "Show results for:", ebin_train,
+    "ebin_train",
+    label = "Show results for:", ebin_train,
     selected = state_single("ebin_train", ebin_train, "All")
   )
 })
@@ -85,24 +87,27 @@ output$ui_evalbin <- renderUI({
       conditionalPanel(
         "input.tabs_evalbin != 'Confusion'",
         numericInput(
-          "ebin_qnt", label = "# quantiles:",
+          "ebin_qnt",
+          label = "# quantiles:",
           value = state_init("ebin_qnt", 10), min = 2
         )
       ),
       tags$table(
         tags$td(numericInput(
-          "ebin_cost", label = "Cost:",
+          "ebin_cost",
+          label = "Cost:",
           value = state_init("ebin_cost", 1)
         )),
         tags$td(numericInput(
-          "ebin_margin", label = "Margin:",
+          "ebin_margin",
+          label = "Margin:",
           value = state_init("ebin_margin", 2), width = "117px"
         ))
       ),
       uiOutput("ui_ebin_train"),
       conditionalPanel(
         "input.tabs_evalbin == 'Evaluate'",
-        checkboxInput("ebin_show_tab", "Show model performance table" , state_init("ebin_show_tab", FALSE)),
+        checkboxInput("ebin_show_tab", "Show model performance table", state_init("ebin_show_tab", FALSE)),
         checkboxGroupInput(
           "ebin_plots", "Plots:", ebin_plots,
           selected = state_group("ebin_plots", "gains"),
@@ -113,7 +118,7 @@ output$ui_evalbin <- renderUI({
         "input.tabs_evalbin == 'Confusion'",
         tags$table(
           tags$td(
-            checkboxInput("ebin_show_plots", "Show plots" , state_init("ebin_show_plots", FALSE))
+            checkboxInput("ebin_show_plots", "Show plots", state_init("ebin_show_plots", FALSE))
           ),
           tags$td(
             HTML("&nbsp;&nbsp;&nbsp;")
@@ -214,19 +219,23 @@ output$evalbin <- renderUI({
 })
 
 .summary_evalbin <- reactive({
-  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  if (not_pressed(input$ebin_run)) {
+    return("** Press the Evaluate button to evaluate models **")
+  }
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-   radiant.data::is_empty(input$ebin_lev)) {
+    radiant.data::is_empty(input$ebin_lev)) {
     return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
   }
   summary(.evalbin(), prn = input$ebin_show_tab)
 })
 
 .plot_evalbin <- reactive({
-  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  if (not_pressed(input$ebin_run)) {
+    return("** Press the Evaluate button to evaluate models **")
+  }
   isolate({
     if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-       radiant.data::is_empty(input$ebin_lev)) {
+      radiant.data::is_empty(input$ebin_lev)) {
       return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>%
         suggest_data("titanic"))
     } else if (!input$ebin_train %in% c("", "All") && (!input$show_filter || (input$show_filter && radiant.data::is_empty(input$data_filter)))) {
@@ -238,7 +247,7 @@ output$evalbin <- renderUI({
 
 .confusion <- eventReactive(input$ebin_run, {
   if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-   radiant.data::is_empty(input$ebin_lev)) {
+    radiant.data::is_empty(input$ebin_lev)) {
     return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>%
       suggest_data("titanic"))
   }
@@ -253,10 +262,12 @@ output$evalbin <- renderUI({
 })
 
 .summary_confusion <- reactive({
-  if (not_pressed(input$ebin_run)) return("** Press the Evaluate button to evaluate models **")
+  if (not_pressed(input$ebin_run)) {
+    return("** Press the Evaluate button to evaluate models **")
+  }
   isolate({
     if (not_available(input$ebin_rvar) || not_available(input$ebin_pred) ||
-     radiant.data::is_empty(input$ebin_lev)) {
+      radiant.data::is_empty(input$ebin_lev)) {
       return("This analysis requires a response variable of type factor and one or more\npredictors of type numeric. If these variable types are not available please\nselect another dataset.\n\n" %>% suggest_data("titanic"))
     }
   })
@@ -264,16 +275,22 @@ output$evalbin <- renderUI({
 })
 
 .plot_confusion <- reactive({
-  if (not_pressed(input$ebin_run)) return(invisible())
+  if (not_pressed(input$ebin_run)) {
+    return(invisible())
+  }
   isolate({
-    if (not_available(input$ebin_rvar) || not_available(input$ebin_pred)) return(" ")
+    if (not_available(input$ebin_rvar) || not_available(input$ebin_pred)) {
+      return(" ")
+    }
     req(input$ebin_train, !is_not(input$ebin_scale_y))
   })
   plot(.confusion(), scale_y = input$ebin_scale_y)
 })
 
-observeEvent(input$evalbin_report, {
-  if (radiant.data::is_empty(input$ebin_rvar) ||radiant.data::is_empty(input$ebin_pred)) return(invisible())
+evalbin_report <- function() {
+  if (radiant.data::is_empty(input$ebin_rvar) || radiant.data::is_empty(input$ebin_pred)) {
+    return(invisible())
+  }
 
   outputs <- c("summary")
   inp_out <- list(list(prn = input$ebin_show_tab), "")
@@ -292,10 +309,12 @@ observeEvent(input$evalbin_report, {
     fig.width = ebin_plot_width(),
     fig.height = ebin_plot_height()
   )
-})
+}
 
-observeEvent(input$confusion_report, {
-  if (radiant.data::is_empty(input$ebin_rvar) ||radiant.data::is_empty(input$ebin_pred)) return(invisible())
+confusion_report <- function() {
+  if (radiant.data::is_empty(input$ebin_rvar) || radiant.data::is_empty(input$ebin_pred)) {
+    return(invisible())
+  }
 
   inp_out <- list("", "")
   outputs <- "summary"
@@ -325,7 +344,7 @@ observeEvent(input$confusion_report, {
     fig.width = confusion_plot_width(),
     fig.height = 1.5 * confusion_plot_height()
   )
-})
+}
 
 dl_ebin_tab <- function(path) {
   dat <- .evalbin()$dataset
@@ -374,3 +393,33 @@ download_handler(
   width = confusion_plot_width,
   height = confusion_plot_height
 )
+
+observeEvent(input$confusion_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  confusion_report()
+})
+
+observeEvent(input$confusion_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_confusion_screenshot")
+})
+
+observeEvent(input$modal_confusion_screenshot, {
+  confusion_report()
+  removeModal() ## remove shiny modal after save
+})
+
+observeEvent(input$evalbin_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  evalbin_report()
+})
+
+observeEvent(input$evalbin_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_evalbin_screenshot")
+})
+
+observeEvent(input$modal_evalbin_screenshot, {
+  evalbin_report()
+  removeModal() ## remove shiny modal after save
+})

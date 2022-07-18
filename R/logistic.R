@@ -186,6 +186,9 @@ logistic <- function(
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, envir)
 
+  # added for consistency with other model types
+  type <- "classification"
+
   as.list(environment()) %>% add_class(c("logistic", "model"))
 }
 

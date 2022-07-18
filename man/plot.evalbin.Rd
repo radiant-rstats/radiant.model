@@ -36,7 +36,6 @@ See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an exampl
 data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) \%>\%
   evalbin(c("pred1", "pred2"), "buy") \%>\%
   plot()
-
 }
 \seealso{
 \code{\link{evalbin}} to generate results

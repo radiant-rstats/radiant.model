@@ -38,7 +38,6 @@ predict(result, pred_cmd = "pclass = levels(pclass)")
 result <- nn(diamonds, "price", "carat:color", type = "regression")
 predict(result, pred_cmd = "carat = 1:3")
 predict(result, pred_data = diamonds) \%>\% head()
-
 }
 \seealso{
 \code{\link{nn}} to generate the result

@@ -534,7 +534,7 @@ reg_available <- eventReactive(input$reg_run, {
   })
 })
 
-observeEvent(input$regress_report, {
+regress_report <- function() {
   if (radiant.data::is_empty(input$reg_evar)) return(invisible())
   outputs <- c("summary")
   inp_out <- list("", "")
@@ -607,7 +607,7 @@ observeEvent(input$regress_report, {
     fig.height = reg_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 observeEvent(input$reg_store_res, {
   req(pressed(input$reg_run))
@@ -691,3 +691,18 @@ download_handler(
   width = reg_plot_width,
   height = reg_plot_height
 )
+
+observeEvent(input$regress_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  regress_report()
+})
+
+observeEvent(input$regress_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_regress_screenshot")
+})
+
+observeEvent(input$modal_regress_screenshot, {
+  regress_report()
+  removeModal() ## remove shiny modal after save
+})

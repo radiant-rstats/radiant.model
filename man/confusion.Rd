@@ -51,7 +51,6 @@ Confusion matrix and additional metrics to evaluate binary classification models
 data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) \%>\%
   confusion(c("pred1", "pred2"), "buy") \%>\%
   str()
-
 }
 \seealso{
 \code{\link{summary.confusion}} to summarize results

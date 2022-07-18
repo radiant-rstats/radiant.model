@@ -60,7 +60,6 @@ See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in 
 nn(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
 nn(titanic, "survived", c("pclass", "sex")) \%>\% str()
 nn(diamonds, "price", c("carat", "clarity"), type = "regression") \%>\% summary()
-
 }
 \seealso{
 \code{\link{summary.nn}} to summarize results

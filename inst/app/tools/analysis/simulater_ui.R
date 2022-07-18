@@ -889,7 +889,7 @@ rep_plot_height <- function() {
 
 report_cleaner <- function(x) x %>% gsub("\n", ";", .) %>% gsub("[;]{2,}", ";", .)
 
-observeEvent(input$simulater_report, {
+simulater_report <- function() {
   sim_dec <- input$sim_dec %>% ifelse(radiant.data::is_empty(.), 3, .)
   outputs <- "summary"
   inp_out <- list(list(dec = sim_dec), "")
@@ -960,7 +960,7 @@ observeEvent(input$simulater_report, {
     fig.width = sim_plot_width(),
     fig.height = sim_plot_height()
   )
-})
+}
 
 observeEvent(input$repeater_report, {
   rep_dec <- input$rep_dec %>% ifelse(radiant.data::is_empty(.), 3, .)
@@ -1030,3 +1030,18 @@ download_handler(
   width = rep_plot_width,
   height = rep_plot_height
 )
+
+observeEvent(input$simulater_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  simulater_report()
+})
+
+observeEvent(input$simulater_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_simulater_screenshot")
+})
+
+observeEvent(input$modal_simulater_screenshot, {
+  simulater_report()
+  removeModal() ## remove shiny modal after save
+})

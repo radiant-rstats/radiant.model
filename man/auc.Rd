@@ -25,7 +25,6 @@ See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an exampl
 \examples{
 auc(runif(20000), dvd$buy, "yes")
 auc(ifelse(dvd$buy == "yes", 1, 0), dvd$buy, "yes")
-
 }
 \seealso{
 \code{\link{evalbin}} to calculate results

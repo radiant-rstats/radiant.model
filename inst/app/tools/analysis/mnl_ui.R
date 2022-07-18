@@ -25,8 +25,9 @@ mnl_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   mnl_args$data_filter <- if (input$show_filter) input$data_filter else ""
   mnl_args$dataset <- input$dataset
-  for (i in r_drop(names(mnl_args)))
+  for (i in r_drop(names(mnl_args))) {
     mnl_args[[i]] <- input[[paste0("mnl_", i)]]
+  }
   mnl_args
 })
 
@@ -34,13 +35,14 @@ mnl_sum_args <- as.list(if (exists("summary.mnl")) {
   formals(summary.mnl)
 } else {
   formals(radiant.model:::summary.mnl)
-} )
+})
 
 ## list of function inputs selected by user
 mnl_sum_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(mnl_sum_args))
+  for (i in names(mnl_sum_args)) {
     mnl_sum_args[[i]] <- input[[paste0("mnl_", i)]]
+  }
   mnl_sum_args
 })
 
@@ -48,13 +50,14 @@ mnl_plot_args <- as.list(if (exists("plot.mnl")) {
   formals(plot.mnl)
 } else {
   formals(radiant.model:::plot.mnl)
-} )
+})
 
 ## list of function inputs selected by user
 mnl_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(mnl_plot_args))
+  for (i in names(mnl_plot_args)) {
     mnl_plot_args[[i]] <- input[[paste0("mnl_", i)]]
+  }
 
   # cat(paste0(names(mnl_plot_args), " ", mnl_plot_args, collapse = ", "), file = stderr(), "\n")
   mnl_plot_args
@@ -64,13 +67,14 @@ mnl_pred_args <- as.list(if (exists("predict.mnl")) {
   formals(predict.mnl)
 } else {
   formals(radiant.model:::predict.mnl)
-} )
+})
 
 # list of function inputs selected by user
 mnl_pred_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
-  for (i in names(mnl_pred_args))
+  for (i in names(mnl_pred_args)) {
     mnl_pred_args[[i]] <- input[[paste0("mnl_", i)]]
+  }
 
   mnl_pred_args$pred_cmd <- mnl_pred_args$pred_data <- ""
   if (input$mnl_predict == "cmd") {
@@ -93,14 +97,15 @@ mnl_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
   formals(plot.model.predict)
 } else {
   formals(radiant.model:::plot.model.predict)
-} )
+})
 
 
 # list of function inputs selected by user
 mnl_pred_plot_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
-  for (i in names(mnl_pred_plot_args))
+  for (i in names(mnl_pred_plot_args)) {
     mnl_pred_plot_args[[i]] <- input[[paste0("mnl_", i)]]
+  }
   mnl_pred_plot_args
 })
 
@@ -150,7 +155,7 @@ output$ui_mnl_wts <- renderUI({
   if (length(vars) > 0 && any(vars %in% input$mnl_evar)) {
     vars <- base::setdiff(vars, input$mnl_evar)
     names(vars) <- varnames() %>%
-      {.[match(vars, .)]} %>%
+      (function(x) x[match(vars, x)]) %>%
       names()
   }
   vars <- c("None", vars)
@@ -214,7 +219,7 @@ output$ui_mnl_show_interactions <- renderUI({
 output$ui_mnl_int <- renderUI({
   choices <- character(0)
   if (isolate("mnl_show_interactions" %in% names(input)) &&
-   radiant.data::is_empty(input$mnl_show_interactions)) {
+    radiant.data::is_empty(input$mnl_show_interactions)) {
   } else if (radiant.data::is_empty(input$mnl_show_interactions)) {
     return()
   } else {
@@ -232,12 +237,15 @@ output$ui_mnl_int <- renderUI({
       if (length(vars) > 1) {
         choices <- c(choices, iterms(vars, input$mnl_show_interactions))
       }
-      if (length(choices) == 0) return()
+      if (length(choices) == 0) {
+        return()
+      }
     }
   }
 
   selectInput(
-    "mnl_int", label = NULL,
+    "mnl_int",
+    label = NULL,
     choices = choices,
     selected = state_init("mnl_int"),
     multiple = TRUE,
@@ -309,7 +317,6 @@ output$ui_mnl <- renderUI({
         uiOutput("ui_mnl_wts"),
         conditionalPanel(
           condition = "input.mnl_evar != null",
-
           uiOutput("ui_mnl_show_interactions"),
           conditionalPanel(
             condition = "input.mnl_show_interactions != ''",
@@ -329,7 +336,8 @@ output$ui_mnl <- renderUI({
       conditionalPanel(
         condition = "input.tabs_mnl == 'Predict'",
         selectInput(
-          "mnl_predict", label = "Prediction input type:", mnl_predict,
+          "mnl_predict",
+          label = "Prediction input type:", mnl_predict,
           selected = state_single("mnl_predict", mnl_predict, "none")
         ),
         conditionalPanel(
@@ -370,7 +378,8 @@ output$ui_mnl <- renderUI({
       conditionalPanel(
         condition = "input.tabs_mnl == 'Plot'",
         selectInput(
-          "mnl_plots", "Plots:", choices = mnl_plots,
+          "mnl_plots", "Plots:",
+          choices = mnl_plots,
           selected = state_single("mnl_plots", mnl_plots)
         ),
         conditionalPanel(
@@ -388,7 +397,8 @@ output$ui_mnl <- renderUI({
         condition = "(input.tabs_mnl == 'Summary' && input.mnl_sum_check != undefined && (input.mnl_sum_check.indexOf('confint') >= 0 || input.mnl_sum_check.indexOf('rrr') >= 0)) ||
                      (input.tabs_mnl == 'Plot' && input.mnl_plots == 'coef')",
         sliderInput(
-          "mnl_conf_lev", "Confidence level:", min = 0.80,
+          "mnl_conf_lev", "Confidence level:",
+          min = 0.80,
           max = 0.99, value = state_init("mnl_conf_lev", .95),
           step = 0.01
         )
@@ -410,8 +420,12 @@ output$ui_mnl <- renderUI({
 })
 
 mnl_plot <- reactive({
-  if (mnl_available() != "available") return()
-  if (radiant.data::is_empty(input$mnl_plots, "none")) return()
+  if (mnl_available() != "available") {
+    return()
+  }
+  if (radiant.data::is_empty(input$mnl_plots, "none")) {
+    return()
+  }
 
   plot_height <- 500
   plot_width <- 650
@@ -432,14 +446,19 @@ mnl_plot <- reactive({
   list(plot_width = plot_width, plot_height = plot_height)
 })
 
-mnl_plot_width <- function()
-  mnl_plot() %>% {if (is.list(.)) .$plot_width else 650}
+mnl_plot_width <- function() {
+  mnl_plot() %>%
+    (function(x) if (is.list(x)) x$plot_width else 650)
+}
 
-mnl_plot_height <- function()
-  mnl_plot() %>% {if (is.list(.)) .$plot_height else 500}
+mnl_plot_height <- function() {
+  mnl_plot() %>%
+    (function(x) if (is.list(x)) x$plot_height else 500)
+}
 
-mnl_pred_plot_height <- function()
+mnl_pred_plot_height <- function() {
   if (input$mnl_pred_plot) 500 else 1
+}
 
 ## output is called from the main radiant ui.R
 output$mnl <- renderUI({
@@ -511,15 +530,25 @@ mnl_available <- reactive({
 })
 
 .summary_mnl <- reactive({
-  if (not_pressed(input$mnl_run)) return("** Press the Estimate button to estimate the model **")
-  if (mnl_available() != "available") return(mnl_available())
+  if (not_pressed(input$mnl_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (mnl_available() != "available") {
+    return(mnl_available())
+  }
   do.call(summary, c(list(object = .mnl()), mnl_sum_inputs()))
 })
 
 .predict_mnl <- reactive({
-  if (not_pressed(input$mnl_run)) return("** Press the Estimate button to estimate the model **")
-  if (mnl_available() != "available") return(mnl_available())
-  if (radiant.data::is_empty(input$mnl_predict, "none")) return("** Select prediction input **")
+  if (not_pressed(input$mnl_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (mnl_available() != "available") {
+    return(mnl_available())
+  }
+  if (radiant.data::is_empty(input$mnl_predict, "none")) {
+    return("** Select prediction input **")
+  }
   if ((input$mnl_predict == "data" || input$mnl_predict == "datacmd") && radiant.data::is_empty(input$mnl_pred_data)) {
     return("** Select data for prediction **")
   }
@@ -537,7 +566,7 @@ mnl_available <- reactive({
 
 .predict_print_mnl <- reactive({
   .predict_mnl() %>%
-    {if (is.character(.)) cat(., "\n") else print(.)}
+    (function(x) if (is.character(x)) cat(x, "\n") else print(x))
 })
 
 .predict_plot_mnl <- reactive({
@@ -571,7 +600,7 @@ mnl_available <- reactive({
   }
 })
 
-observeEvent(input$mnl_report, {
+mnl_report <- function() {
   outputs <- c("summary")
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(mnl_sum_inputs(), mnl_sum_args[-1])
@@ -591,7 +620,8 @@ observeEvent(input$mnl_report, {
         updateTextInput(session, "mnl_store_res_name", value = .) %>%
         deparse(control = getOption("dctrl"), width.cutoff = 500L)
     }
-    xcmd <- paste0(input$dataset, " <- store(",
+    xcmd <- paste0(
+      input$dataset, " <- store(",
       input$dataset, ", result, name = ", name, ")\n"
     )
   } else {
@@ -599,7 +629,7 @@ observeEvent(input$mnl_report, {
   }
 
   if (!radiant.data::is_empty(input$mnl_predict, "none") &&
-     (!radiant.data::is_empty(input$mnl_pred_data) || !radiant.data::is_empty(input$mnl_pred_cmd))) {
+    (!radiant.data::is_empty(input$mnl_pred_data) || !radiant.data::is_empty(input$mnl_pred_cmd))) {
     pred_args <- clean_args(mnl_pred_inputs(), mnl_pred_args[-1])
 
     if (!radiant.data::is_empty(pred_args$pred_cmd)) {
@@ -625,7 +655,8 @@ observeEvent(input$mnl_report, {
           fix_names() %>%
           deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       }
-      xcmd <- paste0(xcmd, "\n", input$mnl_pred_data, " <- store(",
+      xcmd <- paste0(
+        xcmd, "\n", input$mnl_pred_data, " <- store(",
         input$mnl_pred_data, ", pred, name = ", name, ")"
       )
     }
@@ -650,12 +681,14 @@ observeEvent(input$mnl_report, {
     fig.height = mnl_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 observeEvent(input$mnl_store_res, {
   req(pressed(input$mnl_run))
   robj <- .mnl()
-  if (!is.list(robj)) return()
+  if (!is.list(robj)) {
+    return()
+  }
   fixed <- unlist(strsplit(input$mnl_store_res_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
     fix_names() %>%
     paste0(collapse = ", ")
@@ -669,7 +702,9 @@ observeEvent(input$mnl_store_res, {
 observeEvent(input$mnl_store_pred, {
   req(!radiant.data::is_empty(input$mnl_pred_data), pressed(input$mnl_run))
   pred <- .predict_mnl()
-  if (is.null(pred)) return()
+  if (is.null(pred)) {
+    return()
+  }
   fixed <- unlist(strsplit(input$mnl_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
     fix_names() %>%
     paste0(collapse = ", ")
@@ -737,3 +772,17 @@ download_handler(
   height = mnl_plot_height
 )
 
+observeEvent(input$mnl_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  mnl_report()
+})
+
+observeEvent(input$mnl_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_mnl_screenshot")
+})
+
+observeEvent(input$modal_mnl_screenshot, {
+  mnl_report()
+  removeModal() ## remove shiny modal after save
+})

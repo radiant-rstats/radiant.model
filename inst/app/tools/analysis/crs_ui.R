@@ -5,8 +5,9 @@ crs_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
   crs_args$data_filter <- if (input$show_filter) input$data_filter else ""
   crs_args$dataset <- input$dataset
-  for (i in r_drop(names(crs_args)))
+  for (i in r_drop(names(crs_args))) {
     crs_args[[i]] <- input[[paste0("crs_", i)]]
+  }
   crs_args
 })
 
@@ -35,7 +36,9 @@ output$ui_crs_prod <- renderUI({
 output$ui_crs_pred <- renderUI({
   req(input$crs_prod)
   if (available(input$crs_prod)) {
-    levs <- .get_data()[[input$crs_prod]] %>% as.factor() %>% levels()
+    levs <- .get_data()[[input$crs_prod]] %>%
+      as.factor() %>%
+      levels()
   } else {
     levs <- c()
   }
@@ -72,7 +75,8 @@ run_refresh(crs_args, "crs", init = "pred", tabs = "tabs_crs", label = "Estimate
 output$ui_crs <- renderUI({
   req(input$dataset)
   tagList(
-    conditionalPanel("input.tabs_crs == 'Summary'",
+    conditionalPanel(
+      "input.tabs_crs == 'Summary'",
       wellPanel(
         actionButton("crs_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
       )
@@ -110,11 +114,19 @@ crs_plot <- eventReactive(input$crs_run, {
   list(plot_width = plot_width, plot_height = plot_height)
 })
 
-crs_plot_width <- function()
-  crs_plot() %>% {if (is.list(.)) .$plot_width else 650}
+crs_plot_width <- function() {
+  crs_plot() %>%
+    {
+      if (is.list(.)) .$plot_width else 650
+    }
+}
 
-crs_plot_height <- function()
-  crs_plot() %>% {if (is.list(.)) .$plot_height else 500}
+crs_plot_height <- function() {
+  crs_plot() %>%
+    {
+      if (is.list(.)) .$plot_height else 500
+    }
+}
 
 # output is called from the main radiant ui.R
 output$crs <- renderUI({
@@ -152,7 +164,7 @@ output$crs <- renderUI({
   if (radiant.data::is_empty(input$crs_id)) {
     "This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>%
       suggest_data("ratings")
-  } else if (!input$show_filter ||radiant.data::is_empty(input$data_filter)) {
+  } else if (!input$show_filter || radiant.data::is_empty(input$data_filter)) {
     "A data filter must be set to generate recommendations using\ncollaborative filtering. Add a filter in the Data > View tab.\nNote that the users in the training sample should not overlap\nwith the users in the test sample." %>%
       add_class("crs")
   } else if (!radiant.data::is_empty(r_info[["filter_error"]])) {
@@ -182,9 +194,13 @@ output$crs <- renderUI({
 })
 
 .plot_crs <- reactive({
-  if (not_pressed(input$crs_run)) return("** Press the Estimate button to generate recommendations **")
+  if (not_pressed(input$crs_run)) {
+    return("** Press the Estimate button to generate recommendations **")
+  }
   isolate({
-    if (radiant.data::is_empty(input$crs_id)) return(invisible())
+    if (radiant.data::is_empty(input$crs_id)) {
+      return(invisible())
+    }
     withProgress(message = "Generating plots", value = 1, {
       plot(.crs())
     })
@@ -192,7 +208,7 @@ output$crs <- renderUI({
 })
 
 ## Add reporting option
-observeEvent(input$crs_report, {
+crs_report <- function() {
   crs <- .crs()
   if (is.character(crs)) {
     return(invisible())
@@ -226,7 +242,7 @@ observeEvent(input$crs_report, {
     fig.height = crs_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 ## Store results
 observeEvent(input$crs_store_pred, {
@@ -284,3 +300,18 @@ download_handler(
   width = crs_plot_width,
   height = crs_plot_height
 )
+
+observeEvent(input$crs_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  crs_report()
+})
+
+observeEvent(input$crs_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_crs_screenshot")
+})
+
+observeEvent(input$modal_crs_screenshot, {
+  crs_report()
+  removeModal() ## remove shiny modal after save
+})

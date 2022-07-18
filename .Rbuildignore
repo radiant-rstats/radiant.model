@@ -10,3 +10,4 @@ docs/
 vignettes/
 .vscode/
 docker/
+^CRAN-SUBMISSION$

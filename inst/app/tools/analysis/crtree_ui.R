@@ -547,7 +547,7 @@ observeEvent(input$crtree_store_pred, {
   )
 })
 
-observeEvent(input$crtree_report, {
+crtree_report <- function() {
   if (radiant.data::is_empty(input$crtree_evar)) return(invisible())
 
   outputs <- c("summary")
@@ -630,7 +630,7 @@ observeEvent(input$crtree_report, {
     fig.height = crtree_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 dl_crtree_pred <- function(path) {
   if (pressed(input$crtree_run)) {
@@ -669,3 +669,18 @@ download_handler(
   width = crtree_plot_width,
   height = crtree_plot_height
 )
+
+observeEvent(input$crtree_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  crtree_report()
+})
+
+observeEvent(input$crtree_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_crtree_screenshot")
+})
+
+observeEvent(input$modal_crtree_screenshot, {
+  crtree_report()
+  removeModal() ## remove shiny modal after save
+})

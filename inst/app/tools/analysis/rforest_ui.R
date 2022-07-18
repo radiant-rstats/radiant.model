@@ -535,7 +535,7 @@ observeEvent(input$rf_store_pred, {
   )
 })
 
-observeEvent(input$rf_report, {
+rf_report <- function() {
   if (radiant.data::is_empty(input$rf_rvar)) return(invisible())
 
   outputs <- c("summary")
@@ -590,7 +590,7 @@ observeEvent(input$rf_report, {
     xcmd <- paste0(xcmd, "print(pred, n = 10)")
     if (input$rf_predict %in% c("data", "datacmd")) {
 
-      
+
       fixed <- fix_names(input$rf_store_pred_name)
       updateTextInput(session, "rf_store_pred_name", value = fixed)
       xcmd <- paste0(xcmd, "\n", input$rf_pred_data , " <- store(",
@@ -621,7 +621,7 @@ observeEvent(input$rf_report, {
     fig.height = rf_plot_height(),
     xcmd = xcmd
   )
-})
+}
 
 dl_rf_pred <- function(path) {
   if (pressed(input$rf_run)) {
@@ -660,3 +660,18 @@ download_handler(
   width = rf_plot_width,
   height = rf_plot_height
 )
+
+observeEvent(input$rf_report, {
+  r_info[["latest_screenshot"]] <- NULL
+  rf_report()
+})
+
+observeEvent(input$rf_screenshot, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_rf_screenshot")
+})
+
+observeEvent(input$modal_rf_screenshot, {
+  rf_report()
+  removeModal() ## remove shiny modal after save
+})
