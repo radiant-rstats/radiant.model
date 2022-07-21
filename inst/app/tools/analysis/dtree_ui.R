@@ -187,7 +187,7 @@ output$dtree <- renderUI({
     ),
     tabPanel(
       "Plot",
-      actionLink("dtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
+      HTML("<i title='Save plot' class='fa fa-download action-button shiny-bound-input alignright' href='#dtree_screenshot3' id='dtree_screenshot3' onclick='generate_dtree_plot();'></i>"),
       with(tags, table(
         td(help_modal("Decision analysis", "dtree_help2", help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/dtree.Rmd"))), style = "padding-top:30px;"),
         td(HTML("&nbsp;&nbsp;")),
@@ -648,4 +648,29 @@ observeEvent(input$dtree_screenshot1, {
 observeEvent(input$dtree_screenshot2, {
   r_info[["latest_screenshot"]] <- NULL
   radiant_screenshot_modal("modal_dtree_screenshot2")
+})
+
+observeEvent(input$dtree_screenshot3, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_dtree_screenshot3")
+})
+
+observeEvent(input$modal_dtree_screenshot, {
+  dtree_report()
+  removeModal()
+})
+
+observeEvent(input$modal_dtree_screenshot1, {
+  dtree_report()
+  removeModal()
+})
+
+observeEvent(input$modal_dtree_screenshot2, {
+  dtree_report()
+  removeModal()
+})
+
+observeEvent(input$modal_dtree_screenshot3, {
+  dtree_report()
+  removeModal()
 })

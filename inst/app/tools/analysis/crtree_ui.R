@@ -1,6 +1,6 @@
 ctree_plots <- c(
-  "None" = "none", "Prune" = "prune", 
-  "Tree" = "tree", 
+  "None" = "none", "Prune" = "prune",
+  "Tree" = "tree",
   "Importance" = "imp",
   "Partial Dependence" = "pdp",
   "Dashboard" = "dashboard"
@@ -402,7 +402,7 @@ output$crtree <- renderUI({
       "Plot",
       conditionalPanel(
         "input.crtree_plots == 'tree'",
-        actionLink("crtree_save_plot", "", class = "fa fa-download alignright", onclick = "window.print();"),
+        HTML("<i title='Save plot' class='fa fa-download action-button shiny-bound-input alignright' href='#crtree_screenshot2' id='crtree_screenshot2' onclick='generate_crtree_plot();'></i>"),
         uiOutput("diagrammer_crtree")
       ),
       conditionalPanel(
@@ -681,6 +681,16 @@ observeEvent(input$crtree_screenshot, {
 })
 
 observeEvent(input$modal_crtree_screenshot, {
+  crtree_report()
+  removeModal() ## remove shiny modal after save
+})
+
+observeEvent(input$crtree_screenshot2, {
+  r_info[["latest_screenshot"]] <- NULL
+  radiant_screenshot_modal("modal_crtree_screenshot2")
+})
+
+observeEvent(input$modal_crtree_screenshot2, {
   crtree_report()
   removeModal() ## remove shiny modal after save
 })

@@ -70,3 +70,27 @@ $(document).keydown(function (event) {
     event.preventDefault();
   }
 });
+
+function generate_dtree_plot() {
+  html2canvas($("#dtree_plot")[0],{ignoreElements:function (el) {return el.className === 'dropdown-menu';}}).then(canvas=>{
+    var img = document.createElement("img");
+    img.src = canvas.toDataURL("png");
+    img.width = parseInt(canvas.style.width);
+    img.height = parseInt(canvas.style.height);
+    $("#screenshot_preview").empty();
+    $("#screenshot_preview").append(img);
+  });
+}
+
+function generate_crtree_plot() {
+  html2canvas($("#crtree_plot")[0],{ignoreElements:function (el) {return el.className === 'dropdown-menu';}}).then(canvas=>{
+    var img = document.createElement("img");
+    img.src = canvas.toDataURL("png");
+    img.width = parseInt(canvas.style.width);
+    img.height = parseInt(canvas.style.height);
+    $("#screenshot_preview").empty();
+    $("#screenshot_preview").append(img);
+  });
+}
+
+
