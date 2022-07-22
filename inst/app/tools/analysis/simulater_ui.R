@@ -33,14 +33,17 @@ sim_args <- as.list(formals(simulater))
 ## list of function inputs selected by user
 sim_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(sim_args))
+  for (i in names(sim_args)) {
     sim_args[[i]] <- input[[paste0("sim_", i)]]
+  }
 
-  for (i in sim_types_vec)
+  for (i in sim_types_vec) {
     if (!i %in% input$sim_types) sim_args[[i]] <- ""
+  }
 
-  if (!isTRUE(input$sim_add_functions))
+  if (!isTRUE(input$sim_add_functions)) {
     sim_args[["funcs"]] <- ""
+  }
 
   sim_args
 })
@@ -51,8 +54,9 @@ rep_args <- as.list(formals(repeater))
 rep_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   rep_args$dataset <- input$sim_name
-  for (i in r_drop(names(rep_args)))
+  for (i in r_drop(names(rep_args))) {
     rep_args[[i]] <- input[[paste0("rep_", i)]]
+  }
 
   if (radiant.data::is_empty(input$rep_fun)) rep_args$fun <- "none"
 
@@ -68,8 +72,9 @@ rep_sum_args <- as.list(if (exists("summary.repeater")) {
 ## list of function inputs selected by user
 rep_sum_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(rep_sum_args))
+  for (i in names(rep_sum_args)) {
     rep_sum_args[[i]] <- input[[paste0("rep_", i)]]
+  }
   rep_sum_args
 })
 
@@ -82,18 +87,15 @@ rep_plot_args <- as.list(if (exists("plot.repeater")) {
 ## list of function inputs selected by user
 rep_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(rep_plot_args))
+  for (i in names(rep_plot_args)) {
     rep_plot_args[[i]] <- input[[paste0("rep_", i)]]
+  }
   rep_plot_args
 })
 
-textinput_maker <- function(
-  id = "const", lab = "Constant", rows = 3, pre = "sim_",
-  placeholder = "Provide values in the input boxes above and then press the + symbol",
-  allow_tab = TRUE
-
-) {
-
+textinput_maker <- function(id = "const", lab = "Constant", rows = 3, pre = "sim_",
+                            placeholder = "Provide values in the input boxes above and then press the + symbol",
+                            allow_tab = TRUE) {
   if (allow_tab) {
     onkeydown <- ""
   } else {
@@ -104,7 +106,8 @@ textinput_maker <- function(
   ## based on https://stackoverflow.com/a/35514029/1974918
   id <- paste0(pre, id)
   tags$textarea(
-    state_init(id), id = id,
+    state_init(id),
+    id = id,
     type = "text",
     rows = rows,
     placeholder = placeholder,
@@ -119,7 +122,8 @@ textinput_maker <- function(
 
 output$ui_sim_types <- renderUI({
   selectizeInput(
-    "sim_types", label = "Select types:",
+    "sim_types",
+    label = "Select types:",
     choices = sim_types, multiple = TRUE,
     selected = state_multiple("sim_types", sim_types_vec),
     options = list(placeholder = "Select types", plugins = list("remove_button"))
@@ -167,7 +171,8 @@ output$ui_rep_vars <- renderUI({
   }
 
   selectizeInput(
-    "rep_vars", label = "Variables to re-simulate:",
+    "rep_vars",
+    label = "Variables to re-simulate:",
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_vars", vars, isolate(input$rep_vars)),
     options = list(placeholder = "Select variables", plugins = list("remove_button"))
@@ -178,7 +183,8 @@ output$ui_rep_sum_vars <- renderUI({
   vars <- sim_vars()
   req(!radiant.data::is_empty(vars))
   selectizeInput(
-    "rep_sum_vars", label = "Output variables:",
+    "rep_sum_vars",
+    label = "Output variables:",
     choices = vars, multiple = TRUE,
     selected = state_multiple("rep_sum_vars", vars, isolate(input$rep_sum_vars)),
     options = list(
@@ -193,12 +199,14 @@ output$ui_rep_grid_vars <- renderUI({
   if (const != "") {
     s <- const %>% sim_splitter()
     vars <- c()
-    for (i in 1:length(s))
+    for (i in 1:length(s)) {
       vars <- c(vars, s[[i]][1])
+    }
   }
   req(!radiant.data::is_empty(vars))
   selectizeInput(
-    "rep_grid_vars", label = "Name:",
+    "rep_grid_vars",
+    label = "Name:",
     choices = vars, multiple = FALSE,
     selected = state_single("rep_grid_vars", vars)
   )
@@ -207,7 +215,8 @@ output$ui_rep_grid_vars <- renderUI({
 output$ui_rep_byvar <- renderUI({
   vars <- c("Simulation" = ".sim", "Repeat" = ".rep")
   selectizeInput(
-    "rep_byvar", label = "Group by:", choices = vars,
+    "rep_byvar",
+    label = "Group by:", choices = vars,
     selected = state_single("rep_byvar", vars), multiple = FALSE,
     options = list(placeholder = "Select group-by variable")
   )
@@ -233,7 +242,9 @@ output$ui_rep_fun <- renderUI({
 })
 
 var_updater <- function(variable, var_str, var_name, var_inputs, fix = TRUE) {
-  if (is.null(variable) || variable == 0) return()
+  if (is.null(variable) || variable == 0) {
+    return()
+  }
   if (radiant.data::is_empty(var_inputs[1]) || any(is.na(var_inputs[-1]))) {
     showModal(
       modalDialog(
@@ -279,8 +290,12 @@ observeEvent(input$sim_discrete_add, {
   v <- input$sim_discrete_val
   p <- input$sim_discrete_prob
 
-  v <- gsub(",", " ", v) %>% strsplit("\\s+") %>% unlist()
-  p <- gsub(",", " ", p) %>% strsplit("\\s+") %>% unlist()
+  v <- gsub(",", " ", v) %>%
+    strsplit("\\s+") %>%
+    unlist()
+  p <- gsub(",", " ", p) %>%
+    strsplit("\\s+") %>%
+    unlist()
 
   lp <- length(p)
   lv <- length(v)
@@ -399,7 +414,7 @@ output$ui_simulater <- renderUI({
     conditionalPanel(
       condition = "input.tabs_simulate == 'Simulate'",
       wellPanel(
-        actionButton("sim_run", "Run simulation", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("sim_run", "Run simulation", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       ),
       wellPanel(
         uiOutput("ui_sim_types")
@@ -535,7 +550,8 @@ output$ui_simulater <- renderUI({
             value = state_init("sim_seed", 1234),
           )),
           td(numericInput(
-            "sim_nr", "# sims:", min = 1, max = 10 ^ 6,
+            "sim_nr", "# sims:",
+            min = 1, max = 10^6,
             value = state_init("sim_nr", 1000),
             width = "95px"
           ))
@@ -558,7 +574,7 @@ output$ui_simulater <- renderUI({
     conditionalPanel(
       condition = "input.tabs_simulate == 'Repeat'",
       wellPanel(
-        actionButton("rep_run", "Repeat simulation", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("rep_run", "Repeat simulation", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       ),
       wellPanel(
         uiOutput("ui_rep_vars"),
@@ -587,7 +603,8 @@ output$ui_simulater <- renderUI({
             value = state_init("rep_seed", 1234)
           )),
           td(numericInput(
-            "rep_nr", "# reps:", min = 1, max = 10 ^ 6,
+            "rep_nr", "# reps:",
+            min = 1, max = 10^6,
             value = state_init("rep_nr", 12),
             width = "95px"
           ))
@@ -745,22 +762,22 @@ output$simulater <- renderUI({
 
 ## creating autocomplete list for simuate - function editor
 radiant_sim_auto <- reactive({
-    pkgs <- c("stats", "base", "radiant.data") %>%
+  pkgs <- c("stats", "base", "radiant.data") %>%
     sapply(function(x) grep("^[A-Za-z]", getNamespaceExports(x), value = TRUE)) %>%
     set_names(., paste0("{", names(.), "}"))
 
-    inp <- clean_args(sim_inputs(), sim_args) %>% lapply(report_cleaner)
-    nms <- base::intersect(c(sim_types_vec, "form"), names(inp))
-    auto_nms <- list()
+  inp <- clean_args(sim_inputs(), sim_args) %>% lapply(report_cleaner)
+  nms <- base::intersect(c(sim_types_vec, "form"), names(inp))
+  auto_nms <- list()
 
-    for (i in nms) {
-      auto_nms[[paste0("{sim ", i, "}")]] <- strsplit(inp[[i]], ";")[[1]] %>%
-        strsplit(., "(\\s+|=)") %>%
-        base::Filter(length, .) %>%
-        sapply(., `[[`, 1)
-    }
+  for (i in nms) {
+    auto_nms[[paste0("{sim ", i, "}")]] <- strsplit(inp[[i]], ";")[[1]] %>%
+      strsplit(., "(\\s+|=)") %>%
+      base::Filter(length, .) %>%
+      sapply(., `[[`, 1)
+  }
 
-    c(pkgs, auto_nms)
+  c(pkgs, auto_nms)
 })
 
 ## auto completion for r-functions and defined variables
@@ -795,13 +812,18 @@ observe({
   })
 })
 
-.summary_simulate <- eventReactive({c(input$sim_run, input$sim_dec)}, {
-  if (not_pressed(input$sim_run)) {
-    "** Press the Run simulation button to simulate data **"
-  } else {
-    summary(.simulater(), dec = input$sim_dec)
+.summary_simulate <- eventReactive(
+  {
+    c(input$sim_run, input$sim_dec)
+  },
+  {
+    if (not_pressed(input$sim_run)) {
+      "** Press the Run simulation button to simulate data **"
+    } else {
+      summary(.simulater(), dec = input$sim_dec)
+    }
   }
-})
+)
 
 sim_plot_width <- function() 650
 sim_plot_height <- function() {
@@ -821,7 +843,9 @@ sim_plot_height <- function() {
   req(input$sim_show_plots)
   withProgress(message = "Generating simulation plots", value = 1, {
     .simulater() %>%
-      {if (radiant.data::is_empty(.)) invisible() else plot(., shiny = TRUE)}
+      {
+        if (radiant.data::is_empty(.)) invisible() else plot(., shiny = TRUE)
+      }
   })
 })
 
@@ -842,21 +866,28 @@ sim_plot_height <- function() {
   })
 })
 
-.summary_repeat <- eventReactive({c(input$rep_run, input$rep_dec)}, {
-  if (not_pressed(input$rep_run)) {
-    "** Press the Repeat simulation button **"
-  } else if (length(input$rep_sum_vars) == 0) {
-    "Select at least one Output variable"
-  } else if (input$rep_byvar == ".sim" && radiant.data::is_empty(input$rep_nr)) {
-    "Please specify the number of repetitions in '# reps'"
-  } else {
-    summary(.repeater(), dec = input$rep_dec)
+.summary_repeat <- eventReactive(
+  {
+    c(input$rep_run, input$rep_dec)
+  },
+  {
+    if (not_pressed(input$rep_run)) {
+      "** Press the Repeat simulation button **"
+    } else if (length(input$rep_sum_vars) == 0) {
+      "Select at least one Output variable"
+    } else if (input$rep_byvar == ".sim" && radiant.data::is_empty(input$rep_nr)) {
+      "Please specify the number of repetitions in '# reps'"
+    } else {
+      summary(.repeater(), dec = input$rep_dec)
+    }
   }
-})
+)
 
 rep_plot_width <- function() 650
 rep_plot_height <- function() {
-  if (length(input$rep_sum_vars) == 0) return(300)
+  if (length(input$rep_sum_vars) == 0) {
+    return(300)
+  }
   rp <- .repeater()
   if (is.character(rp)) {
     300
@@ -875,10 +906,12 @@ rep_plot_height <- function() {
   if (input$rep_byvar == ".sim" && radiant.data::is_empty(input$rep_nr)) {
     return(invisible())
   } # else if (input$rep_byvar == "rep" && radiant.data::is_empty(input$rep_grid)) {
-    # return(invisible())
+  # return(invisible())
   # }
   object <- .repeater()
-  if (is.null(object)) return(invisible())
+  if (is.null(object)) {
+    return(invisible())
+  }
   withProgress(message = "Generating repeated simulation plots", value = 1, {
     inp <- rep_plot_inputs()
     inp$shiny <- TRUE
@@ -887,7 +920,11 @@ rep_plot_height <- function() {
   })
 })
 
-report_cleaner <- function(x) x %>% gsub("\n", ";", .) %>% gsub("[;]{2,}", ";", .)
+report_cleaner <- function(x) {
+  x %>%
+    gsub("\n", ";", .) %>%
+    gsub("[;]{2,}", ";", .)
+}
 
 simulater_report <- function() {
   sim_dec <- input$sim_dec %>% ifelse(radiant.data::is_empty(.), 3, .)

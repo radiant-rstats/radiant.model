@@ -15,8 +15,9 @@ nn_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   nn_args$data_filter <- if (input$show_filter) input$data_filter else ""
   nn_args$dataset <- input$dataset
-  for (i in r_drop(names(nn_args)))
+  for (i in r_drop(names(nn_args))) {
     nn_args[[i]] <- input[[paste0("nn_", i)]]
+  }
   nn_args
 })
 
@@ -29,8 +30,9 @@ nn_pred_args <- as.list(if (exists("predict.nn")) {
 # list of function inputs selected by user
 nn_pred_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
-  for (i in names(nn_pred_args))
+  for (i in names(nn_pred_args)) {
     nn_pred_args[[i]] <- input[[paste0("nn_", i)]]
+  }
 
   nn_pred_args$pred_cmd <- nn_pred_args$pred_data <- ""
   if (input$nn_predict == "cmd") {
@@ -52,13 +54,14 @@ nn_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
   formals(plot.model.predict)
 } else {
   formals(radiant.model:::plot.model.predict)
-} )
+})
 
 # list of function inputs selected by user
 nn_pred_plot_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
-  for (i in names(nn_pred_plot_args))
+  for (i in names(nn_pred_plot_args)) {
     nn_pred_plot_args[[i]] <- input[[paste0("nn_", i)]]
+  }
   nn_pred_plot_args
 })
 
@@ -105,7 +108,9 @@ output$ui_nn_lev <- renderUI({
 })
 
 output$ui_nn_evar <- renderUI({
-  if (not_available(input$nn_rvar)) return()
+  if (not_available(input$nn_rvar)) {
+    return()
+  }
   vars <- varnames()
   if (length(vars) > 0) {
     vars <- vars[-which(vars == input$nn_rvar)]
@@ -136,7 +141,9 @@ output$ui_nn_wts <- renderUI({
   if (length(vars) > 0 && any(vars %in% input$nn_evar)) {
     vars <- base::setdiff(vars, input$nn_evar)
     names(vars) <- varnames() %>%
-      {.[match(vars, .)]} %>%
+      {
+        .[match(vars, .)]
+      } %>%
       names()
   }
   vars <- c("None", vars)
@@ -186,7 +193,8 @@ output$ui_nn_plots <- renderUI({
     nn_plots <- head(nn_plots, -1)
   }
   selectInput(
-    "nn_plots", "Plots:", choices = nn_plots,
+    "nn_plots", "Plots:",
+    choices = nn_plots,
     selected = state_single("nn_plots", nn_plots)
   )
 })
@@ -208,16 +216,18 @@ run_refresh(nn_args, "nn", tabs = "tabs_nn", label = "Estimate model", relabel =
 output$ui_nn <- renderUI({
   req(input$dataset)
   tagList(
-    conditionalPanel(condition = "input.tabs_nn == 'Summary'",
+    conditionalPanel(
+      condition = "input.tabs_nn == 'Summary'",
       wellPanel(
-        actionButton("nn_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("nn_run", "Estimate model", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       )
     ),
     wellPanel(
       conditionalPanel(
         condition = "input.tabs_nn == 'Summary'",
         radioButtons(
-          "nn_type", label = NULL, c("classification", "regression"),
+          "nn_type",
+          label = NULL, c("classification", "regression"),
           selected = state_init("nn_type", "classification"),
           inline = TRUE
         ),
@@ -227,23 +237,28 @@ output$ui_nn <- renderUI({
         uiOutput("ui_nn_wts"),
         tags$table(
           tags$td(numericInput(
-            "nn_size", label = "Size:", min = 1, max = 20,
+            "nn_size",
+            label = "Size:", min = 1, max = 20,
             value = state_init("nn_size", 1), width = "77px"
           )),
           tags$td(numericInput(
-            "nn_decay", label = "Decay:", min = 0, max = 1,
+            "nn_decay",
+            label = "Decay:", min = 0, max = 1,
             step = .1, value = state_init("nn_decay", .5), width = "77px"
           )),
           tags$td(numericInput(
-            "nn_seed", label = "Seed:",
+            "nn_seed",
+            label = "Seed:",
             value = state_init("nn_seed", 1234), width = "77px"
-          )), width = "100%"
+          )),
+          width = "100%"
         )
       ),
       conditionalPanel(
         condition = "input.tabs_nn == 'Predict'",
         selectInput(
-          "nn_predict", label = "Prediction input type:", reg_predict,
+          "nn_predict",
+          label = "Prediction input type:", reg_predict,
           selected = state_single("nn_predict", reg_predict, "none")
         ),
         conditionalPanel(
@@ -277,7 +292,7 @@ output$ui_nn <- renderUI({
           "input.nn_predict == 'data' | input.nn_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_nn_store_pred_name")),
-            tags$td(actionButton("nn_store_pred", "Store", icon = icon("plus")), class = "top")
+            tags$td(actionButton("nn_store_pred", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
           )
         )
       ),
@@ -293,7 +308,7 @@ output$ui_nn <- renderUI({
         condition = "input.tabs_nn == 'Summary'",
         tags$table(
           tags$td(uiOutput("ui_nn_store_res_name")),
-          tags$td(actionButton("nn_store_res", "Store", icon = icon("plus")), class = "top")
+          tags$td(actionButton("nn_store_res", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
         )
       )
     ),
@@ -306,10 +321,16 @@ output$ui_nn <- renderUI({
 })
 
 nn_plot <- reactive({
-  if (nn_available() != "available") return()
-  if (radiant.data::is_empty(input$nn_plots, "none")) return()
+  if (nn_available() != "available") {
+    return()
+  }
+  if (radiant.data::is_empty(input$nn_plots, "none")) {
+    return()
+  }
   res <- .nn()
-  if (is.character(res)) return()
+  if (is.character(res)) {
+    return()
+  }
   if ("dashboard" %in% input$nn_plots) {
     plot_height <- 750
   } else if ("pdp" %in% input$nn_plots) {
@@ -321,14 +342,23 @@ nn_plot <- reactive({
   list(plot_width = 650, plot_height = plot_height)
 })
 
-nn_plot_width <- function()
-  nn_plot() %>% {if (is.list(.)) .$plot_width else 650}
+nn_plot_width <- function() {
+  nn_plot() %>%
+    {
+      if (is.list(.)) .$plot_width else 650
+    }
+}
 
-nn_plot_height <- function()
-  nn_plot() %>% {if (is.list(.)) .$plot_height else 500}
+nn_plot_height <- function() {
+  nn_plot() %>%
+    {
+      if (is.list(.)) .$plot_height else 500
+    }
+}
 
-nn_pred_plot_height <- function()
+nn_pred_plot_height <- function() {
   if (input$nn_pred_plot) 500 else 1
+}
 
 ## output is called from the main radiant ui.R
 output$nn <- renderUI({
@@ -409,15 +439,25 @@ nn_available <- reactive({
 })
 
 .summary_nn <- reactive({
-  if (not_pressed(input$nn_run)) return("** Press the Estimate button to estimate the model **")
-  if (nn_available() != "available") return(nn_available())
+  if (not_pressed(input$nn_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (nn_available() != "available") {
+    return(nn_available())
+  }
   summary(.nn())
 })
 
 .predict_nn <- reactive({
-  if (not_pressed(input$nn_run)) return("** Press the Estimate button to estimate the model **")
-  if (nn_available() != "available") return(nn_available())
-  if (radiant.data::is_empty(input$nn_predict, "none")) return("** Select prediction input **")
+  if (not_pressed(input$nn_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (nn_available() != "available") {
+    return(nn_available())
+  }
+  if (radiant.data::is_empty(input$nn_predict, "none")) {
+    return("** Select prediction input **")
+  }
 
   if ((input$nn_predict == "data" || input$nn_predict == "datacmd") && radiant.data::is_empty(input$nn_pred_data)) {
     return("** Select data for prediction **")
@@ -435,9 +475,10 @@ nn_available <- reactive({
 })
 
 .predict_print_nn <- reactive({
-  .predict_nn() %>% {
-    if (is.character(.)) cat(., "\n") else print(.)
-  }
+  .predict_nn() %>%
+    {
+      if (is.character(.)) cat(., "\n") else print(.)
+    }
 })
 
 .predict_plot_nn <- reactive({
@@ -481,7 +522,10 @@ nn_available <- reactive({
   }
 
   if (input$nn_plots == "net") {
-    .nn() %>% {if (is.character(.)) invisible() else capture_plot(do.call(plot, c(list(x = .), pinp)))}
+    .nn() %>%
+      {
+        if (is.character(.)) invisible() else capture_plot(do.call(plot, c(list(x = .), pinp)))
+      }
   } else {
     withProgress(message = "Generating plots", value = 1, {
       do.call(plot, c(list(x = .nn()), pinp))
@@ -492,7 +536,9 @@ nn_available <- reactive({
 observeEvent(input$nn_store_res, {
   req(pressed(input$nn_run))
   robj <- .nn()
-  if (!is.list(robj)) return()
+  if (!is.list(robj)) {
+    return()
+  }
   fixed <- fix_names(input$nn_store_res_name)
   updateTextInput(session, "nn_store_res_name", value = fixed)
   withProgress(
@@ -504,7 +550,9 @@ observeEvent(input$nn_store_res, {
 observeEvent(input$nn_store_pred, {
   req(!radiant.data::is_empty(input$nn_pred_data), pressed(input$nn_run))
   pred <- .predict_nn()
-  if (is.null(pred)) return()
+  if (is.null(pred)) {
+    return()
+  }
   fixed <- fix_names(input$nn_store_pred_name)
   updateTextInput(session, "nn_store_pred_name", value = fixed)
   withProgress(
@@ -517,7 +565,9 @@ observeEvent(input$nn_store_pred, {
 })
 
 nn_report <- function() {
-  if (radiant.data::is_empty(input$nn_evar)) return(invisible())
+  if (radiant.data::is_empty(input$nn_evar)) {
+    return(invisible())
+  }
 
   outputs <- c("summary")
   inp_out <- list(list(prn = TRUE), "")
@@ -563,7 +613,8 @@ nn_report <- function() {
     if (input$nn_predict %in% c("data", "datacmd")) {
       fixed <- fix_names(input$nn_store_pred_name)
       updateTextInput(session, "nn_store_pred_name", value = fixed)
-      xcmd <- paste0(xcmd, "\n", input$nn_pred_data , " <- store(",
+      xcmd <- paste0(
+        xcmd, "\n", input$nn_pred_data, " <- store(",
         input$nn_pred_data, ", pred, name = \"", fixed, "\")"
       )
     }

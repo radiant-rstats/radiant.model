@@ -139,7 +139,7 @@ output$ui_gbt_wts <- renderUI({
   if (length(vars) > 0 && any(vars %in% input$gbt_evar)) {
     vars <- base::setdiff(vars, input$gbt_evar)
     names(vars) <- varnames() %>%
-      (function(x)x[match(vars, x)]) %>%
+      (function(x) x[match(vars, x)]) %>%
       names()
   }
   vars <- c("None", vars)
@@ -213,7 +213,7 @@ output$ui_gbt <- renderUI({
     conditionalPanel(
       condition = "input.tabs_gbt == 'Summary'",
       wellPanel(
-        actionButton("gbt_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("gbt_run", "Estimate model", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       )
     ),
     wellPanel(
@@ -328,7 +328,7 @@ output$ui_gbt <- renderUI({
           "input.gbt_predict == 'data' | input.gbt_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_gbt_store_pred_name")),
-            tags$td(actionButton("gbt_store_pred", "Store", icon = icon("plus")), class = "top")
+            tags$td(actionButton("gbt_store_pred", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
           )
         )
       ),
@@ -344,7 +344,7 @@ output$ui_gbt <- renderUI({
       #   condition = "input.tabs_gbt == 'Summary'",
       #   tags$table(
       #     tags$td(uiOutput("ui_gbt_store_res_name")),
-      #     tags$td(actionButton("gbt_store_res", "Store", icon = icon("plus")), class = "top")
+      #     tags$td(actionButton("gbt_store_res", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
       #   )
       # )
     ),

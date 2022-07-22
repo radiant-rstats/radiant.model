@@ -305,7 +305,7 @@ output$ui_mnl <- renderUI({
     conditionalPanel(
       condition = "input.tabs_mnl == 'Summary'",
       wellPanel(
-        actionButton("mnl_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("mnl_run", "Estimate model", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       )
     ),
     wellPanel(
@@ -371,7 +371,7 @@ output$ui_mnl <- renderUI({
           "input.mnl_predict == 'data' | input.mnl_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_mnl_store_pred_name")),
-            tags$td(actionButton("mnl_store_pred", "Store", icon = icon("plus")), class = "top")
+            tags$td(actionButton("mnl_store_pred", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
           )
         )
       ),
@@ -408,7 +408,7 @@ output$ui_mnl <- renderUI({
         tags$table(
           # tags$td(textInput("mnl_store_res_name", "Store residuals:", state_init("mnl_store_res_name", "residuals_logit"))),
           tags$td(uiOutput("ui_mnl_store_res_name")),
-          tags$td(actionButton("mnl_store_res", "Store", icon = icon("plus")), class = "top")
+          tags$td(actionButton("mnl_store_res", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
         )
       )
     ),

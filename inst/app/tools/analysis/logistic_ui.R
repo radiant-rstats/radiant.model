@@ -28,8 +28,9 @@ logit_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   logit_args$data_filter <- if (input$show_filter) input$data_filter else ""
   logit_args$dataset <- input$dataset
-  for (i in r_drop(names(logit_args)))
+  for (i in r_drop(names(logit_args))) {
     logit_args[[i]] <- input[[paste0("logit_", i)]]
+  }
   logit_args
 })
 
@@ -37,13 +38,14 @@ logit_sum_args <- as.list(if (exists("summary.logistic")) {
   formals(summary.logistic)
 } else {
   formals(radiant.model:::summary.logistic)
-} )
+})
 
 ## list of function inputs selected by user
 logit_sum_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(logit_sum_args))
+  for (i in names(logit_sum_args)) {
     logit_sum_args[[i]] <- input[[paste0("logit_", i)]]
+  }
   logit_sum_args
 })
 
@@ -51,13 +53,14 @@ logit_plot_args <- as.list(if (exists("plot.logistic")) {
   formals(plot.logistic)
 } else {
   formals(radiant.model:::plot.logistic)
-} )
+})
 
 ## list of function inputs selected by user
 logit_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(logit_plot_args))
+  for (i in names(logit_plot_args)) {
     logit_plot_args[[i]] <- input[[paste0("logit_", i)]]
+  }
 
   # cat(paste0(names(logit_plot_args), " ", logit_plot_args, collapse = ", "), file = stderr(), "\n")
   logit_plot_args
@@ -67,13 +70,14 @@ logit_pred_args <- as.list(if (exists("predict.logistic")) {
   formals(predict.logistic)
 } else {
   formals(radiant.model:::predict.logistic)
-} )
+})
 
 # list of function inputs selected by user
 logit_pred_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
-  for (i in names(logit_pred_args))
+  for (i in names(logit_pred_args)) {
     logit_pred_args[[i]] <- input[[paste0("logit_", i)]]
+  }
 
   logit_pred_args$pred_cmd <- logit_pred_args$pred_data <- ""
   if (input$logit_predict == "cmd") {
@@ -99,14 +103,15 @@ logit_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
   formals(plot.model.predict)
 } else {
   formals(radiant.model:::plot.model.predict)
-} )
+})
 
 
 # list of function inputs selected by user
 logit_pred_plot_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
-  for (i in names(logit_pred_plot_args))
+  for (i in names(logit_pred_plot_args)) {
     logit_pred_plot_args[[i]] <- input[[paste0("logit_", i)]]
+  }
   logit_pred_plot_args
 })
 
@@ -162,7 +167,9 @@ output$ui_logit_wts <- renderUI({
   if (length(vars) > 0 && any(vars %in% input$logit_evar)) {
     vars <- base::setdiff(vars, input$logit_evar)
     names(vars) <- varnames() %>%
-      {.[match(vars, .)]} %>%
+      {
+        .[match(vars, .)]
+      } %>%
       names()
   }
   vars <- c("None", vars)
@@ -226,7 +233,7 @@ output$ui_logit_show_interactions <- renderUI({
 output$ui_logit_int <- renderUI({
   choices <- character(0)
   if (isolate("logit_show_interactions" %in% names(input)) &&
-   radiant.data::is_empty(input$logit_show_interactions)) {
+    radiant.data::is_empty(input$logit_show_interactions)) {
   } else if (radiant.data::is_empty(input$logit_show_interactions)) {
     return()
   } else {
@@ -244,12 +251,15 @@ output$ui_logit_int <- renderUI({
       if (length(vars) > 1) {
         choices <- c(choices, iterms(vars, input$logit_show_interactions))
       }
-      if (length(choices) == 0) return()
+      if (length(choices) == 0) {
+        return()
+      }
     }
   }
 
   selectInput(
-    "logit_int", label = NULL,
+    "logit_int",
+    label = NULL,
     choices = choices,
     selected = state_init("logit_int"),
     multiple = TRUE,
@@ -290,9 +300,10 @@ run_refresh(logit_args, "logit", tabs = "tabs_logistic", label = "Estimate model
 output$ui_logistic <- renderUI({
   req(input$dataset)
   tagList(
-    conditionalPanel(condition = "input.tabs_logistic == 'Summary'",
+    conditionalPanel(
+      condition = "input.tabs_logistic == 'Summary'",
       wellPanel(
-        actionButton("logit_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("logit_run", "Estimate model", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       )
     ),
     wellPanel(
@@ -304,7 +315,6 @@ output$ui_logistic <- renderUI({
         uiOutput("ui_logit_wts"),
         conditionalPanel(
           condition = "input.logit_evar != null",
-
           uiOutput("ui_logit_show_interactions"),
           conditionalPanel(
             condition = "input.logit_show_interactions != ''",
@@ -324,7 +334,8 @@ output$ui_logistic <- renderUI({
       conditionalPanel(
         condition = "input.tabs_logistic == 'Predict'",
         selectInput(
-          "logit_predict", label = "Prediction input type:", logit_predict,
+          "logit_predict",
+          label = "Prediction input type:", logit_predict,
           selected = state_single("logit_predict", logit_predict, "none")
         ),
         conditionalPanel(
@@ -358,14 +369,15 @@ output$ui_logistic <- renderUI({
           "input.logit_predict == 'data' | input.logit_predict == 'datacmd'",
           tags$table(
             tags$td(textInput("logit_store_pred_name", "Store predictions:", state_init("logit_store_pred_name", "pred_logit"))),
-            tags$td(actionButton("logit_store_pred", "Store", icon = icon("plus")), class = "top")
+            tags$td(actionButton("logit_store_pred", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
           )
         )
       ),
       conditionalPanel(
         condition = "input.tabs_logistic == 'Plot'",
         selectInput(
-          "logit_plots", "Plots:", choices = logit_plots,
+          "logit_plots", "Plots:",
+          choices = logit_plots,
           selected = state_single("logit_plots", logit_plots)
         ),
         conditionalPanel(
@@ -385,7 +397,8 @@ output$ui_logistic <- renderUI({
                      (input.tabs_logistic == 'Predict' && input.logit_predict != 'none') ||
                      (input.tabs_logistic == 'Plot' && input.logit_plots == 'coef')",
         sliderInput(
-          "logit_conf_lev", "Confidence level:", min = 0.80,
+          "logit_conf_lev", "Confidence level:",
+          min = 0.80,
           max = 0.99, value = state_init("logit_conf_lev", .95),
           step = 0.01
         )
@@ -395,7 +408,7 @@ output$ui_logistic <- renderUI({
         tags$table(
           # tags$td(textInput("logit_store_res_name", "Store residuals:", state_init("logit_store_res_name", "residuals_logit"))),
           tags$td(uiOutput("ui_logit_store_res_name")),
-          tags$td(actionButton("logit_store_res", "Store", icon = icon("plus")), class = "top")
+          tags$td(actionButton("logit_store_res", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
         )
       )
     ),
@@ -407,8 +420,12 @@ output$ui_logistic <- renderUI({
 })
 
 logit_plot <- reactive({
-  if (logit_available() != "available") return()
-  if (radiant.data::is_empty(input$logit_plots, "none")) return()
+  if (logit_available() != "available") {
+    return()
+  }
+  if (radiant.data::is_empty(input$logit_plots, "none")) {
+    return()
+  }
 
   plot_height <- 500
   plot_width <- 650
@@ -430,14 +447,23 @@ logit_plot <- reactive({
   list(plot_width = plot_width, plot_height = plot_height)
 })
 
-logit_plot_width <- function()
-  logit_plot() %>% {if (is.list(.)) .$plot_width else 650}
+logit_plot_width <- function() {
+  logit_plot() %>%
+    {
+      if (is.list(.)) .$plot_width else 650
+    }
+}
 
-logit_plot_height <- function()
-  logit_plot() %>% {if (is.list(.)) .$plot_height else 500}
+logit_plot_height <- function() {
+  logit_plot() %>%
+    {
+      if (is.list(.)) .$plot_height else 500
+    }
+}
 
-logit_pred_plot_height <- function()
+logit_pred_plot_height <- function() {
   if (input$logit_pred_plot) 500 else 1
+}
 
 ## output is called from the main radiant ui.R
 output$logistic <- renderUI({
@@ -509,15 +535,25 @@ logit_available <- reactive({
 })
 
 .summary_logistic <- reactive({
-  if (not_pressed(input$logit_run)) return("** Press the Estimate button to estimate the model **")
-  if (logit_available() != "available") return(logit_available())
+  if (not_pressed(input$logit_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (logit_available() != "available") {
+    return(logit_available())
+  }
   do.call(summary, c(list(object = .logistic()), logit_sum_inputs()))
 })
 
 .predict_logistic <- reactive({
-  if (not_pressed(input$logit_run)) return("** Press the Estimate button to estimate the model **")
-  if (logit_available() != "available") return(logit_available())
-  if (radiant.data::is_empty(input$logit_predict, "none")) return("** Select prediction input **")
+  if (not_pressed(input$logit_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (logit_available() != "available") {
+    return(logit_available())
+  }
+  if (radiant.data::is_empty(input$logit_predict, "none")) {
+    return("** Select prediction input **")
+  }
   if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && radiant.data::is_empty(input$logit_pred_data)) {
     return("** Select data for prediction **")
   }
@@ -535,7 +571,9 @@ logit_available <- reactive({
 
 .predict_print_logistic <- reactive({
   .predict_logistic() %>%
-    {if (is.character(.)) cat(., "\n") else print(.)}
+    {
+      if (is.character(.)) cat(., "\n") else print(.)
+    }
 })
 
 .predict_plot_logistic <- reactive({
@@ -590,7 +628,7 @@ logistic_report <- function() {
   }
 
   if (!radiant.data::is_empty(input$logit_predict, "none") &&
-     (!radiant.data::is_empty(input$logit_pred_data) || !radiant.data::is_empty(input$logit_pred_cmd))) {
+    (!radiant.data::is_empty(input$logit_pred_data) || !radiant.data::is_empty(input$logit_pred_cmd))) {
     pred_args <- clean_args(logit_pred_inputs(), logit_pred_args[-1])
 
     if (!radiant.data::is_empty(pred_args$pred_cmd)) {
@@ -613,7 +651,8 @@ logistic_report <- function() {
       fixed <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
         fix_names() %>%
         deparse(., control = getOption("dctrl"), width.cutoff = 500L)
-      xcmd <- paste0(xcmd, "\n", input$logit_pred_data, " <- store(",
+      xcmd <- paste0(
+        xcmd, "\n", input$logit_pred_data, " <- store(",
         input$logit_pred_data, ", pred, name = ", fixed, ")"
       )
     }
@@ -642,7 +681,9 @@ logistic_report <- function() {
 observeEvent(input$logit_store_res, {
   req(pressed(input$logit_run))
   robj <- .logistic()
-  if (!is.list(robj)) return()
+  if (!is.list(robj)) {
+    return()
+  }
   fixed <- fix_names(input$logit_store_res_name)
   updateTextInput(session, "logit_store_res_name", value = fixed)
   withProgress(
@@ -654,7 +695,9 @@ observeEvent(input$logit_store_res, {
 observeEvent(input$logit_store_pred, {
   req(!radiant.data::is_empty(input$logit_pred_data), pressed(input$logit_run))
   pred <- .predict_logistic()
-  if (is.null(pred)) return()
+  if (is.null(pred)) {
+    return()
+  }
   fixed <- unlist(strsplit(input$logit_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
     fix_names() %>%
     paste0(collapse = ", ")

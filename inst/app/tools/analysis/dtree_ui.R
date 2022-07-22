@@ -41,7 +41,7 @@ output$ui_dtree_name <- renderUI({
 
 output$ui_dtree_remove <- renderUI({
   req(length(r_info[["dtree_list"]]) > 1)
-  actionButton("dtree_remove", "Remove", icon = icon("trash"), class = "btn-danger")
+  actionButton("dtree_remove", "Remove", icon = icon("trash", verify_fa = FALSE), class = "btn-danger")
 })
 
 dtreeIsNum <- function(x) {
@@ -152,7 +152,7 @@ output$dtree <- renderUI({
             ),
             style = "padding-top:10px;"
           ),
-          td(actionButton("dtree_run", "Calculate tree", icon = icon("play"), class = "btn-success"), class = "top_mini"),
+          td(actionButton("dtree_run", "Calculate tree", icon = icon("play", verify_fa = FALSE), class = "btn-success"), class = "top_mini"),
           td(uiOutput("ui_dtree_name"), class = "top_mini"),
           td(uiOutput("ui_dtree_list"), class = "top_mini"),
           td(uiOutput("ui_dtree_remove"), class = "top_mini"),
@@ -210,7 +210,7 @@ output$dtree <- renderUI({
           ),
           class = "top_small"
         ),
-        td(actionButton("dtree_run_plot", "Calculate tree", icon = icon("play"), class = "btn-success"), class = "top"),
+        td(actionButton("dtree_run_plot", "Calculate tree", icon = icon("play", verify_fa = FALSE), class = "btn-success"), class = "top"),
         td(numericInput(
           "dtree_dec", "Decimals",
           value = state_init("dtree_dec", 2),
@@ -231,13 +231,13 @@ output$dtree <- renderUI({
           conditionalPanel(
             condition = "input.dtree_sense_name == null",
             wellPanel(
-              actionButton("dtree_run_sense", "Calculate tree", width = "100%", icon = icon("play"), class = "btn-success")
+              actionButton("dtree_run_sense", "Calculate tree", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
             )
           ),
           conditionalPanel(
             condition = "input.dtree_sense_name != null",
             wellPanel(
-              actionButton("dtree_run_sensitivity", "Evaluate sensitivity", width = "100%", icon = icon("play"), class = "btn-success")
+              actionButton("dtree_run_sensitivity", "Evaluate sensitivity", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
             )
           ),
           wellPanel(

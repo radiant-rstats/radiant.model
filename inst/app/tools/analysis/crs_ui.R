@@ -78,7 +78,7 @@ output$ui_crs <- renderUI({
     conditionalPanel(
       "input.tabs_crs == 'Summary'",
       wellPanel(
-        actionButton("crs_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("crs_run", "Estimate model", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       )
     ),
     conditionalPanel(
@@ -91,7 +91,7 @@ output$ui_crs <- renderUI({
         HTML("<label>Store recommendations:</label>"),
         tags$table(
           tags$td(uiOutput("ui_crs_store_pred_name")),
-          tags$td(actionButton("crs_store_pred", "Store", icon = icon("plus")), class = "top_mini")
+          tags$td(actionButton("crs_store_pred", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top_mini")
         )
       )
     ),

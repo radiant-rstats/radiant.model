@@ -12,8 +12,9 @@ nb_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   nb_args$data_filter <- if (input$show_filter) input$data_filter else ""
   nb_args$dataset <- input$dataset
-  for (i in r_drop(names(nb_args)))
+  for (i in r_drop(names(nb_args))) {
     nb_args[[i]] <- input[[paste0("nb_", i)]]
+  }
   nb_args
 })
 
@@ -21,13 +22,14 @@ nb_plot_args <- as.list(if (exists("plot.nb")) {
   formals(plot.nb)
 } else {
   formals(radiant.model:::plot.nb)
-} )
+})
 
 ## list of function inputs selected by user
 nb_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(nb_plot_args))
+  for (i in names(nb_plot_args)) {
     nb_plot_args[[i]] <- input[[paste0("nb_", i)]]
+  }
   nb_plot_args
 })
 
@@ -35,13 +37,14 @@ nb_pred_args <- as.list(if (exists("predict.nb")) {
   formals(predict.nb)
 } else {
   formals(radiant.model:::predict.nb)
-} )
+})
 
 ## list of function inputs selected by user
 nb_pred_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(nb_pred_args))
+  for (i in names(nb_pred_args)) {
     nb_pred_args[[i]] <- input[[paste0("nb_", i)]]
+  }
 
   nb_pred_args$pred_cmd <- nb_pred_args$pred_data <- ""
   if (input$nb_predict == "cmd") {
@@ -68,8 +71,9 @@ nb_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
 ## list of function inputs selected by user
 nb_pred_plot_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
-  for (i in names(nb_pred_plot_args))
+  for (i in names(nb_pred_plot_args)) {
     nb_pred_plot_args[[i]] <- input[[paste0("nb_", i)]]
+  }
   nb_pred_plot_args
 })
 
@@ -150,9 +154,10 @@ run_refresh(nb_args, "nb", tabs = "tabs_nb", label = "Estimate model", relabel =
 output$ui_nb <- renderUI({
   req(input$dataset)
   tagList(
-    conditionalPanel(condition = "input.tabs_nb == 'Summary'",
+    conditionalPanel(
+      condition = "input.tabs_nb == 'Summary'",
       wellPanel(
-        actionButton("nb_run", "Estimate model", width = "100%", icon = icon("play"), class = "btn-success")
+        actionButton("nb_run", "Estimate model", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")
       )
     ),
     wellPanel(
@@ -165,7 +170,8 @@ output$ui_nb <- renderUI({
       conditionalPanel(
         condition = "input.tabs_nb == 'Predict'",
         selectInput(
-          "nb_predict", label = "Prediction input type:", reg_predict,
+          "nb_predict",
+          label = "Prediction input type:", reg_predict,
           selected = state_single("nb_predict", reg_predict, "none")
         ),
         conditionalPanel(
@@ -199,14 +205,15 @@ output$ui_nb <- renderUI({
           "input.nb_predict == 'data' | input.nb_predict == 'datacmd'",
           tags$table(
             tags$td(uiOutput("ui_nb_store_pred_name")),
-            tags$td(actionButton("nb_store_pred", "Store", icon = icon("plus")), class = "top")
+            tags$td(actionButton("nb_store_pred", "Store", icon = icon("plus", verify_fa = FALSE)), class = "top")
           )
         )
       ),
       conditionalPanel(
         condition = "input.tabs_nb == 'Plot'",
         selectInput(
-          "nb_plots", "Plots:", choices = nb_plots,
+          "nb_plots", "Plots:",
+          choices = nb_plots,
           selected = state_single("nb_plots", nb_plots)
         ),
         conditionalPanel(
@@ -224,12 +231,18 @@ output$ui_nb <- renderUI({
 })
 
 nb_plot <- reactive({
-  if (nb_available() != "available") return()
-  if (radiant.data::is_empty(input$nb_plots, "none")) return()
+  if (nb_available() != "available") {
+    return()
+  }
+  if (radiant.data::is_empty(input$nb_plots, "none")) {
+    return()
+  }
   req(input$nb_lev)
 
   nb_res <- .nb()
-  if (is.character(nb_res)) return()
+  if (is.character(nb_res)) {
+    return()
+  }
 
   n_vars <- length(nb_res$vars)
   if (input$nb_plots == "correlations") {
@@ -247,14 +260,23 @@ nb_plot <- reactive({
   list(plot_width = plot_width, plot_height = plot_height)
 })
 
-nb_plot_width <- function()
-  nb_plot() %>% {if (is.list(.)) .$plot_width else 650}
+nb_plot_width <- function() {
+  nb_plot() %>%
+    {
+      if (is.list(.)) .$plot_width else 650
+    }
+}
 
-nb_plot_height <- function()
-  nb_plot() %>% {if (is.list(.)) .$plot_height else 500}
+nb_plot_height <- function() {
+  nb_plot() %>%
+    {
+      if (is.list(.)) .$plot_height else 500
+    }
+}
 
-nb_pred_plot_height <- function()
+nb_pred_plot_height <- function() {
   if (input$nb_pred_plot) 500 else 1
+}
 
 ## output is called from the main radiant ui.R
 output$nb <- renderUI({
@@ -314,20 +336,29 @@ nb_available <- reactive({
     nbi <- nb_inputs()
     nbi$envir <- r_data
     do.call(nb, nbi)
-
   })
 })
 
 .summary_nb <- reactive({
-  if (not_pressed(input$nb_run)) return("** Press the Estimate button to estimate the model **")
-  if (nb_available() != "available") return(nb_available())
+  if (not_pressed(input$nb_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (nb_available() != "available") {
+    return(nb_available())
+  }
   summary(.nb())
 })
 
 .predict_nb <- reactive({
-  if (nb_available() != "available") return(nb_available())
-  if (not_pressed(input$nb_run)) return("** Press the Estimate button to estimate the model **")
-  if (radiant.data::is_empty(input$nb_predict, "none")) return("** Select prediction input **")
+  if (nb_available() != "available") {
+    return(nb_available())
+  }
+  if (not_pressed(input$nb_run)) {
+    return("** Press the Estimate button to estimate the model **")
+  }
+  if (radiant.data::is_empty(input$nb_predict, "none")) {
+    return("** Select prediction input **")
+  }
 
   if ((input$nb_predict == "data" || input$nb_predict == "datacmd") && radiant.data::is_empty(input$nb_pred_data)) {
     return("** Select data for prediction **")
@@ -345,9 +376,10 @@ nb_available <- reactive({
 })
 
 .predict_print_nb <- reactive({
-  .predict_nb() %>% {
-    if (is.character(.)) cat(., "\n") else print(.)
-  }
+  .predict_nb() %>%
+    {
+      if (is.character(.)) cat(., "\n") else print(.)
+    }
 })
 
 .predict_plot_nb <- reactive({
@@ -395,7 +427,9 @@ nb_available <- reactive({
 observeEvent(input$nb_store_pred, {
   req(!radiant.data::is_empty(input$nb_pred_data), pressed(input$nb_run))
   pred <- .predict_nb()
-  if (is.null(pred)) return()
+  if (is.null(pred)) {
+    return()
+  }
   fixed <- unlist(strsplit(input$nb_store_pred_name, "(\\s*,\\s*|\\s*;\\s*)")) %>%
     fix_names() %>%
     paste0(collapse = ", ")
@@ -410,7 +444,9 @@ observeEvent(input$nb_store_pred, {
 })
 
 nb_report <- function() {
-  if (radiant.data::is_empty(input$nb_evar)) return(invisible())
+  if (radiant.data::is_empty(input$nb_evar)) {
+    return(invisible())
+  }
   outputs <- c("summary")
   inp_out <- list("", "")
   figs <- FALSE
@@ -421,7 +457,7 @@ nb_report <- function() {
   }
   xcmd <- ""
   if (!radiant.data::is_empty(input$nb_predict, "none") &&
-     (!radiant.data::is_empty(input$nb_pred_data) || !radiant.data::is_empty(input$nb_pred_cmd))) {
+    (!radiant.data::is_empty(input$nb_pred_data) || !radiant.data::is_empty(input$nb_pred_cmd))) {
     pred_args <- clean_args(nb_pred_inputs(), nb_pred_args[-1])
 
     if (!radiant.data::is_empty(pred_args$pred_cmd)) {
@@ -446,7 +482,8 @@ nb_report <- function() {
           fix_names() %>%
           deparse(., control = getOption("dctrl"), width.cutoff = 500L)
       }
-      xcmd <- paste0(xcmd, "\n", input$nb_pred_data, " <- store(",
+      xcmd <- paste0(
+        xcmd, "\n", input$nb_pred_data, " <- store(",
         input$nb_pred_data, ", pred, name = ", name, ")"
       )
     }
