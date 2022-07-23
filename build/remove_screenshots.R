@@ -17,5 +17,11 @@ for (f in fn) {
 
 setwd(cdir)
 
-# remove after revering the changes from the code above
-# unlink("inst/app/tools/help/figures/place_holder.txt")
+## submit package to CRAN
+devtools::submit_cran()
+
+## use the git-tab to manually revert all changes to docs and
+## deletion of images
+
+## remove after revering the changes from the code above
+unlink("inst/app/tools/help/figures/place_holder.txt")
