@@ -1,6 +1,6 @@
 ## Resubmission
 
-This is a resubmission. In this version is have added a feature to the shiny interface to create screenshots of application settings. See NEWS.md. 
+This is a resubmission. In this version I have addressed an issue connected to R 4.2 and higher where gsub("[\x80-\xFF]", "", text) is no longer valid. See NEWS.md. 
 
 ## Test environments
 
@@ -12,6 +12,19 @@ This is a resubmission. In this version is have added a feature to the shiny int
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.data.
 
 # Previous cran-comments
+
+## Resubmission
+
+This is a resubmission. In this version is have added a feature to the shiny interface to create screenshots of application settings. See NEWS.md. 
+
+## Test environments
+
+* macOS, R 4.2.1
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.data.
 
 ## Resubmission
 

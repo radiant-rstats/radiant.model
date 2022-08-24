@@ -11,15 +11,24 @@
 #' @seealso \code{\link{plot.dtree}} to plot results
 #'
 #' @importFrom radiant.data fix_smart
+#' @importFrom stringi stri_escape_unicode
 #'
 #' @export
 dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
-  yl <- fix_smart(yl) %>%
-    gsub("[^A-Za-z0-9$%\\:\\.\t \\-\\(\\)]", "", .) %>%
-    gsub("\t", "    ", .)
+  rv <- R.Version()
+  rv <- paste(rv$major, rv$minor, sep = ".")
+  if (rv > "4.2.0") {
+   yl <- fix_smart(yl) %>%
+      stringi::stri_escape_unicode() %>%
+      gsub("\t", "    ", .)
+  } else {
+    yl <- fix_smart(yl) %>%
+      gsub("[\x80-\xFF]", "", .) %>%
+      gsub("\t", "    ", .)
+  }
 
   ## container to collect errors
   err <- c()

@@ -1,3 +1,7 @@
+# radiant.model 1.4.7
+
+* gsub("[\x80-\xFF]", "", text) is no longer valid in R 4.2.0 and above. Non-asci symbols will now be escaped using stringi
+
 # radiant.model 1.4.6
 
 * Added option to create screenshots of settings on a page. Approach is inspired by the snapper package by @yonicd
