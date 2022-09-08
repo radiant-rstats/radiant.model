@@ -1,4 +1,4 @@
-# radiant.model 1.4.7
+# radiant.model 1.4.8
 
 * gsub("[\x80-\xFF]", "", text) is no longer valid in R 4.2.0 and above. Non-asci symbols will now be escaped using stringi
 

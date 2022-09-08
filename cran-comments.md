@@ -1,6 +1,8 @@
 ## Resubmission
 
-This is a resubmission. In this version I have addressed an issue connected to R 4.2 and higher where gsub("[\x80-\xFF]", "", text) is no longer valid. See NEWS.md. 
+This is a resubmission. In this version I have update the approach the approach to deal with the change in R 4.2 and higher where gsub("[\x80-\xFF]", "", text) is no longer valid. See NEWS.md.  
+
+This resubmission is only 2 weeks after the last submission. The urgency is due to students starting classes in the coming week. My apologies. 
 
 ## Test environments
 
@@ -12,6 +14,20 @@ This is a resubmission. In this version I have addressed an issue connected to R
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.data.
 
 # Previous cran-comments
+
+## Resubmission
+
+This is a resubmission. In this version I have addressed an issue connected to R 4.2 and higher where gsub("[\x80-\xFF]", "", text) is no longer valid. See NEWS.md. 
+
+## Test environments
+
+* macOS, R 4.2.1
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for radiant.data.
+
 
 ## Resubmission
 
