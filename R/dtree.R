@@ -20,8 +20,8 @@ dtree_parser <- function(yl) {
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
   rv <- R.Version()
   rv <- paste(rv$major, rv$minor, sep = ".")
-  if (rv > "4.2.0") {
-   yl <- fix_smart(yl) %>%
+  if (rv >= "4.2.0") {
+    yl <- fix_smart(yl) %>%
       stringi::stri_escape_unicode() %>%
       gsub("\t", "    ", .)
   } else {

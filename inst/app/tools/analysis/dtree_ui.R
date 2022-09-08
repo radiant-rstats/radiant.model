@@ -453,7 +453,12 @@ observeEvent(input$dtree_load_yaml, {
   yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
 
   ## remove characters that may cause problems in shinyAce
-  yaml_file %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r", "\n", .)
+
+  if (rv >= "4.2.0") {
+    yaml_file %<>% stringi::stri_escape_unicode() %>% gsub("\r", "\n", .)
+  } else {
+    yaml_file %<>% gsub("[\x80-\xFF]", "", .) %>% gsub("\r", "\n", .)
+  }
 
   dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name) %>%
     fix_names()
