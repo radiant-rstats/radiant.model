@@ -10,25 +10,15 @@
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{plot.dtree}} to plot results
 #'
-#' @importFrom radiant.data fix_smart
-#' @importFrom stringi stri_escape_unicode
+#' @importFrom stringi stri_trans_general
 #'
 #' @export
 dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
-  rv <- R.Version()
-  rv <- paste(rv$major, rv$minor, sep = ".")
-  if (rv >= "4.2.0") {
-    yl <- fix_smart(yl) %>%
-      stringi::stri_escape_unicode() %>%
-      gsub("\t", "    ", .)
-  } else {
-    yl <- fix_smart(yl) %>%
-      gsub("[\x80-\xFF]", "", .) %>%
-      gsub("\t", "    ", .)
-  }
+  yl <- stringi::stri_trans_general(yl, 'latin-ascii') %>%
+    gsub("\t", "    ", .)
 
   ## container to collect errors
   err <- c()
