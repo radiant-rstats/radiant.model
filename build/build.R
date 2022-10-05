@@ -44,7 +44,7 @@ sapply(pkg, rem_old)
 ## avoid 'loaded namespace' stuff when building for mac
 system(paste0(Sys.which("R"), " -e \"setwd('", getwd(), "'); app <- '", pkg, "'; source('build/build_mac.R')\""))
 
-fl <- list.files(pattern = "*.zip", path = "~/Dropbox/r-packages/", full.names = TRUE)
+fl <- list.files(pattern = "*.zip", path = "~/Dropbox/r-packages", full.names = TRUE)
 for (f in fl) {
   file.copy(f, "~/gh/")
   unlink(f)
