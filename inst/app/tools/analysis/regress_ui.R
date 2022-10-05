@@ -606,7 +606,7 @@ regress_report <- function() {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
 
     if (!radiant.data::is_empty(pred_args$pred_cmd)) {
-      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
+      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";\\s*")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }

@@ -771,7 +771,7 @@ radiant_sim_auto <- reactive({
   auto_nms <- list()
 
   for (i in nms) {
-    auto_nms[[paste0("{sim ", i, "}")]] <- strsplit(inp[[i]], ";")[[1]] %>%
+    auto_nms[[paste0("{sim ", i, "}")]] <- strsplit(inp[[i]], ";\\s*")[[1]] %>%
       strsplit(., "(\\s+|=)") %>%
       base::Filter(length, .) %>%
       sapply(., `[[`, 1)
@@ -953,7 +953,7 @@ simulater_report <- function() {
   }
   for (i in c(sim_types_vec, "form")) {
     if (i %in% names(inp)) {
-      inp[[i]] <- strsplit(inp[[i]], ";")[[1]]
+      inp[[i]] <- strsplit(inp[[i]], ";\\s*")[[1]]
     }
   }
   if (length(inp[["form"]]) == 1 && grepl("^#", inp[["form"]])) {
@@ -1023,13 +1023,13 @@ observeEvent(input$repeater_report, {
   if (input$rep_byvar == ".sim") inp$grid <- NULL
 
   if (!radiant.data::is_empty(inp[["form"]])) {
-    inp[["form"]] <- strsplit(inp[["form"]], ";")[[1]]
+    inp[["form"]] <- strsplit(inp[["form"]], ";\\s*")[[1]]
     if (length(inp[["form"]]) == 1 && grepl("^#", inp[["form"]])) {
       inp[["form"]] <- NULL
     }
   }
   if (!radiant.data::is_empty(inp[["grid"]])) {
-    inp[["grid"]] <- strsplit(inp[["grid"]], ";")[[1]]
+    inp[["grid"]] <- strsplit(inp[["grid"]], ";\\s*")[[1]]
   }
   inp$name <- NULL
   update_report(

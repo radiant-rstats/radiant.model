@@ -867,7 +867,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
         gsub("\\s+", " ", .) %>%
         gsub("<-", "=", .)
 
-      cmd_vars <- strsplit(pred_cmd, ";")[[1]] %>%
+      cmd_vars <- strsplit(pred_cmd, ";\\s*")[[1]] %>%
         strsplit(., "=") %>%
         sapply("[", 1) %>%
         gsub("(^\\s+|\\s+$)", "", .)

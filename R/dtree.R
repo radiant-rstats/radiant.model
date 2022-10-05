@@ -770,7 +770,7 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
   } else if (radiant.data::is_empty(decs)) {
     return("** No decisions were specified **")
   }
-  vars <- strsplit(vars, ";") %>%
+  vars <- strsplit(vars, ";\\s*") %>%
     unlist() %>%
     strsplit(" ")
 

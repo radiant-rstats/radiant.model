@@ -402,7 +402,7 @@ dtree_sense_height <- eventReactive(input$dtree_run_sensitivity, {
   if (radiant.data::is_empty(input$dtree_sense, "")) {
     650
   } else {
-    strsplit(input$dtree_sense, ";") %>%
+    strsplit(input$dtree_sense, ";\\s*") %>%
       unlist() %>%
       unique() %>%
       length() * 400
@@ -453,7 +453,7 @@ observeEvent(input$dtree_load_yaml, {
   yaml_file <- paste0(readLines(inFile$datapath), collapse = "\n")
 
   ## remove characters that may cause problems in shinyAce
-  yaml_file <- stringi::stri_trans_general(yaml_file, 'latin-ascii') %>%
+  yaml_file <- stringi::stri_trans_general(yaml_file, "latin-ascii") %>%
     gsub("\r", "\n", .)
 
   dtree_name <- sub(paste0(".", tools::file_ext(inFile$name)), "", inFile$name) %>%
@@ -520,7 +520,7 @@ dtree_report <- function() {
     inp_out <- list(list(input = TRUE, output = FALSE), "")
     figs <- FALSE
     if (!radiant.data::is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
-      vars <- strsplit(input$dtree_sense, ";")[[1]] %>% gsub("\n+", "", .)
+      vars <- strsplit(input$dtree_sense, ";\\s*")[[1]] %>% gsub("\n+", "", .)
       inp_out[[2]] <- list(
         vars = vars,
         decs = input$dtree_sense_decision,
