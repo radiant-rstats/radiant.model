@@ -411,8 +411,8 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
         prob_check <<- "One or more probabilities are smalller than 0.\nPlease correct the tree input ('p:') and re-calculate the tree"
       } else if (max(probs) > 1) {
         prob_check <<- "One or more probabilities are larger than 1.\nPlease correct the tree input ('p:') and re-calculate the tree"
-      } else if (round(sum(probs), 2) != 1) {
-        prob_check <<- "Probabilities for one (or more) chance nodes do not sum to 1.\nPlease correct the tree input ('p:') and re-calculate the tree"
+      } else if (!near(sum(probs), 1)) {
+        prob_check <<- glue("Probabilities for one (or more) chance nodes do not sum to 1 ({sum(probs)}).\nPlease correct the tree input ('p:') and re-calculate the tree")
       }
     } else if (x$type == "decision") {
       x$payoff <- get(opt)(sapply(x$children, decision_payoff))

@@ -265,8 +265,8 @@ simulater <- function(
       if (inherits(dpar, "try-error") || any(is.na(dpar))) {
         mess <- c("error", paste0("Input for discrete variable # ", i, " contains an error. Please review the input carefully"))
         return(add_class(mess, "simulater"))
-      } else if (sum(dpar[, 2]) != 1) {
-        mess <- c("error", paste0("Probabilities for discrete variable # ", i, " do not sum to 1 (", sum(dpar[, 2]), ")"))
+      } else if (!near(sum(dpar[, 2]), 1)) {
+        mess <- c("error", glue("Probabilities for discrete variable # {i} do not sum to 1 ({sum(dpar[, 2])})"))
         return(add_class(mess, "simulater"))
       }
 

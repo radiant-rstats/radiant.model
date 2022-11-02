@@ -1,6 +1,7 @@
-# radiant.model 1.4.9
+# radiant.model 1.4.10
 
 * Fix when parsing commands using strsplit on ';'
+* Use `dplyr::near` to avoid issues with user-provided probabilities not summing to 1 due to machine tolerance
 
 # radiant.model 1.4.8
 
