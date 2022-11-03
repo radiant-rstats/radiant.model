@@ -289,29 +289,47 @@ simulater <- function(
     pfuncs <- funcs
   }
 
-  form %<>% sim_cleaner()
-  if (form != "") {
+  # form %<>% sim_cleaner()
+  # if (!radiant.data::is_empty(form)) {
+  #   s <- form %>%
+  #     gsub("\\s+", "", .) %>%
+  #     gsub("<-", "=", .) %>%
+  #     sim_splitter("=")
+  #   for (i in seq_len(length(s))) {
+  #     if (grepl("^\\s*?#", s[[i]][1], perl = TRUE)) next
+  #     print(s[[i]])
+  #     obj <- s[[i]][1]
+  #     fobj <- s[[i]][-1]
+  #     if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
+  #     out <- try(do.call(with, list(dataset, c(pfuncs, parse(text = fobj)))), silent = TRUE)
+  #     if (!inherits(out, "try-error")) {
+  #       dataset[[obj]] <- out
+  #     } else {
+  #       dataset[[obj]] <- NA
+  #       mess <- c(
+  #           "error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";\\s*") %>%
+  #           unlist() %>%
+  #           paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message)
+  #       )
+  #       return(add_class(mess, "simulater"))
+  #     }
+  #   }
+  # }
+
+  if (!radiant.data::is_empty(form)) {
     s <- form %>%
-      gsub("\\s+", "", .) %>%
-      gsub("<-", "=", .) %>%
-      sim_splitter("=")
-    for (i in seq_len(length(s))) {
-      if (grepl("^\\s*?#", s[[i]][1], perl = TRUE)) next
-      obj <- s[[i]][1]
-      fobj <- s[[i]][-1]
-      if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
-      out <- try(do.call(with, list(dataset, c(pfuncs, parse(text = fobj)))), silent = TRUE)
-      if (!inherits(out, "try-error")) {
-        dataset[[obj]] <- out
-      } else {
-        dataset[[obj]] <- NA
-        mess <- c(
-            "error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";\\s*") %>%
-            unlist() %>%
-            paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message)
-        )
-        return(add_class(mess, "simulater"))
-      }
+      gsub("[ ]{2,}", " ", .) %>%
+      gsub("<-", "=", .)
+
+    out <- do.call(within, list(dataset, c(pfuncs, parse(text = s))))
+    if (!inherits(out, "try-error")) {
+      dataset <- out
+    } else {
+      mess <- c(
+        "error", paste0("Formula was not successfully evaluated:\n\n", form) %>%
+                 paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message
+      )
+      return(add_class(mess, "simulater"))
     }
   }
 
@@ -733,29 +751,47 @@ repeater <- function(
     sim_data_name <- NULL
   }
 
-  form %<>% sim_cleaner()
-  if (form != "") {
-    s <- form %>%
-      gsub("\\s+", "", .) %>%
-      gsub("<-", "=", .) %>%
-      sim_splitter("=")
-    for (i in 1:length(s)) {
-      if (grepl("^#", s[[i]][1])) next
-      obj <- s[[i]][1]
-      fobj <- s[[i]][-1]
-      if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
-      out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
-      if (!inherits(out, "try-error")) {
-        ret[[obj]] <- out
-      } else {
-        ret[[obj]] <- NA
-        mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";\\s*") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that repeated simulation formulas can only be applied to\n(summarized) 'Output variables'"))
-        if (!radiant.data::is_empty(fun)) {
-          cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
-          mess[2] <- paste0(mess[2], "\n\nAvailable (summarized) output variables:\n* ", paste0(cn, collapse = "\n* "))
-        }
-        return(add_class(mess, "repeater"))
+  # form %<>% sim_cleaner()
+  # if (form != "") {
+  #   s <- form %>%
+  #     gsub("\\s+", "", .) %>%
+  #     gsub("<-", "=", .) %>%
+  #     sim_splitter("=")
+  #   for (i in 1:length(s)) {
+  #     if (grepl("^#", s[[i]][1])) next
+  #     obj <- s[[i]][1]
+  #     fobj <- s[[i]][-1]
+  #     if (length(fobj) > 1) fobj <- paste0(fobj, collapse = "=")
+  #     out <- try(do.call(with, list(ret, parse(text = fobj))), silent = TRUE)
+  #     if (!inherits(out, "try-error")) {
+  #       ret[[obj]] <- out
+  #     } else {
+  #       ret[[obj]] <- NA
+  #       mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", strsplit(form, ";\\s*") %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that repeated simulation formulas can only be applied to\n(summarized) 'Output variables'"))
+  #       if (!radiant.data::is_empty(fun)) {
+  #         cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
+  #         mess[2] <- paste0(mess[2], "\n\nAvailable (summarized) output variables:\n* ", paste0(cn, collapse = "\n* "))
+  #       }
+  #       return(add_class(mess, "repeater"))
+  #     }
+  #   }
+  # }
+
+  if (!radiant.data::is_empty(form)) {
+    form <- form %>%
+      gsub("[ ]{2,}", " ", .) %>%
+      gsub("<-", "=", .)
+
+    out <- try(do.call(within, list(ret, parse(text = form))), silent = TRUE)
+    if (!inherits(out, "try-error")) {
+      ret <- out
+    } else {
+      mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", form) %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that repeated simulation formulas can only be applied to\n(summarized) 'Output variables'")
+      if (!radiant.data::is_empty(fun)) {
+        cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
+        mess[2] <- paste0(mess[2], "\n\nAvailable (summarized) output variables:\n* ", paste0(cn, collapse = "\n* "))
       }
+      return(add_class(mess, "repeater"))
     }
   }
 
