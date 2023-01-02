@@ -1,6 +1,7 @@
 rf_plots <- c(
   "None" = "none",
-  "Variable Importance" = "vimp",
+  "Permutation Importance" = "vip",
+  "Prediction plots" = "pred_plot",
   "Partial Dependence" = "pdp",
   "Dashboard" = "dashboard"
 )
@@ -46,6 +47,21 @@ rf_pred_inputs <- reactive({
     rf_pred_args$pred_data <- input$rf_pred_data
   }
   rf_pred_args
+})
+
+rf_plot_args <- as.list(if (exists("plot.rforest")) {
+  formals(plot.rforest)
+} else {
+  formals(radiant.model:::plot.rforest)
+})
+
+## list of function inputs selected by user
+rf_plot_inputs <- reactive({
+  ## loop needed because reactive values don't allow single bracket indexing
+  for (i in names(rf_plot_args)) {
+    rf_plot_args[[i]] <- input[[paste0("rf_", i)]]
+  }
+  rf_plot_args
 })
 
 rf_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
@@ -132,6 +148,10 @@ output$ui_rf_evar <- renderUI({
     selectize = FALSE
   )
 })
+
+# function calls generate UI elements
+output_incl("rf")
+output_incl_int("rf")
 
 output$ui_rf_wts <- renderUI({
   isNum <- .get_class() %in% c("integer", "numeric", "ts")
@@ -320,9 +340,14 @@ output$ui_rf <- renderUI({
           uiOutput("ui_rf_nrobs")
         ),
         conditionalPanel(
-          condition = "input.rf_plots == 'pdp'",
-          checkboxInput("rf_qtiles", "Show quintiles", state_init("rf_qtiles", FALSE))
+          condition = "input.rf_plots == 'pdp' | input.rf_plots == 'pred_plot'",
+          uiOutput("ui_rf_incl"),
+          uiOutput("ui_rf_incl_int")
         )
+        # conditionalPanel(
+        #   condition = "input.rf_plots == 'pdp'",
+        #   checkboxInput("rf_qtiles", "Show quintiles", state_init("rf_qtiles", FALSE))
+        # )
       ),
       # conditionalPanel(
       #   condition = "input.tabs_rf == 'Summary'",
@@ -352,31 +377,33 @@ rf_plot <- reactive({
     return()
   }
   nr_vars <- length(res$evar)
+  plot_height <- 500
+  plot_width <- 650
   if ("dashboard" %in% input$rf_plots) {
     plot_height <- 750
-  } else if ("pdp" %in% input$rf_plots) {
-    plot_height <- max(500, ceiling(nr_vars / 2) * 250)
+  } else if (input$rf_plots %in% c("pdp", "pred_plot")) {
+    nr_vars <- length(input$rf_incl) + length(input$rf_incl_int)
+    plot_height <- max(250, ceiling(nr_vars / 2) * 250)
+    if (length(input$rf_incl_int) > 0) {
+      plot_width <- plot_width + min(2, length(input$rf_incl_int)) * 90
+    }
   } else if ("vimp" %in% input$rf_plots) {
-    plot_height <- max(300, nr_vars * 50)
-  } else {
-    plot_height <- 500
+    plot_height <- max(500, nr_vars * 35)
+  } else if ("vip" %in% input$rf_plots) {
+    plot_height <- max(500, nr_vars * 35)
   }
 
-  list(plot_width = 650, plot_height = plot_height)
+  list(plot_width = plot_width, plot_height = plot_height)
 })
 
 rf_plot_width <- function() {
   rf_plot() %>%
-    {
-      if (is.list(.)) .$plot_width else 650
-    }
+    (function(x) if (is.list(x)) x$plot_width else 650)
 }
 
 rf_plot_height <- function() {
   rf_plot() %>%
-    {
-      if (is.list(.)) .$plot_height else 500
-    }
+    (function(x) if (is.list(x)) x$plot_height else 500)
 }
 
 rf_pred_plot_height <- function() {
@@ -506,9 +533,7 @@ rf_available <- reactive({
 
 .predict_print_rf <- reactive({
   .predict_rf() %>%
-    {
-      if (is.character(.)) cat(., "\n") else print(.)
-    }
+    (function(x) if (is.character(x)) cat(x, "\n") else print(x))
 })
 
 .predict_plot_rf <- reactive({
@@ -530,18 +555,15 @@ rf_available <- reactive({
   if (rf_available() != "available") {
     return(rf_available())
   }
-  # req(input$rf_size)
   if (radiant.data::is_empty(input$rf_plots, "none")) {
     return("Please select a random forest plot from the drop-down menu")
   }
-  pinp <- list(plots = input$rf_plots, shiny = TRUE)
+  pinp <- rf_plot_inputs()
+  pinp$shiny <- TRUE
   if (input$rf_plots == "dashboard") {
     req(input$rf_nrobs)
-    pinp <- c(pinp, nrobs = as_integer(input$rf_nrobs))
-  } else if (input$rf_plots == "pdp") {
-    pinp <- c(pinp, qtiles = input$rf_qtiles)
   }
-
+  check_for_pdp_pred_plots("rf")
   withProgress(message = "Generating plots", value = 1, {
     do.call(plot, c(list(x = .rf()), pinp))
   })
@@ -588,13 +610,9 @@ rf_report <- function() {
   figs <- FALSE
 
   if (!radiant.data::is_empty(input$rf_plots, "none")) {
-    if (input$rf_type == "regression" && input$rf_plots == "dashboard") {
-      inp_out[[2]] <- list(plots = input$rf_plots, nrobs = as_integer(input$rf_nrobs), custom = FALSE)
-    } else if (input$rf_plots == "pdp") {
-      inp_out[[2]] <- list(plots = input$rf_plots, qtiles = input$rf_qtiles, custom = FALSE)
-    } else {
-      inp_out[[2]] <- list(plots = input$rf_plots, custom = FALSE)
-    }
+    inp <- check_plot_inputs(rf_plot_inputs())
+    inp_out[[2]] <- clean_args(inp, rf_plot_args[-1])
+    inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }

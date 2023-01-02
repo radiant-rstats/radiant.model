@@ -12,6 +12,7 @@
   intercept = FALSE,
   incl = NULL,
   excl = NULL,
+  incl_int = NULL,
   nrobs = -1,
   shiny = FALSE,
   custom = FALSE,
@@ -29,9 +30,11 @@
 
 \item{intercept}{Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default}
 
-\item{incl}{Which variables to include in a coefficient plot}
+\item{incl}{Which variables to include in a coefficient plot or PDP plot}
 
 \item{excl}{Which variables to exclude in a coefficient plot}
+
+\item{incl_int}{Which interactions to investigate in PDP plots}
 
 \item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
 

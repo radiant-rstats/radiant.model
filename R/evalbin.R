@@ -224,7 +224,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     plot_list[["lift"]] <-
       visualize(x$dataset, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), size = .1, color = "black") +
+      geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), linewidth = .1, color = "black") +
       labs(y = "Cumulative lift", x = "Proportion of customers")
   }
 
@@ -241,7 +241,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     plot_list[["gains"]] <-
       visualize(dataset, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), size = .1, color = "black") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), linewidth = .1, color = "black") +
       labs(y = "Cumulative gains", x = "Proportion of customers")
   }
 
@@ -263,7 +263,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       custom = TRUE
     ) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
       labs(y = "Profit", x = "Proportion of customers")
   }
 
@@ -277,7 +277,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       custom = TRUE
     ) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), size = .1, color = "black") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
       labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers")
   }
 

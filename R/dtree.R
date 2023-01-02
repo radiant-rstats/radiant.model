@@ -17,7 +17,7 @@ dtree_parser <- function(yl) {
   if (is_string(yl)) yl <- unlist(strsplit(yl, "\n"))
 
   ## remove characters that may cause problems in shinyAce or DiagrammeR/mermaid.js
-  yl <- stringi::stri_trans_general(yl, 'latin-ascii') %>%
+  yl <- stringi::stri_trans_general(yl, "latin-ascii") %>%
     gsub("\t", "    ", .)
 
   ## container to collect errors
@@ -154,6 +154,7 @@ dtree_parser <- function(yl) {
 #' @importFrom yaml yaml.load
 #' @importFrom stringr str_match
 #' @importFrom data.tree as.Node Clone isLeaf isNotLeaf Get
+#' @importFrom dplyr near
 #'
 #' @seealso \code{\link{summary.dtree}} to summarize results
 #' @seealso \code{\link{plot.dtree}} to plot results
@@ -755,6 +756,8 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
 #'     custom = FALSE
 #'   )
 #'
+#' @importFrom rlang .data
+#'
 #' @seealso \code{\link{dtree}} to generate the result
 #' @seealso \code{\link{plot.dtree}} to summarize results
 #' @seealso \code{\link{summary.dtree}} to summarize results
@@ -808,9 +811,9 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
   for (i in names(ret)) {
     dat <- gather(ret[[i]], "decisions", "payoffs", !!base::setdiff(names(ret[[i]]), "values"))
     plot_list[[i]] <-
-      ggplot(dat, aes_string(x = "values", y = "payoffs", color = "decisions")) +
+      ggplot(dat, aes(x = .data$values, y = .data$payoffs, color = .data$decisions)) +
       geom_line() +
-      geom_point(aes_string(shape = "decisions"), size = 2) +
+      geom_point(aes(shape = .data$decisions), size = 2) +
       labs(
         title = paste0("Sensitivity of decisions to changes in ", i),
         x = i

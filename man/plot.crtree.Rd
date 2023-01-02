@@ -12,6 +12,8 @@
   labs = TRUE,
   nrobs = Inf,
   dec = 2,
+  incl = NULL,
+  incl_int = NULL,
   shiny = FALSE,
   custom = FALSE,
   ...
@@ -32,6 +34,10 @@
 
 \item{dec}{Decimal places to round results to}
 
+\item{incl}{Which variables to include in a coefficient plot or PDP plot}
+
+\item{incl_int}{Which interactions to investigate in PDP plots}
+
 \item{shiny}{Did the function call originate inside a shiny app}
 
 \item{custom}{Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.}
@@ -51,6 +57,7 @@ result <- crtree(diamonds, "price", c("carat", "clarity", "cut"))
 plot(result, plots = "prune")
 result <- crtree(dvd, "buy", c("coupon", "purch", "last"), cp = .01)
 plot(result, plots = "imp")
+
 }
 \seealso{
 \code{\link{crtree}} to generate results

@@ -46,7 +46,7 @@ Repeated simulation
 }
 \examples{
 simdat <- simulater(
-  const = c("var_cost 5","fixed_cost 1000"),
+  const = c("var_cost 5", "fixed_cost 1000"),
   norm = "E 0 100;",
   discrete = "price 6 8 .3 .7;",
   form = c(
@@ -60,7 +60,7 @@ simdat <- simulater(
 repdat <- repeater(
   simdat,
   nr = 12,
-  vars = c("E","price"),
+  vars = c("E", "price"),
   sum_vars = "profit",
   byvar = ".sim",
   form = "profit_365 = profit_sum < 36500",

@@ -210,9 +210,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   coeff$label %<>% format(justify = "left")
   cat("\n")
   if (all(object$coeff$p.value == "NaN")) {
-    coeff[, 2] %<>% {
-      sprintf(paste0("%.", dec, "f"), .)
-    }
+    coeff[, 2] %<>% (function(x) sprintf(paste0("%.", dec, "f"), x))
     print(coeff[, 1:2], row.names = FALSE)
     cat("\nInsufficient variation in explanatory variable(s) to report additional statistics")
     return()
@@ -311,15 +309,12 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
       cnfint(object$model, level = conf_lev, dist = "t") %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
         set_colnames(c("Low", "High")) %>%
-        {
-          .$`+/-` <- (.$High - .$Low) / 2
-          .
-        } %>%
+        mutate(`+/-` = (High - Low) / 2) %>%
         mutate_all(~ sprintf(paste0("%.", dec, "f"), .)) %>%
         cbind(coeff[[2]], .) %>%
         set_rownames(object$coeff$label) %>%
         set_colnames(c("coefficient", ci_perc[1], ci_perc[2], "+/-")) %T>%
-        print
+        print()
       cat("\n")
     }
   }
@@ -380,23 +375,235 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
       }
 
       p.value <- sub_mod[, "Pr(>F)"][2] %>%
-        {
-          if (. < .001) "< .001" else round(., dec)
-        }
+        (function(x) if (x < .001) "< .001" else round(x, dec))
 
       cat(test_heading)
       object$model$model[, 1] %>%
-        {
-          sum((. - mean(.))^2)
-        } %>%
-        {
-          1 - (sub_mod$RSS / .)
-        } %>%
+        (function(x) sum((x - mean(x))^2)) %>%
+        (function(x) 1 - (sub_mod$RSS / x)) %>%
         round(dec) %>%
         cat("\nR-squared, Model 1 vs 2:", .)
       cat("\nF-statistic:", sub_mod$F[2] %>% round(dec), paste0("df(", sub_mod$Res.Df[1] - sub_mod$Res.Df[2], ",", sub_mod$Res.Df[2], "), p.value ", p.value))
     }
   }
+}
+
+#' Prediction Plots
+#'
+#' @details Faster, but less robust, alternative for PDP plots. Variable
+#' values not included in the prediction are set to either the mean or
+#' the most common value (level)
+#'
+#' @param x Return value from a model
+#' @param plot_list List used to store plots
+#' @param incl Which variables to include in prediction plots
+#' @param incl_int Which interactions to investigate in prediction plots
+#' @param fix Set the desired limited on yhat or have it calculated automatically.
+#'   Set to FALSE to have y-axis limits set by ggplot2 for each plot
+#' @param hline Add a horizontal line at the average of the target variable. When set to FALSE
+#'   no line is added. When set to a specific number, the horizontal line will be added at that value
+#' @param nr Number of values to use to generate predictions for a numeric explanatory variable
+#'
+#' @importFrom radiant.data visualize
+#' @importFrom rlang .data
+#'
+#' @export
+pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20) {
+  min_max <- c(Inf, -Inf)
+  calc_ylim <- function(lab, lst, min_max) {
+    if (isTRUE(fix)) {
+      vals <- lst[[lab]]
+      c(min(min_max[1], min(vals)), max(min_max[2], max(vals)))
+    } else if (length(fix) == 2) {
+      fix
+    } else {
+      FALSE
+    }
+  }
+
+  # needed to avoid rescaling during prediction
+  x$check <- setdiff(x$check, c("center", "standardize"))
+
+  mod_dat <- x$model$model # [, -1, drop = FALSE]
+  pvar <- "Prediction"
+
+  set_pred_name <- function(pred) {
+    if (!pvar %in% colnames(pred)) {
+      pname <- colnames(pred)[ncol(mod_dat) + 1]
+      if (pname != pvar) {
+        cn <- colnames(pred)
+        cn[cn == pname] <- pvar
+        colnames(pred) <- cn
+      }
+    }
+    return(pred)
+  }
+
+  for (pn in incl) {
+    df <- mod_dat[, pn, drop = FALSE]
+    is_num <- sapply(df, is.numeric)
+    if (is.numeric(df[[pn]])) {
+      num_range <- df[[pn]] %>%
+        (function(x) seq(min(x), max(x), length.out = nr)) %>%
+        paste0(collapse = ", ")
+      pred <- predict(x, pred_cmd = glue("{pn} = c({num_range})")) %>% set_pred_name()
+    } else {
+      pred <- predict(x, pred_cmd = glue("{pn} = levels({pn})")) %>% set_pred_name()
+    }
+    plot_list[[pn]] <- visualize(pred, xvar = pn, yvar = pvar, type = "line", custom = TRUE) + labs(y = NULL)
+    min_max <- calc_ylim(pvar, pred, min_max)
+  }
+
+  for (pn_lab in incl_int) {
+    iint <- strsplit(pn_lab, ":")[[1]]
+    df <- mod_dat[, iint, drop = FALSE]
+    is_num <- sapply(df, is.numeric)
+    if (sum(is_num) == 2) {
+      # 2 numeric variables
+      cn <- colnames(df)
+      num_range1 <- df[[cn[1]]] %>%
+        (function(x) seq(min(x), max(x), length.out = nr)) %>%
+        paste0(collapse = ", ")
+      num_range2 <- df[[cn[2]]] %>%
+        (function(x) seq(min(x), max(x), length.out = nr)) %>%
+        paste0(collapse = ", ")
+      pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})")) %>% set_pred_name()
+      plot_list[[paste0(pn_lab, "_tile")]] <- ggplot(pred, aes(x = .data[[cn[1]]], y = .data[[cn[2]]], fill = .data[[pvar]])) +
+        geom_tile()
+    } else if (sum(is_num) == 0) {
+      # 2 categorical variables
+      cn <- colnames(df)
+      pred <- predict(x, pred_cmd = glue("{cn[1]} = levels({cn[1]}), {cn[2]} = levels({cn[2]})")) %>% set_pred_name()
+      plot_list[[pn_lab]] <- visualize(
+        pred,
+        xvar = cn[1], yvar = pvar, type = "line", color = cn[2], custom = TRUE
+      ) + labs(y = NULL)
+      min_max <- calc_ylim(pvar, pred, min_max)
+    } else if (sum(is_num) == 1) {
+      # 1 categorical and one numeric variable
+      cn <- colnames(df)
+      cn_fct <- cn[!is_num]
+      cn_num <- cn[is_num]
+      num_range <- df[[cn_num[1]]] %>%
+        (function(x) seq(min(x), max(x), length.out = 20)) %>%
+        paste0(collapse = ", ")
+      pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = levels({cn_fct})")) %>% set_pred_name()
+      plot_list[[pn_lab]] <- plot(pred, xvar = cn_num[1], yvar = pvar, color = cn_fct, custom = TRUE) + labs(y = NULL)
+      min_max <- calc_ylim(pvar, pred, min_max)
+    }
+  }
+
+  if (length(min_max) > 1) {
+    for (pn_lab in intersect(c(incl, incl_int), names(plot_list))) {
+      plot_list[[pn_lab]] <- plot_list[[pn_lab]] + ylim(min_max[1], min_max[2])
+    }
+  }
+
+  if (isTRUE(hline)) hline <- mean(mod_dat[[1]])
+  if (is.numeric(hline)) {
+    for (pn_lab in intersect(c(incl, incl_int), names(plot_list))) {
+      plot_list[[pn_lab]] <- plot_list[[pn_lab]] +
+        geom_hline(yintercept = hline, lty = 2, linewidth = 0.25)
+    }
+  }
+
+  return(plot_list)
+}
+
+
+#' Create Partial Dependence Plots
+#'
+#' @param x Return value from a model
+#' @param plot_list List used to store plots
+#' @param incl Which variables to include in PDP plots
+#' @param incl_int Which interactions to investigate in PDP plots
+#' @param fix Set the desired limited on yhat or have it calculated automatically.
+#'   Set to FALSE to have y-axis limits set by ggplot2 for each plot
+#' @param hline Add a horizontal line at the average of the target variable. When set to FALSE
+#'   no line is added. When set to a specific number, the horizontal line will be added at that value
+#'
+#' @importFrom radiant.data visualize
+#' @importFrom pdp partial
+#' @importFrom ggplot2 autoplot
+#'
+#' @export
+pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE) {
+  pdp_list <- list()
+  min_max <- c(Inf, -Inf)
+  calc_ylim <- function(lab, lst, min_max) {
+    if (isTRUE(fix)) {
+      vals <- lst[[lab]]
+      c(min(min_max[1], min(vals)), max(min_max[2], max(vals)))
+    } else if (length(fix) == 2) {
+      fix
+    } else {
+      FALSE
+    }
+  }
+
+  if (length(incl_int) > 0) {
+    incl_int <- strsplit(incl_int, ":")
+  }
+  incl <- c(incl, incl_int)
+  for (pn in incl) {
+    pn_lab <- paste0(pn, collapse = ":")
+    pdp_list[[pn_lab]] <- pdp::partial(
+      x$model,
+      pred.var = pn,
+      plot = FALSE,
+      prob = x$type == "classification",
+      train = x$model$model
+    )
+    if (length(pn) < 2 || sum(c(is.numeric(x$model$model[[pn[1]]]), is.numeric(x$model$model[[pn[2]]]))) < 2) {
+      min_max <- calc_ylim("yhat", pdp_list[[pn_lab]], min_max)
+    }
+  }
+
+  for (pn_lab in names(pdp_list)) {
+    df <- pdp_list[[pn_lab]]
+    is_num <- sapply(df, is.numeric)
+    if (ncol(df) == 2) {
+      plot_list[[pn_lab]] <- autoplot(pdp_list[[pn_lab]]) +
+        labs(y = NULL)
+    } else if (sum(is_num) == 3) {
+      # 2 numeric variables
+      plot_list[[paste0(pn_lab, "_tile")]] <- autoplot(pdp_list[[pn_lab]])
+    } else if (sum(is_num) == 1) {
+      # 2 categorical variables
+      cn <- colnames(df)
+      plot_list[[pn_lab]] <- visualize(
+        df,
+        xvar = cn[1], yvar = cn[3], type = "line", color = cn[2], custom = TRUE
+      ) + labs(y = NULL)
+    } else if (sum(is_num) == 2) {
+      # 1 categorical and one numeric variable
+      cn <- colnames(df)
+      cn_fct <- cn[!is_num]
+      cn_num <- cn[is_num]
+      plot_list[[pn_lab]] <- visualize(
+        df,
+        xvar = cn_num[1], yvar = cn[3], type = "line", color = cn_fct, custom = TRUE
+      ) + labs(y = NULL)
+    }
+  }
+
+  to_augment <- names(plot_list) %>% (function(x) x[!grepl("_tile$", x)])
+
+  if (length(min_max) > 1) {
+    for (pn_lab in to_augment) {
+      plot_list[[pn_lab]] <- plot_list[[pn_lab]] + ylim(min_max[1], min_max[2])
+    }
+  }
+
+  if (isTRUE(hline)) hline <- mean(x$model$model[[1]])
+  if (is.numeric(hline)) {
+    for (pn_lab in to_augment) {
+      plot_list[[pn_lab]] <- plot_list[[pn_lab]] +
+        geom_hline(yintercept = hline, lty = 2, linewidth = 0.25)
+    }
+  }
+
+  return(plot_list)
 }
 
 #' Plot method for the regress function
@@ -408,8 +615,9 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
 #' @param lines Optional lines to include in the select plot. "line" to include a line through a scatter plot. "loess" to include a polynomial regression fit line. To include both use c("line", "loess")
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param intercept Include the intercept in the coefficient plot (TRUE, FALSE). FALSE is the default
-#' @param incl Which variables to include in a coefficient plot
+#' @param incl Which variables to include in a coefficient plot or PDP plot
 #' @param excl Which variables to exclude in a coefficient plot
+#' @param incl_int Which interactions to investigate in PDP plots
 #' @param nrobs Number of data points to show in scatter plots (-1 for all)
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
@@ -431,13 +639,14 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
 #' @importFrom dplyr sample_n
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom broom augment
+#' @importFrom rlang .data
 #'
 #' @export
 plot.regress <- function(x, plots = "", lines = "",
                          conf_lev = .95, intercept = FALSE,
                          incl = NULL, excl = NULL,
-                         nrobs = -1, shiny = FALSE,
-                         custom = FALSE, ...) {
+                         incl_int = NULL, nrobs = -1,
+                         shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     return(x)
   }
@@ -484,7 +693,7 @@ plot.regress <- function(x, plots = "", lines = "",
       geom_line() +
       labs(title = "Residuals vs Row order", x = "Row order", y = "Residuals")
 
-    plot_list[["dash4"]] <- ggplot(model, aes_string(sample = ".std.resid")) +
+    plot_list[["dash4"]] <- ggplot(model, aes(sample = .data$.std.resid)) +
       stat_qq(alpha = 0.5) +
       labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardized residuals")
 
@@ -492,7 +701,7 @@ plot.regress <- function(x, plots = "", lines = "",
       visualize(model, xvar = ".resid", custom = TRUE) +
       labs(title = "Histogram of residuals", x = "Residuals")
 
-    plot_list[["dash6"]] <- ggplot(model, aes_string(x = ".resid")) +
+    plot_list[["dash6"]] <- ggplot(model, aes(x = .data$.resid)) +
       geom_density(alpha = 0.3, fill = "green") +
       stat_function(fun = dnorm, args = list(mean = mean(model$.resid), sd = sd(model$.resid)), color = "blue") +
       labs(title = "Residuals vs Normal density", x = "Residuals", y = "") +
@@ -585,9 +794,9 @@ plot.regress <- function(x, plots = "", lines = "",
     coef_df <- droplevels(coef_df)
 
     plot_list[["coef"]] <- ggplot(coef_df) +
-      geom_pointrange(aes_string(
-        x = "variable", y = "coefficient",
-        ymin = "Low", ymax = "High"
+      geom_pointrange(aes(
+        x = .data$variable, y = .data$coefficient,
+        ymin = .data$Low, ymax = .data$High
       )) +
       geom_hline(yintercept = 0, linetype = "dotdash", color = "blue") +
       labs(y = yl, x = "") +
@@ -618,9 +827,7 @@ plot.regress <- function(x, plots = "", lines = "",
 
     mod <- mutate(mod, .std.resid = ifelse(abs(.std.resid) < 1 & is.na(index.max), NA, .std.resid))
     lim <- max(abs(mod$.std.resid), na.rm = TRUE) %>%
-      {
-        c(min(-4, -.), max(4, .))
-      }
+      (function(x) c(min(-4, -x), max(4, x)))
     plot_list[["influence"]] <- ggplot(mod, aes(index, .std.resid)) +
       geom_point(aes(size = .cooksd), alpha = 0.5) +
       ggrepel::geom_text_repel(aes(label = index.max)) +
@@ -634,12 +841,40 @@ plot.regress <- function(x, plots = "", lines = "",
       )
   }
 
-  if ("pdp" %in% plots) {
+  if ("pred_plot" %in% plots) {
+    nrCol <- 2
+    if (length(incl) > 0 | length(incl_int) > 0) {
+      plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+    } else {
+      return("Select one or more variables to generate Prediction plots")
+    }
+  }
 
+  if ("pdp" %in% plots) {
+    nrCol <- 2
+    if (length(incl) > 0 | length(incl_int) > 0) {
+      plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+    } else {
+      return("Select one or more variables to generate Partial Dependence Plots")
+    }
   }
 
   if ("vip" %in% plots) {
-
+    nrCol <- 1
+    if (length(evar) < 2) {
+      message("Model must contain at least 2 explanatory variables (features). Permutation Importance plot cannot be generated")
+    } else {
+      vi_scores <- varimp(x)
+      plot_list[["vip"]] <-
+        visualize(vi_scores, yvar = "Importance", xvar = "Variable", type = "bar", custom = TRUE) +
+        labs(
+          title = "Permutation Importance",
+          x = NULL,
+          y = "Importance (R-square decrease)"
+        ) +
+        coord_flip() +
+        theme(axis.text.y = element_text(hjust = 0))
+    }
   }
 
   if (length(plot_list) > 0) {
@@ -647,9 +882,7 @@ plot.regress <- function(x, plots = "", lines = "",
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
       patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
-        {
-          if (shiny) . else print(.)
-        }
+        (function(x) if (isTRUE(shiny)) x else print(x))
     }
   }
 }
@@ -1072,6 +1305,8 @@ print.regress.predict <- function(x, ..., n = 10) {
 #' @seealso \code{\link{predict.regress}} to generate predictions
 #' @seealso \code{\link{predict.logistic}} to generate predictions
 #'
+#' @importFrom rlang .data
+#'
 #' @export
 plot.model.predict <- function(x, xvar = "", facet_row = ".",
                                facet_col = ".", color = "none",
@@ -1122,16 +1357,16 @@ plot.model.predict <- function(x, xvar = "", facet_row = ".",
     summarise_all(mean)
 
   if (color == "none") {
-    p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction"))
+    p <- ggplot(tmp, aes(x = .data[[xvar]], y = .data$Prediction))
   } else {
-    p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color))
+    p <- ggplot(tmp, aes(x = .data[[xvar]], y = .data$Prediction, color = .data[[color]], group = .data[[color]]))
   }
 
   if (length(pvars) >= 3) {
     if (is.factor(tmp[[xvar]]) || length(unique(tmp[[xvar]])) < 11) {
-      p <- p + geom_pointrange(aes_string(ymin = "ymin", ymax = "ymax"), size = .3)
+      p <- p + geom_pointrange(aes(ymin = .data$ymin, ymax = .data$ymax), size = .3)
     } else {
-      p <- p + geom_ribbon(aes_string(ymin = "ymin", ymax = "ymax"), fill = "grey70", color = NA, alpha = 0.5)
+      p <- p + geom_ribbon(aes(ymin = .data$ymin, ymax = .data$ymax), fill = "grey70", color = NA, alpha = 0.5)
     }
   }
 

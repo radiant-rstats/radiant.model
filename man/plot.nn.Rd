@@ -6,10 +6,12 @@
 \usage{
 \method{plot}{nn}(
   x,
-  plots = "garson",
+  plots = "vip",
   size = 12,
   pad_x = 0.9,
   nrobs = -1,
+  incl = NULL,
+  incl_int = NULL,
   shiny = FALSE,
   custom = FALSE,
   ...
@@ -25,6 +27,10 @@
 \item{pad_x}{Padding for explanatory variable labels in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding}
 
 \item{nrobs}{Number of data points to show in dashboard scatter plots (-1 for all)}
+
+\item{incl}{Which variables to include in a coefficient plot or PDP plot}
+
+\item{incl_int}{Which interactions to investigate in PDP plots}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

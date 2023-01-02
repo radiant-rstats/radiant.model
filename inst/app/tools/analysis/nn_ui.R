@@ -1,9 +1,11 @@
 nn_plots <- c(
   "None" = "none",
   "Network" = "net",
+  "Permutation Importance" = "vip",
+  "Prediction plots" = "pred_plot",
+  "Partial Dependence" = "pdp",
   "Olden" = "olden",
   "Garson" = "garson",
-  "Partial Dependence" = "pdp",
   "Dashboard" = "dashboard"
 )
 
@@ -48,6 +50,21 @@ nn_pred_inputs <- reactive({
     nn_pred_args$pred_data <- input$nn_pred_data
   }
   nn_pred_args
+})
+
+nn_plot_args <- as.list(if (exists("plot.nn")) {
+  formals(plot.nn)
+} else {
+  formals(radiant.model:::plot.nn)
+})
+
+## list of function inputs selected by user
+nn_plot_inputs <- reactive({
+  ## loop needed because reactive values don't allow single bracket indexing
+  for (i in names(nn_plot_args)) {
+    nn_plot_args[[i]] <- input[[paste0("nn_", i)]]
+  }
+  nn_plot_args
 })
 
 nn_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
@@ -134,6 +151,10 @@ output$ui_nn_evar <- renderUI({
     selectize = FALSE
   )
 })
+
+# function calls generate UI elements
+output_incl("nn")
+output_incl_int("nn")
 
 output$ui_nn_wts <- renderUI({
   isNum <- .get_class() %in% c("integer", "numeric", "ts")
@@ -300,6 +321,11 @@ output$ui_nn <- renderUI({
         condition = "input.tabs_nn == 'Plot'",
         uiOutput("ui_nn_plots"),
         conditionalPanel(
+          condition = "input.nn_plots == 'pdp' | input.nn_plots == 'pred_plot'",
+          uiOutput("ui_nn_incl"),
+          uiOutput("ui_nn_incl_int")
+        ),
+        conditionalPanel(
           condition = "input.nn_plots == 'dashboard'",
           uiOutput("ui_nn_nrobs")
         )
@@ -331,29 +357,31 @@ nn_plot <- reactive({
   if (is.character(res)) {
     return()
   }
+  plot_width <- 650
   if ("dashboard" %in% input$nn_plots) {
     plot_height <- 750
-  } else if ("pdp" %in% input$nn_plots) {
-    plot_height <- max(500, ceiling(length(res$evar) / 2) * 250)
+  } else if (input$nn_plots %in% c("pdp", "pred_plot")) {
+    nr_vars <- length(input$nn_incl) + length(input$nn_incl_int)
+    plot_height <- max(250, ceiling(nr_vars / 2) * 250)
+    if (length(input$nn_incl_int) > 0) {
+      plot_width <- plot_width + min(2, length(input$nn_incl_int)) * 90
+    }
   } else {
     mlt <- if ("net" %in% input$nn_plots) 45 else 30
     plot_height <- max(500, length(res$model$coefnames) * mlt)
   }
-  list(plot_width = 650, plot_height = plot_height)
+
+  list(plot_width = plot_width, plot_height = plot_height)
 })
 
 nn_plot_width <- function() {
   nn_plot() %>%
-    {
-      if (is.list(.)) .$plot_width else 650
-    }
+    (function(x) if (is.list(x)) x$plot_width else 650)
 }
 
 nn_plot_height <- function() {
   nn_plot() %>%
-    {
-      if (is.list(.)) .$plot_height else 500
-    }
+    (function(x) if (is.list(x)) x$plot_height else 500)
 }
 
 nn_pred_plot_height <- function() {
@@ -507,25 +535,23 @@ nn_available <- reactive({
 .plot_nn <- reactive({
   if (not_pressed(input$nn_run)) {
     return("** Press the Estimate button to estimate the model **")
-  }
-  if (nn_available() != "available") {
+  } else if (nn_available() != "available") {
     return(nn_available())
   }
   req(input$nn_size)
   if (radiant.data::is_empty(input$nn_plots, "none")) {
     return("Please select a neural network plot from the drop-down menu")
   }
-  pinp <- list(plots = input$nn_plots, shiny = TRUE)
+  pinp <- nn_plot_inputs()
+  pinp$shiny <- TRUE
+  pinp$size <- NULL
   if (input$nn_plots == "dashboard") {
     req(input$nn_nrobs)
-    pinp <- c(pinp, nrobs = as_integer(input$nn_nrobs))
   }
 
   if (input$nn_plots == "net") {
     .nn() %>%
-      {
-        if (is.character(.)) invisible() else capture_plot(do.call(plot, c(list(x = .), pinp)))
-      }
+      (function(x) if (is.character(x)) invisible() else capture_plot(do.call(plot, c(list(x = x), pinp))))
   } else {
     withProgress(message = "Generating plots", value = 1, {
       do.call(plot, c(list(x = .nn()), pinp))
@@ -574,11 +600,10 @@ nn_report <- function() {
   figs <- FALSE
 
   if (!radiant.data::is_empty(input$nn_plots, "none")) {
-    if (input$nn_type == "regression" && input$nn_plots == "dashboard") {
-      inp_out[[2]] <- list(plots = input$nn_plots, nrobs = as_integer(input$nn_nrobs), custom = FALSE)
-    } else {
-      inp_out[[2]] <- list(plots = input$nn_plots, custom = FALSE)
-    }
+    inp <- check_plot_inputs(nn_plot_inputs())
+    inp$size <- NULL
+    inp_out[[2]] <- clean_args(inp, nn_plot_args[-1])
+    inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }

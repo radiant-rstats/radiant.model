@@ -302,16 +302,81 @@ summary.nn <- function(object, prn = TRUE, ...) {
   }
 }
 
+#' Variable importance using the vip package and permutation importance
+#'
+#' @param object Model object created by Radiant
+#' @param target Label to identify the target or response variable
+#' @param lev Reference class for binary classifier
+#' @param data Data to use for prediction. Will default to the data used to estimate the model
+#' @param seed Random seed for reproducibility
+#'
+#' @importFrom vip vi
+#'
+#' @export
+varimp <- function(object, target, lev, data = NULL, seed = 1234) {
+  if (is.null(data)) data <- object$model$model
+
+  # needed to avoid rescaling during prediction
+  object$check <- setdiff(object$check, c("center", "standardize"))
+
+  arg_list <- list(object, pred_data = data, se = FALSE)
+  if (missing(target)) target <- object$rvar
+  if (missing(lev) && !radiant.data::is_empty(object$lev) && !is.logical(data[[target]])) {
+    data[[target]] <- data[[target]] == object$lev
+  }
+
+  fun <- function(object, arg_list) do.call(predict, arg_list)[["Prediction"]]
+  if (inherits(object, "rforest")) {
+    arg_list$OOB <- FALSE # all 0 importance scores when using OOB
+    if (object$type == "classification") {
+      fun <- function(object, arg_list) do.call(predict, arg_list)[[object$lev]]
+    }
+  }
+
+  pred_fun <- function(object, newdata) {
+    arg_list$pred_data <- newdata
+    fun(object, arg_list)
+  }
+
+  set.seed(seed)
+  if (object$type == "regression") {
+    vimp <- vip::vi(
+      object,
+      target = target,
+      method = "permute",
+      metric = "r2", # "rmse"
+      pred_wrapper = pred_fun,
+      train = data
+    )
+  } else {
+    vimp <- vip::vi(
+      object,
+      target = target,
+      reference_class = TRUE,
+      method = "permute",
+      metric = "auc",
+      pred_wrapper = pred_fun,
+      train = data
+    )
+  }
+
+  vimp %>%
+    filter(Importance != 0) %>%
+    mutate(Variable = factor(Variable, levels = rev(Variable)))
+}
+
 #' Plot method for the nn function
 #'
 #' @details See \url{https://radiant-rstats.github.io/docs/model/nn.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{nn}}
-#' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Neural Network model. Use "" to avoid showing any plots (default). Options are "olden" or "garson" for importance plots, or "net" to depict the network structure
 #' @param size Font size used
 #' @param pad_x Padding for explanatory variable labels in the network plot. Default value is 0.9, smaller numbers (e.g., 0.5) increase the amount of padding
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
+#' @param incl Which variables to include in a coefficient plot or PDP plot
+#' @param incl_int Which interactions to investigate in PDP plots
+#' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
 #' @param ... further arguments passed to or from other methods
 #'
@@ -327,13 +392,14 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @importFrom graphics par
 #'
 #' @export
-plot.nn <- function(x, plots = "garson", size = 12, pad_x = 0.9, nrobs = -1,
+plot.nn <- function(x, plots = "vip", size = 12, pad_x = 0.9, nrobs = -1,
+                    incl = NULL, incl_int = NULL,
                     shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x) || !inherits(x$model, "nnet")) {
     return(x)
   }
   plot_list <- list()
-  ncol <- 1
+  nrCol <- 1
 
   if ("olden" %in% plots || "olsen" %in% plots) { ## legacy for typo
     plot_list[["olsen"]] <- NeuralNetTools::olden(x$model, x_lab = x$coefnames, cex_val = 4) +
@@ -351,6 +417,19 @@ plot.nn <- function(x, plots = "garson", size = 12, pad_x = 0.9, nrobs = -1,
       labs(title = paste0("Garson plot of variable importance (size = ", x$size, ", decay = ", x$decay, ")"))
   }
 
+  if ("vip" %in% plots) {
+    vi_scores <- varimp(x)
+    plot_list[["vip"]] <-
+      visualize(vi_scores, yvar = "Importance", xvar = "Variable", type = "bar", custom = TRUE) +
+      labs(
+        title = paste0("Permutation Importance (size = ", x$size, ", decay = ", x$decay, ")"),
+        x = NULL,
+        y = ifelse(x$type == "regression", "Importance (R-square decrease)", "Importance (AUC decrease)")
+      ) +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
+  }
+
   if ("net" %in% plots) {
     ## don't need as much spacing at the top and bottom
     mar <- par(mar = c(0, 4.1, 0, 2.1))
@@ -358,30 +437,35 @@ plot.nn <- function(x, plots = "garson", size = 12, pad_x = 0.9, nrobs = -1,
     return(do.call(NeuralNetTools::plotnet, list(mod_in = x$model, x_names = x$coefnames, pad_x = pad_x, cex_val = size / 16)))
   }
 
+  if ("pred_plot" %in% plots) {
+    nrCol <- 2
+    if (length(incl) > 0 | length(incl_int) > 0) {
+      plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+    } else {
+      return("Select one or more variables to generate Prediction plots")
+    }
+  }
+
   if ("pdp" %in% plots) {
-    ncol <- 2
-    for (pn in x$evar) {
-      plot_list[[pn]] <- pdp::partial(
-        x$model,
-        pred.var = pn, plot = TRUE, rug = TRUE,
-        prob = x$type == "classification", plot.engine = "ggplot2"
-      ) + labs(y = "")
+    nrCol <- 2
+    if (length(incl) > 0 || length(incl_int) > 0) {
+      plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+    } else {
+      return("Select one or more variables to generate Partial Dependence Plots")
     }
   }
 
   if (x$type == "regression" && "dashboard" %in% plots) {
     plot_list <- plot.regress(x, plots = "dashboard", lines = "line", nrobs = nrobs, custom = TRUE)
-    ncol <- 2
+    nrCol <- 2
   }
 
   if (length(plot_list) > 0) {
     if (custom) {
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
-      patchwork::wrap_plots(plot_list, ncol = ncol) %>%
-        {
-          if (shiny) . else print(.)
-        }
+      patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+        (function(x) if (isTRUE(shiny)) x else print(x))
     }
   }
 }

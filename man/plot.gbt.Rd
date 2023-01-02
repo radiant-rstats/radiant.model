@@ -4,7 +4,16 @@
 \alias{plot.gbt}
 \title{Plot method for the gbt function}
 \usage{
-\method{plot}{gbt}(x, plots = "", nrobs = Inf, shiny = FALSE, custom = FALSE, ...)
+\method{plot}{gbt}(
+  x,
+  plots = "",
+  nrobs = Inf,
+  incl = NULL,
+  incl_int = NULL,
+  shiny = FALSE,
+  custom = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Return value from \code{\link{gbt}}}
@@ -12,6 +21,10 @@
 \item{plots}{Plots to produce for the specified Gradient Boosted Tree model. Use "" to avoid showing any plots (default). Options are ...}
 
 \item{nrobs}{Number of data points to show in scatter plots (-1 for all)}
+
+\item{incl}{Which variables to include in a coefficient plot or PDP plot}
+
+\item{incl_int}{Which interactions to investigate in PDP plots}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

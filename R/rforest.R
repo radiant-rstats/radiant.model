@@ -35,14 +35,11 @@
 #' @importFrom lubridate is.Date
 #'
 #' @export
-rforest <- function(
-  dataset, rvar, evar, type = "classification", lev = "",
-  mtry = NULL, num.trees = 100, min.node.size = 1,
-  sample.fraction = 1, replace = NULL,
-  num.threads = 12, wts = "None", seed = NA,
-  data_filter = "", envir = parent.frame(), ...
-) {
-
+rforest <- function(dataset, rvar, evar, type = "classification", lev = "",
+                    mtry = NULL, num.trees = 100, min.node.size = 1,
+                    sample.fraction = 1, replace = NULL,
+                    num.threads = 12, wts = "None", seed = NA,
+                    data_filter = "", envir = parent.frame(), ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("rforest"))
@@ -175,8 +172,9 @@ rforest <- function(
 #'
 #' @export
 summary.rforest <- function(object, ...) {
-
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
   cat("Random Forest (Ranger)\n")
   if (object$type == "classification") {
     cat("Type                 : Classification")
@@ -223,10 +221,11 @@ summary.rforest <- function(object, ...) {
 #' @details See \url{https://radiant-rstats.github.io/docs/model/rforest.html} for an example in Radiant
 #'
 #' @param x Return value from \code{\link{rforest}}
-#' @param shiny Did the function call originate inside a shiny app
 #' @param plots Plots to produce for the specified Random Forest model. Use "" to avoid showing any plots (default). Options are ...
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
-#' @param qtiles Show 25th and 75th percentiles in partial-dependence plots
+#' @param incl Which variables to include in PDP or Prediction plots
+#' @param incl_int Which interactions to investigate in PDP or Prediction plots
+#' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned.
 #'   This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples
 #'   and \url{https://ggplot2.tidyverse.org} for options.
@@ -242,40 +241,40 @@ summary.rforest <- function(object, ...) {
 #' @importFrom pdp partial
 #'
 #' @export
-plot.rforest <- function(
-  x, plots = "", nrobs = Inf, qtiles = FALSE,
-  shiny = FALSE, custom = FALSE, ...
-) {
-
-  if (is.character(x) || !inherits(x$model, "ranger")) return(x)
+plot.rforest <- function(x, plots = "", nrobs = Inf,
+                         incl = NULL, incl_int = NULL,
+                         shiny = FALSE, custom = FALSE, ...) {
+  if (is.character(x) || !inherits(x$model, "ranger")) {
+    return(x)
+  }
   plot_list <- list()
-  ncol <- 1
+  nrCol <- 1
 
   if (x$type == "regression" && "dashboard" %in% plots) {
     plot_list <- plot.regress(x, plots = "dashboard", lines = "line", nrobs = nrobs, custom = TRUE)
-    ncol <- 2
-  } else if ("pdp" %in% plots) {
-    ncol <- 2
-    if (x$type == "regression") {
-      pred <- function(o, n) predict(o, n)$predictions
+    nrCol <- 2
+  }
+
+  if ("pred_plot" %in% plots) {
+    nrCol <- 2
+    if (length(incl) > 0 | length(incl_int) > 0) {
+      plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
     } else {
-      pred <- function(o, n) {
-        predict(o, n)$predictions[,1]
-      }
+      return("Select one or more variables to generate Prediction plots")
     }
-    pfun <- function(object, newdata) {
-      est <- pred(object, newdata)
-      c(quantile(est, probs = 0.25), quantile(est, probs = 0.75))
+  }
+
+  if ("pdp" %in% plots) {
+    nrCol <- 2
+    if (length(incl) > 0 || length(incl_int) > 0) {
+      plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+    } else {
+      return("Select one or more variables to generate Partial Dependence Plots")
     }
-    if (!qtiles) pfun <- NULL
-    for (pn in x$evar) {
-      plot_list[[pn]] <- sshhr(pdp::partial(
-        x$model, pred.var = pn, plot = TRUE, rug = TRUE, pred.fun = pfun,
-        type = x$type, prob = !qtiles, plot.engine = "ggplot2", smooth = TRUE
-      ) + labs(y = ""))
-    }
-  } else if ("vimp" %in% plots) {
-    ncol <- 1
+  }
+
+  if ("vimp" %in% plots) {
+    nrCol <- 1
     vip <- x$model$variable.importance
     if (x$type == "regression") vip <- vip / max(vip)
     vimp <- data.frame(
@@ -292,12 +291,30 @@ plot.rforest <- function(
       theme(axis.text.y = element_text(hjust = 0))
   }
 
+  if ("vip" %in% plots) {
+    nrCol <- 1
+    if (length(x$evar) < 2) {
+      message("Model must contain at least 2 explanatory variables (features). Permutation Importance plot cannot be generated")
+    } else {
+      vi_scores <- varimp(x)
+      plot_list[["vip"]] <-
+        visualize(vi_scores, yvar = "Importance", xvar = "Variable", type = "bar", custom = TRUE) +
+        labs(
+          title = "Permutation Importance",
+          x = NULL,
+          y = ifelse(x$type == "regression", "Importance (R-square decrease)", "Importance (AUC decrease)")
+        ) +
+        coord_flip() +
+        theme(axis.text.y = element_text(hjust = 0))
+    }
+  }
+
   if (length(plot_list) > 0) {
     if (custom) {
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
-      patchwork::wrap_plots(plot_list, ncol = ncol) %>%
-        {if (shiny) . else print(.)}
+      patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+        (function(x) if (isTRUE(shiny)) x else print(x))
     }
   }
 }
@@ -329,13 +346,12 @@ plot.rforest <- function(
 #' @seealso \code{\link{summary.rforest}} to summarize results
 #'
 #' @export
-predict.rforest <- function(
-  object, pred_data = NULL, pred_cmd = "",
-  pred_names = "", OOB = NULL, dec = 3,
-  envir = parent.frame(), ...
-) {
-
-  if (is.character(object)) return(object)
+predict.rforest <- function(object, pred_data = NULL, pred_cmd = "",
+                            pred_names = "", OOB = NULL, dec = 3,
+                            envir = parent.frame(), ...) {
+  if (is.character(object)) {
+    return(object)
+  }
 
   ## ensure you have a name for the prediction dataset
   if (is.data.frame(pred_data)) {
@@ -345,7 +361,6 @@ predict.rforest <- function(
   }
 
   pfun <- function(model, pred, se, conf_lev, OOB = OOB) {
-
     pred <- mutate_if(pred, is.Date, as.numeric)
     if (radiant.data::is_empty(OOB)) {
       if (isTRUE(dplyr::all_equal(select(model$model, -1), pred))) {
@@ -365,7 +380,7 @@ predict.rforest <- function(
       pred_val <- as.data.frame(pred_val$predictions, stringsAsFactors = FALSE)
       if (nrow(pred_val) != nrow(pred)) {
         pred_val <- list() %>% add_class("try-error")
-        attr(pred_val, "condition") <- list(message =  "Attempt to use OOB predictions failed. This could be because\na filter was set but the random forest model has not yet been\nre-estimated.")
+        attr(pred_val, "condition") <- list(message = "Attempt to use OOB predictions failed. This could be because\na filter was set but the random forest model has not yet been\nre-estimated.")
       } else {
         if (ncol(pred_val) == 1) {
           pred_names <- "Prediction"
@@ -391,8 +406,9 @@ predict.rforest <- function(
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.rforest.predict <- function(x, ..., n = 10)
+print.rforest.predict <- function(x, ..., n = 10) {
   print_predict_model(x, ..., n = n, header = "Random Forest")
+}
 
 #' Plot method for rforest.predict function
 #'
@@ -414,30 +430,33 @@ print.rforest.predict <- function(x, ..., n = 10)
 #' plot(pred, xvar = "price.heinz28")
 #'
 #' @seealso \code{\link{predict.mnl}} to generate predictions
+#' @importFrom rlang .data
 #'
 #' @export
-plot.rforest.predict <- function(
-  x, xvar = "", facet_row = ".", facet_col = ".",
-  color = "none", ...
-) {
-
+plot.rforest.predict <- function(x, xvar = "", facet_row = ".", facet_col = ".",
+                                 color = "none", ...) {
   if (color != ".class") {
     return(plot.model.predict(
-      x, xvar = xvar, facet_row = facet_row, facet_col = facet_col,
+      x,
+      xvar = xvar, facet_row = facet_row, facet_col = facet_col,
       color = color, ...
     ))
   }
 
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) return(invisible())
-  if (is.character(x)) return(x)
+  if (radiant.data::is_empty(xvar)) {
+    return(invisible())
+  }
+  if (is.character(x)) {
+    return(x)
+  }
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
   pvars <- base::setdiff(attr(x, "radiant_vars"), attr(x, "radiant_evar"))
   rvar <- attr(x, "radiant_rvar")
-  x %<>% gather(".class", "Prediction", !! pvars)
+  x %<>% gather(".class", "Prediction", !!pvars)
 
   byvar <- c(xvar, color)
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
@@ -446,7 +465,7 @@ plot.rforest.predict <- function(
   tmp <- group_by_at(x, .vars = byvar) %>%
     select_at(.vars = c(byvar, "Prediction")) %>%
     summarise_all(mean)
-  p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
+  p <- ggplot(tmp, aes(x = .data[[xvar]], y = .data$Prediction, color = .data[[color]], group = .data[[color]])) +
     geom_line()
 
   if (facet_row != "." || facet_col != ".") {
@@ -538,7 +557,8 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
 #' \dontrun{
 #' result <- rforest(dvd, "buy", c("coupon", "purch", "last"))
 #' cv.rforest(
-#'   result, mtry = 1:3, min.node.size = seq(1, 10, 5),
+#'   result,
+#'   mtry = 1:3, min.node.size = seq(1, 10, 5),
 #'   num.trees = c(100, 200), sample.fraction = 0.632
 #' )
 #' result <- rforest(titanic, "survived", c("pclass", "sex"), max.depth = 1)
@@ -550,10 +570,8 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
 #' }
 #'
 #' @export
-cv.rforest <- function(
-  object, K = 5, repeats = 1, mtry = 1:5, num.trees = NULL, min.node.size = 1, sample.fraction = NA,
-  trace = TRUE, seed = 1234, fun, ...
-) {
+cv.rforest <- function(object, K = 5, repeats = 1, mtry = 1:5, num.trees = NULL, min.node.size = 1, sample.fraction = NA,
+                       trace = TRUE, seed = 1234, fun, ...) {
   if (inherits(object, "rforest")) object <- object$model
   if (inherits(object, "ranger")) {
     dv <- as.character(object$call$formula[[2]])
@@ -634,7 +652,7 @@ cv.rforest <- function(
             object$call[["case.weights"]] <- weights[rand != k]
           }
           if (type == "classification") {
-            pred <- predict(eval(object$call), m[rand == k, , drop = FALSE])$prediction[,1]
+            pred <- predict(eval(object$call), m[rand == k, , drop = FALSE])$prediction[, 1]
             if (missing(...)) {
               perf[k + (j - 1) * K] <- fun(pred, unlist(m[rand == k, dv]), lev)
             } else {
@@ -652,7 +670,7 @@ cv.rforest <- function(
         }
       }
       out[i, 1:4] <- c(mean(perf), sd(perf), min(perf), max(perf))
-      incProgress(1/nitt, detail = paste("\nCompleted run", i, "out of", nitt))
+      incProgress(1 / nitt, detail = paste("\nCompleted run", i, "out of", nitt))
     }
   })
 

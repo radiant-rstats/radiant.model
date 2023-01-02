@@ -54,7 +54,8 @@ See \url{https://radiant-rstats.github.io/docs/model/rforest.html} for an exampl
 \dontrun{
 result <- rforest(dvd, "buy", c("coupon", "purch", "last"))
 cv.rforest(
-  result, mtry = 1:3, min.node.size = seq(1, 10, 5),
+  result,
+  mtry = 1:3, min.node.size = seq(1, 10, 5),
   num.trees = c(100, 200), sample.fraction = 0.632
 )
 result <- rforest(titanic, "survived", c("pclass", "sex"), max.depth = 1)

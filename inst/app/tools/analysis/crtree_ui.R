@@ -1,7 +1,8 @@
 ctree_plots <- c(
   "None" = "none", "Prune" = "prune",
   "Tree" = "tree",
-  "Importance" = "imp",
+  "Permutation Importance" = "vip",
+  "Prediction plots" = "pred_plot",
   "Partial Dependence" = "pdp",
   "Dashboard" = "dashboard"
 )
@@ -47,6 +48,21 @@ crtree_pred_inputs <- reactive({
     crtree_pred_args$pred_data <- input$crtree_pred_data
   }
   crtree_pred_args
+})
+
+crtree_plot_args <- as.list(if (exists("plot.crtree")) {
+  formals(plot.crtree)
+} else {
+  formals(radiant.model:::plot.crtree)
+})
+
+## list of function inputs selected by user
+crtree_plot_inputs <- reactive({
+  ## loop needed because reactive values don't allow single bracket indexing
+  for (i in names(crtree_plot_args)) {
+    crtree_plot_args[[i]] <- input[[paste0("crtree_", i)]]
+  }
+  crtree_plot_args
 })
 
 crtree_pred_plot_args <- as.list(if (exists("plot.model.predict")) {
@@ -109,15 +125,55 @@ output$ui_crtree_evar <- renderUI({
   )
 })
 
+output_incl <- function(model) {
+  output[[glue("ui_{model}_incl")]] <- renderUI({
+    req(available(input[[glue("{model}_evar")]]))
+    vars <- input[[glue("{model}_evar")]]
+    id <- glue("{model}_incl")
+    selectInput(
+      inputId = id, label = "Explanatory variables to include:", choices = vars,
+      selected = state_multiple(id, vars, c()),
+      multiple = TRUE, size = min(10, length(vars)), selectize = FALSE
+    )
+  })
+}
+
+output_incl_int <- function(model) {
+  output[[glue("ui_{model}_incl_int")]] <- renderUI({
+    req(available(input[[glue("{model}_evar")]]))
+    choices <- character(0)
+    vars <- input[[glue("{model}_evar")]]
+    id <- glue("{model}_incl_int")
+    ## list of interaction terms to show
+    if (length(vars) > 1) {
+      choices <- c(choices, iterms(vars, 2))
+    } else {
+      updateSelectInput(session, glue("{model}_incl_int"), choices = choices, selected = choices)
+      return()
+    }
+    selectInput(
+      inputId = id,
+      label = "2-way interactions to explore:",
+      choices = choices,
+      selected = state_multiple(id, choices),
+      multiple = TRUE,
+      size = min(8, length(choices)),
+      selectize = FALSE
+    )
+  })
+}
+
+# function calls generate UI elements
+output_incl("crtree")
+output_incl_int("crtree")
+
 output$ui_crtree_wts <- renderUI({
   isNum <- .get_class() %in% c("integer", "numeric", "ts")
   vars <- varnames()[isNum]
   if (length(vars) > 0 && any(vars %in% input$crtree_evar)) {
     vars <- base::setdiff(vars, input$crtree_evar)
     names(vars) <- varnames() %>%
-      {
-        .[match(vars, .)]
-      } %>%
+      (function(x) x[match(vars, x)]) %>%
       names()
   }
   vars <- c("None", vars)
@@ -242,7 +298,7 @@ output$ui_crtree <- renderUI({
         tags$table(
           tags$td(numericInput(
             "crtree_pcp",
-            label = "Prune complex.:", min = 0, step = 0.001,
+            label = "Prune compl.:", min = 0, step = 0.001,
             value = state_init("crtree_pcp", NA), width = "116px"
           )),
           # tags$td(numericInput(
@@ -317,6 +373,11 @@ output$ui_crtree <- renderUI({
           uiOutput("ui_crtree_nrobs")
         ),
         conditionalPanel(
+          condition = "input.crtree_plots == 'pdp' | input.crtree_plots == 'pred_plot'",
+          uiOutput("ui_crtree_incl"),
+          uiOutput("ui_crtree_incl_int")
+        ),
+        conditionalPanel(
           condition = "input.crtree_plots == 'tree'",
           tags$table(
             tags$td(
@@ -349,33 +410,33 @@ crtree_plot <- reactive({
     return()
   }
   res <- .crtree()
-  # if (is.character(res)) return()
   nr_vars <- length(res$evar)
+
+  plot_height <- 500
+  plot_width <- 650
   if ("dashboard" %in% input$crtree_plots) {
     plot_height <- 750
-  } else if ("pdp" %in% input$crtree_plots) {
-    plot_height <- max(500, ceiling(nr_vars / 2) * 250)
-  } else if ("vimp" %in% input$crtree_plots) {
-    plot_height <- max(300, nr_vars * 50)
-  } else {
-    plot_height <- 500
+  } else if (input$crtree_plots %in% c("pdp", "pred_plot")) {
+    nr_vars <- length(input$crtree_incl) + length(input$crtree_incl_int)
+    plot_height <- max(250, ceiling(nr_vars / 2) * 250)
+    if (length(input$crtree_incl_int) > 0) {
+      plot_width <- plot_width + min(2, length(input$crtree_incl_int)) * 90
+    }
+  } else if ("vip" %in% input$crtree_plots) {
+    plot_height <- max(500, nr_vars * 30)
   }
 
-  list(plot_width = 650, plot_height = plot_height)
+  list(plot_width = plot_width, plot_height = plot_height)
 })
 
 crtree_plot_width <- function() {
   crtree_plot() %>%
-    {
-      if (is.list(.)) .$plot_width else 650
-    }
+    (function(x) if (is.list(x)) x$plot_width else 650)
 }
 
 crtree_plot_height <- function() {
   crtree_plot() %>%
-    {
-      if (is.list(.)) .$plot_height else 500
-    }
+    (function(x) if (is.list(x)) x$plot_height else 500)
 }
 
 crtree_pred_plot_height <- function() {
@@ -527,18 +588,21 @@ crtree_available <- reactive({
   } else if (crtree_available() != "available") {
     crtree_available()
   } else if (radiant.data::is_empty(input$crtree_plots)) {
-    "Please select a plot type from the drop-down menu"
+    return("Please select a plot type from the drop-down menu")
+  }
+  ret <- .crtree()
+  pinp <- crtree_plot_inputs()
+  pinp$shiny <- TRUE
+  if (input$crtree_plots == "dashboard") {
+    req(input$crtree_nrobs)
+  }
+  check_for_pdp_pred_plots("crtree")
+  if (length(ret) == 0 || is.character(ret)) {
+    "No model results to plot. Specify a model and press the Estimate button"
   } else {
-    ret <- .crtree()
-    if (length(ret) == 0 || is.character(ret)) {
-      "No model results to plot. Specify a model and press the Estimate button"
-    } else if (input$crtree_plots == "prune") {
-      plot(ret, plots = "prune", shiny = TRUE)
-    } else if (input$crtree_plots == "dashboard") {
-      plot(ret, plots = input$crtree_plots, nrobs = as_integer(input$crtree_nrobs), shiny = TRUE)
-    } else if (input$crtree_plots %in% c("imp", "pdp", "dashboard")) {
-      plot(ret, plots = input$crtree_plots, shiny = TRUE)
-    }
+    withProgress(message = "Generating plots", value = 1, {
+      do.call(plot, c(list(x = ret), pinp))
+    })
   }
 })
 
@@ -636,9 +700,23 @@ crtree_report <- function() {
       figs <- TRUE
       xcmd <- paste0(xcmd, "\nplot(result, plots = \"prune\", custom = FALSE)")
       xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
-    } else if (input$crtree_plots == "imp") {
+    } else if (input$crtree_plots == "vip") {
       figs <- TRUE
-      xcmd <- paste0(xcmd, "\nplot(result, plots = \"imp\", custom = FALSE)")
+      xcmd <- paste0(xcmd, "\nplot(result, plots = \"vip\", custom = FALSE)")
+      xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
+    } else if (input$crtree_plots %in% c("pdp", "pred_plot")) {
+      figs <- TRUE
+      incl <- ""
+      dctrl <- getOption("dctrl")
+      if (length(input$crtree_incl) > 0) {
+        cmd <- deparse(input$crtree_incl, control = dctrl, width.cutoff = 500L)
+        incl <- glue(", incl = {cmd}")
+      }
+      if (length(input$crtree_incl_int) > 0) {
+        cmd <- deparse(input$crtree_incl_int, control = dctrl, width.cutoff = 500L)
+        incl <- glue("{incl}, incl_int = {cmd}")
+      }
+      xcmd <- paste0(xcmd, "\nplot(result, plots = \"", input$crtree_plots, "\"", incl, ", custom = FALSE)")
       xcmd <- paste0(xcmd, "\n# plot(result, orient = ", orient, ", width = ", width, ") %>% render()")
     }
   }

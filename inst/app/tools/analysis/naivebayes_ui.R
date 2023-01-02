@@ -451,7 +451,8 @@ nb_report <- function() {
   inp_out <- list("", "")
   figs <- FALSE
   if (!radiant.data::is_empty(input$nb_plots, "none")) {
-    inp_out[[2]] <- clean_args(nb_plot_inputs(), nb_plot_args[-1])
+    inp <- check_plot_inputs(nb_plot_inputs())
+    inp_out[[2]] <- clean_args(inp, nb_plot_args[-1])
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }

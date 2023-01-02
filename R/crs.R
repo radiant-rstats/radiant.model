@@ -261,7 +261,7 @@ plot.crs <- function(x, ...) {
     type = "scatter", facet_col = "product", check = "line",
     custom = TRUE
   ) +
-    geom_segment(aes(x = 1, y = 1, xend = 5, yend = 5), color = "blue", size = .05) +
+    geom_segment(aes(x = 1, y = 1, xend = 5, yend = 5), color = "blue", linewidth = .05) +
     coord_cartesian(xlim = lim, ylim = lim) +
     labs(
       title = "Recommendations based on Collaborative Filtering",

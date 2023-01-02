@@ -1,11 +1,10 @@
 # to avoid 'no visible binding for global variable' NOTE
 globalVariables(c(
-  ".", "n", ".resid", "null.deviance", ".fitted", "Predictor",
-  "total", "TN", "FN", "FP", "TP", "total", "profit", "precision", "ROME",
-  "TPR", "nr_resp", "nr_obs", "cum_resp", "cum_resp_rate", "pred",
-  "cum_prop", "cum_gains", "obs", "everything", "r_data", "r_info", "fix_smart",
-  ".cooksd", ".std.resid", "index", "index.max", "logit", "predictor.value",
-  "label", "Feature"
+  ".", "High", "Low",
+  ".cooksd", ".fitted", ".resid", ".std.resid", "FN", "FP", "Feature", "Importance", "Predictor",
+  "ROME", "TN", "TP", "TPR", "Variable", "cum_gains", "cum_prop", "cum_resp", "cum_resp_rate",
+  "index", "index.max", "label", "logit", "n", "nr_obs", "nr_resp", "null.deviance", "obs",
+  "precision", "pred", "predictor.value", "total", "variable", "llfull", "llnull", "rnk"
 ))
 
 #' radiant.model

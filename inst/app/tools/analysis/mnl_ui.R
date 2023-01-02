@@ -606,7 +606,8 @@ mnl_report <- function() {
   inp_out[[1]] <- clean_args(mnl_sum_inputs(), mnl_sum_args[-1])
   figs <- FALSE
   if (!radiant.data::is_empty(input$mnl_plots, "none")) {
-    inp_out[[2]] <- clean_args(mnl_plot_inputs(), mnl_plot_args[-1])
+    inp <- check_plot_inputs(mnl_plot_inputs())
+    inp_out[[2]] <- clean_args(inp, mnl_plot_args[-1])
     inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE

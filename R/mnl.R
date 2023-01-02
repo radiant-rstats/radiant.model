@@ -29,12 +29,9 @@
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
 #'
 #' @export
-mnl <- function(
-  dataset, rvar, evar, lev = "", int = "",
-  wts = "None", check = "",
-  data_filter = "", envir = parent.frame()
-) {
-
+mnl <- function(dataset, rvar, evar, lev = "", int = "",
+                wts = "None", check = "",
+                data_filter = "", envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("mnl"))
@@ -76,20 +73,26 @@ mnl <- function(
     if (is.factor(rv)) {
       lev <- levels(rv)[1]
     } else {
-      lev <- as.character(rv) %>% as.factor() %>% levels() %>% .[1]
+      lev <- as.character(rv) %>%
+        as.factor() %>%
+        levels() %>%
+        .[1]
     }
   }
 
   ## re-leveling the
-  dataset[[rvar]] <- dataset[[rvar]] %>% as.factor() %>% relevel(ref = lev)
+  dataset[[rvar]] <- dataset[[rvar]] %>%
+    as.factor() %>%
+    relevel(ref = lev)
   lev <- levels(dataset[[1]])
 
   vars <- ""
-  var_check(evar, colnames(dataset)[-1], int) %>% {
-    vars <<- .$vars
-    evar <<- .$ev
-    int <<- .$intv
-  }
+  var_check(evar, colnames(dataset)[-1], int) %>%
+    {
+      vars <<- .$vars
+      evar <<- .$ev
+      int <<- .$intv
+    }
 
   ## add minmax attributes to data
   mmx <- minmax(dataset)
@@ -115,12 +118,10 @@ mnl <- function(
     mnl_input <- list(formula = form_upper, weights = wts, data = dataset, model = TRUE, trace = FALSE)
     model <- do.call(nnet::multinom, mnl_input) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
-
   } else if ("stepwise-forward" %in% check) {
     mnl_input <- list(formula = form_lower, weights = wts, data = dataset, model = TRUE, trace = FALSE)
     model <- do.call(nnet::multinom, mnl_input) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
-
   } else if ("stepwise-both" %in% check) {
     mnl_input <- list(formula = form_lower, weights = wts, data = dataset, model = TRUE, trace = FALSE)
     model <- do.call(nnet::multinom, mnl_input) %>%
@@ -132,7 +133,9 @@ mnl <- function(
     model <- do.call(nnet::multinom, mnl_input)
   }
 
-  coeff <- tidy(model) %>% na.omit() %>% as.data.frame()
+  coeff <- tidy(model) %>%
+    na.omit() %>%
+    as.data.frame()
 
   ## needed for prediction if standardization or centering is used
   if ("standardize" %in% check || "center" %in% check) {
@@ -195,13 +198,14 @@ mnl <- function(
 #' @importFrom car linearHypothesis
 #'
 #' @export
-summary.mnl <- function(
-  object, sum_check = "", conf_lev = .95,
-  test_var = "", dec = 3, ...
-) {
-
-  if (is.character(object)) return(object)
-  if (class(object$model)[1] != "multinom") return(object)
+summary.mnl <- function(object, sum_check = "", conf_lev = .95,
+                        test_var = "", dec = 3, ...) {
+  if (is.character(object)) {
+    return(object)
+  }
+  if (class(object$model)[1] != "multinom") {
+    return(object)
+  }
 
   if (any(grepl("stepwise", object$check))) {
     step_type <- if ("stepwise-backward" %in% object$check) {
@@ -268,7 +272,9 @@ summary.mnl <- function(
 
   # ## chi-squared test of overall model fit (p-value) - http://www.ats.ucla.edu/stat/r/dae/logit.htm
   chi_pval <- with(mnl_fit, pchisq(null.deviance - deviance, edf - 1, lower.tail = FALSE))
-  chi_pval %<>% {if (. < .001) "< .001" else round(., dec)}
+  chi_pval %<>% {
+    if (. < .001) "< .001" else round(., dec)
+  }
 
   cat("\nPseudo R-squared:", mnl_fit$r2)
   cat(paste0("\nLog-likelihood: ", mnl_fit$logLik, ", AIC: ", mnl_fit$AIC, ", BIC: ", mnl_fit$BIC))
@@ -298,7 +304,9 @@ summary.mnl <- function(
 
       if ("confint" %in% sum_check) {
         ci_tab %T>%
-          {.$`+/-` <- (.$High - .$coefficient)} %>%
+          {
+            .$`+/-` <- (.$High - .$coefficient)
+          } %>%
           format_df(dec) %>%
           set_colnames(c("  ", " ", "coefficient", ci_perc[1], ci_perc[2], "+/-")) %>%
           print(row.names = FALSE)
@@ -312,7 +320,7 @@ summary.mnl <- function(
       cat("RRRs were not calculated\n")
     } else {
       rrrlab <- if ("standardize" %in% object$check) "std RRR" else "RRR"
-      ci_tab[,-c(1, 2)] <- exp(ci_tab[,-c(1, 2)])
+      ci_tab[, -c(1, 2)] <- exp(ci_tab[, -c(1, 2)])
       ci_tab[!grepl("(Intercept)", ci_tab[[2]]), ] %>%
         format_df(dec) %>%
         set_colnames(c("  ", "", rrrlab, ci_perc[1], ci_perc[2])) %>%
@@ -393,15 +401,18 @@ summary.mnl <- function(
 #' @seealso \code{\link{predict.mnl}} to generate predictions
 #' @seealso \code{\link{plot.model.predict}} to plot prediction output
 #'
+#' @importFrom rlang .data
+#'
 #' @export
-plot.mnl <- function(
-  x, plots = "coef", conf_lev = .95,
-  intercept = FALSE, nrobs = -1,
-  shiny = FALSE, custom = FALSE, ...
-) {
-
-  if (is.character(x) || !inherits(x$model, "multinom")) return(x)
-  if (radiant.data::is_empty(plots[1])) return("Please select a mnl regression plot from the drop-down menu")
+plot.mnl <- function(x, plots = "coef", conf_lev = .95,
+                     intercept = FALSE, nrobs = -1,
+                     shiny = FALSE, custom = FALSE, ...) {
+  if (is.character(x) || !inherits(x$model, "multinom")) {
+    return(x)
+  }
+  if (radiant.data::is_empty(plots[1])) {
+    return("Please select a mnl regression plot from the drop-down menu")
+  }
 
   model <- x$model$model
   rvar <- x$rvar
@@ -411,13 +422,16 @@ plot.mnl <- function(
   plot_list <- list()
 
   if ("dist" %in% plots) {
-    for (i in vars)
+    for (i in vars) {
       plot_list[[paste("dist_", i)]] <- select_at(model, .vars = i) %>%
         visualize(xvar = i, bins = 10, custom = TRUE)
+    }
   }
 
   if ("coef" %in% plots) {
-    if (length(evar) == 0 && !intercept) return("** Model contains only an intercept **")
+    if (length(evar) == 0 && !intercept) {
+      return("** Model contains only an intercept **")
+    }
 
     yl <- {
       if (sum(c("standardize", "center") %in% x$check) == 2) {
@@ -436,7 +450,7 @@ plot.mnl <- function(
       ci_tab <- apply(ci_tab, 2, rbind)
       color <- "level"
     } else {
-      color = NULL
+      color <- NULL
     }
     ci_tab <- as.data.frame(ci_tab, stringsAsFactors = FALSE) %>%
       na.omit() %>%
@@ -451,15 +465,15 @@ plot.mnl <- function(
 
     nrCol <- 1
     plot_list[["coef"]] <- ggplot(ci_tab) +
-        geom_pointrange(aes_string(x = "label", y = "coefficient", ymin = "Low", ymax = "High", color = color), position = position_dodge(width = -0.6)) +
-        geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
-        labs(y = yl, x = "") +
-        ## can't use coord_trans together with coord_flip
-        ## http://stackoverflow.com/a/26185278/1974918
-        scale_x_discrete(limits = rev(labels)) +
-        scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
-        coord_flip() +
-        theme(axis.text.y = element_text(hjust = 0))
+      geom_pointrange(aes(x = .data$label, y = .data$coefficient, ymin = .data$Low, ymax = .data$High, color = .data[[color]]), position = position_dodge(width = -0.6)) +
+      geom_hline(yintercept = 1, linetype = "dotdash", color = "blue") +
+      labs(y = yl, x = "") +
+      ## can't use coord_trans together with coord_flip
+      ## http://stackoverflow.com/a/26185278/1974918
+      scale_x_discrete(limits = rev(labels)) +
+      scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.5, 1, 2, 5, 10), trans = "log") +
+      coord_flip() +
+      theme(axis.text.y = element_text(hjust = 0))
   }
 
   if ("correlations" %in% plots) {
@@ -475,7 +489,9 @@ plot.mnl <- function(
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
       patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
-        {if (shiny) . else print(.)}
+        {
+          if (shiny) . else print(.)
+        }
     }
   }
 }
@@ -506,13 +522,12 @@ plot.mnl <- function(
 #' @seealso \code{\link{summary.mnl}} to summarize results
 #'
 #' @export
-predict.mnl <- function(
-  object, pred_data = NULL, pred_cmd = "",
-  pred_names = "", dec = 3, envir = parent.frame(),
-  ...
-) {
-
-  if (is.character(object)) return(object)
+predict.mnl <- function(object, pred_data = NULL, pred_cmd = "",
+                        pred_names = "", dec = 3, envir = parent.frame(),
+                        ...) {
+  if (is.character(object)) {
+    return(object)
+  }
 
   ## ensure you have a name for the prediction dataset
   if (is.data.frame(pred_data)) {
@@ -561,8 +576,9 @@ predict.mnl <- function(
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.mnl.predict <- function(x, ..., n = 10)
+print.mnl.predict <- function(x, ..., n = 10) {
   print_predict_model(x, ..., n = n, header = "Multinomial logistic regression (MNL)", lev = attr(x, "radiant_lev"))
+}
 
 #' Plot method for mnl.predict function
 #'
@@ -585,24 +601,28 @@ print.mnl.predict <- function(x, ..., n = 10)
 #'
 #' @seealso \code{\link{predict.mnl}} to generate predictions
 #'
+#' @importFrom rlang .data
+#'
 #' @export
-plot.mnl.predict <- function(
-  x, xvar = "", facet_row = ".", facet_col = ".",
-  color = ".class", ...
-) {
+plot.mnl.predict <- function(x, xvar = "", facet_row = ".", facet_col = ".",
+                             color = ".class", ...) {
 
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) return(invisible())
+  if (radiant.data::is_empty(xvar)) {
+    return(invisible())
+  }
 
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
-  if (is.character(x)) return(x)
+  if (is.character(x)) {
+    return(x)
+  }
 
   pvars <- base::setdiff(attr(x, "radiant_vars"), attr(x, "radiant_evar"))
   rvar <- attr(x, "radiant_rvar")
-  x %<>% gather(".class", "Prediction", !! pvars)
+  x %<>% gather(".class", "Prediction", !!pvars)
 
   byvar <- c(xvar, color)
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
@@ -611,7 +631,7 @@ plot.mnl.predict <- function(
   tmp <- group_by_at(x, .vars = byvar) %>%
     select_at(.vars = c(byvar, "Prediction")) %>%
     summarise_all(mean)
-  p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
+  p <- ggplot(tmp, aes(x = .data[[xvar]], y = .data$Prediction, color = .data[[color]], group = .data[[color]])) +
     geom_line()
 
   if (facet_row != "." || facet_col != ".") {

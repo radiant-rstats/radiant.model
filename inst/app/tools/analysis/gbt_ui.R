@@ -1,6 +1,7 @@
 gbt_plots <- c(
   "None" = "none",
-  "Variable Importance" = "vimp",
+  "Permutation Importance" = "vip",
+  "Prediction plots" = "pred_plot",
   "Partial Dependence" = "pdp",
   "Dashboard" = "dashboard"
 )
@@ -17,6 +18,21 @@ gbt_inputs <- reactive({
     gbt_args[[i]] <- input[[paste0("gbt_", i)]]
   }
   gbt_args
+})
+
+gbt_plot_args <- as.list(if (exists("plot.gbt")) {
+  formals(plot.gbt)
+} else {
+  formals(radiant.model:::plot.gbt)
+})
+
+## list of function inputs selected by user
+gbt_plot_inputs <- reactive({
+  ## loop needed because reactive values don't allow single bracket indexing
+  for (i in names(gbt_plot_args)) {
+    gbt_plot_args[[i]] <- input[[paste0("gbt_", i)]]
+  }
+  gbt_plot_args
 })
 
 gbt_pred_args <- as.list(if (exists("predict.gbt")) {
@@ -132,6 +148,10 @@ output$ui_gbt_evar <- renderUI({
     selectize = FALSE
   )
 })
+
+# function calls generate UI elements
+output_incl("gbt")
+output_incl_int("gbt")
 
 output$ui_gbt_wts <- renderUI({
   isNum <- .get_class() %in% c("integer", "numeric", "ts")
@@ -338,6 +358,11 @@ output$ui_gbt <- renderUI({
         conditionalPanel(
           condition = "input.gbt_plots == 'dashboard'",
           uiOutput("ui_gbt_nrobs")
+        ),
+        conditionalPanel(
+          condition = "input.gbt_plots == 'pdp' | input.gbt_plots == 'pred_plot'",
+          uiOutput("ui_gbt_incl"),
+          uiOutput("ui_gbt_incl_int")
         )
       ),
       # conditionalPanel(
@@ -369,17 +394,23 @@ gbt_plot <- reactive({
     return()
   }
   nr_vars <- length(res$evar)
+  plot_height <- 500
+  plot_width <- 650
   if ("dashboard" %in% input$gbt_plots) {
     plot_height <- 750
-  } else if ("pdp" %in% input$gbt_plots) {
-    plot_height <- max(500, (nr_vars / 2) * 250)
-  } else if ("vimp" %in% input$gbt_plots) {
-    plot_height <- max(300, nr_vars * 50)
-  } else {
-    plot_height <- 500
+  } else if (input$gbt_plots %in% c("pdp", "pred_plot")) {
+    nr_vars <- length(input$gbt_incl) + length(input$gbt_incl_int)
+    plot_height <- max(250, ceiling(nr_vars / 2) * 250)
+    if (length(input$gbt_incl_int) > 0) {
+      plot_width <- plot_width + min(2, length(input$gbt_incl_int)) * 90
+    }
+  } else if ("vimp" %in% input$rf_plots) {
+    plot_height <- max(500, nr_vars * 35)
+  } else if ("vip" %in% input$rf_plots) {
+    plot_height <- max(500, nr_vars * 35)
   }
 
-  list(plot_width = 650, plot_height = plot_height)
+  list(plot_width = plot_width, plot_height = plot_height)
 })
 
 gbt_plot_width <- function() {
@@ -543,13 +574,19 @@ gbt_available <- reactive({
   } else if (radiant.data::is_empty(input$gbt_plots, "none")) {
     return("Please select a gradient boosted trees plot from the drop-down menu")
   }
-  pinp <- list(plots = input$gbt_plots, shiny = TRUE)
+  # pinp <- list(plots = input$gbt_plots, shiny = TRUE)
+  # if (input$gbt_plots == "dashboard") {
+  #   req(input$gbt_nrobs)
+  #   pinp <- c(pinp, nrobs = as_integer(input$gbt_nrobs))
+  # } else if (input$gbt_plots == "pdp") {
+  #   pinp <- c(pinp)
+  # }
+  pinp <- gbt_plot_inputs()
+  pinp$shiny <- TRUE
   if (input$gbt_plots == "dashboard") {
     req(input$gbt_nrobs)
-    pinp <- c(pinp, nrobs = as_integer(input$gbt_nrobs))
-  } else if (input$gbt_plots == "pdp") {
-    pinp <- c(pinp)
   }
+  check_for_pdp_pred_plots("gbt")
   withProgress(message = "Generating plots", value = 1, {
     do.call(plot, c(list(x = .gbt()), pinp))
   })
@@ -594,11 +631,9 @@ gbt_report <- function() {
   figs <- FALSE
 
   if (!radiant.data::is_empty(input$gbt_plots, "none")) {
-    if (input$gbt_type == "regression" && input$gbt_plots == "dashboard") {
-      inp_out[[2]] <- list(plots = input$gbt_plots, nrobs = as_integer(input$gbt_nrobs), custom = FALSE)
-    } else {
-      inp_out[[2]] <- list(plots = input$gbt_plots, custom = FALSE)
-    }
+    inp <- check_plot_inputs(gbt_plot_inputs())
+    inp_out[[2]] <- clean_args(inp, gbt_plot_args[-1])
+    inp_out[[2]]$custom <- FALSE
     outputs <- c(outputs, "plot")
     figs <- TRUE
   }
@@ -616,7 +651,7 @@ gbt_report <- function() {
     pred_args <- clean_args(gbt_pred_inputs(), gbt_pred_args[-1])
 
     if (!radiant.data::is_empty(pred_args$pred_cmd)) {
-      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";")[[1]]
+      pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";\\s*")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }

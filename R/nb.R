@@ -22,11 +22,8 @@
 #' @importFrom e1071 naiveBayes
 #'
 #' @export
-nb <- function(
-  dataset, rvar, evar, laplace = 0, 
-  data_filter = "", envir = parent.frame()
-) {
-
+nb <- function(dataset, rvar, evar, laplace = 0,
+               data_filter = "", envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("nb"))
@@ -87,7 +84,9 @@ nb <- function(
 #'
 #' @export
 summary.nb <- function(object, dec = 3, ...) {
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
 
   cat("Naive Bayes Classifier")
   cat("\nData                 :", object$df_name)
@@ -101,7 +100,10 @@ summary.nb <- function(object, dec = 3, ...) {
   cat("\nNr obs               :", format_nr(nrow(object$model$model), dec = 0), "\n")
 
   cat("\nA-priori probabilities:\n")
-  apriori <- object$model$apriori %>% {. / sum(.)}
+  apriori <- object$model$apriori %>%
+    {
+      . / sum(.)
+    }
   names(dimnames(apriori))[1] <- object$rvar
   print(round(apriori, 3))
 
@@ -136,8 +138,12 @@ summary.nb <- function(object, dec = 3, ...) {
 #'
 #' @export
 plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000, ...) {
-  if (is.character(x)) return(x)
-  if (radiant.data::is_empty(plots[1])) return(invisible())
+  if (is.character(x)) {
+    return(x)
+  }
+  if (radiant.data::is_empty(plots[1])) {
+    return(invisible())
+  }
 
   rvar <- x$model$model[[1]]
 
@@ -183,7 +189,7 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
     colnames(vimp) <- names(evar)
     vimp$Predict <- apply(cmb, 2, paste0, collapse = " vs ")
     vimp$Predict <- factor(vimp$Predict, levels = unique(rev(vimp$Predict)))
-    vimp <- gather(vimp, "vars", "auc", !! colnames(evar), factor_key = TRUE)
+    vimp <- gather(vimp, "vars", "auc", !!colnames(evar), factor_key = TRUE)
 
     p <- visualize(vimp, yvar = "auc", xvar = "Predict", type = "bar", fill = "vars", custom = TRUE) +
       guides(fill = guide_legend(title = "")) +
@@ -221,13 +227,12 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
 #' @seealso \code{\link{summary.nb}} to summarize results
 #'
 #' @export
-predict.nb <- function(
-  object, pred_data = NULL, pred_cmd = "",
-  pred_names = "", dec = 3, envir = parent.frame(), 
-  ...
-) {
-
-  if (is.character(object)) return(object)
+predict.nb <- function(object, pred_data = NULL, pred_cmd = "",
+                       pred_names = "", dec = 3, envir = parent.frame(),
+                       ...) {
+  if (is.character(object)) {
+    return(object)
+  }
 
   ## ensure you have a name for the prediction dataset
   if (is.data.frame(pred_data)) {
@@ -274,8 +279,9 @@ predict.nb <- function(
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.nb.predict <- function(x, ..., n = 10)
+print.nb.predict <- function(x, ..., n = 10) {
   print_predict_model(x, ..., n = n, header = "Naive Bayes Classifier", lev = attr(x, "radiant_lev"))
+}
 
 #' Plot method for nb.predict function
 #'
@@ -298,24 +304,28 @@ print.nb.predict <- function(x, ..., n = 10)
 #'
 #' @seealso \code{\link{predict.nb}} to generate predictions
 #'
+#' @importFrom rlang .data
+#'
 #' @export
-plot.nb.predict <- function(
-  x, xvar = "", facet_row = ".", facet_col = ".",
-  color = ".class", ...
-) {
+plot.nb.predict <- function(x, xvar = "", facet_row = ".", facet_col = ".",
+                            color = ".class", ...) {
 
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) return(invisible())
+  if (radiant.data::is_empty(xvar)) {
+    return(invisible())
+  }
 
   if (facet_col != "." && facet_row == facet_col) {
     return("The same variable cannot be used for both Facet row and Facet column")
   }
 
-  if (is.character(x)) return(x)
+  if (is.character(x)) {
+    return(x)
+  }
 
   pvars <- base::setdiff(attr(x, "radiant_vars"), attr(x, "radiant_evar"))
   rvar <- attr(x, "radiant_rvar")
-  x %<>% gather(".class", "Prediction", !! pvars)
+  x %<>% gather(".class", "Prediction", !!pvars)
 
   byvar <- c(xvar, color)
   if (facet_row != ".") byvar <- unique(c(byvar, facet_row))
@@ -324,7 +334,7 @@ plot.nb.predict <- function(
   tmp <- group_by_at(x, .vars = byvar) %>%
     select_at(.vars = c(byvar, "Prediction")) %>%
     summarise_all(mean)
-  p <- ggplot(tmp, aes_string(x = xvar, y = "Prediction", color = color, group = color)) +
+  p <- ggplot(tmp, aes(x = .data[[xvar]], y = .data$Prediction, color = .data[[color]], group = .data[[color]])) +
     geom_line()
 
   if (facet_row != "." || facet_col != ".") {

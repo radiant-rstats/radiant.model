@@ -8,7 +8,8 @@
   x,
   plots = "",
   nrobs = Inf,
-  qtiles = FALSE,
+  incl = NULL,
+  incl_int = NULL,
   shiny = FALSE,
   custom = FALSE,
   ...
@@ -21,7 +22,9 @@
 
 \item{nrobs}{Number of data points to show in dashboard scatter plots (-1 for all)}
 
-\item{qtiles}{Show 25th and 75th percentiles in partial-dependence plots}
+\item{incl}{Which variables to include in PDP or Prediction plots}
+
+\item{incl_int}{Which interactions to investigate in PDP or Prediction plots}
 
 \item{shiny}{Did the function call originate inside a shiny app}
 

@@ -37,14 +37,11 @@
 #' @importFrom rpart rpart rpart.control prune.rpart
 #'
 #' @export
-crtree <- function(
-  dataset, rvar, evar, type = "", lev = "", wts = "None",
-  minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001,
-  pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
-  prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
-  data_filter = "", envir = parent.frame()
-) {
-
+crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
+                   minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001,
+                   pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
+                   prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
+                   data_filter = "", envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("crtree"))
@@ -132,9 +129,9 @@ crtree <- function(
 
   form <- paste(rvar, "~ . ")
 
-  seed %>% gsub("[^0-9]", "", .) %>% {
-    if (!radiant.data::is_empty(.)) set.seed(seed)
-  }
+  seed %>%
+    gsub("[^0-9]", "", .) %>%
+    (function(x) if (!radiant.data::is_empty(x)) set.seed(seed))
 
   minsplit <- ifelse(radiant.data::is_empty(minsplit), 2, minsplit)
   minbucket <- ifelse(radiant.data::is_empty(minbucket), round(minsplit / 3), minbucket)
@@ -258,7 +255,9 @@ crtree <- function(
 #'
 #' @export
 summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, modsum = FALSE, ...) {
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
 
   if (object$type == "classification") {
     cat("Classification tree")
@@ -325,6 +324,8 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
 #' @param labs Use factor labels in plot (TRUE) or revert to default letters used by tree (FALSE)
 #' @param nrobs Number of data points to show in dashboard scatter plots (-1 for all)
 #' @param dec Decimal places to round results to
+#' @param incl Which variables to include in a coefficient plot or PDP plot
+#' @param incl_int Which interactions to investigate in PDP plots
 #' @param shiny Did the function call originate inside a shiny app
 #' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
 #' @param ... further arguments passed to or from other methods
@@ -336,19 +337,20 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
 #' plot(result, plots = "prune")
 #' result <- crtree(dvd, "buy", c("coupon", "purch", "last"), cp = .01)
 #' plot(result, plots = "imp")
+#'
 #' @importFrom DiagrammeR DiagrammeR mermaid
+#' @importFrom rlang .data
 #'
 #' @seealso \code{\link{crtree}} to generate results
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #' @seealso \code{\link{predict.crtree}} for prediction
 #'
 #' @export
-plot.crtree <- function(
-  x, plots = "tree", orient = "LR",
-  width = "900px", labs = TRUE,
-  nrobs = Inf, dec = 2,
-  shiny = FALSE, custom = FALSE, ...
-) {
+plot.crtree <- function(x, plots = "tree", orient = "LR",
+                        width = "900px", labs = TRUE,
+                        nrobs = Inf, dec = 2,
+                        incl = NULL, incl_int = NULL,
+                        shiny = FALSE, custom = FALSE, ...) {
   if (radiant.data::is_empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
       return(paste0("graph LR\n A[\"", x, "\"]") %>% DiagrammeR::DiagrammeR(.))
@@ -391,9 +393,8 @@ plot.crtree <- function(
     df$split1 <- nlabs[, 1]
     df$split2 <- nlabs[, 2]
 
-    isInt <- x$model$var_types %>% {
-      names(.)[. == "integer"]
-    }
+    isInt <- x$model$var_types %>%
+      (function(x) names(x)[x == "integer"])
     if (length(isInt) > 0) {
       # inspired by https://stackoverflow.com/a/35556288/1974918
       int_labs <- function(x) {
@@ -417,9 +418,8 @@ plot.crtree <- function(
     df$split2 <- df$split2 %>% ifelse(nchar(.) > bnr, paste0(strtrim(., bnr), " ..."), .)
 
     df$to <- as.integer(df$to)
-    df$edge <- ifelse(df$level == "to1", df$split1, df$split2) %>% {
-      paste0(" --- |", ., "|")
-    }
+    df$edge <- ifelse(df$level == "to1", df$split1, df$split2) %>%
+      (function(x) paste0(" --- |", x, "|"))
     ## seems like only unicode letters are supported in mermaid at this time
     # df$edge <- ifelse (df$level == "to1", df$split1, df$split2) %>% {paste0("--- |", sub("^>", "\u2265",.), "|")}
     # df$edge <- iconv(df$edge, "UTF-8", "ASCII",sub="")
@@ -468,9 +468,10 @@ plot.crtree <- function(
     df$split2_full <- ifelse(df$split2_full == "", "", paste0("<br>", brn[2], gsub(",", ", ", df$split2_full)))
 
     ttip_ind <- 1:(nrow(df) / 2)
-    ttip <- df[ttip_ind, , drop = FALSE] %>% {
-      paste0("click id", .$id, " callback \"<b>n:</b> ", format_nr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")
-    }
+    ttip <- df[ttip_ind, , drop = FALSE] %>%
+      {
+        paste0("click id", .$id, " callback \"<b>n:</b> ", format_nr(.$n, dec = 0), "<br>", pre, .$yval, .$split1_full, .$split2_full, "\"", collapse = "\n")
+      }
 
     ## try to link a tooltip directly to an edge using mermaid
     ## see https://github.com/rich-iannone/DiagrammeR/issues/267
@@ -484,9 +485,11 @@ plot.crtree <- function(
     paste(paste0("graph ", orient), paste(paste0(df$from, df$edge, df$to_lab), collapse = "\n"), style, ttip, sep = "\n") %>%
       DiagrammeR::mermaid(., width = width, height = "100%")
   } else {
-    if ("character" %in% class(x)) return(x)
+    if ("character" %in% class(x)) {
+      return(x)
+    }
     plot_list <- list()
-    ncol <- 1
+    nrCol <- 1
     if ("prune" %in% plots) {
       if (is.null(x$unpruned)) {
         df <- data.frame(x$model$cptable, stringsAsFactors = FALSE)
@@ -505,7 +508,7 @@ plot.crtree <- function(
       ind2 <- min(which(df$xerror < (df$xerror[ind1] + df$xstd[ind1])))
       size2 <- c(df$nsplit[ind2], df$CP[ind2])
 
-      p <- ggplot(data = df, aes_string(x = "nsplit", y = "xerror")) +
+      p <- ggplot(data = df, aes(x = .data$nsplit, y = .data$xerror)) +
         geom_line() +
         geom_vline(xintercept = size1[1], linetype = "dashed") +
         geom_hline(yintercept = min(df$xerror), linetype = "dashed") +
@@ -514,10 +517,6 @@ plot.crtree <- function(
           x = "Number of nodes",
           y = "Relative error"
         )
-      # + annotate(
-      #     geom = "text", x = df$nsplit, y = 1.1, label = as.character(signif(df$CP, 2L)),
-      #     angle = -90, vjust = 0, hjust = 0
-      #   )
       if (nrow(df) < 10) p <- p + scale_x_continuous(breaks = df$nsplit)
 
       ## http://stats.stackexchange.com/questions/13471/how-to-choose-the-number-of-splits-in-rpart
@@ -534,9 +533,12 @@ plot.crtree <- function(
 
       plot_list[["prune"]] <- p + labs(caption = footnote)
     }
+
     if ("imp" %in% plots) {
       imp <- x$model$variable.importance
-      if (is.null(imp)) return("Variable importance information not available for singlenode tree")
+      if (is.null(imp)) {
+        return("Variable importance information not available for singlenode tree")
+      }
 
       df <- data.frame(
         vars = names(imp),
@@ -556,26 +558,53 @@ plot.crtree <- function(
         coord_flip() +
         theme(axis.text.y = element_text(hjust = 0))
     }
-    if ("pdp" %in% plots) {
-      ncol <- 2
-      for (pn in x$evar) {
-        plot_list[[pn]] <- pdp::partial(
-          x$model, pred.var = pn, plot = TRUE, rug = TRUE,
-          prob = x$type == "classification", plot.engine = "ggplot2", smooth = TRUE
-        ) + labs(y = "")
+
+    if ("vip" %in% plots) {
+      # imp <- x$model$variable.importance
+      # if (is.null(imp)) {
+      #   return("Variable importance information not available for singlenode tree")
+      # } else {
+      vi_scores <- varimp(x)
+      plot_list[["vip"]] <-
+        visualize(vi_scores, yvar = "Importance", xvar = "Variable", type = "bar", custom = TRUE) +
+        labs(
+          title = "Permutation Importance",
+          x = NULL,
+          y = ifelse(x$type == "regression", "Importance (R-square decrease)", "Importance (AUC decrease)")
+        ) +
+        coord_flip() +
+        theme(axis.text.y = element_text(hjust = 0))
+    }
+
+    if ("pred_plot" %in% plots) {
+      nrCol <- 2
+      if (length(incl) > 0 | length(incl_int) > 0) {
+        plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+      } else {
+        return("Select one or more variables to generate Prediction plots")
       }
     }
+
+    if ("pdp" %in% plots) {
+      nrCol <- 2
+      if (length(incl) > 0 || length(incl_int) > 0) {
+        plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+      } else {
+        return("Select one or more variables to generate Partial Dependence Plots")
+      }
+    }
+
     if (x$type == "regression" && "dashboard" %in% plots) {
       plot_list <- plot.regress(x, plots = "dashboard", lines = "line", nrobs = nrobs, custom = TRUE)
-      ncol <- 2
+      nrCol <- 2
     }
 
     if (length(plot_list) > 0) {
       if (custom) {
         if (length(plot_list) == 1) plot_list[[1]] else plot_list
       } else {
-        patchwork::wrap_plots(plot_list, ncol = ncol) %>%
-          {if (shiny) . else print(.)}
+        patchwork::wrap_plots(plot_list, ncol = nrCol) %>%
+          (function(x) if (isTRUE(shiny)) x else print(x))
       }
     }
   }
@@ -603,12 +632,12 @@ plot.crtree <- function(
 #' @seealso \code{\link{summary.crtree}} to summarize results
 #'
 #' @export
-predict.crtree <- function(
-  object, pred_data = NULL, pred_cmd = "",
-  conf_lev = 0.95, se = FALSE, dec = 3,
-  envir = parent.frame(), ...
-) {
-  if (is.character(object)) return(object)
+predict.crtree <- function(object, pred_data = NULL, pred_cmd = "",
+                           conf_lev = 0.95, se = FALSE, dec = 3,
+                           envir = parent.frame(), ...) {
+  if (is.character(object)) {
+    return(object)
+  }
   if (is.data.frame(pred_data)) {
     df_name <- deparse(substitute(pred_data))
   } else {
@@ -639,8 +668,9 @@ predict.crtree <- function(
 #' @param n Number of lines of prediction results to print. Use -1 to print all lines
 #'
 #' @export
-print.crtree.predict <- function(x, ..., n = 10)
+print.crtree.predict <- function(x, ..., n = 10) {
   print_predict_model(x, ..., n = n, header = "Classification and regression trees")
+}
 
 #' Cross-validation for Classification and Regression Trees
 #'
