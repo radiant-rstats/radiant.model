@@ -16,16 +16,15 @@
 #' @seealso \code{\link{plot.crs}} to plot results if the actual ratings are available
 #'
 #' @examples
-#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
-#'   rate = "Ratings", data_filter = "training == 1") %>% str()
+#' crs(ratings,
+#'   id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
+#'   rate = "Ratings", data_filter = "training == 1"
+#' ) %>% str()
 #' @importFrom dplyr distinct_at
 #'
 #' @export
-crs <- function(
-                dataset, id, prod, pred, rate,
-                data_filter = "", envir = parent.frame()
-) {
-
+crs <- function(dataset, id, prod, pred, rate,
+                data_filter = "", envir = parent.frame()) {
   vars <- c(id, prod, rate)
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
   uid <- get_data(dataset, id, filt = data_filter, na.rm = FALSE, envir = envir) %>% unique()
@@ -90,7 +89,7 @@ crs <- function(
   }
 
   rank <- apply(act, 1, function(x) as.integer(min_rank(desc(x)))) %>%
-    {if (length(pred) == 1) . else t(.)}
+    (function(x) if (length(pred) == 1) x else t(x))
   ract[, pred] <- rank
   ract <- bind_cols(idv[-uid, , drop = FALSE], ract)
   act <- bind_cols(idv[-uid, , drop = FALSE], act)
@@ -125,9 +124,8 @@ crs <- function(
 
   ## Ranking based on CF
   rcf <- cf
-  rank <- apply(select(cf, -1), 1, function(x) as.integer(min_rank(desc(x)))) %>% {
-    if (length(pred) == 1) . else t(.)
-  }
+  rank <- apply(select(cf, -1), 1, function(x) as.integer(min_rank(desc(x)))) %>%
+    (function(x) if (length(pred) == 1) x else t(x))
   rcf[, pred] <- rank
 
   recommendations <-
@@ -135,7 +133,7 @@ crs <- function(
       bind_cols(
         gather(act, "product", "rating", -1, factor_key = TRUE),
         select_at(gather(ract, "product", "ranking", -1, factor_key = TRUE), .vars = "ranking"),
-        select_at(gather(cf, "product", "cf", -1, factor_key = TRUE), , .vars = "cf"),
+        select_at(gather(cf, "product", "cf", -1, factor_key = TRUE), .vars = "cf"),
         select_at(gather(rcf, "product", "cf_rank", -1, factor_key = TRUE), .vars = "cf_rank")
       ),
       data.frame(
@@ -166,11 +164,15 @@ crs <- function(
 #' @seealso \code{\link{plot.crs}} to plot results if the actual ratings are available
 #'
 #' @examples
-#' crs(ratings, id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
-#'   rate = "Ratings", data_filter = "training == 1") %>% summary()
+#' crs(ratings,
+#'   id = "Users", prod = "Movies", pred = c("M6", "M7", "M8", "M9", "M10"),
+#'   rate = "Ratings", data_filter = "training == 1"
+#' ) %>% summary()
 #' @export
 summary.crs <- function(object, n = 36, dec = 2, ...) {
-  if (is.character(object)) return(cat(object))
+  if (is.character(object)) {
+    return(cat(object))
+  }
 
   cat("Collaborative filtering")
   cat("\nData       :", object$df_name)
@@ -225,12 +227,18 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
   if (n == -1) {
     cat("\n")
     format_df(object$recommendations, dec = dec) %>%
-      {.[. == "NA"] <- ""; .} %>%
+      (function(x) {
+        x[x == "NA"] <- ""
+        x
+      }) %>%
       print(row.names = FALSE)
   } else {
     head(object$recommendations, n) %>%
       format_df(dec = dec) %>%
-      {.[. == "NA"] <- ""; .} %>%
+      (function(x) {
+        x[x == "NA"] <- ""
+        x
+      }) %>%
       print(row.names = FALSE)
   }
 }
@@ -247,7 +255,9 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 #'
 #' @export
 plot.crs <- function(x, ...) {
-  if (is.character(x)) return(x)
+  if (is.character(x)) {
+    return(x)
+  }
   if (any(is.na(x$act)) || all(is.na(x$cf))) {
     return("Plotting for Collaborative Filter requires the actual ratings associated\nwith the predictions")
   }
@@ -257,7 +267,8 @@ plot.crs <- function(x, ...) {
 
 
   p <- visualize(
-    x$recommendations, xvar = "cf", yvar = "rating",
+    x$recommendations,
+    xvar = "cf", yvar = "rating",
     type = "scatter", facet_col = "product", check = "line",
     custom = TRUE
   ) +

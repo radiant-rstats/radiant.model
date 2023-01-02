@@ -831,7 +831,7 @@ plot.regress <- function(x, plots = "", lines = "",
     plot_list[["influence"]] <- ggplot(mod, aes(index, .std.resid)) +
       geom_point(aes(size = .cooksd), alpha = 0.5) +
       ggrepel::geom_text_repel(aes(label = index.max)) +
-      geom_hline(yintercept = c(-1, -3, 1, 3), linetype = "longdash", size = 0.25) +
+      geom_hline(yintercept = c(-1, -3, 1, 3), linetype = "longdash", linewidth = 0.25) +
       scale_y_continuous(breaks = -4:4, limits = lim) +
       labs(
         title = "Influential observations",

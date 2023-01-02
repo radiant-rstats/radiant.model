@@ -20,11 +20,8 @@
 #'   str()
 #'
 #' @export
-evalreg <- function(
-  dataset, pred, rvar, train = "All", 
-  data_filter = "", envir = parent.frame()
-) {
-
+evalreg <- function(dataset, pred, rvar, train = "All",
+                    data_filter = "", envir = parent.frame()) {
   if (!train %in% c("", "All") && radiant.data::is_empty(data_filter)) {
     return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalreg"))
   }
@@ -57,7 +54,7 @@ evalreg <- function(
       Predictor = pred,
       n = nrow(dat[pred]),
       Rsq = cor(rv, select_at(dat, pred))^2 %>% .[1, ],
-      RMSE = summarise_at(dat, .vars = pred, .funs = ~ sqrt(mean((rv - .) ^ 2, na.rm = TRUE))) %>% unlist(),
+      RMSE = summarise_at(dat, .vars = pred, .funs = ~ sqrt(mean((rv - .)^2, na.rm = TRUE))) %>% unlist(),
       MAE = summarise_at(dat, .vars = pred, .funs = ~ mean(abs(rv - .), na.rm = TRUE)) %>% unlist(),
       stringsAsFactors = FALSE
     )
@@ -87,7 +84,9 @@ evalreg <- function(
 #'
 #' @export
 summary.evalreg <- function(object, dec = 3, ...) {
-  if (is.character(object)) return(object)
+  if (is.character(object)) {
+    return(object)
+  }
   cat("Evaluate predictions for regression models\n")
   cat("Data        :", object$df_name, "\n")
   if (!radiant.data::is_empty(object$data_filter)) {
@@ -118,10 +117,11 @@ summary.evalreg <- function(object, dec = 3, ...) {
 #'
 #' @export
 plot.evalreg <- function(x, vars = c("Rsq", "RMSE", "MAE"), ...) {
+  if (is.character(x) || is.null(x)) {
+    return(invisible())
+  }
 
-  if (is.character(x) || is.null(x)) return(invisible())
-
-  dat <- gather(x$dat, "Metric", "Value", !! vars, factor_key = TRUE) %>%
+  dat <- gather(x$dat, "Metric", "Value", !!vars, factor_key = TRUE) %>%
     mutate(Predictor = factor(Predictor, levels = unique(Predictor)))
 
   ## what data was used in evaluation? All, Training, Test, or Both

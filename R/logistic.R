@@ -216,7 +216,6 @@ logistic <- function(dataset, rvar, evar, lev = "", int = "",
 #' titanic %>%
 #'   logistic("survived", c("pclass", "sex", "age"), lev = "Yes") %>%
 #'   summary("vif")
-
 #' @seealso \code{\link{logistic}} to generate the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
 #' @seealso \code{\link{predict.logistic}} to generate predictions
@@ -291,13 +290,15 @@ summary.logistic <- function(object, sum_check = "", conf_lev = .95,
 
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
   logit_fit$rnk <- object$model$rank
-  logit_fit <- logit_fit %>% mutate(
-    llnull = null.deviance/-2,
-    llfull = deviance/-2,
-    r2 = 1 - llfull/llnull,
-    r2_adj = 1 - (llfull - (rnk - 1)) / llnull,
-    auc = auc(object$model$fitted.values, object$model$model[[object$rvar]])
-  ) %>% round(dec)
+  logit_fit <- logit_fit %>%
+    mutate(
+      llnull = null.deviance / -2,
+      llfull = deviance / -2,
+      r2 = 1 - llfull / llnull,
+      r2_adj = 1 - (llfull - (rnk - 1)) / llnull,
+      auc = auc(object$model$fitted.values, object$model$model[[object$rvar]])
+    ) %>%
+    round(dec)
 
   if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     nobs <- sum(object$wts)
