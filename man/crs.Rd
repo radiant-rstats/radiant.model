@@ -4,7 +4,16 @@
 \alias{crs}
 \title{Collaborative Filtering}
 \usage{
-crs(dataset, id, prod, pred, rate, data_filter = "", envir = parent.frame())
+crs(
+  dataset,
+  id,
+  prod,
+  pred,
+  rate,
+  data_filter = "",
+  rows = NULL,
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}
@@ -18,6 +27,8 @@ crs(dataset, id, prod, pred, rate, data_filter = "", envir = parent.frame())
 \item{rate}{String with name of the variable with product ratings}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")}
+
+\item{rows}{Rows to select from the specified dataset}
 
 \item{envir}{Environment to extract data from}
 }

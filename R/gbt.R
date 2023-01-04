@@ -18,6 +18,7 @@
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #' @param ... Further arguments to pass to xgboost
 #'
@@ -51,7 +52,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
                 min_child_weight = 1, subsample = 1,
                 nrounds = 100, early_stopping_rounds = 10,
                 nthread = 12, wts = "None", seed = NA,
-                data_filter = "", envir = parent.frame(), ...) {
+                data_filter = "", rows = NULL, envir = parent.frame(), ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("gbt"))
@@ -59,7 +60,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
 
   vars <- c(rvar, evar)
 
-  if (radiant.data::is_empty(wts, "None")) {
+  if (is.empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -67,11 +68,11 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir) %>%
+  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir) %>%
     mutate_if(is.Date, as.numeric)
   nr_obs <- nrow(dataset)
 
-  if (!radiant.data::is_empty(wts, "None")) {
+  if (!is.empty(wts, "None")) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -149,7 +150,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
 
   ## based on https://stackoverflow.com/questions/14324096/setting-seed-locally-not-globally-in-r/14324316#14324316
   seed <- gsub("[^0-9]", "", seed)
-  if (!radiant.data::is_empty(seed)) {
+  if (!is.empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit(.Random.seed <<- gseed)
@@ -209,8 +210,11 @@ summary.gbt <- function(object, prn = TRUE, ...) {
     cat("Type                 : Regression")
   }
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   if (object$type == "classification") {
@@ -234,11 +238,11 @@ summary.gbt <- function(object, prn = TRUE, ...) {
       sub(" {2,}", " ", .)
     cat("Additional arguments :", extra_args, "\n")
   }
-  if (!radiant.data::is_empty(object$seed)) {
+  if (!is.empty(object$seed)) {
     cat("Seed                 :", object$seed, "\n")
   }
 
-  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!is.empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", format_nr(object$nr_obs, dec = 0), "\n")
@@ -588,10 +592,10 @@ cv.gbt <- function(object, K = 5, repeats = 1, params = list(),
     }
     train <- xgboost::xgb.DMatrix(data = dtx, label = dty)
     params_base <- object$model$params
-    if (radiant.data::is_empty(params_base[["eval_metric"]])) {
+    if (is.empty(params_base[["eval_metric"]])) {
       params_base[["eval_metric"]] <- object$extra_args[["eval_metric"]]
     }
-    if (radiant.data::is_empty(params_base[["maximize"]])) {
+    if (is.empty(params_base[["maximize"]])) {
       params_base[["maximize"]] <- object$extra_args[["maximize"]]
     }
   } else if (!inherits(object, "xgb.Booster")) {
@@ -611,7 +615,7 @@ cv.gbt <- function(object, K = 5, repeats = 1, params = list(),
     params_base[[n]] <- params[[n]]
   }
   params <- params_base
-  if (radiant.data::is_empty(maximize)) {
+  if (is.empty(maximize)) {
     maximize <- params$maximize
   }
 
@@ -692,7 +696,7 @@ cv.gbt <- function(object, K = 5, repeats = 1, params = list(),
     out <- list()
     for (i in seq_len(nitt)) {
       cv_params <- tune_grid[i, ]
-      if (!radiant.data::is_empty(cv_params$nrounds)) {
+      if (!is.empty(cv_params$nrounds)) {
         nrounds <- cv_params$nrounds
         cv_params$nrounds <- NULL
       }

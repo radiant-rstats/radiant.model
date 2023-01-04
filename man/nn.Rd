@@ -17,6 +17,7 @@ nn(
   check = "standardize",
   form,
   data_filter = "",
+  rows = NULL,
   envir = parent.frame()
 )
 }
@@ -44,6 +45,8 @@ nn(
 \item{form}{Optional formula to use instead of rvar and evar}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{rows}{Rows to select from the specified dataset}
 
 \item{envir}{Environment to extract data from}
 }

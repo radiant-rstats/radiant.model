@@ -10,6 +10,7 @@
 #' @param wts Weights to use in estimation
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in mnl as an object of class mnl
@@ -31,7 +32,7 @@
 #' @export
 mnl <- function(dataset, rvar, evar, lev = "", int = "",
                 wts = "None", check = "",
-                data_filter = "", envir = parent.frame()) {
+                data_filter = "", rows = NULL, envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("mnl"))
@@ -39,7 +40,7 @@ mnl <- function(dataset, rvar, evar, lev = "", int = "",
 
   vars <- c(rvar, evar)
 
-  if (radiant.data::is_empty(wts, "None")) {
+  if (is.empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -47,9 +48,9 @@ mnl <- function(dataset, rvar, evar, lev = "", int = "",
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
+  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
 
-  if (!radiant.data::is_empty(wts)) {
+  if (!is.empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -222,8 +223,11 @@ summary.mnl <- function(object, sum_check = "", conf_lev = .95,
 
   cat("Multinomial logistic regression (MNL)")
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   cat("\nBase level           :", object$lev[1], "in", object$rvar)
@@ -263,7 +267,7 @@ summary.mnl <- function(object, sum_check = "", conf_lev = .95,
   ## pseudo R2 (likelihood ratio) - http://en.wikipedia.org/wiki/Logistic_Model
   mnl_fit %<>% mutate(r2 = (null.deviance - deviance) / null.deviance) %>%
     round(dec)
-  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!is.empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     nobs <- sum(object$wts)
     mnl_fit$BIC <- round(-2 * mnl_fit$logLik + ln(nobs) * with(mnl_fit, edf), dec)
   } else {
@@ -329,7 +333,7 @@ summary.mnl <- function(object, sum_check = "", conf_lev = .95,
     }
   }
 
-  if (!radiant.data::is_empty(test_var)) {
+  if (!is.empty(test_var)) {
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
@@ -410,7 +414,7 @@ plot.mnl <- function(x, plots = "coef", conf_lev = .95,
   if (is.character(x) || !inherits(x$model, "multinom")) {
     return(x)
   }
-  if (radiant.data::is_empty(plots[1])) {
+  if (is.empty(plots[1])) {
     return("Please select a mnl regression plot from the drop-down menu")
   }
 
@@ -557,7 +561,7 @@ predict.mnl <- function(object, pred_data = NULL, pred_cmd = "",
       # if (is.null(dim(pred_val))) pred_val <- t(pred_val)
       if (is.vector(pred_val)) pred_val <- t(pred_val)
       pred_val %<>% as.data.frame(stringsAsFactors = FALSE)
-      if (all(radiant.data::is_empty(pred_names))) pred_names <- colnames(pred_val)
+      if (all(is.empty(pred_names))) pred_names <- colnames(pred_val)
       pred_val %<>% select(1:min(ncol(pred_val), length(pred_names))) %>%
         set_colnames(pred_names)
     }
@@ -608,7 +612,7 @@ plot.mnl.predict <- function(x, xvar = "", facet_row = ".", facet_col = ".",
                              color = ".class", ...) {
 
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) {
+  if (is.empty(xvar)) {
     return(invisible())
   }
 
@@ -674,7 +678,7 @@ store.mnl.predict <- function(dataset, object, name = NULL, ...) {
   # df <- as.vector(object[, pvars])
   df <- object[, pvars, drop = FALSE] %>% mutate(across(everything(), as.vector))
 
-  if (radiant.data::is_empty(name)) {
+  if (is.empty(name)) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name

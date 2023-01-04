@@ -9,6 +9,7 @@
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param form Optional formula to use instead of rvar, evar, and int
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list of all variables used in the regress function as an object of class regress
@@ -25,7 +26,7 @@
 #'
 #' @export
 regress <- function(dataset, rvar, evar, int = "", check = "",
-                    form, data_filter = "", envir = parent.frame()) {
+                    form, data_filter = "", rows = NULL, envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
     vars <- all.vars(form)
@@ -40,10 +41,10 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   if (any(evar == ".")) {
-    dataset <- get_data(dataset, "", filt = data_filter, envir = envir)
+    dataset <- get_data(dataset, "", filt = data_filter, rows = rows, envir = envir)
     evar <- setdiff(colnames(dataset), rvar)
   } else {
-    dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, envir = envir)
+    dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, rows = rows, envir = envir)
   }
 
   not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
@@ -189,8 +190,11 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
 
   cat("Linear regression (OLS)\n")
   cat("Data     :", object$df_name, "\n")
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
+  }
+  if (!is.empty(object$rows)) {
+    cat("Slice    :", gsub("\\n", "", object$rows), "\n")
   }
   cat("Response variable    :", object$rvar, "\n")
   cat("Explanatory variables:", paste0(object$evar, collapse = ", "), "\n")
@@ -319,7 +323,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
     }
   }
 
-  if (!radiant.data::is_empty(test_var)) {
+  if (!is.empty(test_var)) {
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
@@ -671,7 +675,7 @@ plot.regress <- function(x, plots = "", lines = "",
   # not clear why this was needed in the first place
   # nlines <- sub("jitter", "", lines)
 
-  if (any(plots %in% c("dashboard", "scatter", "resid_pred")) && !radiant.data::is_empty(nrobs)) {
+  if (any(plots %in% c("dashboard", "scatter", "resid_pred")) && !is.empty(nrobs)) {
     nrobs <- as.integer(nrobs)
     if (nrobs > 0 && nrobs < nrow(model)) {
       model <- sample_n(model, nrobs, replace = FALSE)
@@ -993,13 +997,13 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
   if (is.character(object)) {
     return(object)
   }
-  if (radiant.data::is_empty(pred_data) && radiant.data::is_empty(pred_cmd)) {
+  if (is.empty(pred_data) && is.empty(pred_cmd)) {
     return("Please select data and/or specify a command to generate predictions.\nFor example, carat = seq(.5, 1.5, .1) would produce predictions for values\n of carat starting at .5, increasing to 1.5 in increments of .1. Make sure\nto press return after you finish entering the command.\n\nAlternatively, specify a dataset to generate predictions. You could create\nthis in a spread sheet and use the paste feature in Data > Manage to bring\nit into Radiant")
   }
 
   pred_type <- "cmd"
   vars <- object$evar
-  if (!radiant.data::is_empty(pred_cmd) && radiant.data::is_empty(pred_data)) {
+  if (!is.empty(pred_cmd) && is.empty(pred_data)) {
     dat <- object$model$model
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "radiant_ms")
@@ -1086,7 +1090,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
     }
   } else {
     ## generate predictions for all observations in the dataset
-    pred <- get_data(pred_data, filt = "", na.rm = FALSE, envir = envir)
+    pred <- get_data(pred_data, filt = "", rows = NULL, na.rm = FALSE, envir = envir)
     pred_names <- colnames(pred)
     vars_in <- vars %in% pred_names
     ## keep all variables in the prediction data for the "customized" prediction
@@ -1094,7 +1098,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
       return(paste0("All variables in the model must also be in the prediction data\nVariables in the model: ", paste0(vars, collapse = ", "), "\nVariables not available in prediction data: ", paste0(vars[!vars_in], collapse = ", ")))
     }
 
-    if (!radiant.data::is_empty(pred_cmd)) {
+    if (!is.empty(pred_cmd)) {
       pred_cmd %<>% paste0(., collapse = ";") %>%
         gsub("\"", "\'", .) %>%
         gsub("\\s+", " ", .) %>%
@@ -1188,6 +1192,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
     extra_args <- list(...)
     pred <- set_attr(pred, "radiant_df_name", object$df_name) %>%
       set_attr("radiant_data_filter", object$data_filter) %>%
+      set_attr("radiant_rows", object$rows) %>%
       set_attr("radiant_rvar", object$rvar) %>%
       set_attr("radiant_lev", object$lev) %>%
       set_attr("radiant_evar", object$evar) %>%
@@ -1215,6 +1220,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
 print_predict_model <- function(x, ..., n = 10, header = "") {
   class(x) <- "data.frame"
   data_filter <- attr(x, "radiant_data_filter")
+  rows <- attr(x, "radiant_rows")
   vars <- attr(x, "radiant_vars")
   pred_type <- attr(x, "radiant_pred_type")
   pred_data <- attr(x, "radiant_pred_data")
@@ -1225,19 +1231,22 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   cat(header)
   cat("\nData                 :", attr(x, "radiant_df_name"), "\n")
-  if (!radiant.data::is_empty(data_filter)) {
+  if (!is.empty(data_filter)) {
     cat("Filter               :", gsub("\\n", "", data_filter), "\n")
   }
+  if (!is.empty(rows)) {
+    cat("Slice                :", gsub("\\n", "", rows), "\n")
+  }
   cat("Response variable    :", attr(x, "radiant_rvar"), "\n")
-  if (!radiant.data::is_empty(attr(x, "radiant_lev"))) {
+  if (!is.empty(attr(x, "radiant_lev"))) {
     cat("Level(s)             :", paste0(attr(x, "radiant_lev"), collapse = ", "), "in", attr(x, "radiant_rvar"), "\n")
   }
   cat("Explanatory variables:", paste0(attr(x, "radiant_evar"), collapse = ", "), "\n")
-  if (!radiant.data::is_empty(attr(x, "radiant_wtsname"))) {
+  if (!is.empty(attr(x, "radiant_wtsname"))) {
     cat("Weights used         :", attr(x, "radiant_wtsname"), "\n")
   }
 
-  if (!radiant.data::is_empty(attr(x, "radiant_interval"), "none")) {
+  if (!is.empty(attr(x, "radiant_interval"), "none")) {
     cat("Interval             :", attr(x, "radiant_interval"), "\n")
   }
 
@@ -1251,7 +1260,7 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   }
 
   extra_args <- attr(x, "radiant_extra_args")
-  if (!radiant.data::is_empty(extra_args)) {
+  if (!is.empty(extra_args)) {
     extra_args <- deparse(extra_args) %>%
       sub("list\\(", "", .) %>%
       sub("\\)$", "", .)
@@ -1315,7 +1324,7 @@ plot.model.predict <- function(x, xvar = "", facet_row = ".",
     return(x)
   }
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) {
+  if (is.empty(xvar)) {
     return(invisible())
   }
   if (facet_col != "." && facet_row == facet_col) {
@@ -1404,7 +1413,7 @@ plot.model.predict <- function(x, xvar = "", facet_row = ".",
 #'
 #' @export
 store.model.predict <- function(dataset, object, name = "prediction", ...) {
-  if (radiant.data::is_empty(name)) name <- "prediction"
+  if (is.empty(name)) name <- "prediction"
 
   ## gsub needed because trailing/leading spaces may be added to the variable name
   ind <- which(colnames(object) == "Prediction")
@@ -1423,7 +1432,7 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
   }
 
   vars <- colnames(object)[seq_len(ind - 1)]
-  indr <- indexr(dataset, vars = vars, filt = "", cmd = attr(object, "radiant_pred_cmd"))
+  indr <- indexr(dataset, vars = vars, filt = "", rows = NULL, cmd = attr(object, "radiant_pred_cmd"))
   pred <- as.data.frame(matrix(NA, nrow = indr$nr, ncol = ncol(df)), stringsAsFactors = FALSE)
   # pred[indr$ind, ] <- as.vector(df) ## as.vector removes all attributes from df
   pred[indr$ind, ] <- df %>% mutate(across(everything(), as.vector))
@@ -1448,7 +1457,7 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
 #'
 #' @export
 store.model <- function(dataset, object, name = "residuals", ...) {
-  indr <- indexr(dataset, vars = c(object$rvar, object$evar), filt = object$data_filter)
+  indr <- indexr(dataset, vars = c(object$rvar, object$evar), filt = object$data_filter, rows = object$rows)
   name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
     gsub("\\s", "", .)
   nr_res <- length(name)
@@ -1486,7 +1495,7 @@ var_check <- function(ev, cn, intv = c()) {
   ## if : is used to select a range of variables evar is updated
   vars <- ev
   if (length(vars) < length(cn)) vars <- ev <- cn
-  if (!radiant.data::is_empty(intv)) {
+  if (!is.empty(intv)) {
     if (all(unlist(strsplit(intv[!grepl("\\^", intv)], ":")) %in% vars)) {
       vars <- c(vars, intv)
     } else {

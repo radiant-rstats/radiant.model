@@ -58,7 +58,7 @@ rep_inputs <- reactive({
     rep_args[[i]] <- input[[paste0("rep_", i)]]
   }
 
-  if (radiant.data::is_empty(input$rep_fun)) rep_args$fun <- "none"
+  if (is.empty(input$rep_fun)) rep_args$fun <- "none"
 
   rep_args
 })
@@ -142,7 +142,7 @@ output$ui_sim_data <- renderUI({
 
 sim_vars <- reactive({
   input$sim_run
-  if (radiant.data::is_empty(input$sim_name)) {
+  if (is.empty(input$sim_name)) {
     character(0)
   } else {
     if (is.null(r_data[[input$sim_name]])) {
@@ -158,7 +158,7 @@ output$ui_rep_vars <- renderUI({
   req(vars)
   form <- input$sim_form %>% sim_cleaner()
 
-  if (!radiant.data::is_empty(form)) {
+  if (!is.empty(form)) {
     s <- gsub(" ", "", form) %>% sim_splitter("=")
     svars <- c()
     for (i in 1:length(s)) {
@@ -181,7 +181,7 @@ output$ui_rep_vars <- renderUI({
 
 output$ui_rep_sum_vars <- renderUI({
   vars <- sim_vars()
-  req(!radiant.data::is_empty(vars))
+  req(!is.empty(vars))
   selectizeInput(
     "rep_sum_vars",
     label = "Output variables:",
@@ -203,7 +203,7 @@ output$ui_rep_grid_vars <- renderUI({
       vars <- c(vars, s[[i]][1])
     }
   }
-  req(!radiant.data::is_empty(vars))
+  req(!is.empty(vars))
   selectizeInput(
     "rep_grid_vars",
     label = "Name:",
@@ -245,7 +245,7 @@ var_updater <- function(variable, var_str, var_name, var_inputs, fix = TRUE) {
   if (is.null(variable) || variable == 0) {
     return()
   }
-  if (radiant.data::is_empty(var_inputs[1]) || any(is.na(var_inputs[-1]))) {
+  if (is.empty(var_inputs[1]) || any(is.na(var_inputs[-1]))) {
     showModal(
       modalDialog(
         title = "Inputs required",
@@ -260,7 +260,7 @@ var_updater <- function(variable, var_str, var_name, var_inputs, fix = TRUE) {
       var_name <- fix_names(var_name)
     }
     inp <- paste(c(var_name, var_inputs), collapse = " ")
-    if (radiant.data::is_empty(input[[var_str]])) {
+    if (is.empty(input[[var_str]])) {
       val <- paste0(inp, ";")
     } else {
       val <- paste0(input[[var_str]], "\n", inp, ";")
@@ -347,19 +347,19 @@ observeEvent(input$sim_grid_add, {
 })
 
 observeEvent(c(input$sim_grid, input$sim_types), {
-  if ("grid" %in% input$sim_types && !radiant.data::is_empty(input$sim_grid)) {
+  if ("grid" %in% input$sim_types && !is.empty(input$sim_grid)) {
     updateNumericInput(session = session, "sim_nr", value = NA)
   } else {
-    val <- ifelse(radiant.data::is_empty(r_state$sim_nr), 1000, r_state$sim_nr)
+    val <- ifelse(is.empty(r_state$sim_nr), 1000, r_state$sim_nr)
     updateNumericInput(session = session, "sim_nr", value = val)
   }
 })
 
 observeEvent(c(input$rep_grid, input$rep_byvar), {
-  if (isTRUE(input$rep_byvar %in% c(".rep", "rep")) && !radiant.data::is_empty(input$rep_grid)) {
+  if (isTRUE(input$rep_byvar %in% c(".rep", "rep")) && !is.empty(input$rep_grid)) {
     updateNumericInput(session = session, "rep_nr", value = NA)
   } else {
-    val <- ifelse(radiant.data::is_empty(r_state$rep_nr), 12, r_state$rep_nr)
+    val <- ifelse(is.empty(r_state$rep_nr), 12, r_state$rep_nr)
     updateNumericInput(session = session, "rep_nr", value = val)
   }
 })
@@ -793,7 +793,7 @@ observe({
 .simulater <- eventReactive(input$sim_run, {
   validate(
     need(
-      !radiant.data::is_empty(input$sim_types) || !radiant.data::is_empty(input$sim_form),
+      !is.empty(input$sim_types) || !is.empty(input$sim_form),
       "No formulas or simulated variables specified"
     )
   )
@@ -844,7 +844,7 @@ sim_plot_height <- function() {
   withProgress(message = "Generating simulation plots", value = 1, {
     .simulater() %>%
       {
-        if (radiant.data::is_empty(.)) invisible() else plot(., shiny = TRUE)
+        if (is.empty(.)) invisible() else plot(., shiny = TRUE)
       }
   })
 })
@@ -875,7 +875,7 @@ sim_plot_height <- function() {
       "** Press the Repeat simulation button **"
     } else if (length(input$rep_sum_vars) == 0) {
       "Select at least one Output variable"
-    } else if (input$rep_byvar == ".sim" && radiant.data::is_empty(input$rep_nr)) {
+    } else if (input$rep_byvar == ".sim" && is.empty(input$rep_nr)) {
       "Please specify the number of repetitions in '# reps'"
     } else {
       summary(.repeater(), dec = input$rep_dec)
@@ -903,9 +903,9 @@ rep_plot_height <- function() {
 .plot_repeat <- eventReactive(input$rep_run, {
   req(input$rep_show_plots)
   req(length(input$rep_sum_vars) > 0)
-  if (input$rep_byvar == ".sim" && radiant.data::is_empty(input$rep_nr)) {
+  if (input$rep_byvar == ".sim" && is.empty(input$rep_nr)) {
     return(invisible())
-  } # else if (input$rep_byvar == "rep" && radiant.data::is_empty(input$rep_grid)) {
+  } # else if (input$rep_byvar == "rep" && is.empty(input$rep_grid)) {
   # return(invisible())
   # }
   object <- .repeater()
@@ -927,7 +927,7 @@ report_cleaner <- function(x) {
 }
 
 simulater_report <- function() {
-  sim_dec <- input$sim_dec %>% ifelse(radiant.data::is_empty(.), 3, .)
+  sim_dec <- input$sim_dec %>% ifelse(is.empty(.), 3, .)
   outputs <- "summary"
   inp_out <- list(list(dec = sim_dec), "")
   figs <- FALSE
@@ -943,13 +943,13 @@ simulater_report <- function() {
   sim_name <- fix_names(input$sim_name)
   updateTextInput(session, "sim_name", value = sim_name)
 
-  if (!radiant.data::is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
-  if (!radiant.data::is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
+  if (!is.empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
+  if (!is.empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
   if (!"norm" %in% names(inp)) {
     inp$ncorr <- inp$nexact <- NULL
   } else {
-    if (radiant.data::is_empty(inp$ncorr)) inp$ncorr <- NULL
-    if (!radiant.data::is_empty(inp$nexact)) inp$nexact <- as.logical(inp$nexact)
+    if (is.empty(inp$ncorr)) inp$ncorr <- NULL
+    if (!is.empty(inp$nexact)) inp$nexact <- as.logical(inp$nexact)
   }
   for (i in c(sim_types_vec, "form")) {
     if (i %in% names(inp)) {
@@ -959,14 +959,14 @@ simulater_report <- function() {
   if (length(inp[["form"]]) == 1 && grepl("^#", inp[["form"]])) {
     inp[["form"]] <- NULL
   }
-  if (radiant.data::is_empty(inp$data)) {
+  if (is.empty(inp$data)) {
     inp$data <- NULL
   } else {
     inp$data <- as.symbol(inp$data)
   }
 
   pre_cmd <- paste0(sim_name, " <- ")
-  if (!radiant.data::is_empty(input$sim_funcs)) {
+  if (!is.empty(input$sim_funcs)) {
     ## dealing with user defined functions in simulate tab
     pre_cmd <- gsub("    ", "  ", input$sim_funcs) %>%
       gsub("\t", "  ", .) %>%
@@ -1000,7 +1000,7 @@ simulater_report <- function() {
 }
 
 observeEvent(input$repeater_report, {
-  rep_dec <- input$rep_dec %>% ifelse(radiant.data::is_empty(.), 3, .)
+  rep_dec <- input$rep_dec %>% ifelse(is.empty(.), 3, .)
   outputs <- "summary"
   inp_out <- list(list(dec = rep_dec), "")
   figs <- FALSE
@@ -1018,17 +1018,17 @@ observeEvent(input$repeater_report, {
   inp$dataset <- fix_names(input$sim_name)
   updateTextInput(session, "sim_name", value = inp$dataset)
 
-  if (!radiant.data::is_empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
-  if (!radiant.data::is_empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
+  if (!is.empty(inp$seed)) inp$seed <- as_numeric(inp$seed)
+  if (!is.empty(inp$nr)) inp$nr <- as_numeric(inp$nr)
   if (input$rep_byvar == ".sim") inp$grid <- NULL
 
-  if (!radiant.data::is_empty(inp[["form"]])) {
+  if (!is.empty(inp[["form"]])) {
     inp[["form"]] <- strsplit(inp[["form"]], ";\\s*")[[1]]
     if (length(inp[["form"]]) == 1 && grepl("^#", inp[["form"]])) {
       inp[["form"]] <- NULL
     }
   }
-  if (!radiant.data::is_empty(inp[["grid"]])) {
+  if (!is.empty(inp[["grid"]])) {
     inp[["grid"]] <- strsplit(inp[["grid"]], ";\\s*")[[1]]
   }
   inp$name <- NULL

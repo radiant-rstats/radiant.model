@@ -30,6 +30,7 @@ logit_args <- as.list(formals(logistic))
 logit_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   logit_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  logit_args$rows <- if (input$show_filter) input$data_rows else ""
   logit_args$dataset <- input$dataset
   for (i in r_drop(names(logit_args))) {
     logit_args[[i]] <- input[[paste0("logit_", i)]]
@@ -263,8 +264,8 @@ output$ui_logit_show_interactions <- renderUI({
 output$ui_logit_int <- renderUI({
   choices <- character(0)
   if (isolate("logit_show_interactions" %in% names(input)) &&
-    radiant.data::is_empty(input$logit_show_interactions)) {
-  } else if (radiant.data::is_empty(input$logit_show_interactions)) {
+    is.empty(input$logit_show_interactions)) {
+  } else if (is.empty(input$logit_show_interactions)) {
     return()
   } else {
     vars <- input$logit_evar
@@ -465,7 +466,7 @@ logit_plot <- reactive({
   if (logit_available() != "available") {
     return()
   }
-  if (radiant.data::is_empty(input$logit_plots, "none")) {
+  if (is.empty(input$logit_plots, "none")) {
     return()
   }
 
@@ -598,13 +599,13 @@ logit_available <- reactive({
   if (logit_available() != "available") {
     return(logit_available())
   }
-  if (radiant.data::is_empty(input$logit_predict, "none")) {
+  if (is.empty(input$logit_predict, "none")) {
     return("** Select prediction input **")
   }
-  if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && radiant.data::is_empty(input$logit_pred_data)) {
+  if ((input$logit_predict == "data" || input$logit_predict == "datacmd") && is.empty(input$logit_pred_data)) {
     return("** Select data for prediction **")
   }
-  if (input$logit_predict == "cmd" && radiant.data::is_empty(input$logit_pred_cmd)) {
+  if (input$logit_predict == "cmd" && is.empty(input$logit_pred_cmd)) {
     return("** Enter prediction commands **")
   }
 
@@ -627,7 +628,7 @@ logit_available <- reactive({
   req(
     pressed(input$logit_run), input$logit_pred_plot,
     available(input$logit_xvar),
-    !radiant.data::is_empty(input$logit_predict, "none")
+    !is.empty(input$logit_predict, "none")
   )
 
   withProgress(message = "Generating prediction plot", value = 1, {
@@ -662,7 +663,7 @@ check_for_pdp_pred_plots <- function(mod_type) {
 .plot_logistic <- reactive({
   if (not_pressed(input$logit_run)) {
     return("** Press the Estimate button to estimate the model **")
-  } else if (radiant.data::is_empty(input$logit_plots, "none")) {
+  } else if (is.empty(input$logit_plots, "none")) {
     return("Please select a logistic regression plot from the drop-down menu")
   } else if (logit_available() != "available") {
     return(logit_available())
@@ -685,7 +686,7 @@ logistic_report <- function() {
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(logit_sum_inputs(), logit_sum_args[-1])
   figs <- FALSE
-  if (!radiant.data::is_empty(input$logit_plots, "none")) {
+  if (!is.empty(input$logit_plots, "none")) {
     inp <- check_plot_inputs(logit_plot_inputs())
     inp_out[[2]] <- clean_args(inp, logit_plot_args[-1])
     inp_out[[2]]$custom <- FALSE
@@ -693,7 +694,7 @@ logistic_report <- function() {
     figs <- TRUE
   }
 
-  if (!radiant.data::is_empty(input$logit_store_res_name)) {
+  if (!is.empty(input$logit_store_res_name)) {
     fixed <- fix_names(input$logit_store_res_name)
     updateTextInput(session, "logit_store_res_name", value = fixed)
     xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
@@ -701,17 +702,17 @@ logistic_report <- function() {
     xcmd <- ""
   }
 
-  if (!radiant.data::is_empty(input$logit_predict, "none") &&
-    (!radiant.data::is_empty(input$logit_pred_data) || !radiant.data::is_empty(input$logit_pred_cmd))) {
+  if (!is.empty(input$logit_predict, "none") &&
+    (!is.empty(input$logit_pred_data) || !is.empty(input$logit_pred_cmd))) {
     pred_args <- clean_args(logit_pred_inputs(), logit_pred_args[-1])
 
-    if (!radiant.data::is_empty(pred_args$pred_cmd)) {
+    if (!is.empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";\\s*")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }
 
-    if (!radiant.data::is_empty(pred_args$pred_data)) {
+    if (!is.empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
@@ -732,7 +733,7 @@ logistic_report <- function() {
     }
     # xcmd <- paste0(xcmd, "\n# write.csv(pred, file = \"~/logit_predictions.csv\", row.names = FALSE)")
 
-    if (input$logit_pred_plot && !radiant.data::is_empty(input$logit_xvar)) {
+    if (input$logit_pred_plot && !is.empty(input$logit_xvar)) {
       inp_out[[3 + figs]] <- clean_args(logit_pred_plot_inputs(), logit_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"
       outputs <- c(outputs, "plot")
@@ -767,7 +768,7 @@ observeEvent(input$logit_store_res, {
 })
 
 observeEvent(input$logit_store_pred, {
-  req(!radiant.data::is_empty(input$logit_pred_data), pressed(input$logit_run))
+  req(!is.empty(input$logit_pred_data), pressed(input$logit_run))
   pred <- .predict_logistic()
   if (is.null(pred)) {
     return()

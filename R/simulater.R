@@ -93,7 +93,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
                       binom = "", pois = "", sequ = "", grid = "", data = NULL,
                       form = "", funcs = "", seed = NULL, nexact = FALSE, ncorr = NULL,
                       name = "", nr = 1000, dataset = NULL, envir = parent.frame()) {
-  if (!radiant.data::is_empty(seed)) set.seed(as.numeric(seed))
+  if (!is.empty(seed)) set.seed(as.numeric(seed))
   if (is.null(dataset)) {
     dataset <- list()
   } else {
@@ -113,20 +113,20 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
     s <- grid %>% sim_splitter()
     for (i in seq_along(s)) {
       si <- s[[i]]
-      if (radiant.data::is_empty(si[4])) si[4] <- 1
+      if (is.empty(si[4])) si[4] <- 1
       dataset[[si[1]]] <- seq(.as_num(si[2], dataset), .as_num(si[3], dataset), .as_num(si[4], dataset))
     }
     dataset <- as.list(expand.grid(dataset) %>% as.data.frame(stringsAsFactors = FALSE))
     nr <- length(dataset[[1]])
   }
 
-  if (radiant.data::is_empty(nr)) {
+  if (is.empty(nr)) {
     mess <- c("error", paste0("Please specify the number of simulations in '# sims'"))
     return(add_class(mess, "simulater"))
   }
 
   ## fetching data if needed
-  if (!radiant.data::is_empty(data, "none") && is_string(data)) {
+  if (!is.empty(data, "none") && is_string(data)) {
     if (exists(data, envir = envir)) {
       data <- get_data(data, envir = envir)
     } else {
@@ -188,7 +188,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
         mess <- c("error", paste0("All normal variables should have a standard deviation larger than 0.\nPlease review the input carefully"))
         return(add_class(mess, "simulater"))
       }
-      if (radiant.data::is_empty(ncorr) || length(s) == 1) {
+      if (is.empty(ncorr) || length(s) == 1) {
         if (nexact) {
           dataset[[si[1]]] <- scale(rnorm(nr, 0, 1)) * sdev + .as_num(si[2], dataset)
         } else {
@@ -200,7 +200,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
         sds <- c(sds, sdev)
       }
     }
-    if (!radiant.data::is_empty(ncorr) && length(nms) > 1) {
+    if (!is.empty(ncorr) && length(nms) > 1) {
       ncorr <- gsub(",", " ", ncorr) %>%
         strsplit("\\s+") %>%
         unlist() %>%
@@ -297,7 +297,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
     pfuncs <- funcs
   }
 
-  if (!radiant.data::is_empty(form)) {
+  if (!is.empty(form)) {
     form <- form %>%
       gsub("[ ]{2,}", " ", .) %>%
       gsub("<-", "=", .)
@@ -336,7 +336,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
   sc$nexact <- nexact
   sc$funcs <- pfuncs
 
-  if (radiant.data::is_empty(sc$data, "none")) {
+  if (is.empty(sc$data, "none")) {
     attr(dataset, "sim_data_name") <- NULL
   } else if (is_string(sc$data)) {
     attr(dataset, "sim_data_name") <- sc$data
@@ -397,23 +397,23 @@ summary.simulater <- function(object, dec = 4, ...) {
   cat("Simulation\n")
   cat("Simulations:", format_nr(nrow(object), dec = 0), "\n")
   cat("Random seed:", sc$seed, "\n")
-  if (radiant.data::is_empty(sc$name)) {
+  if (is.empty(sc$name)) {
     cat("Sim data   :", deparse(substitute(object)), "\n")
   } else {
     cat("Sim data   :", sc$name, "\n")
   }
-  if (!radiant.data::is_empty(sc$binom)) cat("Binomial   :", clean(sc$binom))
-  if (!radiant.data::is_empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
-  if (!radiant.data::is_empty(sc$lnorm)) cat("Log normal :", clean(sc$lnorm))
-  if (!radiant.data::is_empty(sc$norm)) cat("Normal     :", clean(ifelse(sc$nexact, paste0(sc$norm, "(exact)"), sc$norm)))
-  if (!radiant.data::is_empty(sc$unif)) cat("Uniform    :", clean(sc$unif))
-  if (!radiant.data::is_empty(sc$pois)) cat("Poisson    :", clean(sc$pois))
-  if (!radiant.data::is_empty(sc$const)) cat("Constant   :", clean(sc$const))
+  if (!is.empty(sc$binom)) cat("Binomial   :", clean(sc$binom))
+  if (!is.empty(sc$discrete)) cat("Discrete   :", clean(sc$discrete))
+  if (!is.empty(sc$lnorm)) cat("Log normal :", clean(sc$lnorm))
+  if (!is.empty(sc$norm)) cat("Normal     :", clean(ifelse(sc$nexact, paste0(sc$norm, "(exact)"), sc$norm)))
+  if (!is.empty(sc$unif)) cat("Uniform    :", clean(sc$unif))
+  if (!is.empty(sc$pois)) cat("Poisson    :", clean(sc$pois))
+  if (!is.empty(sc$const)) cat("Constant   :", clean(sc$const))
   if (is.data.frame(sc$data)) cat("Data       :", attr(object, "sim_data_name"), "\n")
-  if (!radiant.data::is_empty(sc$grid)) cat("Grid search:", clean(sc$grid))
-  if (!radiant.data::is_empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
+  if (!is.empty(sc$grid)) cat("Grid search:", clean(sc$grid))
+  if (!is.empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
   funcs <- attr(object, "radiant_funcs")
-  if (!radiant.data::is_empty(funcs)) {
+  if (!is.empty(funcs)) {
     funcs <- parse(text = funcs)
     lfuncs <- list()
     for (i in seq_len(length(funcs))) {
@@ -422,16 +422,16 @@ summary.simulater <- function(object, dec = 4, ...) {
     }
     cat("Functions  :", paste0(names(lfuncs), collapse = ", "), "\n")
   }
-  if (!radiant.data::is_empty(sc$form)) cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
+  if (!is.empty(sc$form)) cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
   cat("\n")
 
-  if (!radiant.data::is_empty(sc$ncorr) && is.numeric(sc$ncorr)) {
+  if (!is.empty(sc$ncorr) && is.numeric(sc$ncorr)) {
     cat("Correlations:\n")
     print(sc$ncorr)
     cat("\n")
   }
 
-  sim_summary(object, dec = ifelse(radiant.data::is_empty(dec), 4, round(dec, 0)))
+  sim_summary(object, dec = ifelse(is.empty(dec), 4, round(dec, 0)))
 }
 
 #' Plot method for the simulater function
@@ -534,8 +534,8 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
                      byvar = ".sim", fun = "sum", form = "", seed = NULL,
                      name = "", envir = parent.frame()) {
   if (byvar %in% c(".sim", "sim")) grid <- ""
-  if (radiant.data::is_empty(nr)) {
-    if (radiant.data::is_empty(grid)) {
+  if (is.empty(nr)) {
+    if (is.empty(grid)) {
       mess <- c("error", paste0("Please specify the number of repetitions in '# reps'"))
       return(add_class(mess, "repeater"))
     } else {
@@ -555,7 +555,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
   } else {
     sim_df_name <- deparse(substitute(dataset))
   }
-  if (!radiant.data::is_empty(seed)) set.seed(as.numeric(seed))
+  if (!is.empty(seed)) set.seed(as.numeric(seed))
 
   if (identical(vars, "") && identical(grid, "")) {
     mess <- c("error", paste0("Select variables to re-simulate and/or a specify a constant\nto change using 'Grid search' when Group by is set to Repeat"))
@@ -571,7 +571,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
       s <- grid %>% sim_splitter()
       for (i in seq_along(s)) {
         si <- s[[i]]
-        if (radiant.data::is_empty(s[[i]][4])) s[[i]][4] <- 1
+        if (is.empty(s[[i]][4])) s[[i]][4] <- 1
         grid_list[[si[1]]] <- seq(.as_num(si[2], dataset), .as_num(si[3], dataset), .as_num(si[4], dataset))
       }
     }
@@ -633,7 +633,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
   sc[names(sc_keep)] <- sc_keep
   sc$dataset <- dataset
 
-  if (!radiant.data::is_empty(sc$data, "none") && is_string(sc$data)) {
+  if (!is.empty(sc$data, "none") && is_string(sc$data)) {
     if (exists(sc$data, envir = envir)) {
       sc$data <- get(sc$data, envir = envir)
     } else {
@@ -642,7 +642,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
   }
 
   summarize_sim <- function(object) {
-    if (radiant.data::is_empty(fun) || any(fun == "none")) {
+    if (is.empty(fun) || any(fun == "none")) {
       object <- select_at(object, .vars = c(".rep", ".sim", sum_vars))
     } else {
       cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
@@ -738,7 +738,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
     sim_data_name <- NULL
   }
 
-  if (!radiant.data::is_empty(form)) {
+  if (!is.empty(form)) {
     form <- form %>%
       gsub("[ ]{2,}", " ", .) %>%
       gsub("<-", "=", .)
@@ -748,7 +748,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
       ret <- out
     } else {
       mess <- c("error", paste0("Formula was not successfully evaluated:\n\n", form) %>% unlist() %>% paste0(collapse = "\n"), "\n\nMessage: ", attr(out, "condition")$message, "\n\nNote that repeated simulation formulas can only be applied to\n(summarized) 'Output variables'")
-      if (!radiant.data::is_empty(fun)) {
+      if (!is.empty(fun)) {
         cn <- unlist(sapply(fun, function(f) paste0(sum_vars, "_", f), simplify = FALSE))
         mess[2] <- paste0(mess[2], "\n\nAvailable (summarized) output variables:\n* ", paste0(cn, collapse = "\n* "))
       }
@@ -817,9 +817,9 @@ summary.repeater <- function(object, dec = 4, ...) {
 
   ## show results
   cat("Repeated simulation\n")
-  cat("Simulations   :", ifelse(radiant.data::is_empty(rc$sc$nr), "", format_nr(rc$sc$nr, dec = 0)), "\n")
-  cat("Repetitions   :", format_nr(ifelse(radiant.data::is_empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
-  if (!radiant.data::is_empty(rc$vars)) {
+  cat("Simulations   :", ifelse(is.empty(rc$sc$nr), "", format_nr(rc$sc$nr, dec = 0)), "\n")
+  cat("Repetitions   :", format_nr(ifelse(is.empty(rc$nr), nrow(object), rc$nr), dec = 0), "\n")
+  if (!is.empty(rc$vars)) {
     cat("Re-simulated  :", paste0(rc$vars, collapse = ", "), "\n")
   }
   cat("Group by      :", ifelse(rc$byvar == ".rep", "Repeat", "Simulation"), "\n")
@@ -831,19 +831,19 @@ summary.repeater <- function(object, dec = 4, ...) {
   cat("Simulated data:", attr(object, "sim_df_name"), "\n")
   attr(object, "sim_data_name") %>%
     {
-      if (!radiant.data::is_empty(.)) cat("Data          :", ., "\n")
+      if (!is.empty(.)) cat("Data          :", ., "\n")
     }
-  if (radiant.data::is_empty(rc$name)) {
+  if (is.empty(rc$name)) {
     cat("Repeat data   :", deparse(substitute(object)), "\n")
   } else {
     cat("Repeat data   :", rc$name, "\n")
   }
 
-  if (isTRUE(rc$byvar == "rep") && !radiant.data::is_empty(rc$grid)) {
+  if (isTRUE(rc$byvar == "rep") && !is.empty(rc$grid)) {
     cat("Grid search.  :", clean(rc$grid))
   }
 
-  if (!radiant.data::is_empty(rc$form)) {
+  if (!is.empty(rc$form)) {
     rc$form %<>% sim_cleaner()
     paste0(
       "Formulas      :\n\t",
@@ -888,7 +888,7 @@ plot.repeater <- function(x, bins = 20, shiny = FALSE, custom = FALSE, ...) {
     plot_list[[i]] <- select_at(x, .vars = i) %>%
       visualize(xvar = i, bins = bins, custom = TRUE)
 
-    if (i %in% rc$sum_vars && !radiant.data::is_empty(rc$fun, "none")) {
+    if (i %in% rc$sum_vars && !is.empty(rc$fun, "none")) {
       plot_list[[i]] <- plot_list[[i]] + labs(x = paste0(rc$fun, " of ", i))
     }
   }

@@ -8,6 +8,7 @@
 #' @param pred Products to predict for
 #' @param rate String with name of the variable with product ratings
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A data.frame with the original data and a new column with predicted ratings
@@ -24,10 +25,11 @@
 #'
 #' @export
 crs <- function(dataset, id, prod, pred, rate,
-                data_filter = "", envir = parent.frame()) {
+                data_filter = "", rows = NULL,
+                envir = parent.frame()) {
   vars <- c(id, prod, rate)
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  uid <- get_data(dataset, id, filt = data_filter, na.rm = FALSE, envir = envir) %>% unique()
+  uid <- get_data(dataset, id, filt = data_filter, rows = rows, na.rm = FALSE, envir = envir) %>% unique()
   dataset <- get_data(dataset, vars, na.rm = FALSE, envir = envir)
 
   ## creating a matrix layout
@@ -73,14 +75,14 @@ crs <- function(dataset, id, prod, pred, rate,
 
   ## average scores and rankings
   avg <- dataset[uid, , drop = FALSE] %>%
-    select(nind) %>%
+    .[, nind, drop = FALSE] %>%
     summarise_all(mean, na.rm = TRUE)
   ravg <- avg
   ravg[1, ] <- min_rank(desc(as.numeric(avg)))
   ravg <- mutate_all(ravg, as.integer)
 
   ## actual scores and rankings (if available, else will be NA)
-  act <- dataset[-uid, , drop = FALSE] %>% select(nind)
+  act <- dataset[-uid, , drop = FALSE] %>% .[, nind, drop = FALSE]
   ract <- act
 
   if (nrow(act) == 0) {
@@ -95,8 +97,8 @@ crs <- function(dataset, id, prod, pred, rate,
   act <- bind_cols(idv[-uid, , drop = FALSE], act)
 
   ## CF calculations per row
-  ms <- apply(select(dataset, -nind), 1, function(x) mean(x, na.rm = TRUE))
-  sds <- apply(select(dataset, -nind), 1, function(x) sd(x, na.rm = TRUE))
+  ms <- apply(dataset[, -nind, drop = FALSE], 1, function(x) mean(x, na.rm = TRUE))
+  sds <- apply(dataset[, -nind, drop = FALSE], 1, function(x) sd(x, na.rm = TRUE))
 
   ## to forego standardization
   # ms <- ms * 0
@@ -176,8 +178,11 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
 
   cat("Collaborative filtering")
   cat("\nData       :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter     :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nFilter     :", gsub("\\n", "", object$rows))
   }
   cat("\nUser id    :", object$id)
   cat("\nProduct id :", object$prod)

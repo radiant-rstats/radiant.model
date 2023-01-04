@@ -35,7 +35,7 @@ output$ui_dtree_list <- renderUI({
 output$ui_dtree_name <- renderUI({
   dtree_name <- input$dtree_list[1]
   if (length(dtree_name) == 0) dtree_name <- dtree_name()
-  if (radiant.data::is_empty(dtree_name)) dtree_name <- "dtree"
+  if (is.empty(dtree_name)) dtree_name <- "dtree"
   textInput("dtree_name", NULL, dtree_name, width = "100px")
 })
 
@@ -64,7 +64,7 @@ output$ui_dtree_sense_name <- renderUI({
     return(mess)
   }
   vars <- dte$yl$variables
-  if (radiant.data::is_empty(vars)) {
+  if (is.empty(vars)) {
     return(mess)
   }
   vars <- vars[!is.na(sshhr(sapply(vars, dtreeIsNum)))]
@@ -313,7 +313,7 @@ observe({
 dtree_name <- function() {
   isolate({
     dtree_name <- input$dtree_name
-    if (radiant.data::is_empty(dtree_name)) {
+    if (is.empty(dtree_name)) {
       dtree_name <- stringr::str_match(input$dtree_edit, "^\\s*name:\\s*(.*)\\n")[2]
       if (is.na(dtree_name)) {
         dtree_name <- "dtree"
@@ -326,7 +326,7 @@ dtree_name <- function() {
 dtree_run <- eventReactive(vals_dtree$dtree_edit_hotkey > 1, {
   req(vals_dtree$dtree_edit_hotkey != 1)
   validate(
-    need(!radiant.data::is_empty(input$dtree_edit), "No decision tree input available")
+    need(!is.empty(input$dtree_edit), "No decision tree input available")
   )
 
   ## update settings and get data.tree name
@@ -382,9 +382,9 @@ output$dtree_plot <- DiagrammeR::renderDiagrammeR({
 
 ## Evaluate tree sensitivity
 .plot_dtree_sensitivity <- eventReactive(input$dtree_run_sensitivity, {
-  if (radiant.data::is_empty(input$dtree_sense_decision)) {
+  if (is.empty(input$dtree_sense_decision)) {
     "At least one decision should be selected for evaluation"
-  } else if (radiant.data::is_empty(input$dtree_sense)) {
+  } else if (is.empty(input$dtree_sense)) {
     "No variables were specified for evaluation.\nClick the + icon to add variables for sensitivity evaluation"
   } else {
     withProgress(
@@ -399,7 +399,7 @@ dtree_sense_width <- reactive({
 })
 
 dtree_sense_height <- eventReactive(input$dtree_run_sensitivity, {
-  if (radiant.data::is_empty(input$dtree_sense, "")) {
+  if (is.empty(input$dtree_sense, "")) {
     650
   } else {
     strsplit(input$dtree_sense, ";\\s*") %>%
@@ -436,7 +436,7 @@ observeEvent(input$dtree_load_yaml, {
   ## loading yaml file from disk
   if (getOption("radiant.shinyFiles", FALSE)) {
     path <- shinyFiles::parseFilePaths(sf_volumes, input$dtree_load_yaml)
-    if (inherits(path, "try-error") || radiant.data::is_empty(path$datapath)) {
+    if (inherits(path, "try-error") || is.empty(path$datapath)) {
       return()
     } else {
       path <- path$datapath
@@ -469,7 +469,7 @@ observeEvent(input$dtree_load_yaml, {
 
 observeEvent(input$dtree_list, {
   dtree_name <- fix_names(input$dtree_name)
-  if (radiant.data::is_empty(dtree_name)) dtree_name <- dtree_name()
+  if (is.empty(dtree_name)) dtree_name <- dtree_name()
   r_data[[dtree_name]] <- input$dtree_edit
 
   yl <- r_data[[input$dtree_list[1]]]
@@ -481,15 +481,15 @@ observeEvent(input$dtree_list, {
 })
 
 observeEvent(input$dtree_edit, {
-  if (!radiant.data::is_empty(input$dtree_edit)) r_state$dtree_edit <<- input$dtree_edit
+  if (!is.empty(input$dtree_edit)) r_state$dtree_edit <<- input$dtree_edit
 })
 
 dtree_namer <- reactive({
   dtree_name_org <- input$dtree_name
 
-  if (radiant.data::is_empty(dtree_name_org)) {
+  if (is.empty(dtree_name_org)) {
     dtree_name <- input$dtree_list[1]
-    if (radiant.data::is_empty(dtree_name)) {
+    if (is.empty(dtree_name)) {
       dtree_name <- dtree_name()
     } else {
       dtree_name <- fix_names(dtree_name)
@@ -519,7 +519,7 @@ dtree_report <- function() {
     outputs <- c("summary")
     inp_out <- list(list(input = TRUE, output = FALSE), "")
     figs <- FALSE
-    if (!radiant.data::is_empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
+    if (!is.empty(input$dtree_sense) && !is_not(input$dtree_sense_decision)) {
       vars <- strsplit(input$dtree_sense, ";\\s*")[[1]] %>% gsub("\n+", "", .)
       inp_out[[2]] <- list(
         vars = vars,
@@ -573,7 +573,7 @@ download_handler(
   fun = dl_dtree_save,
   fn = function() {
     ifelse(
-      radiant.data::is_empty(input$dtree_name),
+      is.empty(input$dtree_name),
       "dtree",
       paste0(input$dtree_name, "_dtree_output")
     )
@@ -593,7 +593,7 @@ download_handler(
   fun = dl_dtree_save_yaml,
   fn = function() {
     ifelse(
-      radiant.data::is_empty(input$dtree_name),
+      is.empty(input$dtree_name),
       "dtree",
       paste0(input$dtree_name, "_dtree_input")
     )
@@ -609,7 +609,7 @@ download_handler(
   fun = download_handler_plot,
   fn = function() {
     ifelse(
-      radiant.data::is_empty(input$dtree_name),
+      is.empty(input$dtree_name),
       "dtree_sensitivity",
       paste0(input$dtree_name, "_dtree_sensitivity")
     )

@@ -7,6 +7,7 @@
 #' @param evar Explanatory variables in the model
 #' @param laplace Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in nb as an object of class nb
@@ -23,14 +24,14 @@
 #'
 #' @export
 nb <- function(dataset, rvar, evar, laplace = 0,
-               data_filter = "", envir = parent.frame()) {
+               data_filter = "", rows = NULL, envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("nb"))
   }
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, envir = envir)
+  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, rows = rows, envir = envir)
 
   not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
   if (length(not_vary) > 0) {
@@ -90,8 +91,11 @@ summary.nb <- function(object, dec = 3, ...) {
 
   cat("Naive Bayes Classifier")
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   cat("\nLevels               :", paste0(object$lev, collapse = ", "), "in", object$rvar)
@@ -141,7 +145,7 @@ plot.nb <- function(x, plots = "correlations", lev = "All levels", nrobs = 1000,
   if (is.character(x)) {
     return(x)
   }
-  if (radiant.data::is_empty(plots[1])) {
+  if (is.empty(plots[1])) {
     return(invisible())
   }
 
@@ -260,7 +264,7 @@ predict.nb <- function(object, pred_data = NULL, pred_cmd = "",
 
     if (!inherits(pred_val, "try-error")) {
       pred_val %<>% as.data.frame(stringsAsFactors = FALSE)
-      if (all(radiant.data::is_empty(pred_names))) pred_names <- colnames(pred_val)
+      if (all(is.empty(pred_names))) pred_names <- colnames(pred_val)
       pred_val %<>% select(1:min(ncol(pred_val), length(pred_names))) %>%
         set_colnames(pred_names)
     }
@@ -311,7 +315,7 @@ plot.nb.predict <- function(x, xvar = "", facet_row = ".", facet_col = ".",
                             color = ".class", ...) {
 
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) {
+  if (is.empty(xvar)) {
     return(invisible())
   }
 
@@ -372,7 +376,7 @@ store.nb.predict <- function(dataset, object, name = NULL, ...) {
   # df <- as.vector(object[, pvars])
   df <- object[, pvars, drop = FALSE] %>% mutate(across(everything(), as.vector))
 
-  if (radiant.data::is_empty(name)) {
+  if (is.empty(name)) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name

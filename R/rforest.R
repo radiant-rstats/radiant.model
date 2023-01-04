@@ -16,6 +16,7 @@
 #' @param wts Case weights to use in estimation
 #' @param seed Random seed to use as the starting point
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #' @param ... Further arguments to pass to ranger
 #'
@@ -39,7 +40,7 @@ rforest <- function(dataset, rvar, evar, type = "classification", lev = "",
                     mtry = NULL, num.trees = 100, min.node.size = 1,
                     sample.fraction = 1, replace = NULL,
                     num.threads = 12, wts = "None", seed = NA,
-                    data_filter = "", envir = parent.frame(), ...) {
+                    data_filter = "", rows = NULL, envir = parent.frame(), ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("rforest"))
@@ -47,7 +48,7 @@ rforest <- function(dataset, rvar, evar, type = "classification", lev = "",
 
   vars <- c(rvar, evar)
 
-  if (radiant.data::is_empty(wts, "None")) {
+  if (is.empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -55,10 +56,10 @@ rforest <- function(dataset, rvar, evar, type = "classification", lev = "",
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir) %>%
+  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir) %>%
     mutate_if(is.Date, as.numeric)
 
-  if (!radiant.data::is_empty(wts)) {
+  if (!is.empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -104,7 +105,7 @@ rforest <- function(dataset, rvar, evar, type = "classification", lev = "",
     vars <- evar <- colnames(dataset)[-1]
   }
 
-  if (radiant.data::is_empty(replace)) {
+  if (is.empty(replace)) {
     replace <- ifelse(sample.fraction < 1, FALSE, TRUE)
   }
 
@@ -127,7 +128,7 @@ rforest <- function(dataset, rvar, evar, type = "classification", lev = "",
 
   ## based on https://stackoverflow.com/a/14324316/1974918
   seed <- gsub("[^0-9]", "", seed)
-  if (!radiant.data::is_empty(seed)) {
+  if (!is.empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit(.Random.seed <<- gseed)
@@ -182,8 +183,11 @@ summary.rforest <- function(object, ...) {
     cat("Type                 : Regression")
   }
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   if (object$type == "classification") {
@@ -204,7 +208,7 @@ summary.rforest <- function(object, ...) {
       sub("\\)$", "", .)
     cat("Additional arguments :", extra_args, "\n")
   }
-  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!is.empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n")
@@ -362,7 +366,7 @@ predict.rforest <- function(object, pred_data = NULL, pred_cmd = "",
 
   pfun <- function(model, pred, se, conf_lev, OOB = OOB) {
     pred <- mutate_if(pred, is.Date, as.numeric)
-    if (radiant.data::is_empty(OOB)) {
+    if (is.empty(OOB)) {
       if (isTRUE(dplyr::all_equal(select(model$model, -1), pred))) {
         message("Using OOB predictions after comparing the training and prediction data")
         OOB <- TRUE
@@ -384,7 +388,7 @@ predict.rforest <- function(object, pred_data = NULL, pred_cmd = "",
       } else {
         if (ncol(pred_val) == 1) {
           pred_names <- "Prediction"
-        } else if (radiant.data::is_empty(pred_names)) {
+        } else if (is.empty(pred_names)) {
           pred_names <- colnames(pred_val)
         }
         pred_val <- select(pred_val, 1:min(ncol(pred_val), length(pred_names))) %>%
@@ -444,7 +448,7 @@ plot.rforest.predict <- function(x, xvar = "", facet_row = ".", facet_col = ".",
   }
 
   ## should work with req in regress_ui but doesn't
-  if (radiant.data::is_empty(xvar)) {
+  if (is.empty(xvar)) {
     return(invisible())
   }
   if (is.character(x)) {
@@ -508,7 +512,7 @@ store.rforest.predict <- function(dataset, object, name = NULL, ...) {
   # df <- as.vector(object[, pvars, drop = FALSE])
   df <- object[, pvars, drop = FALSE] %>% mutate(across(everything(), as.vector))
 
-  if (radiant.data::is_empty(name)) {
+  if (is.empty(name)) {
     name <- pvars
   } else {
     ## gsub needed because trailing/leading spaces may be added to the variable name
@@ -594,10 +598,10 @@ cv.rforest <- function(object, K = 5, repeats = 1, mtry = 1:5, num.trees = NULL,
     stop("The model object does not seems to be a random forest")
   }
 
-  if (radiant.data::is_empty(num.trees)) {
+  if (is.empty(num.trees)) {
     num.trees <- object$call[["num.trees"]]
   }
-  if (radiant.data::is_empty(sample.fraction)) {
+  if (is.empty(sample.fraction)) {
     sample.fraction <- object$call[["sample.fraction"]]
     sample.fraction <- ifelse(is.null(sample.fraction), 1, sample.fraction)
   } else {

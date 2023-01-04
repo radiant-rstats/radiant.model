@@ -14,6 +14,7 @@ evalbin(
   margin = 2,
   train = "All",
   data_filter = "",
+  rows = NULL,
   envir = parent.frame()
 )
 }
@@ -35,6 +36,8 @@ evalbin(
 \item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{rows}{Rows to select from the specified dataset}
 
 \item{envir}{Environment to extract data from}
 }

@@ -6,6 +6,7 @@ ereg_args <- as.list(formals(evalreg))
 ereg_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   ereg_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  ereg_args$rows <- if (input$show_filter) input$data_rows else ""
   ereg_args$dataset <- input$dataset
   for (i in r_drop(names(ereg_args))) {
     ereg_args[[i]] <- input[[paste0("ereg_", i)]]
@@ -48,7 +49,7 @@ output$ui_ereg_train <- renderUI({
   selectInput(
     "ereg_train",
     label = "Show results for:", ereg_train,
-    selected = state_single("ereg_train", "All")
+    selected = state_single("ereg_train", ereg_train, "All")
   )
 })
 
@@ -128,7 +129,7 @@ output$evalreg <- renderUI({
 })
 
 evalreg_report <- function() {
-  if (radiant.data::is_empty(input$ereg_pred)) {
+  if (is.empty(input$ereg_pred)) {
     return(invisible())
   }
 
@@ -154,7 +155,7 @@ evalreg_report <- function() {
 
 dl_ereg_tab <- function(path) {
   .evalreg() %>%
-    (function(x) if (!radiant.data::is_empty(x$dat)) write.csv(x$dat, file = path, row.names = FALSE))
+    (function(x) if (!is.empty(x$dat)) write.csv(x$dat, file = path, row.names = FALSE))
 }
 
 download_handler(

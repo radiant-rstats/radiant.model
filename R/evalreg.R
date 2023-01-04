@@ -7,6 +7,7 @@
 #' @param rvar Response variable
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list of results
@@ -21,25 +22,36 @@
 #'
 #' @export
 evalreg <- function(dataset, pred, rvar, train = "All",
-                    data_filter = "", envir = parent.frame()) {
-  if (!train %in% c("", "All") && radiant.data::is_empty(data_filter)) {
-    return("** Filter required. To set a filter go to Data > View and click\n   the filter checkbox **" %>% add_class("evalreg"))
+                    data_filter = "", rows = NULL, envir = parent.frame()) {
+  if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
+    return("**\nFilter or Slice required. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("evalreg"))
   }
 
   # Add an option to exponentiate predictions in case of log regression
-
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
+    dat_list[["Test"]] <- get_data(
+      dataset,
+      vars,
+      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
+      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      envir = envir
+    )
   } else if (train == "Training") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, envir = envir)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
   } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(dataset, vars, filt = paste0("!(", data_filter, ")"), envir = envir)
+    dat_list[["Test"]] <- get_data(
+      dataset,
+      vars,
+      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
+      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      envir = envir
+    )
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "", envir = envir)
+    dat_list[["All"]] <- get_data(dataset, vars, filt = "", rows = NULL, envir = envir)
   }
 
   pdat <- list()
@@ -89,8 +101,11 @@ summary.evalreg <- function(object, dec = 3, ...) {
   }
   cat("Evaluate predictions for regression models\n")
   cat("Data        :", object$df_name, "\n")
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
+  }
+  if (!is.empty(object$rows)) {
+    cat("Slice       :", gsub("\\n", "", object$rows), "\n")
   }
   cat("Results for :", object$train, "\n")
   cat("Predictors  :", paste0(object$pred, collapse = ", "), "\n")

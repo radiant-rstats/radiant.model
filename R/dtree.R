@@ -400,7 +400,7 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
   type_none <- ""
   prob_check <- ""
   calc_payoff <- function(x) {
-    if (radiant.data::is_empty(x$type)) {
+    if (is.empty(x$type)) {
       x$payoff <- 0
       x$type <- "NONE"
       type_none <<- "One or more nodes do not have a 'type'. Check and update the input file"
@@ -561,7 +561,7 @@ summary.dtree <- function(object, input = TRUE, output = FALSE,
   ## initial setup
   if (object$type_none != "") {
     cat(paste0("\n\n**\n", object$type_none, "\n**\n\n"))
-  } else if (!radiant.data::is_empty(object$cost_check)) {
+  } else if (!is.empty(object$cost_check)) {
     cat(paste0("\n\n**\n", object$cost_check, "\n**\n\n"))
   } else {
     if (object$prob_check != "") {
@@ -768,9 +768,9 @@ sensitivity.dtree <- function(object, vars = NULL, decs = NULL,
                               shiny = FALSE, custom = FALSE, ...) {
   yl <- object$yl
 
-  if (radiant.data::is_empty(vars)) {
+  if (is.empty(vars)) {
     return("** No variables were specified **")
-  } else if (radiant.data::is_empty(decs)) {
+  } else if (is.empty(decs)) {
     return("** No decisions were specified **")
   }
   vars <- strsplit(vars, ";\\s*") %>%

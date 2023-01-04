@@ -4,6 +4,7 @@ crs_args <- as.list(formals(crs))
 crs_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
   crs_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  crs_args$rows <- if (input$show_filter) input$data_rows else ""
   crs_args$dataset <- input$dataset
   for (i in r_drop(names(crs_args))) {
     crs_args[[i]] <- input[[paste0("crs_", i)]]
@@ -161,13 +162,13 @@ output$crs <- renderUI({
 })
 
 .crs <- eventReactive(input$crs_run, {
-  if (radiant.data::is_empty(input$crs_id)) {
+  if (is.empty(input$crs_id)) {
     "This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>%
       suggest_data("ratings")
-  } else if (!input$show_filter || radiant.data::is_empty(input$data_filter)) {
-    "A data filter must be set to generate recommendations using\ncollaborative filtering. Add a filter in the Data > View tab.\nNote that the users in the training sample should not overlap\nwith the users in the test sample." %>%
+  } else if (!input$show_filter || (is.empty(input$data_filter) && is.empty(input$data_rows))) {
+    "A data filter or slice must be set to generate recommendations using\ncollaborative filtering. Add a filter or slice in the Data > View tab.\nNote that the users in the training sample should not overlap\nwith the users in the test sample." %>%
       add_class("crs")
-  } else if (!radiant.data::is_empty(r_info[["filter_error"]])) {
+  } else if (!is.empty(r_info[["filter_error"]])) {
     "An invalid filter has been set for this dataset. Please\nadjust the filter in the Data > View tab and try again" %>%
       add_class("crs")
   } else if (length(input$crs_pred) < 1) {
@@ -185,7 +186,7 @@ output$crs <- renderUI({
 .summary_crs <- reactive({
   if (not_pressed(input$crs_run)) {
     "** Press the Estimate button to generate recommendations **"
-  } else if (radiant.data::is_empty(input$crs_id)) {
+  } else if (is.empty(input$crs_id)) {
     "This analysis requires a user id, a product id, and product ratings.\nIf these variables are not available please select another dataset.\n\n" %>%
       suggest_data("ratings")
   } else {
@@ -198,7 +199,7 @@ output$crs <- renderUI({
     return("** Press the Estimate button to generate recommendations **")
   }
   isolate({
-    if (radiant.data::is_empty(input$crs_id)) {
+    if (is.empty(input$crs_id)) {
       return(invisible())
     }
     withProgress(message = "Generating plots", value = 1, {
@@ -224,7 +225,7 @@ crs_report <- function() {
   } else {
     inp_out <- list("", "")
   }
-  if (!radiant.data::is_empty(input$crs_store_pred_name)) {
+  if (!is.empty(input$crs_store_pred_name)) {
     fixed <- fix_names(input$crs_store_pred_name)
     updateTextInput(session, "crs_store_pred_name", value = fixed)
     xcmd <- paste0(fixed, " <- result$recommendations\nregister(\"", fixed, "\")")

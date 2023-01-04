@@ -12,6 +12,7 @@
 #' @param form Optional formula to use instead of rvar, evar, and int
 #' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitly set
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in logistic as an object of class logistic
@@ -29,7 +30,7 @@
 #' @export
 logistic <- function(dataset, rvar, evar, lev = "", int = "",
                      wts = "None", check = "", form, ci_type,
-                     data_filter = "", envir = parent.frame()) {
+                     data_filter = "", rows = NULL, envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
     paste0(format(form), collapse = "")
@@ -46,7 +47,7 @@ logistic <- function(dataset, rvar, evar, lev = "", int = "",
 
   vars <- c(rvar, evar)
 
-  if (radiant.data::is_empty(wts, "None")) {
+  if (is.empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -55,10 +56,10 @@ logistic <- function(dataset, rvar, evar, lev = "", int = "",
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   if (any(evar == ".")) {
-    dataset <- get_data(dataset, "", filt = data_filter, envir = envir)
+    dataset <- get_data(dataset, "", filt = data_filter, rows = rows, envir = envir)
     evar <- setdiff(colnames(dataset), rvar)
   } else {
-    dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
+    dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
   }
 
   if (missing(ci_type)) {
@@ -70,7 +71,7 @@ logistic <- function(dataset, rvar, evar, lev = "", int = "",
     }
   }
 
-  if (!radiant.data::is_empty(wts)) {
+  if (!is.empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -248,8 +249,11 @@ summary.logistic <- function(object, sum_check = "", conf_lev = .95,
 
   cat("Logistic regression (GLM)")
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   cat("\nLevel                :", object$lev, "in", object$rvar)
@@ -300,7 +304,7 @@ summary.logistic <- function(object, sum_check = "", conf_lev = .95,
     ) %>%
     round(dec)
 
-  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!is.empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     nobs <- sum(object$wts)
     logit_fit$BIC <- round(-2 * logit_fit$logLik + ln(nobs) * with(logit_fit, 1 + df.null - df.residual), dec)
   } else {
@@ -396,7 +400,7 @@ summary.logistic <- function(object, sum_check = "", conf_lev = .95,
     }
   }
 
-  if (!radiant.data::is_empty(test_var)) {
+  if (!is.empty(test_var)) {
     if (any(grepl("stepwise", object$check))) {
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
@@ -500,7 +504,7 @@ plot.logistic <- function(x, plots = "coef", conf_lev = .95,
   if (is.character(x) || !inherits(x$model, "glm")) {
     return(x)
   }
-  if (radiant.data::is_empty(plots[1])) {
+  if (is.empty(plots[1])) {
     return("Please select a logistic regression plot from the drop-down menu")
   }
 
@@ -1042,7 +1046,7 @@ write.coeff <- function(object, file = "", sort = FALSE, intercept = TRUE) {
     object <- slice(object, -1)
   } ## slice will ensure a tibble / data.frame is returned
 
-  if (!radiant.data::is_empty(file)) {
+  if (!is.empty(file)) {
     sshhr(write.table(object, sep = ",", append = TRUE, file = file, row.names = FALSE))
   } else {
     object

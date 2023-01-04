@@ -35,6 +35,7 @@ reg_args <- as.list(formals(regress))
 reg_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   reg_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  reg_args$rows <- if (input$show_filter) input$data_rows else ""
   reg_args$dataset <- input$dataset
   for (i in r_drop(names(reg_args))) {
     reg_args[[i]] <- input[[paste0("reg_", i)]]
@@ -219,8 +220,8 @@ output$ui_reg_show_interactions <- renderUI({
 output$ui_reg_int <- renderUI({
   choices <- character(0)
   if (isolate("reg_show_interactions" %in% names(input)) &&
-    radiant.data::is_empty(input$reg_show_interactions)) {
-  } else if (radiant.data::is_empty(input$reg_show_interactions)) {
+    is.empty(input$reg_show_interactions)) {
+  } else if (is.empty(input$reg_show_interactions)) {
     return()
   } else {
     vars <- input$reg_evar
@@ -422,7 +423,7 @@ reg_plot <- reactive({
   if (reg_available() != "available") {
     return()
   }
-  if (radiant.data::is_empty(input$reg_plots, "none")) {
+  if (is.empty(input$reg_plots, "none")) {
     return()
   }
 
@@ -555,13 +556,13 @@ reg_available <- eventReactive(input$reg_run, {
   if (reg_available() != "available") {
     return(reg_available())
   }
-  if (radiant.data::is_empty(input$reg_predict, "none")) {
+  if (is.empty(input$reg_predict, "none")) {
     return("** Select prediction input **")
   }
-  if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && radiant.data::is_empty(input$reg_pred_data)) {
+  if ((input$reg_predict == "data" || input$reg_predict == "datacmd") && is.empty(input$reg_pred_data)) {
     return("** Select data for prediction **")
   }
-  if (input$reg_predict == "cmd" && radiant.data::is_empty(input$reg_pred_cmd)) {
+  if (input$reg_predict == "cmd" && is.empty(input$reg_pred_cmd)) {
     return("** Enter prediction commands **")
   }
 
@@ -582,7 +583,7 @@ reg_available <- eventReactive(input$reg_run, {
   req(
     pressed(input$reg_run), input$reg_pred_plot,
     available(input$reg_xvar),
-    !radiant.data::is_empty(input$reg_predict, "none")
+    !is.empty(input$reg_predict, "none")
   )
 
   withProgress(message = "Generating prediction plot", value = 1, {
@@ -593,7 +594,7 @@ reg_available <- eventReactive(input$reg_run, {
 .plot_regress <- reactive({
   if (not_pressed(input$reg_run)) {
     return("** Press the Estimate button to estimate the model **")
-  } else if (radiant.data::is_empty(input$reg_plots, "none")) {
+  } else if (is.empty(input$reg_plots, "none")) {
     return("Please select a regression plot from the drop-down menu")
   } else if (reg_available() != "available") {
     return(reg_available())
@@ -629,14 +630,14 @@ check_plot_inputs <- function(inp) {
 }
 
 regress_report <- function() {
-  if (radiant.data::is_empty(input$reg_evar)) {
+  if (is.empty(input$reg_evar)) {
     return(invisible())
   }
   outputs <- c("summary")
   inp_out <- list("", "")
   inp_out[[1]] <- clean_args(reg_sum_inputs(), reg_sum_args[-1])
   figs <- FALSE
-  if (!radiant.data::is_empty(input$reg_plots, "none")) {
+  if (!is.empty(input$reg_plots, "none")) {
     inp <- check_plot_inputs(reg_plot_inputs())
     inp_out[[2]] <- clean_args(inp, reg_plot_args[-1])
     inp_out[[2]]$custom <- FALSE
@@ -644,7 +645,7 @@ regress_report <- function() {
     figs <- TRUE
   }
 
-  if (!radiant.data::is_empty(input$reg_store_res_name)) {
+  if (!is.empty(input$reg_store_res_name)) {
     fixed <- fix_names(input$reg_store_res_name)
     updateTextInput(session, "reg_store_res_name", value = fixed)
     xcmd <- paste0(input$dataset, " <- store(", input$dataset, ", result, name = \"", fixed, "\")\n")
@@ -652,16 +653,16 @@ regress_report <- function() {
     xcmd <- ""
   }
 
-  if (!radiant.data::is_empty(input$reg_predict, "none") &&
-    (!radiant.data::is_empty(input$reg_pred_data) || !radiant.data::is_empty(input$reg_pred_cmd))) {
+  if (!is.empty(input$reg_predict, "none") &&
+    (!is.empty(input$reg_pred_data) || !is.empty(input$reg_pred_cmd))) {
     pred_args <- clean_args(reg_pred_inputs(), reg_pred_args[-1])
 
-    if (!radiant.data::is_empty(pred_args$pred_cmd)) {
+    if (!is.empty(pred_args$pred_cmd)) {
       pred_args$pred_cmd <- strsplit(pred_args$pred_cmd, ";\\s*")[[1]]
     } else {
       pred_args$pred_cmd <- NULL
     }
-    if (!radiant.data::is_empty(pred_args$pred_data)) {
+    if (!is.empty(pred_args$pred_data)) {
       pred_args$pred_data <- as.symbol(pred_args$pred_data)
     } else {
       pred_args$pred_data <- NULL
@@ -680,7 +681,7 @@ regress_report <- function() {
       )
     }
 
-    if (input$reg_pred_plot && !radiant.data::is_empty(input$reg_xvar)) {
+    if (input$reg_pred_plot && !is.empty(input$reg_xvar)) {
       inp_out[[3 + figs]] <- clean_args(reg_pred_plot_inputs(), reg_pred_plot_args[-1])
       inp_out[[3 + figs]]$result <- "pred"
       outputs <- c(outputs, "plot")
@@ -715,7 +716,7 @@ observeEvent(input$reg_store_res, {
 })
 
 observeEvent(input$reg_store_pred, {
-  req(!radiant.data::is_empty(input$reg_pred_data), pressed(input$reg_run))
+  req(!is.empty(input$reg_pred_data), pressed(input$reg_run))
   pred <- .predict_regress()
   if (is.null(pred)) {
     return()

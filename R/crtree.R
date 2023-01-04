@@ -22,6 +22,7 @@
 #' @param margin Margin associated with a successful treatment (e.g., a purchase)
 #' @param check Optional estimation parameters (e.g., "standardize")
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in crtree as an object of class tree
@@ -41,22 +42,22 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
                    minsplit = 2, minbucket = round(minsplit / 3), cp = 0.001,
                    pcp = NA, nodes = NA, K = 10, seed = 1234, split = "gini",
                    prior = NA, adjprob = TRUE, cost = NA, margin = NA, check = "",
-                   data_filter = "", envir = parent.frame()) {
+                   data_filter = "", rows = NULL, envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("crtree"))
   }
 
   ## allow cp to be negative so full tree is built http://stackoverflow.com/q/24150058/1974918
-  if (radiant.data::is_empty(cp)) {
+  if (is.empty(cp)) {
     return("Please provide a complexity parameter to split the data." %>% add_class("crtree"))
-  } else if (!radiant.data::is_empty(nodes) && nodes < 2) {
+  } else if (!is.empty(nodes) && nodes < 2) {
     return("The (maximum) number of nodes in the tree should be larger than or equal to 2." %>% add_class("crtree"))
   }
 
   vars <- c(rvar, evar)
 
-  if (radiant.data::is_empty(wts, "None")) {
+  if (is.empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -64,9 +65,9 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
+  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
 
-  if (!radiant.data::is_empty(wts)) {
+  if (!is.empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -131,10 +132,10 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
 
   seed %>%
     gsub("[^0-9]", "", .) %>%
-    (function(x) if (!radiant.data::is_empty(x)) set.seed(seed))
+    (function(x) if (!is.empty(x)) set.seed(seed))
 
-  minsplit <- ifelse(radiant.data::is_empty(minsplit), 2, minsplit)
-  minbucket <- ifelse(radiant.data::is_empty(minbucket), round(minsplit / 3), minbucket)
+  minsplit <- ifelse(is.empty(minsplit), 2, minsplit)
+  minbucket <- ifelse(is.empty(minbucket), round(minsplit / 3), minbucket)
 
   ## make max tree
   # http://stackoverflow.com/questions/24150058/rpart-doesnt-build-a-full-tree-problems-with-cp
@@ -148,7 +149,7 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
   parms <- list(split = split)
   if (type == "classification") {
     ind <- if (which(lev %in% levels(dataset[[rvar]])) == 1) c(1, 2) else c(2, 1)
-    if (!radiant.data::is_empty(prior) && !is_not(cost) && !is_not(cost)) {
+    if (!is.empty(prior) && !is_not(cost) && !is_not(cost)) {
       return("Choose either a prior or cost and margin values but not both.\nPlease adjust your settings and try again" %>% add_class("crtree"))
     }
 
@@ -167,7 +168,7 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
             matrix(c(0, .[1], .[2], 0), byrow = TRUE, nrow = 2)
           }
       }
-    } else if (!radiant.data::is_empty(prior)) {
+    } else if (!is.empty(prior)) {
       if (!is.numeric(prior)) {
         return("Prior did not resolve to a numeric factor" %>% add_class("crtree"))
       } else if (prior > 1 || prior < 0) {
@@ -211,7 +212,7 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
   model$residuals <- residuals(model, type = "pearson")
 
   if (is_not(cost) && is_not(margin) &&
-    !radiant.data::is_empty(prior) && !radiant.data::is_empty(adjprob)) {
+    !is.empty(prior) && !is.empty(adjprob)) {
 
     ## when prior = 0.5 can use pp <- p / (p + (1 - p) * (1 - bp) / bp)
     ## more generally, use Theorem 2 from "The Foundations of Cost-Sensitive Learning" by Charles Elkan
@@ -265,8 +266,11 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
     cat("Regression tree")
   }
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   if (object$type == "classification") {
@@ -282,15 +286,15 @@ summary.crtree <- function(object, prn = TRUE, splits = FALSE, cptab = FALSE, mo
     max_nodes <- sum(object$unpruned$frame$var == "<leaf>")
     cat("Maximum nr. nodes    :", object$nodes, "out of", max_nodes, "\n")
   }
-  if (!radiant.data::is_empty(object$cost) && !radiant.data::is_empty(object$margin) && object$type == "classification") {
+  if (!is.empty(object$cost) && !is.empty(object$margin) && object$type == "classification") {
     cat("Cost:Margin          :", object$cost, ":", object$margin, "\n")
-    if (!radiant.data::is_empty(object$prior)) object$prior <- "Prior ignored when cost and margin set"
+    if (!is.empty(object$prior)) object$prior <- "Prior ignored when cost and margin set"
   }
-  if (!radiant.data::is_empty(object$prior) && object$type == "classification") {
+  if (!is.empty(object$prior) && object$type == "classification") {
     cat("Priors               :", object$prior, "\n")
     cat("Adjusted prob.       :", object$adjprob, "\n")
   }
-  if (!radiant.data::is_empty(object$wts, "None") && inherits(object$wts, "integer")) {
+  if (!is.empty(object$wts, "None") && inherits(object$wts, "integer")) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n\n")
   } else {
     cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n\n")
@@ -351,7 +355,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
                         nrobs = Inf, dec = 2,
                         incl = NULL, incl_int = NULL,
                         shiny = FALSE, custom = FALSE, ...) {
-  if (radiant.data::is_empty(plots) || "tree" %in% plots) {
+  if (is.empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
       return(paste0("graph LR\n A[\"", x, "\"]") %>% DiagrammeR::DiagrammeR(.))
     }
