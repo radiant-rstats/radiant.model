@@ -14,6 +14,7 @@
 #' @param check Optional estimation parameters ("standardize" is the default)
 #' @param form Optional formula to use instead of rvar and evar
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
 #' @return A list with all variables defined in nn as an object of class nn
@@ -33,8 +34,8 @@ nn <- function(dataset, rvar, evar,
                type = "classification", lev = "",
                size = 1, decay = .5, wts = "None",
                seed = NA, check = "standardize",
-               form,
-               data_filter = "", envir = parent.frame()) {
+               form, data_filter = "", rows = NULL,
+               envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
     paste0(format(form), collapse = "")
@@ -47,15 +48,15 @@ nn <- function(dataset, rvar, evar,
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("nn"))
-  } else if (radiant.data::is_empty(size) || size < 1) {
+  } else if (is.empty(size) || size < 1) {
     return("Size should be larger than or equal to 1." %>% add_class("nn"))
-  } else if (radiant.data::is_empty(decay) || decay < 0) {
+  } else if (is.empty(decay) || decay < 0) {
     return("Decay should be larger than or equal to 0." %>% add_class("nn"))
   }
 
   vars <- c(rvar, evar)
 
-  if (radiant.data::is_empty(wts, "None")) {
+  if (is.empty(wts, "None")) {
     wts <- NULL
   } else if (is_string(wts)) {
     wtsname <- wts
@@ -63,9 +64,9 @@ nn <- function(dataset, rvar, evar,
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, envir = envir)
+  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
 
-  if (!radiant.data::is_empty(wts)) {
+  if (!is.empty(wts)) {
     if (exists("wtsname")) {
       wts <- dataset[[wtsname]]
       dataset <- select_at(dataset, .vars = base::setdiff(colnames(dataset), wtsname))
@@ -131,7 +132,7 @@ nn <- function(dataset, rvar, evar,
 
   ## based on https://stackoverflow.com/a/14324316/1974918
   seed <- gsub("[^0-9]", "", seed)
-  if (!radiant.data::is_empty(seed)) {
+  if (!is.empty(seed)) {
     if (exists(".Random.seed")) {
       gseed <- .Random.seed
       on.exit(.Random.seed <<- gseed)
@@ -260,8 +261,11 @@ summary.nn <- function(object, prn = TRUE, ...) {
     cat("Activation function  : Linear (regression)")
   }
   cat("\nData                 :", object$df_name)
-  if (!radiant.data::is_empty(object$data_filter)) {
+  if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$rows)) {
+    cat("\nSlice                :", gsub("\\n", "", object$rows))
   }
   cat("\nResponse variable    :", object$rvar)
   if (object$type == "classification") {
@@ -273,7 +277,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
   }
   cat("Network size         :", object$size, "\n")
   cat("Parameter decay      :", object$decay, "\n")
-  if (!radiant.data::is_empty(object$seed)) {
+  if (!is.empty(object$seed)) {
     cat("Seed                 :", object$seed, "\n")
   }
 
@@ -281,7 +285,7 @@ summary.nn <- function(object, prn = TRUE, ...) {
   nweights <- length(object$model$wts)
   cat("Network              :", network, "with", nweights, "weights\n")
 
-  if (!radiant.data::is_empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
+  if (!is.empty(object$wts, "None") && (length(unique(object$wts)) > 2 || min(object$wts) >= 1)) {
     cat("Nr obs               :", format_nr(sum(object$wts), dec = 0), "\n")
   } else {
     cat("Nr obs               :", format_nr(length(object$rv), dec = 0), "\n")
@@ -305,24 +309,32 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' Variable importance using the vip package and permutation importance
 #'
 #' @param object Model object created by Radiant
-#' @param target Label to identify the target or response variable
-#' @param lev Reference class for binary classifier
+#' @param rvar Label to identify the response or target variable
+#' @param lev Reference class for binary classifier (rvar)
 #' @param data Data to use for prediction. Will default to the data used to estimate the model
 #' @param seed Random seed for reproducibility
 #'
 #' @importFrom vip vi
 #'
 #' @export
-varimp <- function(object, target, lev, data = NULL, seed = 1234) {
+varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
   if (is.null(data)) data <- object$model$model
 
   # needed to avoid rescaling during prediction
   object$check <- setdiff(object$check, c("center", "standardize"))
 
   arg_list <- list(object, pred_data = data, se = FALSE)
-  if (missing(target)) target <- object$rvar
-  if (missing(lev) && !radiant.data::is_empty(object$lev) && !is.logical(data[[target]])) {
-    data[[target]] <- data[[target]] == object$lev
+  if (missing(rvar)) rvar <- object$rvar
+  if (missing(lev) && object$type == "classification") {
+    if (!is.empty(object$lev)) {
+      lev <- object$lev
+    }
+    if (!is.logical(data[[rvar]])) {
+      # don't change if already logical
+      data[[rvar]] <- data[[rvar]] == lev
+    }
+  } else if (object$type == "classification") {
+    data[[rvar]] <- data[[rvar]] == lev
   }
 
   fun <- function(object, arg_list) do.call(predict, arg_list)[["Prediction"]]
@@ -342,7 +354,7 @@ varimp <- function(object, target, lev, data = NULL, seed = 1234) {
   if (object$type == "regression") {
     vimp <- vip::vi(
       object,
-      target = target,
+      target = rvar,
       method = "permute",
       metric = "r2", # "rmse"
       pred_wrapper = pred_fun,
@@ -351,7 +363,7 @@ varimp <- function(object, target, lev, data = NULL, seed = 1234) {
   } else {
     vimp <- vip::vi(
       object,
-      target = target,
+      target = rvar,
       reference_class = TRUE,
       method = "permute",
       metric = "auc",
@@ -363,6 +375,29 @@ varimp <- function(object, target, lev, data = NULL, seed = 1234) {
   vimp %>%
     filter(Importance != 0) %>%
     mutate(Variable = factor(Variable, levels = rev(Variable)))
+}
+
+#' Plot permutation importance
+#'
+#' @param object Model object created by Radiant
+#' @param rvar Label to identify the response or target variable
+#' @param lev Reference class for binary classifier (rvar)
+#' @param data Data to use for prediction. Will default to the data used to estimate the model
+#' @param seed Random seed for reproducibility
+#'
+#' @importFrom vip vi
+#'
+#' @export
+varimp_plot <- function(object, rvar, lev, data = NULL, seed = 1234) {
+  vi_scores <- varimp(object, rvar, lev, data = data, seed = seed)
+  visualize(vi_scores, yvar = "Importance", xvar = "Variable", type = "bar", custom = TRUE) +
+    labs(
+      title = "Permutation Importance",
+      x = NULL,
+      y = ifelse(object$type == "regression", "Importance (R-square decrease)", "Importance (AUC decrease)")
+    ) +
+    coord_flip() +
+    theme(axis.text.y = element_text(hjust = 0))
 }
 
 #' Plot method for the nn function
