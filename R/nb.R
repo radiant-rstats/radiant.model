@@ -7,6 +7,7 @@
 #' @param evar Explanatory variables in the model
 #' @param laplace Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
@@ -24,14 +25,15 @@
 #'
 #' @export
 nb <- function(dataset, rvar, evar, laplace = 0,
-               data_filter = "", rows = NULL, envir = parent.frame()) {
+               data_filter = "", arr = "", rows = NULL,
+               envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("nb"))
   }
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, rows = rows, envir = envir)
+  dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, arr = arr, rows = rows, envir = envir)
 
   not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
   if (length(not_vary) > 0) {
@@ -93,6 +95,9 @@ summary.nb <- function(object, dec = 3, ...) {
   cat("\nData                 :", object$df_name)
   if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$arr)) {
+    cat("\nArrange              :", gsub("\\n", "", object$arr))
   }
   if (!is.empty(object$rows)) {
     cat("\nSlice                :", gsub("\\n", "", object$rows))

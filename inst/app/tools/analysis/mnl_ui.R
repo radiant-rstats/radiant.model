@@ -24,6 +24,7 @@ mnl_args <- as.list(formals(mnl))
 mnl_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   mnl_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  mnl_args$arr <- if (input$show_filter) input$data_arrange else ""
   mnl_args$rows <- if (input$show_filter) input$data_rows else ""
   mnl_args$dataset <- input$dataset
   for (i in r_drop(names(mnl_args))) {

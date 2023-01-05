@@ -13,6 +13,7 @@ confusion(
   margin = 2,
   train = "All",
   data_filter = "",
+  arr = "",
   rows = NULL,
   envir = parent.frame(),
   ...
@@ -34,6 +35,8 @@ confusion(
 \item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{arr}{Expression to arrange (sort) the data on (e.g., "color, desc(price)")}
 
 \item{rows}{Rows to select from the specified dataset}
 

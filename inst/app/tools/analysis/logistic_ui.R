@@ -30,6 +30,7 @@ logit_args <- as.list(formals(logistic))
 logit_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   logit_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  logit_args$arr <- if (input$show_filter) input$data_arrange else ""
   logit_args$rows <- if (input$show_filter) input$data_rows else ""
   logit_args$dataset <- input$dataset
   for (i in r_drop(names(logit_args))) {

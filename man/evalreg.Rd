@@ -10,6 +10,7 @@ evalreg(
   rvar,
   train = "All",
   data_filter = "",
+  arr = "",
   rows = NULL,
   envir = parent.frame()
 )
@@ -24,6 +25,8 @@ evalreg(
 \item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")}
+
+\item{arr}{Expression to arrange (sort) the data on (e.g., "color, desc(price)")}
 
 \item{rows}{Rows to select from the specified dataset}
 

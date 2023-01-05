@@ -13,6 +13,7 @@ gbt_args <- as.list(formals(gbt))
 gbt_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   gbt_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  gbt_args$arr <- if (input$show_filter) input$data_arrange else ""
   gbt_args$rows <- if (input$show_filter) input$data_rows else ""
   gbt_args$dataset <- input$dataset
   for (i in r_drop(names(gbt_args))) {

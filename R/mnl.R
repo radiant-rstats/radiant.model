@@ -10,6 +10,7 @@
 #' @param wts Weights to use in estimation
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
@@ -31,8 +32,8 @@
 #'
 #' @export
 mnl <- function(dataset, rvar, evar, lev = "", int = "",
-                wts = "None", check = "",
-                data_filter = "", rows = NULL, envir = parent.frame()) {
+                wts = "None", check = "", data_filter = "",
+                arr = "", rows = NULL, envir = parent.frame()) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("mnl"))
@@ -48,7 +49,7 @@ mnl <- function(dataset, rvar, evar, lev = "", int = "",
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
+  dataset <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
 
   if (!is.empty(wts)) {
     if (exists("wtsname")) {
@@ -225,6 +226,9 @@ summary.mnl <- function(object, sum_check = "", conf_lev = .95,
   cat("\nData                 :", object$df_name)
   if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$arr)) {
+    cat("\nArrange              :", gsub("\\n", "", object$arr))
   }
   if (!is.empty(object$rows)) {
     cat("\nSlice                :", gsub("\\n", "", object$rows))

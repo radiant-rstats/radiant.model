@@ -18,6 +18,7 @@
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #' @param ... Further arguments to pass to xgboost
@@ -52,7 +53,8 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
                 min_child_weight = 1, subsample = 1,
                 nrounds = 100, early_stopping_rounds = 10,
                 nthread = 12, wts = "None", seed = NA,
-                data_filter = "", rows = NULL, envir = parent.frame(), ...) {
+                data_filter = "", arr = "", rows = NULL,
+                envir = parent.frame(), ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("gbt"))
@@ -68,7 +70,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir) %>%
+  dataset <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir) %>%
     mutate_if(is.Date, as.numeric)
   nr_obs <- nrow(dataset)
 
@@ -212,6 +214,9 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   cat("\nData                 :", object$df_name)
   if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$arr)) {
+    cat("\nArrange              :", gsub("\\n", "", object$arr))
   }
   if (!is.empty(object$rows)) {
     cat("\nSlice                :", gsub("\\n", "", object$rows))

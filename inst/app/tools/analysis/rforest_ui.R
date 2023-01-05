@@ -13,6 +13,7 @@ rf_args <- as.list(formals(rforest))
 rf_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   rf_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  rf_args$arr <- if (input$show_filter) input$data_arrange else ""
   rf_args$rows <- if (input$show_filter) input$data_rows else ""
   rf_args$dataset <- input$dataset
   for (i in r_drop(names(rf_args))) {

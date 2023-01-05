@@ -35,6 +35,7 @@ reg_args <- as.list(formals(regress))
 reg_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   reg_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  reg_args$arr <- if (input$show_filter) input$data_arrange else ""
   reg_args$rows <- if (input$show_filter) input$data_rows else ""
   reg_args$dataset <- input$dataset
   for (i in r_drop(names(reg_args))) {

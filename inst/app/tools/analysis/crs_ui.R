@@ -4,6 +4,7 @@ crs_args <- as.list(formals(crs))
 crs_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
   crs_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  crs_args$arr <- if (input$show_filter) input$data_arrange else ""
   crs_args$rows <- if (input$show_filter) input$data_rows else ""
   crs_args$dataset <- input$dataset
   for (i in r_drop(names(crs_args))) {

@@ -10,6 +10,7 @@ nb(
   evar,
   laplace = 0,
   data_filter = "",
+  arr = "",
   rows = NULL,
   envir = parent.frame()
 )
@@ -24,6 +25,8 @@ nb(
 \item{laplace}{Positive double controlling Laplace smoothing. The default (0) disables Laplace smoothing.}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
+
+\item{arr}{Expression to arrange (sort) the data on (e.g., "color, desc(price)")}
 
 \item{rows}{Rows to select from the specified dataset}
 

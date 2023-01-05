@@ -7,6 +7,7 @@
 #' @param rvar Response variable
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalreg
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
@@ -22,7 +23,7 @@
 #'
 #' @export
 evalreg <- function(dataset, pred, rvar, train = "All",
-                    data_filter = "", rows = NULL, envir = parent.frame()) {
+                    data_filter = "", arr = "", rows = NULL, envir = parent.frame()) {
   if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
     return("**\nFilter or Slice required. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("evalreg"))
   }
@@ -32,21 +33,23 @@ evalreg <- function(dataset, pred, rvar, train = "All",
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
     dat_list[["Test"]] <- get_data(
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
+      arr = arr,
       rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
   } else if (train == "Training") {
-    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
   } else if (train == "Test" | train == "Validation") {
     dat_list[["Test"]] <- get_data(
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
+      arr = arr,
       rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
@@ -103,6 +106,9 @@ summary.evalreg <- function(object, dec = 3, ...) {
   cat("Data        :", object$df_name, "\n")
   if (!is.empty(object$data_filter)) {
     cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
+  }
+  if (!is.empty(object$arr)) {
+    cat("Arrange     :", gsub("\\n", "", object$arr), "\n")
   }
   if (!is.empty(object$rows)) {
     cat("Slice       :", gsub("\\n", "", object$rows), "\n")

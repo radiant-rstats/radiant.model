@@ -14,6 +14,7 @@ crtree_args <- as.list(formals(crtree))
 crtree_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   crtree_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  crtree_args$arr <- if (input$show_filter) input$data_arrange else ""
   crtree_args$rows <- if (input$show_filter) input$data_rows else ""
   crtree_args$dataset <- input$dataset
   for (i in r_drop(names(crtree_args))) {

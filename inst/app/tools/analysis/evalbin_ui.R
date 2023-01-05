@@ -17,6 +17,7 @@ ebin_args <- as.list(formals(evalbin))
 ebin_inputs <- reactive({
   # loop needed because reactive values don't allow single bracket indexing
   ebin_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  ebin_args$arr <- if (input$show_filter) input$data_arrange else ""
   ebin_args$rows <- if (input$show_filter) input$data_rows else ""
   ebin_args$dataset <- input$dataset
   for (i in r_drop(names(ebin_args))) {

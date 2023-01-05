@@ -9,6 +9,7 @@
 #' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
 #' @param form Optional formula to use instead of rvar, evar, and int
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
@@ -26,7 +27,7 @@
 #'
 #' @export
 regress <- function(dataset, rvar, evar, int = "", check = "",
-                    form, data_filter = "", rows = NULL, envir = parent.frame()) {
+                    form, data_filter = "", arr = "", rows = NULL, envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
     vars <- all.vars(form)
@@ -41,10 +42,10 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
   if (any(evar == ".")) {
-    dataset <- get_data(dataset, "", filt = data_filter, rows = rows, envir = envir)
+    dataset <- get_data(dataset, "", filt = data_filter, arr = arr, rows = rows, envir = envir)
     evar <- setdiff(colnames(dataset), rvar)
   } else {
-    dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, rows = rows, envir = envir)
+    dataset <- get_data(dataset, c(rvar, evar), filt = data_filter, arr = arr, rows = rows, envir = envir)
   }
 
   not_vary <- colnames(dataset)[summarise_all(dataset, does_vary) == FALSE]
@@ -192,6 +193,9 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   cat("Data     :", object$df_name, "\n")
   if (!is.empty(object$data_filter)) {
     cat("Filter   :", gsub("\\n", "", object$data_filter), "\n")
+  }
+  if (!is.empty(object$arr)) {
+    cat("Arrange  :", gsub("\\n", "", object$arr), "\n")
   }
   if (!is.empty(object$rows)) {
     cat("Slice    :", gsub("\\n", "", object$rows), "\n")
@@ -1192,6 +1196,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
     extra_args <- list(...)
     pred <- set_attr(pred, "radiant_df_name", object$df_name) %>%
       set_attr("radiant_data_filter", object$data_filter) %>%
+      set_attr("radiant_arr", object$arr) %>%
       set_attr("radiant_rows", object$rows) %>%
       set_attr("radiant_rvar", object$rvar) %>%
       set_attr("radiant_lev", object$lev) %>%
@@ -1220,6 +1225,7 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
 print_predict_model <- function(x, ..., n = 10, header = "") {
   class(x) <- "data.frame"
   data_filter <- attr(x, "radiant_data_filter")
+  arr <- attr(x, "radiant_arr")
   rows <- attr(x, "radiant_rows")
   vars <- attr(x, "radiant_vars")
   pred_type <- attr(x, "radiant_pred_type")
@@ -1233,6 +1239,9 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
   cat("\nData                 :", attr(x, "radiant_df_name"), "\n")
   if (!is.empty(data_filter)) {
     cat("Filter               :", gsub("\\n", "", data_filter), "\n")
+  }
+  if (!is.empty(arr)) {
+    cat("Arrange              :", gsub("\\n", "", arr), "\n")
   }
   if (!is.empty(rows)) {
     cat("Slice                :", gsub("\\n", "", rows), "\n")
@@ -1457,7 +1466,7 @@ store.model.predict <- function(dataset, object, name = "prediction", ...) {
 #'
 #' @export
 store.model <- function(dataset, object, name = "residuals", ...) {
-  indr <- indexr(dataset, vars = c(object$rvar, object$evar), filt = object$data_filter, rows = object$rows)
+  indr <- indexr(dataset, vars = c(object$rvar, object$evar), filt = object$data_filter, arr = object$arr, rows = object$rows)
   name <- unlist(strsplit(name, "(\\s*,\\s*|\\s*;\\s*|\\s+)")) %>%
     gsub("\\s", "", .)
   nr_res <- length(name)

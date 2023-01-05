@@ -14,6 +14,7 @@
 #' @param check Optional estimation parameters ("standardize" is the default)
 #' @param form Optional formula to use instead of rvar and evar
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
@@ -34,8 +35,8 @@ nn <- function(dataset, rvar, evar,
                type = "classification", lev = "",
                size = 1, decay = .5, wts = "None",
                seed = NA, check = "standardize",
-               form, data_filter = "", rows = NULL,
-               envir = parent.frame()) {
+               form, data_filter = "", arr = "",
+               rows = NULL, envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
     paste0(format(form), collapse = "")
@@ -64,7 +65,7 @@ nn <- function(dataset, rvar, evar,
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, vars, filt = data_filter, rows = rows, envir = envir)
+  dataset <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
 
   if (!is.empty(wts)) {
     if (exists("wtsname")) {
@@ -263,6 +264,9 @@ summary.nn <- function(object, prn = TRUE, ...) {
   cat("\nData                 :", object$df_name)
   if (!is.empty(object$data_filter)) {
     cat("\nFilter               :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$arr)) {
+    cat("\nArrange              :", gsub("\\n", "", object$arr))
   }
   if (!is.empty(object$rows)) {
     cat("\nSlice                :", gsub("\\n", "", object$rows))

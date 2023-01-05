@@ -11,6 +11,7 @@ nb_args <- as.list(formals(nb))
 nb_inputs <- reactive({
   ## loop needed because reactive values don't allow single bracket indexing
   nb_args$data_filter <- if (input$show_filter) input$data_filter else ""
+  nb_args$arr <- if (input$show_filter) input$data_arrange else ""
   nb_args$rows <- if (input$show_filter) input$data_rows else ""
   nb_args$dataset <- input$dataset
   for (i in r_drop(names(nb_args))) {

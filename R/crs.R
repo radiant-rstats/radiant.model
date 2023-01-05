@@ -8,6 +8,7 @@
 #' @param pred Products to predict for
 #' @param rate String with name of the variable with product ratings
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "training == 1")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
 #'
@@ -25,11 +26,11 @@
 #'
 #' @export
 crs <- function(dataset, id, prod, pred, rate,
-                data_filter = "", rows = NULL,
+                data_filter = "", arr = "", rows = NULL,
                 envir = parent.frame()) {
   vars <- c(id, prod, rate)
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
-  uid <- get_data(dataset, id, filt = data_filter, rows = rows, na.rm = FALSE, envir = envir) %>% unique()
+  uid <- get_data(dataset, id, filt = data_filter, arr = arr, rows = rows, na.rm = FALSE, envir = envir) %>% unique()
   dataset <- get_data(dataset, vars, na.rm = FALSE, envir = envir)
 
   ## creating a matrix layout
@@ -180,6 +181,9 @@ summary.crs <- function(object, n = 36, dec = 2, ...) {
   cat("\nData       :", object$df_name)
   if (!is.empty(object$data_filter)) {
     cat("\nFilter     :", gsub("\\n", "", object$data_filter))
+  }
+  if (!is.empty(object$arr)) {
+    cat("\nArrange    :", gsub("\\n", "", object$arr))
   }
   if (!is.empty(object$rows)) {
     cat("\nFilter     :", gsub("\\n", "", object$rows))
