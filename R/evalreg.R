@@ -37,7 +37,7 @@ evalreg <- function(dataset, pred, rvar, train = "All",
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
   } else if (train == "Training") {
@@ -47,7 +47,7 @@ evalreg <- function(dataset, pred, rvar, train = "All",
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
   } else {

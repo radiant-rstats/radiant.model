@@ -34,7 +34,7 @@ evalbin <- function(dataset, pred, rvar, lev = "",
   if (is.na(margin)) margin <- 0
 
   if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
-    return("**\nFilter or Slice required. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("evalbin"))
+    return("**\nFilter or Slice required to differentiate Train and Test. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("evalbin"))
   }
 
   if (is.empty(qnt)) qnt <- 10
@@ -48,7 +48,7 @@ evalbin <- function(dataset, pred, rvar, lev = "",
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
   } else if (train == "Training") {
@@ -58,9 +58,10 @@ evalbin <- function(dataset, pred, rvar, lev = "",
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
+
   } else {
     dat_list[["All"]] <- get_data(dataset, vars, filt = "", rows = NULL, envir = envir)
   }
@@ -350,7 +351,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
 confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
                       train = "All", data_filter = "", rows = NULL, envir = parent.frame(), ...) {
   if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
-    return("**\nFilter or Slice required. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("confusion"))
+    return("**\nFilter or Slice required to differentiate Train and Test. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("confusion"))
   }
 
   ## in case no inputs were provided
@@ -371,7 +372,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
   } else if (train == "Training") {
@@ -381,7 +382,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
       dataset,
       vars,
       filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      rows = ifelse(is.empty(rows), NULL, paste0("-(", rows, ")")),
+      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
       envir = envir
     )
   } else {
