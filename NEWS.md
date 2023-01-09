@@ -3,7 +3,7 @@
 * Improvements to screenshot feature. Navigation bar is omitted and the image is adjusted to the length of the UI.
 * Removed all references to `aes_string` which is being deprecated in ggplot
 * Replaced "size" argument, deprecated in ggplot2, with "linewidth"
-* Added functionality to create prediction plots (pred_plot) and permutation importance plots (varimp) for most available models. Prediction plots are convenient to quickly check for possible interactions which would take longer to generate using PDP
+* Added functionality to create pdp plots, prediction plots (pred_plot), and permutation importance plots (varimp) for most available models. Prediction plots are convenient to quickly check for possible interactions which would take longer to generate using PDP
 * Added AUC and Adjusted Pseudo R-squared to model fit metrics for logistic regression
 
 # radiant.model 1.4.10

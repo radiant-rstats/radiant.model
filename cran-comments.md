@@ -1,6 +1,6 @@
 ## Resubmission
 
-This is a resubmission. In this version I have added features and addresses some ggplot deprecation issues. See NEWS.md for details.  
+This is a resubmission. In this version I have added features and addressed some ggplot deprecation issues. See NEWS.md for details.  
 
 ## Test environments
 
