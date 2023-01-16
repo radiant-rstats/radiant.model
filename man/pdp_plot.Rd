@@ -4,7 +4,16 @@
 \alias{pdp_plot}
 \title{Create Partial Dependence Plots}
 \usage{
-pdp_plot(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE)
+pdp_plot(
+  x,
+  plot_list = list(),
+  incl,
+  incl_int,
+  fix = TRUE,
+  hline = TRUE,
+  minq = 0.025,
+  maxq = 0.975
+)
 }
 \arguments{
 \item{x}{Return value from a model}
@@ -20,6 +29,10 @@ Set to FALSE to have y-axis limits set by ggplot2 for each plot}
 
 \item{hline}{Add a horizontal line at the average of the target variable. When set to FALSE
 no line is added. When set to a specific number, the horizontal line will be added at that value}
+
+\item{minq}{Quantile to use for the minimum value for simulation of numeric variables}
+
+\item{maxq}{Quantile to use for the maximum value for simulation of numeric variables}
 }
 \description{
 Create Partial Dependence Plots

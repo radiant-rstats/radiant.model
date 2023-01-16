@@ -11,7 +11,9 @@ pred_plot(
   incl_int,
   fix = TRUE,
   hline = TRUE,
-  nr = 20
+  nr = 20,
+  minq = 0.025,
+  maxq = 0.975
 )
 }
 \arguments{
@@ -30,6 +32,10 @@ Set to FALSE to have y-axis limits set by ggplot2 for each plot}
 no line is added. When set to a specific number, the horizontal line will be added at that value}
 
 \item{nr}{Number of values to use to generate predictions for a numeric explanatory variable}
+
+\item{minq}{Quantile to use for the minimum value for simulation of numeric variables}
+
+\item{maxq}{Quantile to use for the maximum value for simulation of numeric variables}
 }
 \description{
 Prediction Plots

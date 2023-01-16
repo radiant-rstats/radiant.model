@@ -411,13 +411,18 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
 #' @param hline Add a horizontal line at the average of the target variable. When set to FALSE
 #'   no line is added. When set to a specific number, the horizontal line will be added at that value
 #' @param nr Number of values to use to generate predictions for a numeric explanatory variable
+#' @param minq Quantile to use for the minimum value for simulation of numeric variables
+#' @param maxq Quantile to use for the maximum value for simulation of numeric variables
 #'
 #' @importFrom radiant.data visualize
 #' @importFrom rlang .data
 #'
 #' @export
-pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20) {
+pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
   min_max <- c(Inf, -Inf)
+  minx <- function(x) quantile(x, p = minq)
+  maxx <- function(x) quantile(x, p = maxq)
+
   calc_ylim <- function(lab, lst, min_max) {
     if (isTRUE(fix)) {
       vals <- lst[[lab]]
@@ -452,7 +457,7 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
     is_num <- sapply(df, is.numeric)
     if (is.numeric(df[[pn]])) {
       num_range <- df[[pn]] %>%
-        (function(x) seq(min(x), max(x), length.out = nr)) %>%
+        (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
       pred <- predict(x, pred_cmd = glue("{pn} = c({num_range})")) %>% set_pred_name()
     } else {
@@ -470,10 +475,10 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       # 2 numeric variables
       cn <- colnames(df)
       num_range1 <- df[[cn[1]]] %>%
-        (function(x) seq(min(x), max(x), length.out = nr)) %>%
+        (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
       num_range2 <- df[[cn[2]]] %>%
-        (function(x) seq(min(x), max(x), length.out = nr)) %>%
+        (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
       pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})")) %>% set_pred_name()
       plot_list[[paste0(pn_lab, "_tile")]] <- ggplot(pred, aes(x = .data[[cn[1]]], y = .data[[cn[2]]], fill = .data[[pvar]])) +
@@ -493,7 +498,7 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       cn_fct <- cn[!is_num]
       cn_num <- cn[is_num]
       num_range <- df[[cn_num[1]]] %>%
-        (function(x) seq(min(x), max(x), length.out = 20)) %>%
+        (function(x) seq(minx(x), maxx(x), length.out = 20)) %>%
         paste0(collapse = ", ")
       pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = levels({cn_fct})")) %>% set_pred_name()
       plot_list[[pn_lab]] <- plot(pred, xvar = cn_num[1], yvar = pvar, color = cn_fct, custom = TRUE) + labs(y = NULL)
@@ -529,15 +534,19 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #'   Set to FALSE to have y-axis limits set by ggplot2 for each plot
 #' @param hline Add a horizontal line at the average of the target variable. When set to FALSE
 #'   no line is added. When set to a specific number, the horizontal line will be added at that value
+#' @param minq Quantile to use for the minimum value for simulation of numeric variables
+#' @param maxq Quantile to use for the maximum value for simulation of numeric variables
 #'
 #' @importFrom radiant.data visualize
 #' @importFrom pdp partial
 #' @importFrom ggplot2 autoplot
 #'
 #' @export
-pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE) {
+pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, minq=0.025, maxq=0.975) {
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
+  probs <- seq(minq, maxq, length.out = 20)
+
   calc_ylim <- function(lab, lst, min_max) {
     if (isTRUE(fix)) {
       vals <- lst[[lab]]
@@ -559,6 +568,8 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
       x$model,
       pred.var = pn,
       plot = FALSE,
+      quantiles = TRUE,
+      probs = probs,
       prob = x$type == "classification",
       train = x$model$model
     )
