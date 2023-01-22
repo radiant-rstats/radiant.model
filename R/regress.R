@@ -542,10 +542,13 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #' @importFrom ggplot2 autoplot
 #'
 #' @export
-pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, minq=0.025, maxq=0.975) {
+pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, minq = 0.025, maxq = 0.975) {
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
-  probs <- seq(minq, maxq, length.out = 20)
+  minx <- function(x) quantile(x, p = minq)
+  maxx <- function(x) quantile(x, p = maxq)
+  nr <- 20
+  probs <- seq(minq, maxq, length.out = nr)
 
   calc_ylim <- function(lab, lst, min_max) {
     if (isTRUE(fix)) {
@@ -558,21 +561,38 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
     }
   }
 
+  pvar <- "Prediction"
+  set_pred_name <- function(pred) {
+    if (!pvar %in% colnames(pred)) {
+      pname <- colnames(pred)[ncol(mod_dat) + 1]
+      if (pname != pvar) {
+        cn <- colnames(pred)
+        cn[cn == pname] <- pvar
+        colnames(pred) <- cn
+      }
+    }
+    return(pred)
+  }
+
   if (length(incl_int) > 0) {
     incl_int <- strsplit(incl_int, ":")
   }
   incl <- c(incl, incl_int)
   for (pn in incl) {
     pn_lab <- paste0(pn, collapse = ":")
-    pdp_list[[pn_lab]] <- pdp::partial(
-      x$model,
-      pred.var = pn,
-      plot = FALSE,
-      quantiles = TRUE,
-      probs = probs,
-      prob = x$type == "classification",
-      train = x$model$model
-    )
+    if (length(pn) < 1) { # issues with autoplot of interactions between two numeric variables
+      pdp_list[[pn_lab]] <- pdp::partial(
+        x$model,
+        pred.var = pn,
+        plot = FALSE,
+        quantiles = TRUE,
+        probs = probs,
+        prob = x$type == "classification",
+        train = x$model$model
+      )
+    } else {
+      pdp_list[[pn_lab]] <- x$model$model[, pn] %>% mutate(fake_pred = 0)
+    }
     if (length(pn) < 2 || sum(c(is.numeric(x$model$model[[pn[1]]]), is.numeric(x$model$model[[pn[2]]]))) < 2) {
       min_max <- calc_ylim("yhat", pdp_list[[pn_lab]], min_max)
     }
@@ -586,7 +606,19 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
         labs(y = NULL)
     } else if (sum(is_num) == 3) {
       # 2 numeric variables
-      plot_list[[paste0(pn_lab, "_tile")]] <- autoplot(pdp_list[[pn_lab]])
+      cn <- colnames(df)
+      num_range1 <- df[[cn[1]]] %>%
+        (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
+        paste0(collapse = ", ")
+      num_range2 <- df[[cn[2]]] %>%
+        (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
+        paste0(collapse = ", ")
+      pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})")) %>%
+        set_pred_name()
+      plot_list[[paste0(pn_lab, "_tile")]] <- ggplot(pred, aes(x = .data[[cn[1]]], y = .data[[cn[2]]], fill = .data[[pvar]])) +
+        geom_tile()
+      # giving weird results "blotchy" graphs with lots of empty space
+      # plot_list[[paste0(pn_lab, "_tile")]] <- autoplot(pdp_list[[pn_lab]])
     } else if (sum(is_num) == 1) {
       # 2 categorical variables
       cn <- colnames(df)

@@ -29,7 +29,6 @@ evalbin <- function(dataset, pred, rvar, lev = "",
                     qnt = 10, cost = 1, margin = 2,
                     train = "All", data_filter = "", arr = "",
                     rows = NULL, envir = parent.frame()) {
-
   ## in case no inputs were provided
   if (is.na(cost)) cost <- 0
   if (is.na(margin)) margin <- 0
@@ -440,7 +439,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
     make_tab <- function(x) {
       ret <- rep(0L, 4) %>% set_names(c("TN", "FN", "FP", "TP"))
       tab <- table(dataset[[rvar]], x) %>% as.data.frame(stringsAsFactors = FALSE)
-      ## ensure a value is availble for all four options
+      ## ensure a value is available for all four options
       for (i in 1:nrow(tab)) {
         if (tab[i, 1] == "TRUE") {
           if (tab[i, 2] == "TRUE") {
