@@ -574,9 +574,7 @@ plot.logistic <- function(x, plots = "coef", conf_lev = .95,
       set_colnames(c("Low", "High")) %>%
       cbind(select(x$coeff, 2), .) %>%
       set_rownames(x$coeff$label) %>%
-      {
-        if (!intercept) .[-1, ] else .
-      } %>%
+      (function(x) if (!intercept) x[-1, , drop = FALSE] else x) %>%
       mutate(variable = factor(rownames(.), levels = rownames(.)))
 
     # addressing issues with extremely high upper bounds

@@ -439,15 +439,11 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 
   mod_dat <- x$model$model # [, -1, drop = FALSE]
   pvar <- "Prediction"
-
   set_pred_name <- function(pred) {
     if (!pvar %in% colnames(pred)) {
-      pname <- colnames(pred)[ncol(mod_dat) + 1]
-      if (pname != pvar) {
-        cn <- colnames(pred)
-        cn[cn == pname] <- pvar
-        colnames(pred) <- cn
-      }
+      pname <- colnames(pred)[ncol(mod_dat)]
+      colnames(pred)[colnames(pred) == pname] <- pvar
+      pred <- select(pred, 1:Prediction)
     }
     return(pred)
   }
@@ -459,9 +455,9 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       num_range <- df[[pn]] %>%
         (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
-      pred <- predict(x, pred_cmd = glue("{pn} = c({num_range})")) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{pn} = c({num_range})"), se = FALSE) %>% set_pred_name()
     } else {
-      pred <- predict(x, pred_cmd = glue("{pn} = levels({pn})")) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{pn} = levels({pn})"), se = FALSE) %>% set_pred_name()
     }
     plot_list[[pn]] <- visualize(pred, xvar = pn, yvar = pvar, type = "line", custom = TRUE) + labs(y = NULL)
     min_max <- calc_ylim(pvar, pred, min_max)
@@ -480,13 +476,13 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       num_range2 <- df[[cn[2]]] %>%
         (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
-      pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})")) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})"), se = FALSE) %>% set_pred_name()
       plot_list[[paste0(pn_lab, "_tile")]] <- ggplot(pred, aes(x = .data[[cn[1]]], y = .data[[cn[2]]], fill = .data[[pvar]])) +
         geom_tile()
     } else if (sum(is_num) == 0) {
       # 2 categorical variables
       cn <- colnames(df)
-      pred <- predict(x, pred_cmd = glue("{cn[1]} = levels({cn[1]}), {cn[2]} = levels({cn[2]})")) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{cn[1]} = levels({cn[1]}), {cn[2]} = levels({cn[2]})"), se = FALSE) %>% set_pred_name()
       plot_list[[pn_lab]] <- visualize(
         pred,
         xvar = cn[1], yvar = pvar, type = "line", color = cn[2], custom = TRUE
@@ -500,7 +496,7 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       num_range <- df[[cn_num[1]]] %>%
         (function(x) seq(minx(x), maxx(x), length.out = 20)) %>%
         paste0(collapse = ", ")
-      pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = levels({cn_fct})")) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = levels({cn_fct})"), se = FALSE) %>% set_pred_name()
       plot_list[[pn_lab]] <- plot(pred, xvar = cn_num[1], yvar = pvar, color = cn_fct, custom = TRUE) + labs(y = NULL)
       min_max <- calc_ylim(pvar, pred, min_max)
     }
@@ -512,7 +508,14 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
     }
   }
 
-  if (isTRUE(hline)) hline <- mean(mod_dat[[1]])
+  if (isTRUE(hline)) {
+    y <- mod_dat[[1]]
+    if (is.factor(y)) {
+      lev <- ifelse(is.empty(x$lev), levels(y)[1], x$lev)
+      y <- y == lev
+    }
+    hline <- mean(y)
+  }
   if (is.numeric(hline)) {
     for (pn_lab in intersect(c(incl, incl_int), names(plot_list))) {
       plot_list[[pn_lab]] <- plot_list[[pn_lab]] +
@@ -534,6 +537,7 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #'   Set to FALSE to have y-axis limits set by ggplot2 for each plot
 #' @param hline Add a horizontal line at the average of the target variable. When set to FALSE
 #'   no line is added. When set to a specific number, the horizontal line will be added at that value
+#' @param nr Number of values to use to generate predictions for a numeric explanatory variable
 #' @param minq Quantile to use for the minimum value for simulation of numeric variables
 #' @param maxq Quantile to use for the maximum value for simulation of numeric variables
 #'
@@ -542,12 +546,11 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #' @importFrom ggplot2 autoplot
 #'
 #' @export
-pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, minq = 0.025, maxq = 0.975) {
+pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
   minx <- function(x) quantile(x, p = minq)
   maxx <- function(x) quantile(x, p = maxq)
-  nr <- 20
   probs <- seq(minq, maxq, length.out = nr)
 
   calc_ylim <- function(lab, lst, min_max) {
@@ -561,15 +564,13 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
     }
   }
 
+  mod_dat <- x$model$model
   pvar <- "Prediction"
   set_pred_name <- function(pred) {
     if (!pvar %in% colnames(pred)) {
-      pname <- colnames(pred)[ncol(mod_dat) + 1]
-      if (pname != pvar) {
-        cn <- colnames(pred)
-        cn[cn == pname] <- pvar
-        colnames(pred) <- cn
-      }
+      pname <- colnames(pred)[ncol(mod_dat)]
+      colnames(pred)[colnames(pred) == pname] <- pvar
+      pred <- select(pred, 1:Prediction)
     }
     return(pred)
   }
@@ -579,8 +580,9 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
   }
   incl <- c(incl, incl_int)
   for (pn in incl) {
+    df <- select(x$model$model, {{ pn }})
     pn_lab <- paste0(pn, collapse = ":")
-    if (length(pn) < 1) { # issues with autoplot of interactions between two numeric variables
+    if (length(pn) < 2 || sum(sapply(df, is.numeric)) < 2) {
       pdp_list[[pn_lab]] <- pdp::partial(
         x$model,
         pred.var = pn,
@@ -590,11 +592,10 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
         prob = x$type == "classification",
         train = x$model$model
       )
-    } else {
-      pdp_list[[pn_lab]] <- x$model$model[, pn] %>% mutate(fake_pred = 0)
-    }
-    if (length(pn) < 2 || sum(c(is.numeric(x$model$model[[pn[1]]]), is.numeric(x$model$model[[pn[2]]]))) < 2) {
       min_max <- calc_ylim("yhat", pdp_list[[pn_lab]], min_max)
+    } else {
+      # issues with autoplot of interactions between two numeric variables
+      pdp_list[[pn_lab]] <- df %>% mutate(fake_pred = 0)
     }
   }
 
@@ -613,7 +614,7 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
       num_range2 <- df[[cn[2]]] %>%
         (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
-      pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})")) %>%
+      pred <- predict(x, pred_cmd = glue("{cn[1]} = c({num_range1}), {cn[2]} = c({num_range2})"), se = FALSE) %>%
         set_pred_name()
       plot_list[[paste0(pn_lab, "_tile")]] <- ggplot(pred, aes(x = .data[[cn[1]]], y = .data[[cn[2]]], fill = .data[[pvar]])) +
         geom_tile()
@@ -646,7 +647,14 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
     }
   }
 
-  if (isTRUE(hline)) hline <- mean(x$model$model[[1]])
+  if (isTRUE(hline)) {
+    y <- mod_dat[[1]]
+    if (is.factor(y)) {
+      lev <- ifelse(is.empty(x$lev), levels(y)[1], x$lev)
+      y <- y == lev
+    }
+    hline <- mean(y)
+  }
   if (is.numeric(hline)) {
     for (pn_lab in to_augment) {
       plot_list[[pn_lab]] <- plot_list[[pn_lab]] +

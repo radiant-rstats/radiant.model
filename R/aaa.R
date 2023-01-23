@@ -4,7 +4,7 @@ globalVariables(c(
   ".cooksd", ".fitted", ".resid", ".std.resid", "FN", "FP", "Feature", "Importance", "Predictor",
   "ROME", "TN", "TP", "TPR", "Variable", "cum_gains", "cum_prop", "cum_resp", "cum_resp_rate",
   "index", "index.max", "label", "logit", "n", "nr_obs", "nr_resp", "null.deviance", "obs",
-  "precision", "pred", "predictor.value", "total", "variable", "llfull", "llnull", "rnk"
+  "precision", "pred", "predictor.value", "total", "variable", "llfull", "llnull", "rnk", "Prediction"
 ))
 
 #' radiant.model

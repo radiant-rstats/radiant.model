@@ -11,6 +11,7 @@ pdp_plot(
   incl_int,
   fix = TRUE,
   hline = TRUE,
+  nr = 20,
   minq = 0.025,
   maxq = 0.975
 )
@@ -29,6 +30,8 @@ Set to FALSE to have y-axis limits set by ggplot2 for each plot}
 
 \item{hline}{Add a horizontal line at the average of the target variable. When set to FALSE
 no line is added. When set to a specific number, the horizontal line will be added at that value}
+
+\item{nr}{Number of values to use to generate predictions for a numeric explanatory variable}
 
 \item{minq}{Quantile to use for the minimum value for simulation of numeric variables}
 
