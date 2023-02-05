@@ -40,31 +40,19 @@ evalbin <- function(dataset, pred, rvar, lev = "",
   if (is.empty(qnt)) qnt <- 10
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
-    dat_list[["Test"]] <- get_data(
-      dataset,
-      vars,
-      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      arr = arr,
-      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
-      envir = envir
-    )
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
   } else if (train == "Training") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
-  } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(
-      dataset,
-      vars,
-      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      arr = arr,
-      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
-      envir = envir
-    )
+  } else if (train == "Test") {
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
+  } else if (train == "Training") {
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "", rows = NULL, envir = envir)
+    dat_list[["All"]] <- get_data(dataset, vars, envir = envir)
   }
 
   qnt_name <- "bins"
@@ -129,13 +117,7 @@ evalbin <- function(dataset, pred, rvar, lev = "",
           resp_rate = nr_resp / nr_obs,
           gains = nr_resp / tot_resp
         ) %>%
-        {
-          if (first(.$resp_rate) < last(.$resp_rate)) {
-            mutate_all(., rev)
-          } else {
-            .
-          }
-        } %>%
+        (function(x) if (first(x$resp_rate) < last(x$resp_rate)) mutate_all(x, rev) else x) %>%
         mutate(
           profit = margin * cumsum(nr_resp) - cost * cumsum(nr_obs),
           ROME = profit / (cost * cumsum(nr_obs)),
@@ -267,6 +249,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
   }
 
   if ("profit" %in% plots) {
+    print(str(x))
     dataset <- select(x$dataset, pred, cum_prop, profit) %>%
       group_by(pred) %>%
       mutate(obs = 1:n())
@@ -287,6 +270,12 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
       labs(y = "Profit", x = "Proportion of customers")
   }
+
+  if ("exp_profit" %in% plots) {
+    ## need
+
+  }
+
 
   if ("rome" %in% plots) {
     plot_list[["rome"]] <- visualize(
@@ -370,31 +359,18 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
   }
 
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
+
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
-    dat_list[["Test"]] <- get_data(
-      dataset,
-      vars,
-      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      arr = arr,
-      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
-      envir = envir
-    )
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
   } else if (train == "Training") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
-  } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(
-      dataset,
-      vars,
-      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      arr = arr,
-      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
-      envir = envir
-    )
+  } else if (train == "Test") {
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "", rows = rows, envir = envir)
+    dat_list[["All"]] <- get_data(dataset, vars, envir = envir)
   }
 
   pdat <- list()

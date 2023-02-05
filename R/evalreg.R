@@ -30,31 +30,18 @@ evalreg <- function(dataset, pred, rvar, train = "All",
 
   # Add an option to exponentiate predictions in case of log regression
   df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
+
   dat_list <- list()
   vars <- c(pred, rvar)
   if (train == "Both") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
-    dat_list[["Test"]] <- get_data(
-      dataset,
-      vars,
-      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      arr = arr,
-      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
-      envir = envir
-    )
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
   } else if (train == "Training") {
     dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
   } else if (train == "Test" | train == "Validation") {
-    dat_list[["Test"]] <- get_data(
-      dataset,
-      vars,
-      filt = ifelse(is.empty(data_filter), "", paste0("!(", data_filter, ")")),
-      arr = arr,
-      rows = ifelse(is.empty(rows), "", paste0("-(", rows, ")")),
-      envir = envir
-    )
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
   } else {
-    dat_list[["All"]] <- get_data(dataset, vars, filt = "", rows = NULL, envir = envir)
+    dat_list[["All"]] <- get_data(dataset, vars, envir = envir)
   }
 
   pdat <- list()

@@ -26,8 +26,8 @@ levels of factor `pclass`. To add another variable, create a vector of predictio
 \item{pred_names}{Names for the predictions to be stored. If one name is provided, only the first column of predictions is stored. If empty, the levels
 in the response variable of the rforest model will be used}
 
-\item{OOB}{Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If missing, datasets will be compared
-to determine of OOB predictions should be used}
+\item{OOB}{Use Out-Of-Bag predictions (TRUE or FALSE). Relevant when evaluating predictions for the training sample. If set to NULL, datasets will be compared
+to determine if OOB predictions should be used}
 
 \item{dec}{Number of decimals to show}
 

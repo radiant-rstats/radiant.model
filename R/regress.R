@@ -416,6 +416,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
 #'
 #' @importFrom radiant.data visualize
 #' @importFrom rlang .data
+#' @importFrom tidyselect where
 #'
 #' @export
 pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
@@ -455,9 +456,15 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       num_range <- df[[pn]] %>%
         (function(x) seq(minx(x), maxx(x), length.out = nr)) %>%
         paste0(collapse = ", ")
-      pred <- predict(x, pred_cmd = glue("{pn} = c({num_range})"), se = FALSE) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{pn} = c({num_range})"), se = FALSE) %>%
+        set_pred_name()
+    } else if (is.logical(df[[pn]])) {
+      pred <- predict(x, pred_cmd = glue("{pn} = c(FALSE, TRUE)"), se = FALSE) %>%
+        set_pred_name()
+      pred[[pn]] <- factor(pred[[pn]], levels = c(FALSE, TRUE))
     } else {
-      pred <- predict(x, pred_cmd = glue("{pn} = levels({pn})"), se = FALSE) %>% set_pred_name()
+      pred <- predict(x, pred_cmd = glue("{pn} = levels({pn})"), se = FALSE) %>%
+        set_pred_name()
     }
     plot_list[[pn]] <- visualize(pred, xvar = pn, yvar = pvar, type = "line", custom = TRUE) + labs(y = NULL)
     min_max <- calc_ylim(pvar, pred, min_max)
@@ -482,7 +489,20 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
     } else if (sum(is_num) == 0) {
       # 2 categorical variables
       cn <- colnames(df)
-      pred <- predict(x, pred_cmd = glue("{cn[1]} = levels({cn[1]}), {cn[2]} = levels({cn[2]})"), se = FALSE) %>% set_pred_name()
+      is_lgcl  <- sapply(df, is.logical)
+      if (sum(is_lgcl) == 2) {
+          pred <- predict(x, pred_cmd = glue("{cn[1]} = c(FALSE, TRUE), {cn[2]} = c(FALSE, TRUE)"), se = FALSE) %>% set_pred_name()
+      } else if (sum(is_lgcl) == 1) {
+        if (is_lgcl[1]) {
+          pred <- predict(x, pred_cmd = glue("{cn[2]} = levels({cn[1]}), {cn[2]} = c(FALSE, TRUE)"), se = FALSE) %>% set_pred_name()
+        } else {
+          pred <- predict(x, pred_cmd = glue("{cn[1]} = levels({cn[1]}), {cn[2]} = c(FALSE, TRUE)"), se = FALSE) %>% set_pred_name()
+        }
+      } else {
+        pred <- predict(x, pred_cmd = glue("{cn[1]} = levels({cn[1]}), {cn[2]} = levels({cn[2]})"), se = FALSE) %>% set_pred_name()
+      }
+
+      pred <- pred %>% mutate(across(where(is.logical), function(x) factor(x, levels = c(FALSE, TRUE))))
       plot_list[[pn_lab]] <- visualize(
         pred,
         xvar = cn[1], yvar = pvar, type = "line", color = cn[2], custom = TRUE
@@ -496,7 +516,15 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
       num_range <- df[[cn_num[1]]] %>%
         (function(x) seq(minx(x), maxx(x), length.out = 20)) %>%
         paste0(collapse = ", ")
-      pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = levels({cn_fct})"), se = FALSE) %>% set_pred_name()
+
+      if (is.logical(df[[cn_fct]])) {
+        pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = c(FALSE, TRUE)"), se = FALSE) %>%
+          set_pred_name()
+        pred[[cn_fct]] <- factor(pred[[cn_fct]], levels = c(FALSE, TRUE))
+      } else {
+        pred <- predict(x, pred_cmd = glue("{cn_num[1]} = c({num_range}), {cn_fct} = levels({cn_fct})"), se = FALSE) %>% set_pred_name()
+      }
+
       plot_list[[pn_lab]] <- plot(pred, xvar = cn_num[1], yvar = pvar, color = cn_fct, custom = TRUE) + labs(y = NULL)
       min_max <- calc_ylim(pvar, pred, min_max)
     }
@@ -526,7 +554,6 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
   return(plot_list)
 }
 
-
 #' Create Partial Dependence Plots
 #'
 #' @param x Return value from a model
@@ -544,6 +571,7 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #' @importFrom radiant.data visualize
 #' @importFrom pdp partial
 #' @importFrom ggplot2 autoplot
+#' @importFrom tidyselect where
 #'
 #' @export
 pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
@@ -582,7 +610,16 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
   for (pn in incl) {
     df <- select(x$model$model, {{ pn }})
     pn_lab <- paste0(pn, collapse = ":")
-    if (length(pn) < 2 || sum(sapply(df, is.numeric)) < 2) {
+    if (length(pn) < 2 & is.logical(df[[pn_lab]])) {
+      pdp_list[[pn_lab]] <- pdp::partial(
+        x$model,
+        pred.var = pn,
+        plot = FALSE,
+        prob = x$type == "classification",
+        train = x$model$model
+      )
+      min_max <- calc_ylim("yhat", pdp_list[[pn_lab]], min_max)
+    } else if (length(pn) < 2 || sum(sapply(df, is.numeric)) < 2) {
       pdp_list[[pn_lab]] <- pdp::partial(
         x$model,
         pred.var = pn,
@@ -603,8 +640,15 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
     df <- pdp_list[[pn_lab]]
     is_num <- sapply(df, is.numeric)
     if (ncol(df) == 2) {
-      plot_list[[pn_lab]] <- autoplot(pdp_list[[pn_lab]]) +
-        labs(y = NULL)
+      if (is.logical(df[[1]])) {
+        cn_fct <- colnames(df)[1]
+        df[[cn_fct]] <- factor(df[[cn_fct]], levels = c(FALSE, TRUE))
+        plot_list[[pn_lab]] <- visualize(df, xvar = cn_fct, yvar = "yhat", type = "line", custom = TRUE) +
+          labs(y = NULL)
+      } else {
+        plot_list[[pn_lab]] <- autoplot(pdp_list[[pn_lab]]) +
+          labs(y = NULL)
+      }
     } else if (sum(is_num) == 3) {
       # 2 numeric variables
       cn <- colnames(df)
@@ -623,6 +667,7 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
     } else if (sum(is_num) == 1) {
       # 2 categorical variables
       cn <- colnames(df)
+      df <- df %>% mutate(across(where(is.logical), function(x) factor(x, levels = c(FALSE, TRUE))))
       plot_list[[pn_lab]] <- visualize(
         df,
         xvar = cn[1], yvar = cn[3], type = "line", color = cn[2], custom = TRUE

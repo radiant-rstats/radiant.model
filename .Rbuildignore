@@ -11,3 +11,4 @@ vignettes/
 .vscode/
 docker/
 ^CRAN-SUBMISSION$
+^.*\.state\.rda$
