@@ -249,7 +249,6 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
   }
 
   if ("profit" %in% plots) {
-    print(str(x))
     dataset <- select(x$dataset, pred, cum_prop, profit) %>%
       group_by(pred) %>%
       mutate(obs = 1:n())
