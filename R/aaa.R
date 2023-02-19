@@ -4,7 +4,8 @@ globalVariables(c(
   ".cooksd", ".fitted", ".resid", ".std.resid", "FN", "FP", "Feature", "Importance", "Predictor",
   "ROME", "TN", "TP", "TPR", "Variable", "cum_gains", "cum_prop", "cum_resp", "cum_resp_rate",
   "index", "index.max", "label", "logit", "n", "nr_obs", "nr_resp", "null.deviance", "obs",
-  "precision", "pred", "predictor.value", "total", "variable", "llfull", "llnull", "rnk", "Prediction"
+  "precision", "pred", "predictor.value", "total", "variable", "llfull", "llnull", "rnk", "Prediction",
+  "C_resp", "C_n", "T_resp", "T_n", "bins", "inc_uplift", "incremental_resp"
 ))
 
 #' radiant.model
@@ -95,4 +96,13 @@ NULL
 #' @name movie_contract
 #' @usage data(movie_contract)
 #' @format A nested list for decision and chance nodes, probabilities and payoffs
+NULL
+
+#' Kaggle uplift
+#' @details Use uplift modeling to quantify the effectiveness of an experimental treatment
+#' @docType data
+#' @keywords datasets
+#' @name kaggle_uplift
+#' @usage data(kaggle_uplift)
+#' @format A data frame with 1,000 rows and 22 variables
 NULL

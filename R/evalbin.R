@@ -209,6 +209,8 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
 #' @seealso \code{\link{evalbin}} to generate results
 #' @seealso \code{\link{summary.evalbin}} to summarize results
 #'
+#' @importFrom scales percent
+#'
 #' @examples
 #' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
 #'   evalbin(c("pred1", "pred2"), "buy") %>%
@@ -228,7 +230,8 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       visualize(x$dataset, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
       geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), linewidth = .1, color = "black") +
-      labs(y = "Cumulative lift", x = "Proportion of customers")
+      labs(y = "Cumulative lift", x = "Proportion of customers") +
+      scale_x_continuous(labels = scales::percent)
   }
 
   if ("gains" %in% plots) {
@@ -245,7 +248,9 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       visualize(dataset, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), linewidth = .1, color = "black") +
-      labs(y = "Cumulative gains", x = "Proportion of customers")
+      labs(y = "Cumulative gains", x = "Proportion of customers") +
+      scale_x_continuous(labels = scales::percent) +
+      scale_y_continuous(labels = scales::percent)
   }
 
   if ("profit" %in% plots) {
@@ -267,12 +272,12 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     ) +
       geom_point() +
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
-      labs(y = "Profit", x = "Proportion of customers")
+      labs(y = "Profit", x = "Proportion of customers") +
+      scale_x_continuous(labels = scales::percent)
   }
 
   if ("exp_profit" %in% plots) {
     ## need
-
   }
 
 
@@ -287,7 +292,9 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     ) +
       geom_point() +
       geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
-      labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers")
+      labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers") +
+      scale_x_continuous(labels = scales::percent) +
+      scale_y_continuous(labels = scales::percent)
   }
 
   for (i in names(plot_list)) {
@@ -304,9 +311,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       if (length(plot_list) == 1) plot_list[[1]] else plot_list
     } else {
       patchwork::wrap_plots(plot_list, ncol = 1) %>%
-        {
-          if (shiny) . else print(.)
-        }
+        (function(x) if (shiny) x else print(x))
     }
   }
 }
@@ -601,6 +606,330 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
   }
 
   p
+}
+
+#' Evaluate uplift for different (binary) classification models
+#'
+#' @details Evaluate uplift for different (binary) classification models based on predictions. See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#'
+#' @param dataset Dataset
+#' @param pred Predictions or predictors
+#' @param rvar Response variable
+#' @param lev The level in the response variable defined as success
+#' @param tvar Treatment variable
+#' @param tlev The level in the treatment variable defined as the treatment
+#' @param qnt Number of bins to create
+#' @param cost Cost for each connection (e.g., email or mailing)
+#' @param margin Margin on each customer purchase
+#' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
+#' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
+#' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
+#' @param rows Rows to select from the specified dataset
+#' @param envir Environment to extract data from
+#'
+#' @return A list of results
+#'
+#' @seealso \code{\link{summary.evalbin}} to summarize results
+#' @seealso \code{\link{plot.evalbin}} to plot results
+#'
+#' @importFrom scales percent
+#'
+#' @examples
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   evalbin(c("pred1", "pred2"), "buy") %>%
+#'   str()
+#' @export
+uplift <- function(dataset, pred, rvar, lev = "",
+                   tvar, tlev = "",
+                   qnt = 10, cost = 1, margin = 2,
+                   train = "All", data_filter = "", arr = "",
+                   rows = NULL, envir = parent.frame()) {
+  if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
+    return("**\nFilter or Slice required to differentiate Train and Test. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("evalbin"))
+  }
+
+  if (is.empty(qnt)) qnt <- 10
+
+  df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
+
+  dat_list <- list()
+  vars <- c(pred, rvar, tvar)
+  if (train == "Both") {
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
+  } else if (train == "Training") {
+    dat_list[["Training"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, envir = envir)
+  } else if (train == "Test") {
+    dat_list[["Test"]] <- get_data(dataset, vars, filt = data_filter, arr = arr, rows = rows, rev = TRUE, envir = envir)
+  } else if (train == "Training") {
+  } else {
+    dat_list[["All"]] <- get_data(dataset, vars, envir = envir)
+  }
+
+  qnt_name <- "bins"
+  pdat <- list()
+  pext <- c(All = "", Training = " (train)", Test = " (test)")
+
+  local_xtile <- function(x, treatment, n, rev = TRUE, type = 7) {
+    # breaks <- quantile(x, prob = seq(0, 1, length = n + 1), na.rm = TRUE, type = type)
+    # breaks <- quantile(x[treatment], prob = seq(0, 1, length = n + 1), na.rm = TRUE)
+    breaks <- c(-Inf, quantile(x[treatment], probs = seq(0, 1, by = 1 / n), na.rm = TRUE, type = type)[2:n], Inf)
+    ## trying ntile
+    # breaks <- data.frame(pred = x[treatment], nt = ntile(x[treatment], n)) %>%
+    #   arrange(pred, nt) %>%
+    #   group_by(nt) %>%
+    #   summarize(lst = last(pred)) %>%
+    #   (function(x) c(-Inf, head(x$lst, n - 1), Inf))
+    if (length(breaks) < 2) stop(paste("Insufficient variation in x to construct", n, "breaks"), call. = FALSE)
+    bins <- .bincode(x, breaks, include.lowest = TRUE)
+    if (rev) as.integer((n + 1) - bins) else bins
+  }
+
+  for (i in names(dat_list)) {
+    lg_list <- list()
+    pl <- c()
+    dataset <- dat_list[[i]]
+
+    if (nrow(dataset) == 0) {
+      return(
+        paste0("Data for ", i, " has zero rows. Please correct the filter used and try again") %>%
+          add_class("evalbin")
+      )
+    }
+
+    rv <- dataset[[rvar]]
+    if (is.factor(rv)) {
+      levs <- levels(rv)
+    } else {
+      levs <- rv %>%
+        as.character() %>%
+        as.factor() %>%
+        levels()
+    }
+
+    if (lev == "") {
+      lev <- levs[1]
+    } else {
+      if (!lev %in% levs) {
+        return(add_class("Level provided not found", "evalbin"))
+      }
+    }
+
+    ## transformation to TRUE/FALSE depending on the selected level (lev)
+    dataset[[rvar]] <- dataset[[rvar]] == lev
+
+    tv <- dataset[[tvar]]
+    if (is.factor(tv)) {
+      tlevs <- levels(tv)
+    } else {
+      tlevs <- tv %>%
+        as.character() %>%
+        as.factor() %>%
+        levels()
+    }
+
+    if (tlev == "") {
+      tlev <- tlevs[1]
+    } else {
+      if (!tlev %in% tlevs) {
+        return(add_class("Level provided not found", "uplift"))
+      }
+    }
+
+    ## transformation to TRUE/FALSE depending on the selected level (tlev)
+    dataset[[tvar]] <- dataset[[tvar]] == tlev
+
+    ## tip for summarise_ from http://stackoverflow.com/a/27592077/1974918
+    ## put summaries in list so you can print and plot
+    tot_resp <- sum(dataset[[rvar]])
+    tot_obs <- nrow(dataset)
+    # tot_rate <- tot_resp / tot_obs
+
+
+    for (j in seq_along(pred)) {
+      pred_j <- pred[j]
+      pname <- paste0(pred_j, pext[i])
+      lg_list[[pname]] <-
+        dataset %>%
+        select_at(.vars = c(pred_j, tvar, rvar)) %>%
+        # mutate(!!pred_j := radiant.data::xtile(.data[[pred_j]], n = qnt, rev = TRUE)) %>%
+        mutate(!!pred_j := local_xtile(.data[[pred_j]], .data[[tvar]], n = qnt, rev = TRUE)) %>%
+        setNames(c(qnt_name, tvar, rvar)) %>%
+        group_by_at(.vars = qnt_name) %>%
+        summarise(
+          nr_obs = n(),
+          nr_resp = sum(.data[[rvar]]),
+          T_resp = sum(.data[[tvar]] & .data[[rvar]]),
+          T_n = sum(.data[[tvar]]),
+          C_resp = sum(!.data[[tvar]] & .data[[rvar]]),
+          C_n = sum(!.data[[tvar]]),
+          uplift = T_resp / T_n - C_resp / C_n
+        ) %>%
+        mutate(
+          # cum_prop = cumsum(nr_obs / sum(nr_obs)),
+          # cum_prop = cumsum(T_n / sum(T_n)),
+          cum_prop = bins / qnt,
+          T_resp = cumsum(T_resp),
+          T_n = cumsum(T_n),
+          C_resp = cumsum(C_resp),
+          C_n = cumsum(C_n),
+          incremental_resp = T_resp - C_resp * T_n / C_n,
+          inc_uplift = incremental_resp / last(T_n) * 100
+        ) %>%
+        mutate(pred = pname) %>%
+        select(pred, bins, cum_prop, T_resp, T_n, C_resp, C_n, incremental_resp, inc_uplift, uplift)
+    }
+    pdat[[i]] <- bind_rows(lg_list)
+  }
+  dataset <- bind_rows(pdat)
+  dataset$pred <- factor(dataset$pred, levels = unique(dataset$pred))
+
+  list(
+    dataset = dataset, df_name = df_name, data_filter = data_filter,
+    arr = arr, rows = rows, train = train, pred = pred, rvar = rvar,
+    lev = lev, tvar = tvar, tlev = tlev, qnt = qnt
+  ) %>% add_class("uplift")
+}
+
+#' Summary method for the uplift function
+#'
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#'
+#' @param object Return value from \code{\link{evalbin}}
+#' @param prn Print full table of measures per model and bin
+#' @param dec Number of decimals to show
+#' @param ... further arguments passed to or from other methods
+#'
+#' @seealso \code{\link{evalbin}} to summarize results
+#' @seealso \code{\link{plot.evalbin}} to plot results
+#'
+#' @examples
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   evalbin(c("pred1", "pred2"), "buy") %>%
+#'   summary()
+#' @export
+summary.uplift <- function(object, prn = TRUE, dec = 3, ...) {
+  if (is.character(object)) {
+    return(object)
+  }
+
+  cat("Evaluate uplift for binary response models\n")
+  cat("Data        :", object$df_name, "\n")
+  if (!is.empty(object$data_filter)) {
+    cat("Filter      :", gsub("\\n", "", object$data_filter), "\n")
+  }
+  if (!is.empty(object$arr)) {
+    cat("Arrange     :", gsub("\\n", "", object$arr), "\n")
+  }
+  if (!is.empty(object$rows)) {
+    cat("Slice       :", gsub("\\n", "", object$rows), "\n")
+  }
+  cat("Results for :", object$train, "\n")
+  cat("Predictors  :", paste0(object$pred, collapse = ", "), "\n")
+  cat("Response    :", object$rvar, "\n")
+  cat("Level       :", object$lev, "in", object$rvar, "\n")
+  cat("Treatment   :", object$tvar, "\n")
+  cat("Level       :", object$tlev, "in", object$tvar, "\n")
+  cat("Bins        :", object$qnt, "\n")
+
+  if (prn) {
+    as.data.frame(object$dataset, stringsAsFactors = FALSE) %>%
+      format_df(dec = dec, mark = ",") %>%
+      print(row.names = FALSE)
+  }
+}
+
+#' Plot method for the uplift function
+#'
+#' @details See \url{https://radiant-rstats.github.io/docs/model/evalbin.html} for an example in Radiant
+#'
+#' @param x Return value from \code{\link{evalbin}}
+#' @param plots Plots to return
+#' @param size Font size used
+#' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org} for options.
+#' @param ... further arguments passed to or from other methods
+#'
+#' @seealso \code{\link{evalbin}} to generate results
+#' @seealso \code{\link{summary.evalbin}} to summarize results
+#'
+#' @examples
+#' data.frame(buy = dvd$buy, pred1 = runif(20000), pred2 = ifelse(dvd$buy == "yes", 1, 0)) %>%
+#'   evalbin(c("pred1", "pred2"), "buy") %>%
+#'   plot()
+#' @export
+plot.uplift <- function(x, plots = c("inc_uplift", "uplift"),
+                        size = 13, shiny = FALSE,
+                        custom = FALSE, ...) {
+  if (is.character(x) || is.null(x$dataset) || any(is.na(x$dataset$inc_uplift)) ||
+    is.null(plots)) {
+    return(invisible())
+  }
+
+  plot_list <- list()
+
+  if ("inc_uplift" %in% plots) {
+    dataset <- x$dataset %>%
+      select(pred, cum_prop, inc_uplift) %>%
+      group_by(pred) %>%
+      mutate(obs = 1:n())
+
+    yend <- tail(dataset[["inc_uplift"]], 1) / 100
+
+    init <- filter(dataset, obs == 1)
+    init[, c("cum_prop", "inc_uplift", "obs")] <- 0
+    dataset <- bind_rows(init, dataset) %>%
+      arrange(pred, obs) %>%
+      mutate(inc_uplift = inc_uplift / 100)
+
+    plot_list[["inc_uplift"]] <-
+      visualize(dataset, xvar = "cum_prop", yvar = "inc_uplift", type = "line", color = "pred", custom = TRUE) +
+      geom_point() +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = yend), linetype = "dashed", linewidth = .1, color = "black") +
+      labs(y = "Incremental Uplift", x = "Proportion of customers") +
+      scale_y_continuous(labels = scales::percent) +
+      scale_x_continuous(labels = scales::percent)
+  }
+
+  if ("uplift" %in% plots) {
+    dataset <- x$dataset %>%
+      select(pred, cum_prop, uplift) %>%
+      group_by(pred) %>%
+      mutate(obs = 1:n(), Predictor = pred) # , cum_prop = round(cum_prop, 2))
+
+    # plot_list[["uplift"]] <-
+    #   visualize(dataset, xvar = "cum_prop", yvar = "uplift", type = "line", color = "Predictor", custom = TRUE) +
+    #   geom_point() +
+    #   geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linetype = "dashed", linewidth = .25, color = "black") +
+    #   labs(y = "Uplift", x = "Proportion of customers") +
+    #   scale_y_continuous(labels = scales::percent) +
+    #   scale_x_continuous(labels = scales::percent)
+
+    plot_list[["uplift"]] <-
+      ggplot(dataset, aes(x = .data[["cum_prop"]], y = .data[["uplift"]], fill = .data[["Predictor"]])) +
+      geom_col(position = "dodge") +
+      labs(y = "Uplift", x = "Proportion of customers") +
+      scale_y_continuous(labels = scales::percent) +
+      scale_x_continuous(labels = scales::percent)
+  }
+
+  for (i in names(plot_list)) {
+    plot_list[[i]] <- plot_list[[i]] + theme_set(theme_gray(base_size = size))
+    if (length(x$pred) < 2 && x$train != "Both") {
+      plot_list[[i]] <- plot_list[[i]] + theme(legend.position = "none")
+    } else {
+      plot_list[[i]] <- plot_list[[i]] + labs(color = "Predictor")
+    }
+  }
+
+  if (length(plot_list) > 0) {
+    if (custom) {
+      if (length(plot_list) == 1) plot_list[[1]] else plot_list
+    } else {
+      patchwork::wrap_plots(plot_list, ncol = 1) %>%
+        (function(x) if (shiny) x else print(x))
+    }
+  }
 }
 
 #' Area Under the RO Curve (AUC)
