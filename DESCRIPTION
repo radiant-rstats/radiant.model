@@ -37,7 +37,7 @@ Imports:
     broom (>= 0.7.0),
     patchwork (>= 1.0.0),
     ranger (>= 0.11.2),
-    xgboost (>= 1.7.3.1),
+    xgboost (>= 1.6.0.1),
     pdp (>= 0.8.1),
     vip (>= 0.3.2),
     stringi,
