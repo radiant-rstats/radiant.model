@@ -12,6 +12,7 @@ evalbin(
   qnt = 10,
   cost = 1,
   margin = 2,
+  scale = 1,
   train = "All",
   data_filter = "",
   arr = "",
@@ -33,6 +34,8 @@ evalbin(
 \item{cost}{Cost for each connection (e.g., email or mailing)}
 
 \item{margin}{Margin on each customer purchase}
+
+\item{scale}{Scaling factor to apply to calculations}
 
 \item{train}{Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin}
 

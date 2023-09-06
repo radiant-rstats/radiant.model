@@ -334,9 +334,9 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
       sub_form <- paste(object$rvar, "~ 1")
 
       vars <- object$evar
-      if (object$int != "" && length(vars) > 1) {
+      if (!is.empty(object$int) && length(vars) > 1) {
         ## updating test_var if needed
-        test_var <- test_specs(test_var, object$int)
+        test_var <- unique(c(test_var, test_specs(test_var, object$int)))
         vars <- c(vars, object$int)
       }
 

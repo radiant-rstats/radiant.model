@@ -9,6 +9,7 @@
 #' @param qnt Number of bins to create
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
+#' @param scale Scaling factor to apply to calculations
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
@@ -26,18 +27,23 @@
 #'   str()
 #' @export
 evalbin <- function(dataset, pred, rvar, lev = "",
-                    qnt = 10, cost = 1, margin = 2,
+                    qnt = 10, cost = 1, margin = 2, scale = 1,
                     train = "All", data_filter = "", arr = "",
                     rows = NULL, envir = parent.frame()) {
   ## in case no inputs were provided
   if (is.na(cost)) cost <- 0
   if (is.na(margin)) margin <- 0
+  if (is.na(scale)) scale <- 1
 
   if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
     return("**\nFilter or Slice required to differentiate Train and Test. To set a filter or slice go to\nData > View and click the filter checkbox\n**" %>% add_class("evalbin"))
   }
 
   if (is.empty(qnt)) qnt <- 10
+
+  cnf_tab <- confusion(dataset, pred, rvar, lev = lev, cost = cost, margin = margin, scale = scale,
+                      train = train, data_filter = data_filter, arr = arr, rows = rows,
+                      envir = envir)
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
 
@@ -96,8 +102,8 @@ evalbin <- function(dataset, pred, rvar, lev = "",
 
     ## tip for summarise_ from http://stackoverflow.com/a/27592077/1974918
     ## put summaries in list so you can print and plot
-    tot_resp <- sum(dataset[[rvar]])
-    tot_obs <- nrow(dataset)
+    tot_resp <- sum(dataset[[rvar]]) * scale
+    tot_obs <- nrow(dataset) * scale
     tot_rate <- tot_resp / tot_obs
 
     for (j in seq_along(pred)) {
@@ -110,8 +116,8 @@ evalbin <- function(dataset, pred, rvar, lev = "",
         setNames(c(qnt_name, rvar)) %>%
         group_by_at(.vars = qnt_name) %>%
         summarise(
-          nr_obs = n(),
-          nr_resp = sum(.data[[rvar]])
+          nr_obs = n() * scale,
+          nr_resp = sum(.data[[rvar]] * scale)
         ) %>%
         mutate(
           resp_rate = nr_resp / nr_obs,
@@ -142,9 +148,9 @@ evalbin <- function(dataset, pred, rvar, lev = "",
   names(prof_list) <- names(auc_list)
 
   list(
-    dataset = dataset, df_name = df_name, data_filter = data_filter,
+    dataset = dataset, dat_list = dat_list, df_name = df_name, data_filter = data_filter,
     arr = arr, rows = rows, train = train, pred = pred, rvar = rvar,
-    lev = lev, qnt = qnt, cost = cost, margin = margin
+    lev = lev, qnt = qnt, cost = cost, margin = margin, scale = scale, cnf_tab = cnf_tab
   ) %>% add_class("evalbin")
 }
 
@@ -186,7 +192,8 @@ summary.evalbin <- function(object, prn = TRUE, dec = 3, ...) {
   cat("Response    :", object$rvar, "\n")
   cat("Level       :", object$lev, "in", object$rvar, "\n")
   cat("Bins        :", object$qnt, "\n")
-  cat("Cost:Margin :", object$cost, ":", object$margin, "\n\n")
+  cat("Cost:Margin :", object$cost, ":", object$margin, "\n")
+  cat("Scale       :", object$scale, "\n\n")
 
   if (prn) {
     as.data.frame(object$dataset, stringsAsFactors = FALSE) %>%
@@ -229,8 +236,8 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     plot_list[["lift"]] <-
       visualize(x$dataset, xvar = "cum_prop", yvar = "cum_lift", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), linewidth = .1, color = "black") +
-      labs(y = "Cumulative lift", x = "Proportion of customers") +
+      geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1), linewidth = .1, linetype = "dotdash", color = "black") +
+      labs(y = "Cumulative lift", x = "Proportion of population targeted") +
       scale_x_continuous(labels = scales::percent)
   }
 
@@ -247,8 +254,8 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     plot_list[["gains"]] <-
       visualize(dataset, xvar = "cum_prop", yvar = "cum_gains", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), linewidth = .1, color = "black") +
-      labs(y = "Cumulative gains", x = "Proportion of customers") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), linewidth = .1, linetype = "dotdash", color = "black") +
+      labs(y = "Cumulative gains", x = "Proportion of population targeted") +
       scale_x_continuous(labels = scales::percent) +
       scale_y_continuous(labels = scales::percent)
   }
@@ -257,6 +264,12 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
     dataset <- select(x$dataset, pred, cum_prop, profit) %>%
       group_by(pred) %>%
       mutate(obs = 1:n())
+
+    vlines <- data.frame(
+      pred = x$cnf_tab$pred,
+      contact = x$cnf_tab$dataset$contact
+    )
+    default_colors <- scales::hue_pal()(nrow(vlines))
 
     init <- filter(dataset, obs == 1)
     init[, c("profit", "cum_prop", "obs")] <- 0
@@ -271,15 +284,61 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       custom = TRUE
     ) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
-      labs(y = "Profit", x = "Proportion of customers") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, linetype = "dotdash", color = "black") +
+      ## the next line doesn't work due to: https://github.com/tidyverse/ggplot2/issues/2492
+      ## using 'default colors' instead
+      # geom_vline(data = vlines, aes(xintercept = contact, color = pred), linewidth = 0.5, linetype = "dotdash", show.legend = FALSE) +
+      geom_vline(xintercept = vlines$contact, color = default_colors, linewidth = 0.5, linetype = "dotdash") +
+      labs(y = "Profit", x = "Proportion of population targeted") +
+      scale_y_continuous(labels = scales::comma) +
       scale_x_continuous(labels = scales::percent)
   }
 
-  if ("exp_profit" %in% plots) {
-    ## need
-  }
+  if ("expected_profit" %in% plots) {
+    calc_exp_profit <- function(df, pred, n, cost, margin, scale) {
+      pext <- c(All = "", Training = " (train)", Test = " (test)")
+      prediction <- sort(df[[pred]], decreasing=TRUE)
+      profit = prediction * margin - cost
+      data.frame(
+        pred = paste0(pred, pext[n]),
+        cum_prop = seq(1, nrow(df)) / nrow(df),
+        cum_profit = cumsum(profit) * scale
+      )
+    }
+    dataset <- list()
+    for (n in names(x$dat_list)) {
+      dataset <- append(dataset, lapply(x$pred, function(pred) calc_exp_profit(x$dat_list[[n]], pred, n, x$cost, x$margin, x$scale)))
+    }
+    dataset <- bind_rows(dataset)
 
+    vlines <- data.frame(
+      pred = x$cnf_tab$pred,
+      contact = x$cnf_tab$dataset$contact
+    )
+    hlines <- data.frame(
+      pred = x$cnf_tab$pred,
+      max_profit = dataset %>% group_by(pred) %>% summarize(max_profit = max(cum_profit)) %>% pull(max_profit)
+    )
+    default_colors <- scales::hue_pal()(nrow(vlines))
+
+    plot_list[["expected_profit"]] <- visualize(
+      dataset,
+      xvar = "cum_prop",
+      yvar = "cum_profit",
+      type = "line",
+      color = "pred",
+      custom = TRUE
+    ) +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, linetype = "dotdash", color = "black") +
+      ## the next line doesn't work due to: https://github.com/tidyverse/ggplot2/issues/2492
+      ## using 'default colors' instead
+      # geom_vline(data = vlines, aes(xintercept = contact, color = pred), linewidth = 0.5, linetype = "dotdash", show.legend = FALSE) +
+      geom_hline(yintercept = hlines$max_profit, color = default_colors, linewidth = 0.5, linetype = "dotdash") +
+      geom_vline(xintercept = vlines$contact, color = default_colors, linewidth = 0.5, linetype = "dotdash") +
+      labs(y = "Expected Profit", x = "Proportion of population targeted") +
+      scale_y_continuous(labels = scales::comma) +
+      scale_x_continuous(labels = scales::percent)
+  }
 
   if ("rome" %in% plots) {
     plot_list[["rome"]] <- visualize(
@@ -291,8 +350,8 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
       custom = TRUE
     ) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, color = "black") +
-      labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of customers") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, linetype = "dotdash", color = "black") +
+      labs(y = "Return on Marketing Expenditures (ROME)", x = "Proportion of population targeted") +
       scale_x_continuous(labels = scales::percent) +
       scale_y_continuous(labels = scales::percent)
   }
@@ -327,6 +386,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
 #' @param lev The level in the response variable defined as success
 #' @param cost Cost for each connection (e.g., email or mailing)
 #' @param margin Margin on each customer purchase
+#' @param scale Scaling factor to apply to calculations
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
@@ -346,7 +406,7 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
 #' @importFrom psych cohen.kappa
 #'
 #' @export
-confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
+confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2, scale = 1,
                       train = "All", data_filter = "", arr = "", rows = NULL,
                       envir = parent.frame(), ...) {
   if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
@@ -468,7 +528,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
       precision = TP / (TP + FP),
       Fscore = 2 * (precision * TPR) / (precision + TPR),
       accuracy = (TP + TN) / total,
-      profit = margin * TP - cost * (TP + FP),
+      profit = (margin * TP - cost * (TP + FP)) * scale,
       ROME = profit / (cost * (TP + FP)),
       contact = (TP + FP) / total,
       kappa = 0
@@ -495,7 +555,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2,
   list(
     dataset = dataset, df_name = df_name, data_filter = data_filter, arr = arr,
     rows = rows, train = train, pred = pred, rvar = rvar, lev = lev, cost = cost,
-    margin = margin
+    margin = margin, scale = scale
   ) %>% add_class("confusion")
 }
 
@@ -536,7 +596,7 @@ summary.confusion <- function(object, dec = 3, ...) {
   cat("Response   :", object$rvar, "\n")
   cat("Level      :", object$lev, "in", object$rvar, "\n")
   cat("Cost:Margin:", object$cost, ":", object$margin, "\n")
-  cat("\n")
+  cat("Scale      :", object$scale, "\n\n")
 
   dataset <- mutate(object$dataset, profit = round(profit, dec))
   as.data.frame(dataset[, 1:11], stringsAsFactors = FALSE) %>%
@@ -620,6 +680,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' @param tlev The level in the treatment variable defined as the treatment
 #' @param qnt Number of bins to create
 #' @param cost Cost for each connection (e.g., email or mailing)
+#' @param scale Scaling factor to apply to calculations
 #' @param margin Margin on each customer purchase
 #' @param train Use data from training ("Training"), test ("Test"), both ("Both"), or all data ("All") to evaluate model evalbin
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
@@ -641,7 +702,7 @@ plot.confusion <- function(x, vars = c("kappa", "index", "ROME", "AUC"),
 #' @export
 uplift <- function(dataset, pred, rvar, lev = "",
                    tvar, tlev = "",
-                   qnt = 10, cost = 1, margin = 2,
+                   qnt = 10, cost = 1, margin = 2, scale = 1,
                    train = "All", data_filter = "", arr = "",
                    rows = NULL, envir = parent.frame()) {
   if (!train %in% c("", "All") && is.empty(data_filter) && is.empty(rows)) {
@@ -649,6 +710,10 @@ uplift <- function(dataset, pred, rvar, lev = "",
   }
 
   if (is.empty(qnt)) qnt <- 10
+
+  cnf_tab <- confusion(dataset, pred, rvar, lev = lev, cost = cost, margin = margin, scale = scale,
+                    train = train, data_filter = data_filter, arr = arr, rows = rows,
+                    envir = envir)
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
 
@@ -671,15 +736,7 @@ uplift <- function(dataset, pred, rvar, lev = "",
   pext <- c(All = "", Training = " (train)", Test = " (test)")
 
   local_xtile <- function(x, treatment, n, rev = TRUE, type = 7) {
-    # breaks <- quantile(x, prob = seq(0, 1, length = n + 1), na.rm = TRUE, type = type)
-    # breaks <- quantile(x[treatment], prob = seq(0, 1, length = n + 1), na.rm = TRUE)
     breaks <- c(-Inf, quantile(x[treatment], probs = seq(0, 1, by = 1 / n), na.rm = TRUE, type = type)[2:n], Inf)
-    ## trying ntile
-    # breaks <- data.frame(pred = x[treatment], nt = ntile(x[treatment], n)) %>%
-    #   arrange(pred, nt) %>%
-    #   group_by(nt) %>%
-    #   summarize(lst = last(pred)) %>%
-    #   (function(x) c(-Inf, head(x$lst, n - 1), Inf))
     if (length(breaks) < 2) stop(paste("Insufficient variation in x to construct", n, "breaks"), call. = FALSE)
     bins <- .bincode(x, breaks, include.lowest = TRUE)
     if (rev) as.integer((n + 1) - bins) else bins
@@ -743,8 +800,6 @@ uplift <- function(dataset, pred, rvar, lev = "",
     ## put summaries in list so you can print and plot
     tot_resp <- sum(dataset[[rvar]])
     tot_obs <- nrow(dataset)
-    # tot_rate <- tot_resp / tot_obs
-
 
     for (j in seq_along(pred)) {
       pred_j <- pred[j]
@@ -759,25 +814,24 @@ uplift <- function(dataset, pred, rvar, lev = "",
         summarise(
           nr_obs = n(),
           nr_resp = sum(.data[[rvar]]),
-          T_resp = sum(.data[[tvar]] & .data[[rvar]]),
-          T_n = sum(.data[[tvar]]),
-          C_resp = sum(!.data[[tvar]] & .data[[rvar]]),
-          C_n = sum(!.data[[tvar]]),
+          T_resp = sum(.data[[tvar]] & .data[[rvar]]) * scale,
+          T_n = sum(.data[[tvar]]) * scale,
+          C_resp = sum(!.data[[tvar]] & .data[[rvar]]) * scale,
+          C_n = sum(!.data[[tvar]]) * scale,
           uplift = T_resp / T_n - C_resp / C_n
         ) %>%
         mutate(
-          # cum_prop = cumsum(nr_obs / sum(nr_obs)),
-          # cum_prop = cumsum(T_n / sum(T_n)),
           cum_prop = bins / qnt,
           T_resp = cumsum(T_resp),
           T_n = cumsum(T_n),
           C_resp = cumsum(C_resp),
           C_n = cumsum(C_n),
           incremental_resp = T_resp - C_resp * T_n / C_n,
+          incremental_profit = (margin * incremental_resp - cost * T_n),
           inc_uplift = incremental_resp / last(T_n) * 100
         ) %>%
         mutate(pred = pname) %>%
-        select(pred, bins, cum_prop, T_resp, T_n, C_resp, C_n, incremental_resp, inc_uplift, uplift)
+        select(pred, bins, cum_prop, T_resp, T_n, C_resp, C_n, incremental_resp, incremental_profit, inc_uplift, uplift)
     }
     pdat[[i]] <- bind_rows(lg_list)
   }
@@ -787,7 +841,8 @@ uplift <- function(dataset, pred, rvar, lev = "",
   list(
     dataset = dataset, df_name = df_name, data_filter = data_filter,
     arr = arr, rows = rows, train = train, pred = pred, rvar = rvar,
-    lev = lev, tvar = tvar, tlev = tlev, qnt = qnt
+    lev = lev, tvar = tvar, tlev = tlev, qnt = qnt, cost = cost,
+    margin = margin, scale = scale, cnf_tab = cnf_tab
   ) %>% add_class("uplift")
 }
 
@@ -831,6 +886,8 @@ summary.uplift <- function(object, prn = TRUE, dec = 3, ...) {
   cat("Treatment   :", object$tvar, "\n")
   cat("Level       :", object$tlev, "in", object$tvar, "\n")
   cat("Bins        :", object$qnt, "\n")
+  cat("Cost:Margin :", object$cost, ":", object$margin, "\n")
+  cat("Scale       :", object$scale, "\n")
 
   if (prn) {
     as.data.frame(object$dataset, stringsAsFactors = FALSE) %>%
@@ -885,8 +942,8 @@ plot.uplift <- function(x, plots = c("inc_uplift", "uplift"),
     plot_list[["inc_uplift"]] <-
       visualize(dataset, xvar = "cum_prop", yvar = "inc_uplift", type = "line", color = "pred", custom = TRUE) +
       geom_point() +
-      geom_segment(aes(x = 0, y = 0, xend = 1, yend = yend), linetype = "dashed", linewidth = .1, color = "black") +
-      labs(y = "Incremental Uplift", x = "Proportion of customers") +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = yend), linewidth = .1, linetype = "dotdash", color = "black") +
+      labs(y = "Incremental Uplift", x = "Proportion of population targeted") +
       scale_y_continuous(labels = scales::percent) +
       scale_x_continuous(labels = scales::percent)
   }
@@ -897,21 +954,45 @@ plot.uplift <- function(x, plots = c("inc_uplift", "uplift"),
       group_by(pred) %>%
       mutate(obs = 1:n(), Predictor = pred) # , cum_prop = round(cum_prop, 2))
 
-    # plot_list[["uplift"]] <-
-    #   visualize(dataset, xvar = "cum_prop", yvar = "uplift", type = "line", color = "Predictor", custom = TRUE) +
-    #   geom_point() +
-    #   geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linetype = "dashed", linewidth = .25, color = "black") +
-    #   labs(y = "Uplift", x = "Proportion of customers") +
-    #   scale_y_continuous(labels = scales::percent) +
-    #   scale_x_continuous(labels = scales::percent)
-
     plot_list[["uplift"]] <-
       ggplot(dataset, aes(x = .data[["cum_prop"]], y = .data[["uplift"]], fill = .data[["Predictor"]])) +
       geom_col(position = "dodge") +
-      labs(y = "Uplift", x = "Proportion of customers") +
+      labs(y = "Uplift", x = "Proportion of population targeted") +
       scale_y_continuous(labels = scales::percent) +
       scale_x_continuous(labels = scales::percent)
   }
+
+  if ("inc_profit" %in% plots) {
+
+    dataset <- x$dataset %>%
+      select(pred, cum_prop, incremental_profit) %>%
+      group_by(pred) %>%
+      mutate(obs = 1:n())
+
+    init <- filter(dataset, obs == 1)
+    init[, c("cum_prop", "incremental_profit", "obs")] <- 0
+    dataset <- bind_rows(init, dataset) %>%
+      arrange(pred, obs)
+
+    vlines <- data.frame(
+      pred = x$cnf_tab$pred,
+      contact = x$cnf_tab$dataset$contact
+    )
+    default_colors <- scales::hue_pal()(nrow(vlines))
+
+    plot_list[["inc_profit"]] <-
+      visualize(dataset, xvar = "cum_prop", yvar = "incremental_profit", type = "line", color = "pred", custom = TRUE) +
+      geom_point() +
+      geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0), linewidth = .1, linetype = "dotdash", color = "black") +
+      ## the next line doesn't work due to: https://github.com/tidyverse/ggplot2/issues/2492
+      ## using 'default colors' instead
+      # geom_vline(data = vlines, aes(xintercept = contact, color = pred), linewidth = 0.5, linetype = "dotdash", show.legend = FALSE) +
+      geom_vline(xintercept = vlines$contact, color = default_colors, linewidth = 0.5, linetype = "dotdash") +
+      labs(y = "Incremental Profit", x = "Proportion of population targeted") +
+      scale_y_continuous(labels = scales::comma) +
+      scale_x_continuous(labels = scales::percent)
+  }
+
 
   for (i in names(plot_list)) {
     plot_list[[i]] <- plot_list[[i]] + theme_set(theme_gray(base_size = size))

@@ -12,3 +12,4 @@ vignettes/
 docker/
 ^CRAN-SUBMISSION$
 ^.*\.state\.rda$
+solutions/

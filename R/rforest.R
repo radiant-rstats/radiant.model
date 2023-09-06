@@ -371,7 +371,7 @@ predict.rforest <- function(object, pred_data = NULL, pred_cmd = "",
   pfun <- function(model, pred, se, conf_lev, OOB = OOB) {
     pred <- mutate_if(pred, is.Date, as.numeric)
     if (is.empty(OOB)) {
-      if (isTRUE(dplyr::all_equal(select(model$model, -1), pred))) {
+      if (isTRUE(all.equal(select(model$model, -1), pred))) {
         message("Using OOB predictions after comparing the training and prediction data")
         OOB <- TRUE
       }

@@ -1,3 +1,11 @@
+# radiant.model 1.6.0
+
+* Added scaling factor for profit calculations in Model > Evaluate Classification
+* Replace dplyr::all_equal with all.equal due deprecation warning
+* Using "Radiant for R" in UI to differentiate from "Radiant for Python"
+* Check if the value of mtry for random forest is less than 0 or larger than the number of variables in the model
+* Addressed a package documentation issue due to a change in roxygen2
+
 # radiant.model 1.5.0
 
 * Improvements to screenshot feature. Navigation bar is omitted and the image is adjusted to the length of the UI.

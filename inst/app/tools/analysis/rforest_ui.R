@@ -485,7 +485,16 @@ rf_available <- reactive({
   rfi <- rf_inputs()
   rfi$envir <- r_data
 
-  if (is.empty(rfi$mtry)) rfi$mtry <- NULL
+  if (is.empty(rfi$mtry)) rfi$mtry <- 1
+  nr_evar <- length(rfi$evar)
+  if (rfi$mtry > nr_evar) {
+    rfi$mtry <- nr_evar
+    updateNumericInput(session, "rf_mtry", value = nr_evar)
+  } else if (rfi$mtry < 0) {
+    rfi$mtry <- 1
+    updateNumericInput(session, "rf_mtry", value = 1)
+  }
+
   if (is.empty(rfi$num.trees)) rfi$num.trees <- 100
   if (is.empty(rfi$min.node.size)) rfi$min.node.size <- 1
   if (is.empty(rfi$sample.fraction)) rfi$sample.fraction <- 1

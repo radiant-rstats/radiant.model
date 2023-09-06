@@ -342,9 +342,9 @@ summary.mnl <- function(object, sum_check = "", conf_lev = .95,
       cat("Model comparisons are not conducted when Stepwise has been selected.\n")
     } else {
       vars <- object$evar
-      if (object$int != "" && length(vars) > 1) {
+      if (!is.empty(object$int) && length(vars) > 1) {
         ## updating test_var if needed
-        test_var <- test_specs(test_var, object$int)
+        test_var <- unique(c(test_var, test_specs(test_var, object$int)))
         vars <- c(vars, object$int)
       }
 

@@ -2,6 +2,7 @@ ebin_plots <- list(
   "Lift" = "lift",
   "Gains" = "gains",
   "Profit" = "profit",
+  "Expected profit" = "expected_profit",
   "ROME" = "rome"
 )
 ebin_train <- list(
@@ -12,7 +13,8 @@ ebin_train <- list(
 )
 uplift_plots <- list(
   "Incremental uplift" = "inc_uplift",
-  "Uplift" = "uplift"
+  "Uplift" = "uplift",
+  "Incremental profit" = "inc_profit"
 )
 
 # list of function arguments
@@ -151,20 +153,22 @@ output$ui_evalbin <- renderUI({
           value = state_init("ebin_qnt", 10), min = 2
         )
       ),
-      conditionalPanel(
-        "input.tabs_evalbin != 'Uplift'",
-        tags$table(
-          tags$td(numericInput(
-            "ebin_cost",
-            label = "Cost:",
-            value = state_init("ebin_cost", 1)
-          )),
-          tags$td(numericInput(
-            "ebin_margin",
-            label = "Margin:",
-            value = state_init("ebin_margin", 2), width = "117px"
-          ))
-        )
+      tags$table(
+        tags$td(numericInput(
+          "ebin_cost",
+          label = "Cost:",
+          value = state_init("ebin_cost", 1)
+        )),
+        tags$td(numericInput(
+          "ebin_margin",
+          label = "Margin:",
+          value = state_init("ebin_margin", 2)
+        )),
+        tags$td(numericInput(
+          "ebin_scale",
+          label = "Scale:",
+          value = state_init("ebin_scale", 1) #, width = "80px"
+        ))
       ),
       uiOutput("ui_ebin_train"),
       conditionalPanel(
@@ -244,7 +248,7 @@ ebin_plot_height <- function() {
 confusion_plot_width <- function() 650
 confusion_plot_height <- function() 800
 
-uplift_plot_width <- function() 650
+uplift_plot_width <- function() 700
 uplift_plot_height <- function() {
   if (is.empty(input$uplift_plots)) 200 else length(input$uplift_plots) * 500
 }
@@ -513,7 +517,7 @@ observeEvent(input$uplift_store, {
   register(dataset)
   updateSelectInput(session, "dataset", selected = input$dataset)
 
-  ## See https://shiny.rstudio.com/reference/shiny/latest/modalDialog.html
+  ## See https://shiny.posit.co//reference/shiny/latest/modalDialog.html
   showModal(
     modalDialog(
       title = "Uplift Table Stored",

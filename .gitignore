@@ -10,3 +10,4 @@ docs/
 .vscode/
 docker/
 *.state.rda
+solutions/

@@ -258,7 +258,7 @@ observeEvent(input$crs_store_pred, {
   r_data[[fixed]] <- pred$recommendations
   register(fixed)
 
-  ## See https://shiny.rstudio.com/reference/shiny/latest/modalDialog.html
+  ## See https://shiny.posit.co//reference/shiny/latest/modalDialog.html
   showModal(
     modalDialog(
       title = "Data Stored",

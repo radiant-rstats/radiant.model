@@ -5,15 +5,15 @@ globalVariables(c(
   "ROME", "TN", "TP", "TPR", "Variable", "cum_gains", "cum_prop", "cum_resp", "cum_resp_rate",
   "index", "index.max", "label", "logit", "n", "nr_obs", "nr_resp", "null.deviance", "obs",
   "precision", "pred", "predictor.value", "total", "variable", "llfull", "llnull", "rnk", "Prediction",
-  "C_resp", "C_n", "T_resp", "T_n", "bins", "inc_uplift", "incremental_resp"
+  "C_resp", "C_n", "T_resp", "T_n", "bins", "inc_uplift", "incremental_resp", "cum_profit",
+  "incremental_profit", "max_profit"
 ))
 
 #' radiant.model
 #'
 #' @name radiant.model
-#' @docType package
 #' @import radiant.data shiny ggplot2
-#' @importFrom dplyr mutate_at mutate_if mutate_all summarise_at summarise_all arrange arrange_at select select_at filter mutate mutate_ funs group_by group_by_ summarise summarise_ slice bind_cols bind_rows desc first last min_rank data_frame inner_join arrange_at group_by_at ungroup rename across everything
+#' @importFrom dplyr mutate_at mutate_if mutate_all summarise_at summarise_all arrange arrange_at select select_at filter mutate mutate_ funs group_by group_by_ summarise summarize summarise_ slice bind_cols bind_rows desc first last min_rank data_frame inner_join arrange_at group_by_at ungroup rename across everything pull
 #' @importFrom rlang .data parse_exprs :=
 #' @importFrom magrittr %>% %<>% %T>% set_colnames set_rownames set_names extract2
 #' @importFrom tidyr spread gather
