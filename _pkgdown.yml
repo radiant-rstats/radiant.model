@@ -136,6 +136,9 @@ reference:
     - plot.confusion
     - auc
     - rig
+    - uplift
+    - summary.uplift
+    - plot.uplift
 - title: Model > Collaborative filtering
   desc: Esitmate collaborative filtering models
   contents:
@@ -182,6 +185,10 @@ reference:
     - test_specs
     - var_check
     - write.coeff
+    - pdp_plot
+    - pred_plot
+    - varimp
+    - varimp_plot
 - title: Starting radiant.model
   desc: Functions used to start radiant shiny apps
   contents:
@@ -196,6 +203,7 @@ reference:
     - direct_marketing
     - houseprices
     - ideal
+    - kaggle_uplift
     - ketchup
     - movie_contract
     - ratings
