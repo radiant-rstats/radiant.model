@@ -2,6 +2,8 @@
 
 This is a resubmission. In this version I have added features and addressed a dplyr deprecation issues. See NEWS.md for details.  
 
+Question: I see that radiant.model was archived because a dependency (vip) was archived. However, the vip package has been back on CRAN what looks like 2 weeks. In these types of situations are dependent packages left archived by default?
+
 ## Test environments
 
 * macOS, R 4.3.1

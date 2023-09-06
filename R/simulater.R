@@ -1,4 +1,9 @@
-#' @noRd
+#' Convenience function used in "simulater"
+#' @param x String to be converted to an integer
+#' @param dataset Data list
+#
+#' @return An integer
+#'
 #' @export
 .as_int <- function(x, dataset = list()) {
   if (is.character(x)) x <- strsplit(x, "/") %>% unlist()
@@ -23,7 +28,13 @@
   }
 }
 
-#' @noRd
+#' Convenience function used in "simulater"
+#'
+#' @param x String to be converted to an numeric value
+#' @param dataset Data list
+#
+#' @return An numeric value
+#'
 #' @export
 .as_num <- function(x, dataset = list()) {
   if (is.character(x)) x <- strsplit(x, "/") %>% unlist()
