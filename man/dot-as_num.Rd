@@ -7,12 +7,12 @@
 .as_num(x, dataset = list())
 }
 \arguments{
-\item{x}{String to be converted to an numeric value}
+\item{x}{Character vector to be converted to an numeric value}
 
 \item{dataset}{Data list}
 }
 \value{
-An numeric value
+An numeric vector
 }
 \description{
 Convenience function used in "simulater"

@@ -1,8 +1,8 @@
 #' Convenience function used in "simulater"
-#' @param x String to be converted to an integer
+#' @param x Character vector to be converted to integer
 #' @param dataset Data list
 #
-#' @return An integer
+#' @return An integer vector
 #'
 #' @export
 .as_int <- function(x, dataset = list()) {
@@ -30,10 +30,10 @@
 
 #' Convenience function used in "simulater"
 #'
-#' @param x String to be converted to an numeric value
+#' @param x Character vector to be converted to an numeric value
 #' @param dataset Data list
 #
-#' @return An numeric value
+#' @return An numeric vector
 #'
 #' @export
 .as_num <- function(x, dataset = list()) {

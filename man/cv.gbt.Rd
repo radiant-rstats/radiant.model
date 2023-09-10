@@ -73,13 +73,6 @@ result <- gbt(diamonds, "price", c("carat", "color", "clarity"), type = "regress
 cv.gbt(result, params = list(max_depth = 1:2, min_child_weight = 1:2))
 cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)), fun = Rsq, maximize = TRUE)
 cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)), fun = MAE, maximize = FALSE)
-rig_wrap <- function(preds, dtrain) {
-  labels <- xgboost::getinfo(dtrain, "label")
-  value <- rig(preds, labels, lev = 1)
-  list(metric = "rig", value = value)
-}
-result <- gbt(titanic, "survived", c("pclass", "sex"), eval_metric = rig_wrap, maximize = TRUE)
-cv.gbt(result, params = list(learning_rate = seq(0.1, 0.5, 0.1)))
 }
 
 }

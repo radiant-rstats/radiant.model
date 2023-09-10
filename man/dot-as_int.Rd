@@ -7,12 +7,12 @@
 .as_int(x, dataset = list())
 }
 \arguments{
-\item{x}{String to be converted to an integer}
+\item{x}{Character vector to be converted to integer}
 
 \item{dataset}{Data list}
 }
 \value{
-An integer
+An integer vector
 }
 \description{
 Convenience function used in "simulater"

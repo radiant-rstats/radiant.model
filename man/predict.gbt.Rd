@@ -33,9 +33,12 @@ Predict method for the gbt function
 See \url{https://radiant-rstats.github.io/docs/model/gbt.html} for an example in Radiant
 }
 \examples{
-result <- gbt(titanic, "survived", c("pclass", "sex"), early_stopping_rounds = 0)
+result <- gbt(
+  titanic, "survived", c("pclass", "sex"),
+  early_stopping_rounds = 2, nthread = 1
+)
 predict(result, pred_cmd = "pclass = levels(pclass)")
-result <- gbt(diamonds, "price", "carat:color", type = "regression")
+result <- gbt(diamonds, "price", "carat:color", type = "regression", nthread = 1)
 predict(result, pred_cmd = "carat = 1:3")
 predict(result, pred_data = diamonds) \%>\% head()
 }
