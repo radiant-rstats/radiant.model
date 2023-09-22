@@ -169,17 +169,15 @@ dtree_parser <- function(yl) {
 #'
 #' @export
 dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) {
-
   ## calculations will be effected is scientific notation is used
   options(scipen = max(getOption("scipen"), 100))
 
   ## Adapted from https://github.com/gluc/useR15/blob/master/01_showcase/02_decision_tree.R
   ## load yaml string-id if list not provide
   if (is_string(yl)) {
-
     ## get input file from r_data
     if (!grepl("\\n", yl)) {
-      yl <- get_data(yl, envir = envir)
+      yl <- get_data(yl, envir = envir, na.rm = FALSE)
       if (inherits(yl, "list")) {
         yl <- yaml::as.yaml(yl, indent = 4)
       }
@@ -603,7 +601,6 @@ summary.dtree <- function(object, input = TRUE, output = FALSE,
 #'
 #' @export
 plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", width = "900px", ...) {
-
   ## avoid error when dec is missing
   if (is_not(dec)) dec <- 2
 
