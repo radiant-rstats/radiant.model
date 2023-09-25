@@ -313,7 +313,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
       gsub("[ ]{2,}", " ", .) %>%
       gsub("<-", "=", .)
 
-    out <- do.call(within, list(dataset, c(pfuncs, parse(text = form))))
+    out <- try(do.call(within, list(dataset, c(pfuncs, parse(text = form)))), silent = TRUE)
     if (!inherits(out, "try-error")) {
       dataset <- out
     } else {
@@ -423,6 +423,7 @@ summary.simulater <- function(object, dec = 4, ...) {
   if (is.data.frame(sc$data)) cat("Data       :", attr(object, "sim_data_name"), "\n")
   if (!is.empty(sc$grid)) cat("Grid search:", clean(sc$grid))
   if (!is.empty(sc$sequ)) cat("Sequence   :", clean(sc$sequ))
+
   funcs <- attr(object, "radiant_funcs")
   if (!is.empty(funcs)) {
     funcs <- parse(text = funcs)
@@ -433,7 +434,10 @@ summary.simulater <- function(object, dec = 4, ...) {
     }
     cat("Functions  :", paste0(names(lfuncs), collapse = ", "), "\n")
   }
-  if (!is.empty(sc$form)) cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
+
+  if (!is.empty(sc$form)) {
+    cat(paste0("Formulas   :\n\t", paste0(sc$form, collapse = ";") %>% gsub(";", "\n", .) %>% gsub("\n", "\n\t", .), "\n"))
+  }
   cat("\n")
 
   if (!is.empty(sc$ncorr) && is.numeric(sc$ncorr)) {
@@ -998,10 +1002,17 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
 
   if (sum(isFct) > 0 | sum(isChar) > 0) {
     cat("Factors:\n")
-    select(dataset, which(isFct | isChar)) %>%
-      mutate_if(is.character, as_factor) %>%
-      summary() %>%
-      print()
+    df <- select(dataset, which(isFct | isChar)) %>%
+      mutate(across(where(is.character), as_factor)) %>%
+      as.data.frame()
+
+    tab <- summary(df)
+    pt <- lapply(df, function(x) prop.table(table(x)))
+    for (i in seq_len(ncol(tab))) {
+      tab[, i] <- paste0(tab[, i], "(", 100 * round(pt[[i]], dec), "%)")
+    }
+    tab[tab == "NA(100%)"] <- ""
+    print(tab)
     cat("\n")
   }
 }
