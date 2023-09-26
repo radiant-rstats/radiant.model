@@ -330,7 +330,7 @@ output$ui_logit_store_res_name <- renderUI({
 run_refresh(logit_args, "logit", tabs = "tabs_logistic", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_logistic <- renderUI({
-  req(input$dataset)
+  # req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_logistic == 'Summary'",

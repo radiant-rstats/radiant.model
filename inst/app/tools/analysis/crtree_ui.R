@@ -234,7 +234,7 @@ output$ui_crtree_nrobs <- renderUI({
 run_refresh(crtree_args, "crtree", tabs = "tabs_crtree", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_crtree <- renderUI({
-  req(input$dataset)
+  # req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_crtree == 'Summary'",

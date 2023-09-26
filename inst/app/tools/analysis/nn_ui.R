@@ -237,7 +237,7 @@ output$ui_nn_nrobs <- renderUI({
 run_refresh(nn_args, "nn", tabs = "tabs_nn", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_nn <- renderUI({
-  req(input$dataset)
+  # req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_nn == 'Summary'",

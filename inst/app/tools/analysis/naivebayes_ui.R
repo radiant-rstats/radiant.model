@@ -154,7 +154,7 @@ output$ui_nb_predict_plot <- renderUI({
 run_refresh(nb_args, "nb", tabs = "tabs_nb", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_nb <- renderUI({
-  req(input$dataset)
+  # req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_nb == 'Summary'",
