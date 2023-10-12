@@ -360,7 +360,7 @@ varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
       object,
       target = rvar,
       method = "permute",
-      metric = "r2", # "rmse"
+      metric = "rsq", # "rmse"
       pred_wrapper = pred_fun,
       train = data
     )

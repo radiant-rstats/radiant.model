@@ -1,3 +1,7 @@
+# radiant.model 1.6.3
+
+* Fix for change in vip metric name
+
 # radiant.model 1.6.0
 
 * Added scaling factor for profit calculations in Model > Evaluate Classification
