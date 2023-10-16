@@ -1,5 +1,20 @@
 ## Resubmission
 
+This is a resubmission. In this version I have fixed an issue due to a breaking change in the VIP package. See NEWS.md for details.  
+
+## Test environments
+
+* macOS, R 4.3.1
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for all radiant packages
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. In this version I have added features and addressed a dplyr deprecation issues. See NEWS.md for details.  
 
 Question: I see that radiant.model was archived because a dependency (vip) was archived. However, the vip package has been back on CRAN what looks like 2 weeks. In these types of situations are dependent packages left archived by default?
@@ -13,7 +28,6 @@ Question: I see that radiant.model was archived because a dependency (vip) was a
 
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for all radiant packages
 
-# Previous cran-comments
 
 ## Resubmission
 

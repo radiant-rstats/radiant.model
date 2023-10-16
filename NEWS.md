@@ -1,6 +1,6 @@
 # radiant.model 1.6.3
 
-* Fix for change in vip metric name
+* Fix for change in vip package metric name for r2
 
 # radiant.model 1.6.0
 
