@@ -171,7 +171,7 @@ output$dtree <- renderUI({
         mode = "yaml",
         theme = getOption("radiant.ace_theme", default = "tomorrow"),
         wordWrap = TRUE,
-        debounce = 0,
+        debounce = -1,
         height = "auto",
         value = state_init("dtree_edit", dtree_example) %>% gsub("\t", "    ", .),
         placeholder = "Provide structured input for a decision tree. Then click the\n\"Calculate tree\" button to generate results. Click the ? icon\non the top left of your screen for help and examples",
