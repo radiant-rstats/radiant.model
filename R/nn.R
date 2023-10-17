@@ -365,12 +365,14 @@ varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
       train = data
     )
   } else {
+    # required after transition to yardstick by the vip package
+    data[[rvar]] <- factor(data[[rvar]], levels = c("TRUE", "FALSE"))
     vimp <- vip::vi(
       object,
       target = rvar,
-      reference_class = TRUE,
+      event_level = "first",
       method = "permute",
-      metric = "auc",
+      metric = "roc_auc",
       pred_wrapper = pred_fun,
       train = data
     )
