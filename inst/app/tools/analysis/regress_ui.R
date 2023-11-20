@@ -287,7 +287,7 @@ run_refresh(reg_args, "reg", tabs = "tabs_regress", label = "Estimate model", re
 
 ## data ui and tabs
 output$ui_regress <- renderUI({
-  # req(input$dataset)
+  req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_regress == 'Summary'",

@@ -1000,7 +1000,7 @@ sim_summary <- function(dataset, dc = get_class(dataset), fun = "", dec = 4) {
     cat("\n")
   }
 
-  if (sum(isFct) > 0 | sum(isChar) > 0) {
+  if (sum(isFct) > 0 || sum(isChar) > 0) {
     cat("Factors:\n")
     df <- select(dataset, which(isFct | isChar)) %>%
       mutate(across(where(is.character), as_factor)) %>%
