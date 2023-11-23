@@ -313,7 +313,7 @@ simulater <- function(const = "", lnorm = "", norm = "", unif = "", discrete = "
       gsub("[ ]{2,}", " ", .) %>%
       gsub("<-", "=", .)
 
-    form_no_comments <- gsub("^\\s*\\#{1,}[^\n;]*[\n;]", "", form)
+    form_no_comments <- remove_comments(form)
     out <- try(do.call(within, list(dataset, c(pfuncs, parse(text = form_no_comments)))), silent = TRUE)
     if (!inherits(out, "try-error")) {
       dataset <- out
@@ -754,7 +754,7 @@ repeater <- function(dataset, nr = 12, vars = "", grid = "", sum_vars = "",
       gsub("[ ]{2,}", " ", .) %>%
       gsub("<-", "=", .)
 
-    form_no_comments <- gsub("^\\s*\\#{1,}[^\n;]*[\n;]", "", form)
+    form_no_comments <- remove_comments(form)
     out <- try(do.call(within, list(ret, parse(text = form_no_comments))), silent = TRUE)
     if (!inherits(out, "try-error")) {
       ret <- out
@@ -1027,6 +1027,23 @@ sim_cleaner <- function(x) {
     gsub("[;]{2,}", ";", .) %>%
     gsub(";$", "", .) %>%
     gsub("^;", "", .)
+}
+
+#' Remove comments from formula before it is evaluated
+#'
+#' @param x Input string
+#'
+#' @return Cleaned string
+#'
+#' @export
+remove_comments <- function(x) {
+  gsub("[ ]*\\#{1,}[^\n;]*[\n]", "\n", x) %>%
+    gsub("[ ]*\\#{1,}[^\n;]*[;]", ";", .) %>%
+    gsub("^[ ]*;{1,}", "", .) %>%
+    gsub(";{2,}", ";", .) %>%
+    gsub("^[ ]*\n{1,}", "", .) %>%
+    gsub("\n{2,}", "\n", .) %>%
+    gsub("^[ ]{1,}", "", .)
 }
 
 #' Split input command string
