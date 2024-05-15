@@ -131,7 +131,7 @@ output$ui_uplift_name <- renderUI({
 run_refresh(ebin_args, "ebin", init = "pred", label = "Evaluate models", relabel = "Re-evaluate models")
 
 output$ui_evalbin <- renderUI({
-  # req(input$dataset)
+  req(input$dataset)
   tagList(
     wellPanel(
       actionButton("ebin_run", "Evaluate models", width = "100%", icon = icon("play", verify_fa = FALSE), class = "btn-success")

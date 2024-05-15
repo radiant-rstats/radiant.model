@@ -302,7 +302,7 @@ output$ui_mnl_store_res_name <- renderUI({
 run_refresh(reg_args, "mnl", tabs = "tabs_mnl", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_mnl <- renderUI({
-  # req(input$dataset)
+  req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_mnl == 'Summary'",

@@ -75,7 +75,7 @@ output$ui_crs_store_pred_name <- renderUI({
 run_refresh(crs_args, "crs", init = "pred", tabs = "tabs_crs", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_crs <- renderUI({
-  # req(input$dataset)
+  req(input$dataset)
   tagList(
     conditionalPanel(
       "input.tabs_crs == 'Summary'",

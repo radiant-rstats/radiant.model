@@ -142,8 +142,8 @@ output$dtree <- renderUI({
         table(
           td(help_modal("Decision analysis", "dtree_help1", help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/dtree.Rmd")))),
           td(HTML("&nbsp;&nbsp;")),
-          td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='#dtree_report1' id='dtree_report1'></i>")),
-          td(HTML("<i title='Report results & Screenshot' class='fa fa-camera action-button shiny-bound-input aligncenter' href='#dtree_screenshot1' id='dtree_screenshot1' onclick='generate_screenshot();'></i>")),
+          td(HTML("<i title='Report results' class='fa fa-edit action-button' href='#dtree_report1' id='dtree_report1'></i>")),
+          td(HTML("<i title='Report results & Screenshot' class='fa fa-camera action-button aligncenter' href='#dtree_screenshot1' id='dtree_screenshot1' onclick='generate_screenshot();'></i>")),
           td(HTML("&nbsp;&nbsp;")),
           td(
             radioButtons(
@@ -187,12 +187,12 @@ output$dtree <- renderUI({
     ),
     tabPanel(
       "Plot",
-      HTML("<i title='Save plot' class='fa fa-download action-button shiny-bound-input alignright' href='#dtree_screenshot3' id='dtree_screenshot3' onclick='generate_dtree_plot();'></i>"),
+      HTML("<i title='Save plot' class='fa fa-download action-button alignright' href='#dtree_screenshot3' id='dtree_screenshot3' onclick='generate_dtree_plot();'></i>"),
       with(tags, table(
         td(help_modal("Decision analysis", "dtree_help2", help_file = inclRmd(file.path(getOption("radiant.path.model"), "app/tools/help/dtree.Rmd"))), style = "padding-top:30px;"),
         td(HTML("&nbsp;&nbsp;")),
-        td(HTML("<i title='Report results' class='fa fa-edit action-button shiny-bound-input' href='' id='dtree_report2'></i>"), style = "padding-top:30px;"),
-        td(HTML("<i title='Report results & Screenshot' class='fa fa-camera action-button shiny-bound-input aligncenter' href='#dtree_screenshot2' id='dtree_screenshot2' onclick='generate_screenshot();'></i>"), style = "padding-top:30px;"),
+        td(HTML("<i title='Report results' class='fa fa-edit action-button' href='' id='dtree_report2'></i>"), style = "padding-top:30px;"),
+        td(HTML("<i title='Report results & Screenshot' class='fa fa-camera action-button aligncenter' href='#dtree_screenshot2' id='dtree_screenshot2' onclick='generate_screenshot();'></i>"), style = "padding-top:30px;"),
         td(HTML("&nbsp;&nbsp;&nbsp;")),
         td(
           radioButtons(

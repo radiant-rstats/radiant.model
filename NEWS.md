@@ -1,3 +1,8 @@
+# radiant.model 1.6.6
+
+* Require Shiny 1.8.1. Adjustments related to icon-buttons were made to address a breaking change in Shiny 1.8.1
+* Reverting changes that removed `req(input$dataset)` in different places
+
 # radiant.model 1.6.3
 
 * Fix for change in vip package metric name for r2

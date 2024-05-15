@@ -41,9 +41,11 @@ evalbin <- function(dataset, pred, rvar, lev = "",
 
   if (is.empty(qnt)) qnt <- 10
 
-  cnf_tab <- confusion(dataset, pred, rvar, lev = lev, cost = cost, margin = margin, scale = scale,
-                      train = train, data_filter = data_filter, arr = arr, rows = rows,
-                      envir = envir)
+  cnf_tab <- confusion(dataset, pred, rvar,
+    lev = lev, cost = cost, margin = margin, scale = scale,
+    train = train, data_filter = data_filter, arr = arr, rows = rows,
+    envir = envir
+  )
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
 
@@ -297,8 +299,8 @@ plot.evalbin <- function(x, plots = c("lift", "gains"),
   if ("expected_profit" %in% plots) {
     calc_exp_profit <- function(df, pred, n, cost, margin, scale) {
       pext <- c(All = "", Training = " (train)", Test = " (test)")
-      prediction <- sort(df[[pred]], decreasing=TRUE)
-      profit = prediction * margin - cost
+      prediction <- sort(df[[pred]], decreasing = TRUE)
+      profit <- prediction * margin - cost
       data.frame(
         pred = paste0(pred, pext[n]),
         cum_prop = seq(1, nrow(df)) / nrow(df),
@@ -480,7 +482,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2, scale
       ret <- rep(0L, 4) %>% set_names(c("TN", "FN", "FP", "TP"))
       tab <- table(dataset[[rvar]], x) %>% as.data.frame(stringsAsFactors = FALSE)
       ## ensure a value is available for all four options
-      for (i in 1:nrow(tab)) {
+      for (i in seq_len(nrow(tab))) {
         if (tab[i, 1] == "TRUE") {
           if (tab[i, 2] == "TRUE") {
             ret["TP"] <- tab[i, 3]
@@ -529,7 +531,7 @@ confusion <- function(dataset, pred, rvar, lev = "", cost = 1, margin = 2, scale
       Fscore = 2 * (precision * TPR) / (precision + TPR),
       accuracy = (TP + TN) / total,
       profit = (margin * TP - cost * (TP + FP)) * scale,
-      ROME = profit / (cost * (TP + FP)),
+      ROME = (margin * TP - cost * (TP + FP)) / (cost * (TP + FP)),
       contact = (TP + FP) / total,
       kappa = 0
     )
@@ -711,9 +713,11 @@ uplift <- function(dataset, pred, rvar, lev = "",
 
   if (is.empty(qnt)) qnt <- 10
 
-  cnf_tab <- confusion(dataset, pred, rvar, lev = lev, cost = cost, margin = margin, scale = scale,
-                    train = train, data_filter = data_filter, arr = arr, rows = rows,
-                    envir = envir)
+  cnf_tab <- confusion(dataset, pred, rvar,
+    lev = lev, cost = cost, margin = margin, scale = scale,
+    train = train, data_filter = data_filter, arr = arr, rows = rows,
+    envir = envir
+  )
 
   df_name <- if (!is_string(dataset)) deparse(substitute(dataset)) else dataset
 
@@ -963,7 +967,6 @@ plot.uplift <- function(x, plots = c("inc_uplift", "uplift"),
   }
 
   if ("inc_profit" %in% plots) {
-
     dataset <- x$dataset %>%
       select(pred, cum_prop, incremental_profit) %>%
       group_by(pred) %>%

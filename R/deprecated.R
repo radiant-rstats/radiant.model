@@ -5,7 +5,6 @@
 #' @rdname radiant.model-deprecated
 #' @name radiant.model-deprecated
 #' @param ... Parameters to be passed to the updated functions
-#' @docType package
 #' @export  ann
 #' @aliases ann
 #' @section Details:

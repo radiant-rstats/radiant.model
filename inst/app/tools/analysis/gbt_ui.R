@@ -230,7 +230,7 @@ output$ui_gbt_nrobs <- renderUI({
 run_refresh(gbt_args, "gbt", tabs = "tabs_gbt", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_gbt <- renderUI({
-  # req(input$dataset)
+  req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_gbt == 'Summary'",

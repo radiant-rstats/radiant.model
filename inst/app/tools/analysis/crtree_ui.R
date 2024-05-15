@@ -234,7 +234,7 @@ output$ui_crtree_nrobs <- renderUI({
 run_refresh(crtree_args, "crtree", tabs = "tabs_crtree", label = "Estimate model", relabel = "Re-estimate model")
 
 output$ui_crtree <- renderUI({
-  # req(input$dataset)
+  req(input$dataset)
   tagList(
     conditionalPanel(
       condition = "input.tabs_crtree == 'Summary'",
@@ -482,7 +482,7 @@ output$crtree <- renderUI({
       "Plot",
       conditionalPanel(
         "input.crtree_plots == 'tree'",
-        HTML("<i title='Save plot' class='fa fa-download action-button shiny-bound-input alignright' href='#crtree_screenshot2' id='crtree_screenshot2' onclick='generate_crtree_plot();'></i>"),
+        HTML("<i title='Save plot' class='fa fa-download action-button alignright' href='#crtree_screenshot2' id='crtree_screenshot2' onclick='generate_crtree_plot();'></i>"),
         uiOutput("diagrammer_crtree")
       ),
       conditionalPanel(
