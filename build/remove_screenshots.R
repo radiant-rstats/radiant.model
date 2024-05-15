@@ -17,6 +17,9 @@ for (f in fn) {
 
 setwd(cdir)
 
+## get package checked
+devtools::check_win_devel()
+
 ## submit package to CRAN
 devtools::submit_cran()
 
