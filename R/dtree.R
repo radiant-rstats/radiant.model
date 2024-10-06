@@ -201,6 +201,20 @@ dtree <- function(yl, opt = "max", base = character(0), envir = parent.frame()) 
         err <- paste0("**\nIndentation issue found in line ", err_line, ".\nThis means that the indentation level is not correct when compared\nto prior or subsequent lines in the tree input. Use tabs to separate\nthe branches in the decision tree. Fix the indentation error and try\nagain. Examples are shown in the help file (?)\n**")
       }
       return(add_class(err, c("dtree", "dtree-error")))
+    } else {
+      # recursive function to check for missing values
+      check_na <- function(x) {
+        if (is.list(x)) {
+          return(any(sapply(x, check_na)))
+        } else {
+          return(is.na(x))
+        }
+      }
+      any_missing <- check_na(yl)
+      if (isTRUE(any_missing)) {
+        err <- paste0("**\nMissing values in the tree. The most likely cause\nis cost or payoff numbers above 2,147,483,647.\nNumbers of this size are not currently supported.\nTry scaling your numbers in 1,000 or 1,000,000\n(e.g., 3.6 instead of 3,600,000)\n**\n\n")
+        return(add_class(err, c("dtree", "dtree-error")))
+      }
     }
   }
 
@@ -491,10 +505,7 @@ summary.dtree <- function(object, input = TRUE, output = FALSE,
   isNum <- function(x) !is_not(x) && !grepl("[A-Za-z]+", x)
 
   print_money <- function(x) {
-    x %>%
-      {
-        if (isNum(.)) . else ""
-      } %>%
+    x %>% (function(x) if (isNum(x)) x else "") %>%
       formatC(
         digits = dec,
         decimal.mark = ".",
@@ -504,21 +515,14 @@ summary.dtree <- function(object, input = TRUE, output = FALSE,
   }
 
   print_percent <- function(x) {
-    x %>%
-      {
-        if (isNum(.)) . else NA
-      } %>%
+    x %>% (function(x) if (isNum(x)) x else NA) %>%
       data.tree::FormatPercent()
   }
 
   rm_terminal <- function(x) {
     x %>%
-      {
-        if (is.na(.)) "" else .
-      } %>%
-      {
-        if (. == "terminal") "" else .
-      }
+      (function(x) if (is.na(x)) "" else x) %>%
+        (function(x) if (x == "terminal") "" else x)
   }
 
   format_dtree <- function(jl) {
@@ -640,8 +644,14 @@ plot.dtree <- function(x, symbol = "$", dec = 2, final = FALSE, orient = "LR", w
       lbl <- paste0(node$name, ": ", format_nr(as.numeric(node$p), dec = dec + 2))
     }
 
-    if (length(node$parent$decision) > 0 && length(node$name) > 0 && node$name == node$parent$decision) {
-      paste0(" === |", lbl, "|")
+    if (length(node$parent$decision) > 0 && length(node$name) > 0) {
+      if (length(node$parent$decision) == 1 && node$name == node$parent$decision) {
+        paste0(" === |", lbl, "|")
+      } else if (any(node$name == node$parent$decision)) {
+        paste0(" === |", lbl, "|")
+      } else {
+        paste0(" --- |", lbl, "|")
+      }
     } else {
       paste0(" --- |", lbl, "|")
     }
