@@ -174,8 +174,6 @@ nn <- function(dataset, rvar, evar,
 #'
 #' @return Scaled data frame
 #'
-#' @seealso \code{\link{copy_attr}} to copy attributes from a training to a test dataset
-#'
 #' @export
 scale_df <- function(dataset, center = TRUE, scale = TRUE,
                      sf = 2, wts = NULL, calc = TRUE) {

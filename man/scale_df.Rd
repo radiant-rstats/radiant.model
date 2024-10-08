@@ -25,6 +25,3 @@ Scaled data frame
 \description{
 Center or standardize variables in a data frame
 }
-\seealso{
-\code{\link{copy_attr}} to copy attributes from a training to a test dataset
-}
