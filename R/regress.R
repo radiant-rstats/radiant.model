@@ -945,9 +945,29 @@ plot.regress <- function(x, plots = "", lines = "",
       )
   }
 
+  rem <- c()
+  if (any(grepl("stepwise", x$check))) {
+    if (length(incl) > 0 | length(incl_int) > 0) {
+      if (sum(incl %in% evar) < length(incl)) {
+        rem <- incl[!incl %in% evar]
+      }
+      if (length(incl_int) > 0) {
+        incl_int_split <- strsplit(incl_int, ":") %>%
+          unlist() %>%
+          unique()
+        if (sum(incl_int_split %in% evar) < length(incl_int_split)) {
+          rem <- c(rem, incl_int_split[!incl_int_split %in% evar]) %>% unique()
+        }
+      }
+    }
+  }
+
   if ("pred_plot" %in% plots) {
     nrCol <- 2
     if (length(incl) > 0 | length(incl_int) > 0) {
+      if (length(rem) > 0) {
+        return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
+      }
       plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
     } else {
       return("Select one or more variables to generate Prediction plots")
@@ -957,6 +977,9 @@ plot.regress <- function(x, plots = "", lines = "",
   if ("pdp" %in% plots) {
     nrCol <- 2
     if (length(incl) > 0 | length(incl_int) > 0) {
+      if (length(rem) > 0) {
+        return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
+      }
       plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
     } else {
       return("Select one or more variables to generate Partial Dependence Plots")
@@ -968,6 +991,7 @@ plot.regress <- function(x, plots = "", lines = "",
     if (length(evar) < 2) {
       message("Model must contain at least 2 explanatory variables (features). Permutation Importance plot cannot be generated")
     } else {
+      if (any(grepl("stepwise", x$check))) x$evar <- evar
       vi_scores <- varimp(x)
       plot_list[["vip"]] <-
         visualize(vi_scores, yvar = "Importance", xvar = "Variable", type = "bar", custom = TRUE) +

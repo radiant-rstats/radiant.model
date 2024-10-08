@@ -462,9 +462,13 @@ observeEvent(input$dtree_load_yaml, {
   if (!bindingIsActive(as.symbol(dtree_name), env = r_data)) {
     shiny::makeReactiveBinding(dtree_name, env = r_data)
   }
-  r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
-  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name)
-  shinyAce::updateAceEditor(session, "dtree_edit", value = gsub("\t", "    ", yaml_file))
+  if (is.empty(input$dtree_list)) {
+    r_info[["dtree_list"]] <- dtree_name
+  } else {
+    r_data[[input$dtree_list]] <- input$dtree_edit
+    r_info[["dtree_list"]] <- c(dtree_name, r_info[["dtree_list"]]) %>% unique()
+  }
+  updateSelectInput(session = session, inputId = "dtree_list", selected = dtree_name, choices = r_info[["dtree_list"]])
 })
 
 observeEvent(input$dtree_list, {
