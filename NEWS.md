@@ -1,3 +1,10 @@
+# radiant.model 1.6.7
+
+- Fixed documentation for decision tree sensitivity analysis
+- Added a warning in case an integer overflow occurs in decision analysis calculations
+- Fixed an issue where loading a yaml file for decision analysis could overwrite an existing tree structure
+- Fixed issues with Permutation Importance, Prediction, and Partial Dependence plots with stepwise regression is used. Applies to both logistic and linear regression
+
 # radiant.model 1.6.6
 
 * Require Shiny 1.8.1. Adjustments related to icon-buttons were made to address a breaking change in Shiny 1.8.1

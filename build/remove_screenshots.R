@@ -18,13 +18,13 @@ for (f in fn) {
 setwd(cdir)
 
 ## get package checked
-devtools::check_win_devel()
+# devtools::check_win_devel()
 
 ## submit package to CRAN
 devtools::submit_cran()
 
 ## use the git-tab to manually revert all changes to docs and
-## deletion of images
+## restore all images
 
-## remove after revering the changes from the code above
+## remove after reverting the changes from the code above
 unlink("inst/app/tools/help/figures/place_holder.txt")
