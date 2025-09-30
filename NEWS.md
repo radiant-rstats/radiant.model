@@ -1,3 +1,7 @@
+# radiant.model 1.6.8
+
+- Fixed a bug in `write.coeff` when only one explanatory variable has been selected in linear or logistic regression
+
 # radiant.model 1.6.7
 
 - Fixed documentation for decision tree sensitivity analysis

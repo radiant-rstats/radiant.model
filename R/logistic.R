@@ -995,7 +995,7 @@ write.coeff <- function(object, file = "", sort = FALSE, intercept = TRUE) {
   }
 
   ## create the model.matrix
-  mm <- model.matrix(frm, model.frame(frm, dataset))[, -1]
+  mm <- model.matrix(frm, model.frame(frm, dataset))[, -1, drop=FALSE]
 
   ## removing columns where the corresponding coeff is missing
   cn <- intersect(colnames(mm), names(na.omit(coeff)))
