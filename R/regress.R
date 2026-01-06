@@ -438,7 +438,11 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
   # needed to avoid rescaling during prediction
   x$check <- setdiff(x$check, c("center", "standardize"))
 
-  mod_dat <- x$model$model # [, -1, drop = FALSE]
+  if (inherits(x, "gbt")) {
+    mod_dat <- attributes(x$model)$model
+  } else {
+    mod_dat <- x$model$model
+  }
   pvar <- "Prediction"
   set_pred_name <- function(pred) {
     if (!pvar %in% colnames(pred)) {
@@ -569,12 +573,14 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #' @param maxq Quantile to use for the maximum value for simulation of numeric variables
 #'
 #' @importFrom radiant.data visualize
-#' @importFrom pdp partial
 #' @importFrom ggplot2 autoplot
 #' @importFrom tidyselect where
 #'
 #' @export
 pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
+  if (!requireNamespace("pdp", quietly = TRUE)) {
+    return("Partial Dependence Plots require the 'pdp' package.\nInstall it with: install.packages('pdp')")
+  }
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
   minx <- function(x) quantile(x, p = minq)
@@ -758,12 +764,18 @@ plot.regress <- function(x, plots = "", lines = "",
   ## checking x size
   if (inherits(x$model, "lm")) {
     model <- broom::augment(x$model)
-  } else if (inherits(x, "nn") || inherits(x, "rforest") || inherits(x, "gbt") || inherits(x, "crtree")) {
+  } else if (inherits(x, "nn") || inherits(x, "rforest") || inherits(x, "crtree")) {
     model <- x$model$model
     model$pred <- predict(x, x$model$model)$Prediction
     model <- lm(formula(paste0(x$rvar, " ~ ", "pred")), data = model) %>%
       broom::augment()
+  } else if (inherits(x, "gbt")) {
+    model <- attributes(x$model)$model
+    model$pred <- predict(x, model)$Prediction
+    model <- lm(formula(paste0(x$rvar, " ~ ", "pred")), data = model) %>%
+      broom::augment()
   } else {
+
     return(x)
   }
 
@@ -981,6 +993,9 @@ plot.regress <- function(x, plots = "", lines = "",
         return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
       }
       plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+      if (is.character(plot_list)) {
+        return(plot_list)
+      }
     } else {
       return("Select one or more variables to generate Partial Dependence Plots")
     }
@@ -1128,7 +1143,11 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
   pred_type <- "cmd"
   vars <- object$evar
   if (!is.empty(pred_cmd) && is.empty(pred_data)) {
-    dat <- object$model$model
+    if (inherits(object, "gbt")) {
+      dat <- attributes(object$model)$model
+    } else {
+      dat <- object$model$model
+    }
     if ("center" %in% object$check) {
       ms <- attr(object$model$model, "radiant_ms")
       if (!is.null(ms)) {

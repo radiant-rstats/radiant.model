@@ -246,8 +246,6 @@ summary.rforest <- function(object, ...) {
 #' @seealso \code{\link{summary.rforest}} to summarize results
 #' @seealso \code{\link{predict.rforest}} for prediction
 #'
-#' @importFrom pdp partial
-#'
 #' @export
 plot.rforest <- function(x, plots = "", nrobs = Inf,
                          incl = NULL, incl_int = NULL,
@@ -276,6 +274,9 @@ plot.rforest <- function(x, plots = "", nrobs = Inf,
     nrCol <- 2
     if (length(incl) > 0 || length(incl_int) > 0) {
       plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+      if (is.character(plot_list)) {
+        return(plot_list)
+      }
     } else {
       return("Select one or more variables to generate Partial Dependence Plots")
     }

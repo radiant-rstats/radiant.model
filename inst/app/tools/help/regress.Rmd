@@ -64,7 +64,7 @@ The F-statistic suggests that the regression model as a whole explains a signifi
 
 We can replicate the standard F-test that is reported as part of all regression output by selecting `income`, `HH.size`, and `Age` in the `Variables to test` box. The relevant output is shown below.
 
-<img src="figures_model/regress_catalog_F_test.png" alt="Regression 1 - F-test" width="400" />
+<img src="figures_model/regress_catalog_F_test.png" alt="Regression 1 - F-test" width="400">
 
 Note that in this example, "model 1" is a regression without explanatory variables. As you might expect, the explained variance for model 1 is equal to zero. The F-test compares the _fit_ of model 1 and model 2, adjusted for the difference in the number of coefficients estimated in each model. The test statistic to use is described below. $R^2_2$ is the explained variance for model 2 and $R^2_1$ is the explained variance for model 1. $n$ is equal to the number of rows in the data, and $k_2$ ($k_1$) is equal to the number of estimated coefficients in model 2 (model 1).
 

@@ -597,6 +597,9 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
       nrCol <- 2
       if (length(incl) > 0 || length(incl_int) > 0) {
         plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+        if (is.character(plot_list)) {
+          return(plot_list)
+        }
       } else {
         return("Select one or more variables to generate Partial Dependence Plots")
       }

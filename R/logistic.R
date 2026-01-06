@@ -724,6 +724,9 @@ plot.logistic <- function(x, plots = "coef", conf_lev = .95,
         return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
       }
       plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+      if (is.character(plot_list)) {
+        return(plot_list)
+      }
     } else {
       return("Select one or more variables to generate Partial Dependence Plots")
     }

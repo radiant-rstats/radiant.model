@@ -320,7 +320,13 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #'
 #' @export
 varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
-  if (is.null(data)) data <- object$model$model
+  if (is.null(data)) {
+    if (inherits(object, "gbt")) {
+      data <- attributes(object$model)$model
+    } else {
+      data <- object$model$model
+    }
+  }
 
   # needed to avoid rescaling during prediction
   object$check <- setdiff(object$check, c("center", "standardize"))
@@ -489,6 +495,9 @@ plot.nn <- function(x, plots = "vip", size = 12, pad_x = 0.9, nrobs = -1,
     nrCol <- 2
     if (length(incl) > 0 || length(incl_int) > 0) {
       plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+      if (is.character(plot_list)) {
+        return(plot_list)
+      }
     } else {
       return("Select one or more variables to generate Partial Dependence Plots")
     }

@@ -145,7 +145,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
   if (type == "classification") {
     gbt_input <- check_args("objective", "binary:logistic")
     gbt_input <- check_args("eval_metric", "auc")
-    dty <- as.integer(dataset[[rvar]] == lev)
+    dty <- dataset[[rvar]] == lev
   } else {
     gbt_input <- check_args("objective", "reg:squarederror")
     gbt_input <- check_args("eval_metric", "rmse")
@@ -154,7 +154,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
 
   ## adding data
   dtx <- onehot(dataset[, -1, drop = FALSE])[, -1, drop = FALSE]
-  gbt_input <- c(gbt_input, list(data = dtx, label = dty), ...)
+  gbt_input <- c(gbt_input, list(x = dtx, y = dty), ...)
 
   ## based on https://stackoverflow.com/questions/14324096/setting-seed-locally-not-globally-in-r/14324316#14324316
   seed <- gsub("[^0-9]", "", seed)
@@ -167,24 +167,21 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
   }
 
   ## capturing the iteration history
-  output <- capture.output(model <<- do.call(xgboost::xgboost, gbt_input))
+  model <- do.call(xgboost::xgboost, gbt_input)
+  # output <- capture.output(model <<- do.call(xgboost::xgboost, gbt_input))
 
   ## adding residuals for regression models
   if (type == "regression") {
-    model$residuals <- dataset[[rvar]] - predict(model, dtx)
+    attributes(model)$residuals <- dataset[[rvar]] - predict(model, dtx)
   } else {
-    model$residuals <- NULL
+    attributes(model)$residuals <- NULL
   }
 
-  ## adding feature importance information
-  ## replaced by premutation importance
-  # model$importance <- xgboost::xgb.importance(model = model)
-
   ## gbt model object does not include the data by default
-  model$model <- dataset
+  attributes(model)$model <- dataset
 
   rm(dataset, dty, dtx, rv, envir) ## dataset not needed elsewhere
-  gbt_input$data <- gbt_input$label <- NULL
+  gbt_input$x <- gbt_input$y <- NULL
 
   ## needed to work with prediction functions
   check <- ""
@@ -264,10 +261,12 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   }
 
   if (isTRUE(prn)) {
-    cat("\nIteration history:\n\n")
-    ih <- object$output[c(-2, -3)]
-    if (length(ih) > 20) ih <- c(head(ih, 10), "...", tail(ih, 10))
-    cat(paste0(ih, collapse = "\n"))
+    # cat("\nIteration history:\n\n")
+    # print(object$output)
+    # print(object$output)
+    # ih <- object$output[c(-2, -3)]
+    # if (length(ih) > 20) ih <- c(head(ih, 10), "...", tail(ih, 10))
+    # cat(paste0(ih, collapse = "\n"))
   }
 }
 
@@ -297,13 +296,13 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @seealso \code{\link{summary.gbt}} to summarize results
 #' @seealso \code{\link{predict.gbt}} for prediction
 #'
-#' @importFrom pdp partial
 #' @importFrom rlang .data
 #'
 #' @export
 plot.gbt <- function(x, plots = "", nrobs = Inf,
                      incl = NULL, incl_int = NULL,
                      shiny = FALSE, custom = FALSE, ...) {
+
   if (is.character(x) || !inherits(x$model, "xgb.Booster")) {
     return(x)
   }
@@ -316,11 +315,14 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
   }
 
   if ("pdp" %in% plots) {
+    if (!requireNamespace("pdp", quietly = TRUE)) {
+      return("Partial Dependence Plots require the 'pdp' package.\nInstall it with: install.packages('pdp')")
+    }
     ncol <- 2
     if (length(incl) == 0 && length(incl_int) == 0) {
       return("Select one or more variables to generate Partial Dependence Plots")
     }
-    mod_dat <- x$model$model[, -1, drop = FALSE]
+    mod_dat <- attributes(x$model)$model[, -1, drop = FALSE]
     dtx <- onehot(mod_dat)[, -1, drop = FALSE]
     for (pn in incl) {
       if (is.factor(mod_dat[[pn]])) {
@@ -476,7 +478,7 @@ predict.gbt <- function(object, pred_data = NULL, pred_cmd = "",
   pfun <- function(model, pred, se, conf_lev) {
     ## ensure the factor levels in the prediction data are the
     ## same as in the data used for estimation
-    est_data <- model$model[, -1, drop = FALSE]
+    est_data <- attributes(model)$model[, -1, drop = FALSE]
     for (i in colnames(pred)) {
       if (is.factor(est_data[[i]])) {
         pred[[i]] <- factor(pred[[i]], levels = levels(est_data[[i]]))
@@ -497,6 +499,11 @@ predict.gbt <- function(object, pred_data = NULL, pred_cmd = "",
 
   predict_model(object, pfun, "gbt.predict", pred_data, pred_cmd, conf_lev = 0.95, se = FALSE, dec, envir = envir) %>%
     set_attr("radiant_pred_data", df_name)
+  # pred_data <- predict_model(object, pfun, "gbt.predict", pred_data, pred_cmd, conf_lev = 0.95, se = FALSE, dec, envir = envir)
+  # attr_list = list()
+  # attr_list[[df_name]] <- "radiant_pred_data"
+  # attributes(pred_data) <- attr_list
+  # return(pred_data)
 }
 
 #' Print method for predict.gbt
@@ -563,7 +570,7 @@ cv.gbt <- function(object, K = 5, repeats = 1, params = list(),
                    trace = TRUE, seed = 1234, maximize = NULL, fun, ...) {
   if (inherits(object, "gbt")) {
     dv <- object$rvar
-    dataset <- object$model$model
+    dataset <- attributes(object$model)$model
     dtx <- onehot(dataset[, -1, drop = FALSE])[, -1, drop = FALSE]
     type <- object$type
     if (type == "classification") {
@@ -573,8 +580,8 @@ cv.gbt <- function(object, K = 5, repeats = 1, params = list(),
       objective <- "reg:squarederror"
       dty <- dataset[[dv]]
     }
-    train <- xgboost::xgb.DMatrix(data = dtx, label = dty)
-    params_base <- object$model$params
+    train <- xgboost::xgb.DMatrix(x = dtx, y = dty)
+    params_base <- attributes(object$model)$params
     if (is.empty(params_base[["eval_metric"]])) {
       params_base[["eval_metric"]] <- object$extra_args[["eval_metric"]]
     }
@@ -695,7 +702,7 @@ cv.gbt <- function(object, K = 5, repeats = 1, params = list(),
         }
         model <- try(xgboost::xgb.cv(
           params = as.list(cv_params_tmp),
-          data = train,
+          x = train,
           nfold = K,
           print_every_n = 500,
           eval_metric = fun_wrapper,
