@@ -1,6 +1,6 @@
 ## Resubmission
 
-This is a resubmission. Fixed a bug in `write.coeff` when only one explanatory variable has been selected
+This is a resubmission. Made the "pdp" package optional to avoid future issues 
 
 ## Test environments
 
@@ -12,6 +12,20 @@ This is a resubmission. Fixed a bug in `write.coeff` when only one explanatory v
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for all radiant packages
 
 # Previous cran-comments
+
+## Resubmission
+
+This is a resubmission. Fixed a bug in `write.coeff` when only one explanatory variable has been selected
+
+## Test environments
+
+* macOS (ARM) and R 4.5.1
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for all radiant packages
+
 
 ## Resubmission
 
