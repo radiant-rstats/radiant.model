@@ -5,21 +5,25 @@ context("Partial Dependence Plots (pdp_plot) and Variable Importance (varimp)")
 
 # ── varimp ────────────────────────────────────────────────────────────────────
 
-test_that("varimp - linear regression returns correct structure", {
+test_that("varimp - linear regression returns correct structure and is sorted", {
   result <- regress(diamonds, "price", c("carat", "clarity"))
   vi <- varimp(result, "price")
   expect_true(is.data.frame(vi))
   expect_true(all(c("Variable", "Importance") %in% colnames(vi)))
   expect_gt(nrow(vi), 0)
   expect_true(all(vi$Importance > 0))
+  # Results should be sorted highest importance first
+  expect_true(vi$Importance[1] >= vi$Importance[nrow(vi)])
 })
 
-test_that("varimp - logistic classification returns correct structure", {
+test_that("varimp - logistic classification returns correct structure and is sorted", {
   result <- logistic(titanic, "survived", c("pclass", "sex"))
   vi <- varimp(result, "survived")
   expect_true(is.data.frame(vi))
   expect_true(all(c("Variable", "Importance") %in% colnames(vi)))
   expect_gt(nrow(vi), 0)
+  # Results should be sorted highest importance first
+  expect_true(vi$Importance[1] >= vi$Importance[nrow(vi)])
 })
 
 test_that("varimp - neural network (regression) returns correct structure", {
@@ -69,16 +73,20 @@ test_that("pdp_plot - regress continuous predictor returns ggplot", {
   expect_true(inherits(p, "gg"))
 })
 
-test_that("pdp_plot - regress categorical predictor returns ggplot", {
+test_that("pdp_plot - regress categorical predictor connects dots with a line", {
   result <- regress(diamonds, "price", c("carat", "clarity"))
   p <- plot(result, plots = "pdp", incl = "clarity", custom = TRUE)
   expect_true(inherits(p, "gg"))
+  geoms <- sapply(p$layers, function(l) class(l$geom)[1])
+  expect_true("GeomLine" %in% geoms)
 })
 
-test_that("pdp_plot - logistic continuous predictor returns ggplot", {
+test_that("pdp_plot - logistic categorical predictor connects dots with a line", {
   result <- logistic(titanic, "survived", c("pclass", "sex"))
   p <- plot(result, plots = "pdp", incl = "pclass", custom = TRUE)
   expect_true(inherits(p, "gg"))
+  geoms <- sapply(p$layers, function(l) class(l$geom)[1])
+  expect_true("GeomLine" %in% geoms)
 })
 
 test_that("pdp_plot - nn regression returns ggplot", {

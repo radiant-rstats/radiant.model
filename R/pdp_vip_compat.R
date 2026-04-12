@@ -156,8 +156,10 @@ autoplot.partial <- function(object, rug = FALSE, train = NULL, ...) {
     ggplot2::ggplot(object, ggplot2::aes(.data[[xvar]], .data[["yhat"]])) +
       ggplot2::geom_line(...)
   } else {
-    ggplot2::ggplot(object, ggplot2::aes(.data[[xvar]], .data[["yhat"]])) +
-      ggplot2::geom_point(...)
+    # Categorical: connect points with a line (group = 1 needed for discrete x-axis)
+    ggplot2::ggplot(object, ggplot2::aes(.data[[xvar]], .data[["yhat"]], group = 1)) +
+      ggplot2::geom_point(...) +
+      ggplot2::geom_line()
   }
 
   if (isTRUE(rug) && !is.null(train) && is.numeric(col)) {
@@ -193,6 +195,8 @@ autoplot.partial <- function(object, rug = FALSE, train = NULL, ...) {
 #' @param train Data frame containing both features and the target column.
 #' @param event_level \code{"first"} (default) or \code{"second"}; which factor
 #'   level of \code{target} is the positive class (used for \code{"roc_auc"}).
+#' @param nsim Number of permutation replications per feature; results are
+#'   averaged across replications. Default is 3.
 #' @param ... Ignored.
 #'
 #' @return A data frame with columns \code{Variable} and \code{Importance}
@@ -201,7 +205,7 @@ autoplot.partial <- function(object, rug = FALSE, train = NULL, ...) {
 #' @keywords internal
 vi_radiant <- function(object, target, method = "permute",
                        metric, pred_wrapper, train,
-                       event_level = NULL, ...) {
+                       event_level = NULL, nsim = 3L, ...) {
   if (method != "permute") {
     stop("vi_radiant only supports method = 'permute'", call. = FALSE)
   }
@@ -225,10 +229,12 @@ vi_radiant <- function(object, target, method = "permute",
   baseline <- metric_fun(train_y, pred_wrapper(object, train_x))
 
   imp <- vapply(feature_names, function(fn) {
-    permx <- train_x
-    permx[[fn]] <- permx[[fn]][sample(nrow(permx))]
-    permuted <- metric_fun(train_y, pred_wrapper(object, permx))
-    if (smaller_is_better) permuted - baseline else baseline - permuted
+    mean(vapply(seq_len(nsim), function(s) {
+      permx <- train_x
+      permx[[fn]] <- permx[[fn]][sample(nrow(permx))]
+      permuted <- metric_fun(train_y, pred_wrapper(object, permx))
+      if (smaller_is_better) permuted - baseline else baseline - permuted
+    }, numeric(1L)))
   }, numeric(1L))
 
   out <- data.frame(
@@ -236,6 +242,9 @@ vi_radiant <- function(object, target, method = "permute",
     Importance = imp,
     stringsAsFactors = FALSE
   )
+  # Sort descending by importance to match vip::vi() default (sort = TRUE, decreasing = TRUE)
+  out <- out[order(out$Importance, decreasing = TRUE), , drop = FALSE]
+  rownames(out) <- NULL
   class(out) <- c("vi", "data.frame")
   out
 }
