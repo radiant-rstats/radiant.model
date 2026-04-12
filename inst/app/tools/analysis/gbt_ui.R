@@ -367,11 +367,9 @@ output$ui_gbt <- renderUI({
           uiOutput("ui_gbt_incl_int"),
           conditionalPanel(
             condition = "input.gbt_plots == 'pdp'",
-            checkboxInput("gbt_hline", "Show mean (dashed line)", state_init("gbt_hline", TRUE)),
-            sliderInput("gbt_minq", "Min percentile", min = 0, max = 0.5,
-                        value = state_init("gbt_minq", 0.025), step = 0.025),
-            sliderInput("gbt_maxq", "Max percentile", min = 0.5, max = 1,
-                        value = state_init("gbt_maxq", 0.975), step = 0.025)
+            checkboxInput("gbt_hline", "Average response", state_init("gbt_hline", TRUE)),
+            sliderInput("gbt_pdp_range", "Percentile range", min = 0, max = 1,
+                        value = state_init("gbt_pdp_range", c(0.025, 0.975)), step = 0.025)
           )
         )
       ),

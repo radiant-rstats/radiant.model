@@ -577,7 +577,9 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #' @importFrom tidyselect where
 #'
 #' @export
-pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
+pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, pdp_range = c(0.025, 0.975)) {
+  minq <- pdp_range[1]
+  maxq <- pdp_range[2]
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
   minx <- function(x) quantile(x, p = minq)
@@ -753,7 +755,7 @@ plot.regress <- function(x, plots = "", lines = "",
                          conf_lev = .95, intercept = FALSE,
                          incl = NULL, excl = NULL,
                          incl_int = NULL, nrobs = -1,
-                         hline = TRUE, minq = 0.025, maxq = 0.975,
+                         hline = TRUE, pdp_range = c(0.025, 0.975),
                          shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     return(x)
@@ -990,7 +992,7 @@ plot.regress <- function(x, plots = "", lines = "",
       if (length(rem) > 0) {
         return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
       }
-      plot_list <- pdp_plot(x, plot_list, incl, incl_int, hline = hline, minq = minq, maxq = maxq, ...)
+      plot_list <- pdp_plot(x, plot_list, incl, incl_int, hline = hline, pdp_range = pdp_range, ...)
       if (is.character(plot_list)) {
         return(plot_list)
       }

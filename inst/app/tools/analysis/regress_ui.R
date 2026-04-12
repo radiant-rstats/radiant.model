@@ -379,11 +379,9 @@ output$ui_regress <- renderUI({
             uiOutput("ui_reg_incl_int"),
             conditionalPanel(
               condition = "input.reg_plots == 'pdp'",
-              checkboxInput("reg_hline", "Show mean (dashed line)", state_init("reg_hline", TRUE)),
-              sliderInput("reg_minq", "Min percentile", min = 0, max = 0.5,
-                          value = state_init("reg_minq", 0.025), step = 0.025),
-              sliderInput("reg_maxq", "Max percentile", min = 0.5, max = 1,
-                          value = state_init("reg_maxq", 0.975), step = 0.025)
+              checkboxInput("reg_hline", "Average response", state_init("reg_hline", TRUE)),
+              sliderInput("reg_pdp_range", "Percentile range", min = 0, max = 1,
+                          value = state_init("reg_pdp_range", c(0.025, 0.975)), step = 0.025)
             )
           )
         ),

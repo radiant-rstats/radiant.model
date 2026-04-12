@@ -380,11 +380,9 @@ output$ui_crtree <- renderUI({
           uiOutput("ui_crtree_incl_int"),
           conditionalPanel(
             condition = "input.crtree_plots == 'pdp'",
-            checkboxInput("crtree_hline", "Show mean (dashed line)", state_init("crtree_hline", TRUE)),
-            sliderInput("crtree_minq", "Min percentile", min = 0, max = 0.5,
-                        value = state_init("crtree_minq", 0.025), step = 0.025),
-            sliderInput("crtree_maxq", "Max percentile", min = 0.5, max = 1,
-                        value = state_init("crtree_maxq", 0.975), step = 0.025)
+            checkboxInput("crtree_hline", "Average response", state_init("crtree_hline", TRUE)),
+            sliderInput("crtree_pdp_range", "Percentile range", min = 0, max = 1,
+                        value = state_init("crtree_pdp_range", c(0.025, 0.975)), step = 0.025)
           )
         ),
         conditionalPanel(

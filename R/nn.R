@@ -435,7 +435,7 @@ varimp_plot <- function(object, rvar, lev, data = NULL, seed = 1234) {
 #' @export
 plot.nn <- function(x, plots = "vip", size = 12, pad_x = 0.9, nrobs = -1,
                     incl = NULL, incl_int = NULL,
-                    hline = TRUE, minq = 0.025, maxq = 0.975,
+                    hline = TRUE, pdp_range = c(0.025, 0.975),
                     shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x) || !inherits(x$model, "nnet")) {
     return(x)
@@ -491,7 +491,7 @@ plot.nn <- function(x, plots = "vip", size = 12, pad_x = 0.9, nrobs = -1,
   if ("pdp" %in% plots) {
     nrCol <- 2
     if (length(incl) > 0 || length(incl_int) > 0) {
-      plot_list <- pdp_plot(x, plot_list, incl, incl_int, hline = hline, minq = minq, maxq = maxq, ...)
+      plot_list <- pdp_plot(x, plot_list, incl, incl_int, hline = hline, pdp_range = pdp_range, ...)
       if (is.character(plot_list)) {
         return(plot_list)
       }

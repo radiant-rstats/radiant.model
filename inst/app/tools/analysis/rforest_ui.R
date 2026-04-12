@@ -347,11 +347,9 @@ output$ui_rf <- renderUI({
           uiOutput("ui_rf_incl_int"),
           conditionalPanel(
             condition = "input.rf_plots == 'pdp'",
-            checkboxInput("rf_hline", "Show mean (dashed line)", state_init("rf_hline", TRUE)),
-            sliderInput("rf_minq", "Min percentile", min = 0, max = 0.5,
-                        value = state_init("rf_minq", 0.025), step = 0.025),
-            sliderInput("rf_maxq", "Max percentile", min = 0.5, max = 1,
-                        value = state_init("rf_maxq", 0.975), step = 0.025)
+            checkboxInput("rf_hline", "Average response", state_init("rf_hline", TRUE)),
+            sliderInput("rf_pdp_range", "Percentile range", min = 0, max = 1,
+                        value = state_init("rf_pdp_range", c(0.025, 0.975)), step = 0.025)
           )
         )
         # conditionalPanel(

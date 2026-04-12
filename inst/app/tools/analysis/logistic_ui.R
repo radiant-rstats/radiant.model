@@ -424,11 +424,9 @@ output$ui_logistic <- renderUI({
             uiOutput("ui_logit_incl_int"),
             conditionalPanel(
               condition = "input.logit_plots == 'pdp'",
-              checkboxInput("logit_hline", "Show mean (dashed line)", state_init("logit_hline", TRUE)),
-              sliderInput("logit_minq", "Min percentile", min = 0, max = 0.5,
-                          value = state_init("logit_minq", 0.025), step = 0.025),
-              sliderInput("logit_maxq", "Max percentile", min = 0.5, max = 1,
-                          value = state_init("logit_maxq", 0.975), step = 0.025)
+              checkboxInput("logit_hline", "Average response", state_init("logit_hline", TRUE)),
+              sliderInput("logit_pdp_range", "Percentile range", min = 0, max = 1,
+                          value = state_init("logit_pdp_range", c(0.025, 0.975)), step = 0.025)
             )
           )
         ),

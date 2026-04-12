@@ -268,6 +268,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
     # if (length(ih) > 20) ih <- c(head(ih, 10), "...", tail(ih, 10))
     # cat(paste0(ih, collapse = "\n"))
   }
+  invisible(NULL)
 }
 
 #' Plot method for the gbt function
@@ -301,7 +302,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @export
 plot.gbt <- function(x, plots = "", nrobs = Inf,
                      incl = NULL, incl_int = NULL,
-                     hline = TRUE, minq = 0.025, maxq = 0.975,
+                     hline = TRUE, pdp_range = c(0.025, 0.975),
                      shiny = FALSE, custom = FALSE, ...) {
 
   if (is.character(x) || !inherits(x$model, "xgb.Booster")) {
@@ -320,6 +321,8 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
     if (length(incl) == 0 && length(incl_int) == 0) {
       return("Select one or more variables to generate Partial Dependence Plots")
     }
+    minq <- pdp_range[1]
+    maxq <- pdp_range[2]
     mod_dat <- attributes(x$model)$model[, -1, drop = FALSE]
     dtx <- onehot(mod_dat)[, -1, drop = FALSE]
     hline_val <- if (isTRUE(hline)) {
