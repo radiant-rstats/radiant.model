@@ -753,6 +753,7 @@ plot.regress <- function(x, plots = "", lines = "",
                          conf_lev = .95, intercept = FALSE,
                          incl = NULL, excl = NULL,
                          incl_int = NULL, nrobs = -1,
+                         hline = TRUE, minq = 0.025, maxq = 0.975,
                          shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     return(x)
@@ -989,7 +990,7 @@ plot.regress <- function(x, plots = "", lines = "",
       if (length(rem) > 0) {
         return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
       }
-      plot_list <- pdp_plot(x, plot_list, incl, incl_int, ...)
+      plot_list <- pdp_plot(x, plot_list, incl, incl_int, hline = hline, minq = minq, maxq = maxq, ...)
       if (is.character(plot_list)) {
         return(plot_list)
       }

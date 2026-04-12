@@ -301,6 +301,7 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @export
 plot.gbt <- function(x, plots = "", nrobs = Inf,
                      incl = NULL, incl_int = NULL,
+                     hline = TRUE, minq = 0.025, maxq = 0.975,
                      shiny = FALSE, custom = FALSE, ...) {
 
   if (is.character(x) || !inherits(x$model, "xgb.Booster")) {
@@ -321,6 +322,12 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
     }
     mod_dat <- attributes(x$model)$model[, -1, drop = FALSE]
     dtx <- onehot(mod_dat)[, -1, drop = FALSE]
+    hline_val <- if (isTRUE(hline)) {
+      y <- attributes(x$model)$model[[1]]
+      if (is.factor(y)) mean(y == x$lev) else mean(y, na.rm = TRUE)
+    } else {
+      FALSE
+    }
     for (pn in incl) {
       if (is.factor(mod_dat[[pn]])) {
         fn <- paste0(pn, levels(mod_dat[[pn]]))[-1]
@@ -348,17 +355,31 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
         pd <- data.frame(label = levels(mod_dat[[pn]]), yhat = c(base, effects)) %>%
           mutate(label = factor(label, levels = label))
         colnames(pd)[1] <- pn
-        plot_list[[pn]] <- ggplot(pd, aes(x = .data[[pn]], y = .data$yhat, group = 1)) +
+        p <- ggplot(pd, aes(x = .data[[pn]], y = .data$yhat, group = 1)) +
           geom_point() +
           geom_line() +
           labs(y = NULL)
+        if (isTRUE(hline)) {
+          p <- p + geom_hline(yintercept = hline_val, lty = 2, linewidth = 0.25)
+        }
+        plot_list[[pn]] <- p
       } else {
-        plot_list[[pn]] <- pdp_partial(
+        col_vals <- dtx[, pn]
+        lo <- stats::quantile(col_vals, minq, na.rm = TRUE)
+        hi <- stats::quantile(col_vals, maxq, na.rm = TRUE)
+        n_grid <- min(length(unique(col_vals)), 51L)
+        pgrid <- data.frame(seq(lo, hi, length.out = n_grid))
+        names(pgrid) <- pn
+        p <- pdp_partial(
           x$model,
-          pred.var = pn, plot = TRUE, rug = TRUE,
+          pred.var = pn, pred.grid = pgrid, plot = TRUE, rug = FALSE,
           prob = x$type == "classification", plot.engine = "ggplot2",
           train = dtx
         ) + labs(y = NULL)
+        if (isTRUE(hline)) {
+          p <- p + geom_hline(yintercept = hline_val, lty = 2, linewidth = 0.25)
+        }
+        plot_list[[pn]] <- p
       }
     }
     for (pn_lab in incl_int) {

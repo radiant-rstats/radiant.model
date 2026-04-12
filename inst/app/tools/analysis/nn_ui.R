@@ -325,7 +325,15 @@ output$ui_nn <- renderUI({
         conditionalPanel(
           condition = "input.nn_plots == 'pdp' | input.nn_plots == 'pred_plot'",
           uiOutput("ui_nn_incl"),
-          uiOutput("ui_nn_incl_int")
+          uiOutput("ui_nn_incl_int"),
+          conditionalPanel(
+            condition = "input.nn_plots == 'pdp'",
+            checkboxInput("nn_hline", "Show mean (dashed line)", state_init("nn_hline", TRUE)),
+            sliderInput("nn_minq", "Min percentile", min = 0, max = 0.5,
+                        value = state_init("nn_minq", 0.025), step = 0.025),
+            sliderInput("nn_maxq", "Max percentile", min = 0.5, max = 1,
+                        value = state_init("nn_maxq", 0.975), step = 0.025)
+          )
         ),
         conditionalPanel(
           condition = "input.nn_plots == 'dashboard'",
