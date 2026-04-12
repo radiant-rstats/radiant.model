@@ -348,8 +348,9 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
         pd <- data.frame(label = levels(mod_dat[[pn]]), yhat = c(base, effects)) %>%
           mutate(label = factor(label, levels = label))
         colnames(pd)[1] <- pn
-        plot_list[[pn]] <- ggplot(pd, aes(x = .data[[pn]], y = .data$yhat)) +
+        plot_list[[pn]] <- ggplot(pd, aes(x = .data[[pn]], y = .data$yhat, group = 1)) +
           geom_point() +
+          geom_line() +
           labs(y = NULL)
       } else {
         plot_list[[pn]] <- pdp_partial(
