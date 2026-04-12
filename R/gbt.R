@@ -315,9 +315,6 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
   }
 
   if ("pdp" %in% plots) {
-    if (!requireNamespace("pdp", quietly = TRUE)) {
-      return("Partial Dependence Plots require the 'pdp' package.\nInstall it with: install.packages('pdp')")
-    }
     ncol <- 2
     if (length(incl) == 0 && length(incl_int) == 0) {
       return("Select one or more variables to generate Partial Dependence Plots")
@@ -333,7 +330,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
           seed <- x$seed
           dtx_cat <- dtx
           dtx_cat[, setdiff(fn, fn[i])] <- 0
-          pdi <- pdp::partial(
+          pdi <- pdp_partial(
             x$model,
             pred.var = fn[i], plot = FALSE,
             prob = x$type == "classification", train = dtx_cat
@@ -342,7 +339,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
         }
         pgrid <- as.data.frame(matrix(0, ncol = nr))
         colnames(pgrid) <- fn
-        base <- pdp::partial(
+        base <- pdp_partial(
           x$model,
           pred.var = fn,
           pred.grid = pgrid, plot = FALSE,
@@ -355,7 +352,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
           geom_point() +
           labs(y = NULL)
       } else {
-        plot_list[[pn]] <- pdp::partial(
+        plot_list[[pn]] <- pdp_partial(
           x$model,
           pred.var = pn, plot = TRUE, rug = TRUE,
           prob = x$type == "classification", plot.engine = "ggplot2",

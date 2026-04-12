@@ -316,8 +316,6 @@ summary.nn <- function(object, prn = TRUE, ...) {
 #' @param data Data to use for prediction. Will default to the data used to estimate the model
 #' @param seed Random seed for reproducibility
 #'
-#' @importFrom vip vi
-#'
 #' @export
 varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
   if (is.null(data)) {
@@ -360,7 +358,7 @@ varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
 
   set.seed(seed)
   if (object$type == "regression") {
-    vimp <- vip::vi(
+    vimp <- vi_radiant(
       object,
       target = rvar,
       method = "permute",
@@ -371,7 +369,7 @@ varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
   } else {
     # required after transition to yardstick by the vip package
     data[[rvar]] <- factor(data[[rvar]], levels = c("TRUE", "FALSE"))
-    vimp <- vip::vi(
+    vimp <- vi_radiant(
       object,
       target = rvar,
       event_level = "first",
@@ -394,8 +392,6 @@ varimp <- function(object, rvar, lev, data = NULL, seed = 1234) {
 #' @param lev Reference class for binary classifier (rvar)
 #' @param data Data to use for prediction. Will default to the data used to estimate the model
 #' @param seed Random seed for reproducibility
-#'
-#' @importFrom vip vi
 #'
 #' @export
 varimp_plot <- function(object, rvar, lev, data = NULL, seed = 1234) {

@@ -578,9 +578,6 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #'
 #' @export
 pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
-  if (!requireNamespace("pdp", quietly = TRUE)) {
-    return("Partial Dependence Plots require the 'pdp' package.\nInstall it with: install.packages('pdp')")
-  }
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
   minx <- function(x) quantile(x, p = minq)
@@ -617,7 +614,7 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
     df <- select(x$model$model, {{ pn }})
     pn_lab <- paste0(pn, collapse = ":")
     if (length(pn) < 2 & is.logical(df[[pn_lab]])) {
-      pdp_list[[pn_lab]] <- pdp::partial(
+      pdp_list[[pn_lab]] <- pdp_partial(
         x$model,
         pred.var = pn,
         plot = FALSE,
@@ -626,7 +623,7 @@ pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = 
       )
       min_max <- calc_ylim("yhat", pdp_list[[pn_lab]], min_max)
     } else if (length(pn) < 2 || sum(sapply(df, is.numeric)) < 2) {
-      pdp_list[[pn_lab]] <- pdp::partial(
+      pdp_list[[pn_lab]] <- pdp_partial(
         x$model,
         pred.var = pn,
         plot = FALSE,
