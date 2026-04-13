@@ -377,12 +377,9 @@ output$ui_regress <- renderUI({
           conditionalPanel(
             condition = "input.reg_plots == 'pdp' | input.reg_plots == 'pred_plot'",
             uiOutput("ui_reg_incl_int"),
-            conditionalPanel(
-              condition = "input.reg_plots == 'pdp'",
-              checkboxInput("reg_hline", "Average response", state_init("reg_hline", TRUE)),
-              sliderInput("reg_pdp_range", "Percentile range", min = 0, max = 1,
-                          value = state_init("reg_pdp_range", c(0.025, 0.975)), step = 0.025)
-            )
+            checkboxInput("reg_hline", "Average response", state_init("reg_hline", TRUE)),
+            sliderInput("reg_pdp_range", "Percentile range:", min = 0, max = 1,
+                        value = state_init("reg_pdp_range", c(0.025, 0.975)), step = 0.025)
           )
         ),
         conditionalPanel(

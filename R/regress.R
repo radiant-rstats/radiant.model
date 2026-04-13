@@ -419,7 +419,13 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
 #' @importFrom tidyselect where
 #'
 #' @export
-pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, minq = 0.025, maxq = 0.975) {
+pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, pdp_range = c(0.025, 0.975), minq = NULL, maxq = NULL) {
+  if (!is.null(minq) || !is.null(maxq)) {
+    warning("'minq'/'maxq' are deprecated; use 'pdp_range = c(lo, hi)' instead.", call. = FALSE)
+    if (!is.null(minq)) pdp_range[1] <- minq
+    if (!is.null(maxq)) pdp_range[2] <- maxq
+  }
+  minq <- pdp_range[1]; maxq <- pdp_range[2]
   min_max <- c(Inf, -Inf)
   minx <- function(x) quantile(x, p = minq)
   maxx <- function(x) quantile(x, p = maxq)
@@ -577,9 +583,13 @@ pred_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline =
 #' @importFrom tidyselect where
 #'
 #' @export
-pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, pdp_range = c(0.025, 0.975)) {
-  minq <- pdp_range[1]
-  maxq <- pdp_range[2]
+pdp_plot <- function(x, plot_list = list(), incl, incl_int, fix = TRUE, hline = TRUE, nr = 20, pdp_range = c(0.025, 0.975), minq = NULL, maxq = NULL) {
+  if (!is.null(minq) || !is.null(maxq)) {
+    warning("'minq'/'maxq' are deprecated; use 'pdp_range = c(lo, hi)' instead.", call. = FALSE)
+    if (!is.null(minq)) pdp_range[1] <- minq
+    if (!is.null(maxq)) pdp_range[2] <- maxq
+  }
+  minq <- pdp_range[1]; maxq <- pdp_range[2]
   pdp_list <- list()
   min_max <- c(Inf, -Inf)
   minx <- function(x) quantile(x, p = minq)
@@ -755,10 +765,15 @@ plot.regress <- function(x, plots = "", lines = "",
                          conf_lev = .95, intercept = FALSE,
                          incl = NULL, excl = NULL,
                          incl_int = NULL, nrobs = -1,
-                         hline = TRUE, pdp_range = c(0.025, 0.975),
+                         hline = TRUE, pdp_range = c(0.025, 0.975), minq = NULL, maxq = NULL,
                          shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x)) {
     return(x)
+  }
+  if (!is.null(minq) || !is.null(maxq)) {
+    warning("'minq'/'maxq' are deprecated; use 'pdp_range = c(lo, hi)' instead.", call. = FALSE)
+    if (!is.null(minq)) pdp_range[1] <- minq
+    if (!is.null(maxq)) pdp_range[2] <- maxq
   }
 
   ## checking x size
@@ -980,7 +995,7 @@ plot.regress <- function(x, plots = "", lines = "",
       if (length(rem) > 0) {
         return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
       }
-      plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+      plot_list <- pred_plot(x, plot_list, incl, incl_int, hline = hline, pdp_range = pdp_range, ...)
     } else {
       return("Select one or more variables to generate Prediction plots")
     }

@@ -302,11 +302,16 @@ summary.gbt <- function(object, prn = TRUE, ...) {
 #' @export
 plot.gbt <- function(x, plots = "", nrobs = Inf,
                      incl = NULL, incl_int = NULL,
-                     hline = TRUE, pdp_range = c(0.025, 0.975),
+                     hline = TRUE, pdp_range = c(0.025, 0.975), minq = NULL, maxq = NULL,
                      shiny = FALSE, custom = FALSE, ...) {
 
   if (is.character(x) || !inherits(x$model, "xgb.Booster")) {
     return(x)
+  }
+  if (!is.null(minq) || !is.null(maxq)) {
+    warning("'minq'/'maxq' are deprecated; use 'pdp_range = c(lo, hi)' instead.", call. = FALSE)
+    if (!is.null(minq)) pdp_range[1] <- minq
+    if (!is.null(maxq)) pdp_range[2] <- maxq
   }
   plot_list <- list()
   ncol <- 1
@@ -321,8 +326,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
     if (length(incl) == 0 && length(incl_int) == 0) {
       return("Select one or more variables to generate Partial Dependence Plots")
     }
-    minq <- pdp_range[1]
-    maxq <- pdp_range[2]
+    minq <- pdp_range[1]; maxq <- pdp_range[2]
     mod_dat <- attributes(x$model)$model[, -1, drop = FALSE]
     dtx <- onehot(mod_dat)[, -1, drop = FALSE]
     hline_val <- if (isTRUE(hline)) {
@@ -426,7 +430,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
   if ("pred_plot" %in% plots) {
     ncol <- 2
     if (length(incl) > 0 | length(incl_int) > 0) {
-      plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+      plot_list <- pred_plot(x, plot_list, incl, incl_int, hline = hline, pdp_range = pdp_range, ...)
     } else {
       return("Select one or more variables to generate Prediction plots")
     }

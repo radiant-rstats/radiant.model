@@ -345,15 +345,12 @@ output$ui_rf <- renderUI({
           condition = "input.rf_plots == 'pdp' | input.rf_plots == 'pred_plot'",
           uiOutput("ui_rf_incl"),
           uiOutput("ui_rf_incl_int"),
-          conditionalPanel(
-            condition = "input.rf_plots == 'pdp'",
-            checkboxInput("rf_hline", "Average response", state_init("rf_hline", TRUE)),
-            sliderInput("rf_pdp_range", "Percentile range", min = 0, max = 1,
-                        value = state_init("rf_pdp_range", c(0.025, 0.975)), step = 0.025)
-          )
+          checkboxInput("rf_hline", "Average response", state_init("rf_hline", TRUE)),
+          sliderInput("rf_pdp_range", "Percentile range:", min = 0, max = 1,
+                      value = state_init("rf_pdp_range", c(0.025, 0.975)), step = 0.025)
         )
         # conditionalPanel(
-        #   condition = "input.rf_plots == 'pdp'",
+        #   condition = "input.rf_plots == 'pdp' | input.rf_plots == 'pred_plot'",
         #   checkboxInput("rf_qtiles", "Show quintiles", state_init("rf_qtiles", FALSE))
         # )
       ),

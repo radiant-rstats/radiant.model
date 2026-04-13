@@ -358,7 +358,7 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
                         width = "900px", labs = TRUE,
                         nrobs = Inf, dec = 2,
                         incl = NULL, incl_int = NULL,
-                        hline = TRUE, pdp_range = c(0.025, 0.975),
+                        hline = TRUE, pdp_range = c(0.025, 0.975), minq = NULL, maxq = NULL,
                         shiny = FALSE, custom = FALSE, ...) {
   if (is.empty(plots) || "tree" %in% plots) {
     if ("character" %in% class(x)) {
@@ -588,12 +588,17 @@ plot.crtree <- function(x, plots = "tree", orient = "LR",
     if ("pred_plot" %in% plots) {
       nrCol <- 2
       if (length(incl) > 0 | length(incl_int) > 0) {
-        plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+        plot_list <- pred_plot(x, plot_list, incl, incl_int, hline = hline, pdp_range = pdp_range, ...)
       } else {
         return("Select one or more variables to generate Prediction plots")
       }
     }
 
+    if (!is.null(minq) || !is.null(maxq)) {
+      warning("'minq'/'maxq' are deprecated; use 'pdp_range = c(lo, hi)' instead.", call. = FALSE)
+      if (!is.null(minq)) pdp_range[1] <- minq
+      if (!is.null(maxq)) pdp_range[2] <- maxq
+    }
     if ("pdp" %in% plots) {
       nrCol <- 2
       if (length(incl) > 0 || length(incl_int) > 0) {

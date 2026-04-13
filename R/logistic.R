@@ -504,10 +504,15 @@ summary.logistic <- function(object, sum_check = "", conf_lev = .95,
 #' @export
 plot.logistic <- function(x, plots = "coef", conf_lev = .95,
                           intercept = FALSE, incl = NULL, excl = NULL, incl_int = NULL,
-                          nrobs = -1, hline = TRUE, pdp_range = c(0.025, 0.975),
+                          nrobs = -1, hline = TRUE, pdp_range = c(0.025, 0.975), minq = NULL, maxq = NULL,
                           shiny = FALSE, custom = FALSE, ...) {
   if (is.character(x) || !inherits(x$model, "glm")) {
     return(x)
+  }
+  if (!is.null(minq) || !is.null(maxq)) {
+    warning("'minq'/'maxq' are deprecated; use 'pdp_range = c(lo, hi)' instead.", call. = FALSE)
+    if (!is.null(minq)) pdp_range[1] <- minq
+    if (!is.null(maxq)) pdp_range[2] <- maxq
   }
   if (is.empty(plots[1])) {
     return("Please select a logistic regression plot from the drop-down menu")
@@ -712,7 +717,7 @@ plot.logistic <- function(x, plots = "coef", conf_lev = .95,
       if (length(rem) > 0) {
         return(paste("The following variables are not in the model:", paste(rem, collapse = ", ")))
       }
-      plot_list <- pred_plot(x, plot_list, incl, incl_int, ...)
+      plot_list <- pred_plot(x, plot_list, incl, incl_int, hline = hline, pdp_range = pdp_range, ...)
     } else {
       return("Select one or more variables to generate Prediction plots")
     }

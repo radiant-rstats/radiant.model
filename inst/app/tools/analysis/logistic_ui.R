@@ -422,12 +422,9 @@ output$ui_logistic <- renderUI({
           conditionalPanel(
             condition = "input.logit_plots == 'pdp' | input.logit_plots == 'pred_plot'",
             uiOutput("ui_logit_incl_int"),
-            conditionalPanel(
-              condition = "input.logit_plots == 'pdp'",
-              checkboxInput("logit_hline", "Average response", state_init("logit_hline", TRUE)),
-              sliderInput("logit_pdp_range", "Percentile range", min = 0, max = 1,
-                          value = state_init("logit_pdp_range", c(0.025, 0.975)), step = 0.025)
-            )
+            checkboxInput("logit_hline", "Average response", state_init("logit_hline", TRUE)),
+            sliderInput("logit_pdp_range", "Percentile range:", min = 0, max = 1,
+                        value = state_init("logit_pdp_range", c(0.025, 0.975)), step = 0.025)
           )
         ),
         # conditionalPanel(
