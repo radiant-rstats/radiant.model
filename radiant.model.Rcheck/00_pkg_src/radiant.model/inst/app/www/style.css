@@ -1,0 +1,85 @@
+#sim_form, #rep_form {
+  width: 100%;
+}
+
+/* from: https://github.com/swarm-lab/editR/blob/master/inst/app/www/editR.css */
+#dtree_edit {
+  position: absolute;
+  top: 165px;
+  bottom: 0;
+  left: 0;
+  right: 50%;
+  padding-right: 10px;
+}
+
+div.mermaidTooltip {
+  text-align: left !important;
+  max-width: 300px !important;
+}
+
+/*
+div.mermaidTooltip {
+  position: absolute;
+  text-align: center;
+  max-width: 200px;
+  padding: 2px;
+  font-family: 'trebuchet ms', verdana, arial;
+  font-size: 12px;
+  background: #ffffde;
+  border: 1px solid #aaaa33;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 100;
+}
+*/
+
+/* from: https://github.com/swarm-lab/editR/blob/master/inst/app/www/editR.css */
+#dtree_print {
+  position: absolute;
+  top: 165px;
+  bottom: 0;
+  left: 50%;
+  right: 0;
+  padding-left: 10px;
+  overflow-y: scroll;
+}
+
+/* print option relevant to print a decision tree to pdf */
+/* based on http://stackoverflow.com/a/2618980/1974918 */
+@media print {
+
+  #dtree * {
+    visibility: hidden;
+  }
+  #dtree_plot, #dtree_plot * {
+    visibility: visible;
+  }
+  #dtree_plot {
+    display:inline;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+  }
+  #crtree * {
+    visibility: hidden;
+  }
+  #crtree_plot, #crtree_plot * {
+    visibility: visible;
+  }
+  #crtree_plot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+
+    /*display:inline; */
+    /*width: 100%;*/
+    /*height: 100%;*/
+    /*padding: 0;*/
+
+    /*height: 100%;*/
+    /*height: auto;*/
+  }
+}
