@@ -8,7 +8,8 @@
 #' @param lev The level in the response variable defined as _success_
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
-#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param check Use "standardize-1sd" or "standardize-2sd" to see standardized coefficient estimates based on one or two standard deviations ("standardize" is a synonym for "standardize-2sd"). Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param sf Scaling factor to use in standardization (2 is the default). Only used if the number of standard deviations is not specified through check
 #' @param form Optional formula to use instead of rvar, evar, and int
 #' @param ci_type To use the profile-likelihood (rather than Wald) for confidence intervals use "profile". For datasets with more than 5,000 rows the Wald method will be used, unless "profile" is explicitly set
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
@@ -20,6 +21,10 @@
 #'
 #' @examples
 #' logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") %>% summary()
+#' logistic(
+#'   titanic, "survived", c("pclass", "sex", "age"),
+#'   lev = "Yes", check = "standardize-1sd"
+#' ) %>% summary()
 #' logistic(titanic, "survived", c("pclass", "sex")) %>% str()
 #' @seealso \code{\link{summary.logistic}} to summarize the results
 #' @seealso \code{\link{plot.logistic}} to plot the results
@@ -30,7 +35,7 @@
 #'
 #' @export
 logistic <- function(dataset, rvar, evar, lev = "", int = "",
-                     wts = "None", check = "", form, ci_type,
+                     wts = "None", check = "", sf = 2, form, ci_type,
                      data_filter = "", arr = "", rows = NULL, envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
@@ -126,9 +131,13 @@ logistic <- function(dataset, rvar, evar, lev = "", int = "",
   ## add minmax attributes to data
   mmx <- minmax(dataset)
 
+  ## scaling factor used for standardization (e.g., 1 or 2 X SD)
+  sf <- scale_factor(sf, check)
+  check <- clean_check(check)
+
   ## scale data
   if ("standardize" %in% check) {
-    dataset <- scale_df(dataset, wts = wts)
+    dataset <- scale_df(dataset, sf = sf, wts = wts)
   } else if ("center" %in% check) {
     dataset <- scale_df(dataset, scale = FALSE, wts = wts)
   }
@@ -271,7 +280,7 @@ summary.logistic <- function(object, sum_check = "", conf_lev = .95,
   cat(paste0("Null hyp.: there is no effect of ", expl_var, " on ", object$rvar, "\n"))
   cat(paste0("Alt. hyp.: there is an effect of ", expl_var, " on ", object$rvar, "\n"))
   if ("standardize" %in% object$check) {
-    cat("**Standardized odds-ratios and coefficients shown (2 X SD)**\n")
+    cat(paste0("**Standardized odds-ratios and coefficients shown (", scale_factor(object$sf), " X SD)**\n"))
   } else if ("center" %in% object$check) {
     cat("**Centered odds-ratios and coefficients shown (x - mean(x))**\n")
   }

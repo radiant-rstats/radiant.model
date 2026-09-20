@@ -119,146 +119,189 @@ export(write.coeff)
 import(ggplot2)
 import(radiant.data)
 import(shiny)
-importFrom(DiagrammeR,DiagrammeR)
-importFrom(DiagrammeR,DiagrammeROutput)
-importFrom(DiagrammeR,mermaid)
-importFrom(DiagrammeR,renderDiagrammeR)
-importFrom(NeuralNetTools,garson)
-importFrom(NeuralNetTools,olden)
-importFrom(NeuralNetTools,plotnet)
+importFrom(DiagrammeR,
+  DiagrammeR,
+  DiagrammeROutput,
+  mermaid,
+  renderDiagrammeR
+)
+importFrom(NeuralNetTools,
+  garson,
+  olden,
+  plotnet
+)
 importFrom(broom,augment)
-importFrom(car,linearHypothesis)
-importFrom(car,vif)
-importFrom(data.tree,Clone)
-importFrom(data.tree,FormatPercent)
-importFrom(data.tree,Get)
-importFrom(data.tree,Traverse)
-importFrom(data.tree,as.Node)
-importFrom(data.tree,isLeaf)
-importFrom(data.tree,isNotLeaf)
-importFrom(data.tree,isNotRoot)
-importFrom(dplyr,across)
-importFrom(dplyr,arrange)
-importFrom(dplyr,arrange_at)
-importFrom(dplyr,bind_cols)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,data_frame)
-importFrom(dplyr,desc)
-importFrom(dplyr,distinct_at)
-importFrom(dplyr,everything)
-importFrom(dplyr,filter)
-importFrom(dplyr,first)
-importFrom(dplyr,funs)
-importFrom(dplyr,group_by)
-importFrom(dplyr,group_by_)
-importFrom(dplyr,group_by_at)
-importFrom(dplyr,inner_join)
-importFrom(dplyr,last)
-importFrom(dplyr,min_rank)
-importFrom(dplyr,mutate)
-importFrom(dplyr,mutate_)
-importFrom(dplyr,mutate_all)
-importFrom(dplyr,mutate_at)
-importFrom(dplyr,mutate_if)
-importFrom(dplyr,near)
-importFrom(dplyr,pull)
-importFrom(dplyr,rename)
-importFrom(dplyr,sample_n)
-importFrom(dplyr,select)
-importFrom(dplyr,select_at)
-importFrom(dplyr,slice)
-importFrom(dplyr,summarise)
-importFrom(dplyr,summarise_)
-importFrom(dplyr,summarise_all)
-importFrom(dplyr,summarise_at)
-importFrom(dplyr,summarize)
-importFrom(dplyr,ungroup)
+importFrom(car,
+  linearHypothesis,
+  vif
+)
+importFrom(data.tree,
+  Clone,
+  FormatPercent,
+  Get,
+  Traverse,
+  as.Node,
+  isLeaf,
+  isNotLeaf,
+  isNotRoot
+)
+importFrom(dplyr,
+  across,
+  arrange,
+  arrange_at,
+  bind_cols,
+  bind_rows,
+  data_frame,
+  desc,
+  distinct_at,
+  everything,
+  filter,
+  first,
+  funs,
+  group_by,
+  group_by_,
+  group_by_at,
+  inner_join,
+  last,
+  min_rank,
+  mutate,
+  mutate_,
+  mutate_all,
+  mutate_at,
+  mutate_if,
+  near,
+  pull,
+  rename,
+  sample_n,
+  select,
+  select_at,
+  slice,
+  summarise,
+  summarise_,
+  summarise_all,
+  summarise_at,
+  summarize,
+  ungroup
+)
 importFrom(e1071,naiveBayes)
-importFrom(ggplot2,autoplot)
+importFrom(ggplot2,
+  aes,
+  autoplot,
+  geom_line,
+  geom_point,
+  geom_rug,
+  ggplot,
+  xlab,
+  ylab
+)
 importFrom(ggrepel,geom_text_repel)
 importFrom(graphics,par)
 importFrom(import,from)
-importFrom(lubridate,is.Date)
-importFrom(lubridate,now)
-importFrom(magrittr,"%<>%")
-importFrom(magrittr,"%>%")
-importFrom(magrittr,"%T>%")
-importFrom(magrittr,extract2)
-importFrom(magrittr,set_colnames)
-importFrom(magrittr,set_names)
-importFrom(magrittr,set_rownames)
-importFrom(nnet,nnet)
-importFrom(nnet,nnet.formula)
-importFrom(patchwork,plot_annotation)
-importFrom(patchwork,wrap_plots)
+importFrom(lubridate,
+  is.Date,
+  now
+)
+importFrom(magrittr,
+  "%<>%",
+  "%>%",
+  "%T>%",
+  extract2,
+  set_colnames,
+  set_names,
+  set_rownames
+)
+importFrom(nnet,
+  nnet,
+  nnet.formula
+)
+importFrom(patchwork,
+  plot_annotation,
+  wrap_plots
+)
 importFrom(psych,cohen.kappa)
-importFrom(radiant.data,launch)
-importFrom(radiant.data,set_attr)
-importFrom(radiant.data,visualize)
+importFrom(radiant.data,
+  launch,
+  set_attr,
+  visualize
+)
 importFrom(ranger,ranger)
-importFrom(rlang,":=")
-importFrom(rlang,.data)
-importFrom(rlang,parse_exprs)
-importFrom(rpart,prune.rpart)
-importFrom(rpart,rpart)
-importFrom(rpart,rpart.control)
+importFrom(rlang,
+  ":=",
+  .data,
+  parse_exprs
+)
+importFrom(rpart,
+  prune.rpart,
+  rpart,
+  rpart.control
+)
 importFrom(sandwich,vcovHC)
 importFrom(scales,percent)
-importFrom(shiny,getDefaultReactiveDomain)
-importFrom(shiny,incProgress)
-importFrom(shiny,withProgress)
-importFrom(stats,anova)
-importFrom(stats,as.formula)
-importFrom(stats,binomial)
-importFrom(stats,coef)
-importFrom(stats,confint)
-importFrom(stats,confint.default)
-importFrom(stats,contrasts)
-importFrom(stats,cor)
-importFrom(stats,deviance)
-importFrom(stats,dnorm)
-importFrom(stats,family)
-importFrom(stats,formula)
-importFrom(stats,glm)
-importFrom(stats,lm)
-importFrom(stats,logLik)
-importFrom(stats,median)
-importFrom(stats,model.frame)
-importFrom(stats,model.matrix)
-importFrom(stats,na.omit)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,pt)
-importFrom(stats,qnorm)
-importFrom(stats,qt)
-importFrom(stats,quantile)
-importFrom(stats,rbinom)
-importFrom(stats,relevel)
-importFrom(stats,residuals)
-importFrom(stats,rlnorm)
-importFrom(stats,rnorm)
-importFrom(stats,rpois)
-importFrom(stats,runif)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,step)
-importFrom(stats,terms)
-importFrom(stats,terms.formula)
-importFrom(stats,update)
-importFrom(stats,weighted.mean)
-importFrom(stats,wilcox.test)
+importFrom(shiny,
+  getDefaultReactiveDomain,
+  incProgress,
+  withProgress
+)
+importFrom(stats,
+  anova,
+  as.formula,
+  binomial,
+  coef,
+  confint,
+  confint.default,
+  contrasts,
+  cor,
+  deviance,
+  dnorm,
+  family,
+  formula,
+  glm,
+  lm,
+  logLik,
+  median,
+  model.frame,
+  model.matrix,
+  na.omit,
+  pnorm,
+  predict,
+  pt,
+  qnorm,
+  qt,
+  quantile,
+  rbinom,
+  relevel,
+  residuals,
+  rlnorm,
+  rnorm,
+  rpois,
+  runif,
+  sd,
+  setNames,
+  step,
+  terms,
+  terms.formula,
+  update,
+  weighted.mean,
+  wilcox.test
+)
 importFrom(stringi,stri_trans_general)
 importFrom(stringr,str_match)
-importFrom(tidyr,gather)
-importFrom(tidyr,spread)
+importFrom(tidyr,
+  gather,
+  spread
+)
 importFrom(tidyselect,where)
-importFrom(utils,as.relistable)
-importFrom(utils,capture.output)
-importFrom(utils,combn)
-importFrom(utils,head)
-importFrom(utils,relist)
-importFrom(utils,tail)
-importFrom(utils,write.table)
-importFrom(xgboost,xgb.importance)
-importFrom(xgboost,xgboost)
+importFrom(utils,
+  as.relistable,
+  capture.output,
+  combn,
+  head,
+  relist,
+  tail,
+  write.table
+)
+importFrom(xgboost,
+  xgb.importance,
+  xgboost
+)
 importFrom(yaml,yaml.load)

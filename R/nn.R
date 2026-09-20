@@ -11,7 +11,7 @@
 #' @param decay Parameter decay
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
-#' @param check Optional estimation parameters ("standardize" is the default)
+#' @param check Optional estimation parameters. "standardize" is the default and standardizes by 2 X SD. Use "standardize-1sd" or "standardize-2sd" to be explicit about the number of standard deviations
 #' @param form Optional formula to use instead of rvar and evar
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
@@ -109,10 +109,14 @@ nn <- function(dataset, rvar, evar,
     entropy <- FALSE
   }
 
+  ## scaling factor used for standardization (e.g., 1 or 2 X SD)
+  sf <- scale_factor(2, check)
+  check <- clean_check(check)
+
   ## standardize data to limit stability issues ...
   # http://stats.stackexchange.com/questions/23235/how-do-i-improve-my-neural-network-stability
   if ("standardize" %in% check) {
-    dataset <- scale_df(dataset, wts = wts)
+    dataset <- scale_df(dataset, sf = sf, wts = wts)
   }
 
   vars <- evar
@@ -163,6 +167,23 @@ nn <- function(dataset, rvar, evar,
   as.list(environment()) %>% add_class(c("nn", "model"))
 }
 
+## Scaling factor to use for standardization. "standardize-1sd" and
+## "standardize-2sd" in check set the scaling factor explicitly. If check does
+## not specify a number of standard deviations the sf argument is used.
+## Returns 2 (the radiant default) if sf is not a positive number
+scale_factor <- function(sf = 2, check = NULL) {
+  std <- grep("^standardize-[0-9.]+sd$", check, value = TRUE)
+  if (length(std) > 0) {
+    sf <- sub("^standardize-([0-9.]+)sd$", "\\1", std[1])
+  }
+  sf <- suppressWarnings(as.numeric(sf[1]))
+  if (length(sf) == 0 || is.na(sf) || sf <= 0) 2 else sf
+}
+
+## Replace "standardize-1sd" and "standardize-2sd" by "standardize" so the
+## remainder of the code only has to check for "standardize"
+clean_check <- function(check) sub("^standardize-[0-9.]+sd$", "standardize", check)
+
 #' Center or standardize variables in a data frame
 #'
 #' @param dataset Data frame
@@ -177,6 +198,12 @@ nn <- function(dataset, rvar, evar,
 #' @export
 scale_df <- function(dataset, center = TRUE, scale = TRUE,
                      sf = 2, wts = NULL, calc = TRUE) {
+  ## when re-using stored means and sds, also re-use the stored scaling factor
+  ## unless a scaling factor was explicitly provided
+  if (isFALSE(calc) && missing(sf) && length(attr(dataset, "radiant_sf")) > 0) {
+    sf <- attr(dataset, "radiant_sf")
+  }
+  sf <- scale_factor(sf)
   isNum <- sapply(dataset, function(x) is.numeric(x))
   if (length(isNum) == 0 || sum(isNum) == 0) {
     return(dataset)

@@ -6,9 +6,10 @@ logit_predict <- c(
   "Data & Command" = "datacmd"
 )
 logit_check <- c(
-  "Standardize" = "standardize", "Center" = "center",
-  "Stepwise" = "stepwise-backward", "Robust" = "robust"
+  "Standardize (1 SD)" = "standardize-1sd", "Standardize (2 SD)" = "standardize-2sd",
+  "Center" = "center", "Stepwise" = "stepwise-backward", "Robust" = "robust"
 )
+logit_std_options <- c("standardize-1sd", "standardize-2sd")
 logit_sum_check <- c(
   "VIF" = "vif", "Confidence intervals" = "confint",
   "Odds" = "odds"
@@ -226,6 +227,21 @@ output$ui_logit_test_var <- renderUI({
   )
 })
 
+## the two standardization options are mutually exclusive
+logit_std_check <- reactiveVal(character(0))
+observeEvent(input$logit_check, {
+  std <- intersect(input$logit_check, logit_std_options)
+  if (length(std) > 1) {
+    new_std <- setdiff(std, logit_std_check())
+    std <- if (length(new_std) > 0) new_std[1] else std[1]
+    updateCheckboxGroupInput(
+      session = session, inputId = "logit_check",
+      selected = c(setdiff(input$logit_check, logit_std_options), std)
+    )
+  }
+  logit_std_check(std)
+}, ignoreNULL = FALSE)
+
 ## not clear why this is needed because state_multiple should handle this
 observeEvent(is.null(input$logit_test_var), {
   if ("logit_test_var" %in% names(input)) r_state$logit_test_var <<- NULL
@@ -355,7 +371,9 @@ output$ui_logistic <- renderUI({
           uiOutput("ui_logit_test_var"),
           checkboxGroupInput(
             "logit_check", NULL, logit_check,
-            selected = state_group("logit_check"), inline = TRUE
+            ## "standardize" was the option used for 2 X SD in earlier versions
+            selected = sub("^standardize$", "standardize-2sd", state_group("logit_check")),
+            inline = TRUE
           ),
           checkboxGroupInput(
             "logit_sum_check", NULL, logit_sum_check,

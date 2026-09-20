@@ -31,7 +31,7 @@ mnl(
 
 \item{wts}{Weights to use in estimation}
 
-\item{check}{Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.}
+\item{check}{Use "standardize-1sd" or "standardize-2sd" to see standardized coefficient estimates based on one or two standard deviations ("standardize" is a synonym for "standardize-2sd"). Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 

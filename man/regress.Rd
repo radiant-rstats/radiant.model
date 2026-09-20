@@ -10,6 +10,7 @@ regress(
   evar,
   int = "",
   check = "",
+  sf = 2,
   form,
   data_filter = "",
   arr = "",
@@ -26,7 +27,9 @@ regress(
 
 \item{int}{Interaction terms to include in the model}
 
-\item{check}{Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)}
+\item{check}{Use "standardize-1sd" or "standardize-2sd" to see standardized coefficient estimates based on one or two standard deviations ("standardize" is a synonym for "standardize-2sd"). Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)}
+
+\item{sf}{Scaling factor to use in standardization (2 is the default). Only used if the number of standard deviations is not specified through check}
 
 \item{form}{Optional formula to use instead of rvar, evar, and int}
 
@@ -49,6 +52,7 @@ See \url{https://radiant-rstats.github.io/docs/model/regress.html} for an exampl
 }
 \examples{
 regress(diamonds, "price", c("carat", "clarity"), check = "standardize") \%>\% summary()
+regress(diamonds, "price", c("carat", "clarity"), check = "standardize-1sd") \%>\% summary()
 regress(diamonds, "price", c("carat", "clarity")) \%>\% str()
 
 }

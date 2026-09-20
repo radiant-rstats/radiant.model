@@ -41,7 +41,7 @@ nn(
 
 \item{seed}{Random seed to use as the starting point}
 
-\item{check}{Optional estimation parameters ("standardize" is the default)}
+\item{check}{Optional estimation parameters. "standardize" is the default and standardizes by 2 X SD. Use "standardize-1sd" or "standardize-2sd" to be explicit about the number of standard deviations}
 
 \item{form}{Optional formula to use instead of rvar and evar}
 

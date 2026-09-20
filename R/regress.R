@@ -6,7 +6,8 @@
 #' @param rvar The response variable in the regression
 #' @param evar Explanatory variables in the regression
 #' @param int Interaction terms to include in the model
-#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param check Use "standardize-1sd" or "standardize-2sd" to see standardized coefficient estimates based on one or two standard deviations ("standardize" is a synonym for "standardize-2sd"). Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)
+#' @param sf Scaling factor to use in standardization (2 is the default). Only used if the number of standard deviations is not specified through check
 #' @param form Optional formula to use instead of rvar, evar, and int
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
@@ -17,6 +18,7 @@
 #'
 #' @examples
 #' regress(diamonds, "price", c("carat", "clarity"), check = "standardize") %>% summary()
+#' regress(diamonds, "price", c("carat", "clarity"), check = "standardize-1sd") %>% summary()
 #' regress(diamonds, "price", c("carat", "clarity")) %>% str()
 #'
 #' @seealso \code{\link{summary.regress}} to summarize results
@@ -26,7 +28,7 @@
 #' @importFrom sandwich vcovHC
 #'
 #' @export
-regress <- function(dataset, rvar, evar, int = "", check = "",
+regress <- function(dataset, rvar, evar, int = "", check = "", sf = 2,
                     form, data_filter = "", arr = "", rows = NULL, envir = parent.frame()) {
   if (!missing(form)) {
     form <- as.formula(format(form))
@@ -69,11 +71,15 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
   ## add minmax attributes to data
   mmx <- minmax(dataset)
 
+  ## scaling factor used for standardization (e.g., 1 or 2 X SD)
+  sf <- scale_factor(sf, check)
+  check <- clean_check(check)
+
   ## scale data
   isNum <- sapply(dataset, is.numeric)
   if (sum(isNum) > 0) {
     if ("standardize" %in% check) {
-      dataset <- scale_df(dataset)
+      dataset <- scale_df(dataset, sf = sf)
     } else if ("center" %in% check) {
       dataset <- scale_df(dataset, scale = FALSE)
     }
@@ -206,7 +212,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   cat(paste0("Null hyp.: the effect of ", expl_var, " on ", object$rvar, " is zero\n"))
   cat(paste0("Alt. hyp.: the effect of ", expl_var, " on ", object$rvar, " is not zero\n"))
   if ("standardize" %in% object$check) {
-    cat("**Standardized coefficients shown (2 X SD)**\n")
+    cat(paste0("**Standardized coefficients shown (", scale_factor(object$sf), " X SD)**\n"))
   } else if ("center" %in% object$check) {
     cat("**Centered coefficients shown (x - mean(x))**\n")
   }
@@ -1320,7 +1326,11 @@ predict_model <- function(object, pfun, mclass, pred_data = NULL, pred_cmd = "",
     } else {
       scale <- FALSE
     }
-    pred_val <- scale_df(pred, center = TRUE, scale = scale, calc = FALSE) %>%
+    pred_val <- scale_df(
+      pred,
+      center = TRUE, scale = scale,
+      sf = scale_factor(attr(object$model$model, "radiant_sf")), calc = FALSE
+    ) %>%
       pfun(object$model, ., se = se, conf_lev = conf_lev, ...)
   } else {
     ## generate predictions using the supplied function (pfun)

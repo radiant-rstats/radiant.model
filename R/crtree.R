@@ -20,7 +20,7 @@
 #' @param adjprob Setting a prior will rescale the predicted probabilities. Set adjprob to TRUE to adjust the probabilities back to their original scale after estimation
 #' @param cost Cost for each treatment (e.g., mailing)
 #' @param margin Margin associated with a successful treatment (e.g., a purchase)
-#' @param check Optional estimation parameters (e.g., "standardize")
+#' @param check Optional estimation parameters (e.g., "standardize", which standardizes by 2 X SD). Use "standardize-1sd" or "standardize-2sd" to be explicit about the number of standard deviations
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
@@ -120,9 +120,13 @@ crtree <- function(dataset, rvar, evar, type = "", lev = "", wts = "None",
   ## so the correct type is used in prediction
   dataset <- mutate_if(dataset, is.logical, as.factor)
 
+  ## scaling factor used for standardization (e.g., 1 or 2 X SD)
+  sf <- scale_factor(2, check)
+  check <- clean_check(check)
+
   ## standardize data ...
   if ("standardize" %in% check) {
-    dataset <- scale_df(dataset, wts = wts)
+    dataset <- scale_df(dataset, sf = sf, wts = wts)
   }
 
   vars <- evar

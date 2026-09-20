@@ -9,9 +9,10 @@ reg_predict <- c(
   "Data & Command" = "datacmd"
 )
 reg_check <- c(
-  "Standardize" = "standardize", "Center" = "center",
-  "Stepwise" = "stepwise-backward", "Robust" = "robust"
+  "Standardize (1 SD)" = "standardize-1sd", "Standardize (2 SD)" = "standardize-2sd",
+  "Center" = "center", "Stepwise" = "stepwise-backward", "Robust" = "robust"
 )
+reg_std_options <- c("standardize-1sd", "standardize-2sd")
 reg_sum_check <- c(
   "RMSE" = "rmse", "Sum of squares" = "sumsquares",
   "VIF" = "vif", "Confidence intervals" = "confint"
@@ -198,6 +199,21 @@ output$ui_reg_test_var <- renderUI({
   )
 })
 
+## the two standardization options are mutually exclusive
+reg_std_check <- reactiveVal(character(0))
+observeEvent(input$reg_check, {
+  std <- intersect(input$reg_check, reg_std_options)
+  if (length(std) > 1) {
+    new_std <- setdiff(std, reg_std_check())
+    std <- if (length(new_std) > 0) new_std[1] else std[1]
+    updateCheckboxGroupInput(
+      session = session, inputId = "reg_check",
+      selected = c(setdiff(input$reg_check, reg_std_options), std)
+    )
+  }
+  reg_std_check(std)
+}, ignoreNULL = FALSE)
+
 ## not clear why this is needed because state_multiple should handle this
 observeEvent(is.null(input$reg_test_var), {
   if ("reg_test_var" %in% names(input)) r_state$reg_test_var <<- NULL
@@ -310,7 +326,9 @@ output$ui_regress <- renderUI({
           uiOutput("ui_reg_test_var"),
           checkboxGroupInput(
             "reg_check", NULL, reg_check,
-            selected = state_group("reg_check"), inline = TRUE
+            ## "standardize" was the option used for 2 X SD in earlier versions
+            selected = sub("^standardize$", "standardize-2sd", state_group("reg_check")),
+            inline = TRUE
           ),
           checkboxGroupInput(
             "reg_sum_check", NULL, reg_sum_check,

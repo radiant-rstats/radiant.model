@@ -1,3 +1,9 @@
+# radiant.model 1.6.12
+
+- Added `Standardize (1 SD)` and `Standardize (2 SD)` options in Model > Estimate > Linear regression (OLS) and Model > Estimate > Logistic regression (GLM). In `regress` and `logistic` these correspond to `check = "standardize-1sd"` and `check = "standardize-2sd"`. `check = "standardize"` still standardizes by 2 X SD
+- Fixed a bug where predictions from a linear or logistic regression estimated with a scaling factor other than 2 X SD were not rescaled correctly
+- `nn`, `crtree`, and `mnl` now also accept `check = "standardize-1sd"` and `check = "standardize-2sd"`. Previously an unrecognized `standardize-...` value would silently skip standardization
+
 # radiant.model 1.6.8
 
 - Fixed a bug in `write.coeff` when only one explanatory variable has been selected in linear or logistic regression

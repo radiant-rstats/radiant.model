@@ -8,7 +8,7 @@
 #' @param lev The level in the response variable to use as the baseline
 #' @param int Interaction term to include in the model
 #' @param wts Weights to use in estimation
-#' @param check Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.
+#' @param check Use "standardize-1sd" or "standardize-2sd" to see standardized coefficient estimates based on one or two standard deviations ("standardize" is a synonym for "standardize-2sd"). Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation.
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
@@ -100,8 +100,12 @@ mnl <- function(dataset, rvar, evar, lev = "", int = "",
   mmx <- minmax(dataset)
 
   ## scale data
+  ## scaling factor used for standardization (e.g., 1 or 2 X SD)
+  sf <- scale_factor(2, check)
+  check <- clean_check(check)
+
   if ("standardize" %in% check) {
-    dataset <- scale_df(dataset, wts = wts)
+    dataset <- scale_df(dataset, sf = sf, wts = wts)
   } else if ("center" %in% check) {
     dataset <- scale_df(dataset, scale = FALSE, wts = wts)
   }
@@ -243,7 +247,7 @@ summary.mnl <- function(object, sum_check = "", conf_lev = .95,
   cat(paste0("Null hyp.: there is no effect of ", expl_var, " on ", object$rvar, "\n"))
   cat(paste0("Alt. hyp.: there is an effect of ", expl_var, " on ", object$rvar, "\n"))
   if ("standardize" %in% object$check) {
-    cat("**Standardized RRRs and coefficients shown (2 X SD)**\n")
+    cat(paste0("**Standardized RRRs and coefficients shown (", scale_factor(object$sf), " X SD)**\n"))
   } else if ("center" %in% object$check) {
     cat("**Centered RRRs and coefficients shown (x - mean(x))**\n")
   }

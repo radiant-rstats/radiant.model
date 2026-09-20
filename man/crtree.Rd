@@ -67,7 +67,7 @@ crtree(
 
 \item{margin}{Margin associated with a successful treatment (e.g., a purchase)}
 
-\item{check}{Optional estimation parameters (e.g., "standardize")}
+\item{check}{Optional estimation parameters (e.g., "standardize", which standardizes by 2 X SD). Use "standardize-1sd" or "standardize-2sd" to be explicit about the number of standard deviations}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 

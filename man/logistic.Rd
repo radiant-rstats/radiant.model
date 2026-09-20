@@ -12,6 +12,7 @@ logistic(
   int = "",
   wts = "None",
   check = "",
+  sf = 2,
   form,
   ci_type,
   data_filter = "",
@@ -33,7 +34,9 @@ logistic(
 
 \item{wts}{Weights to use in estimation}
 
-\item{check}{Use "standardize" to see standardized coefficient estimates. Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)}
+\item{check}{Use "standardize-1sd" or "standardize-2sd" to see standardized coefficient estimates based on one or two standard deviations ("standardize" is a synonym for "standardize-2sd"). Use "stepwise-backward" (or "stepwise-forward", or "stepwise-both") to apply step-wise selection of variables in estimation. Add "robust" for robust estimation of standard errors (HC1)}
+
+\item{sf}{Scaling factor to use in standardization (2 is the default). Only used if the number of standard deviations is not specified through check}
 
 \item{form}{Optional formula to use instead of rvar, evar, and int}
 
@@ -58,6 +61,10 @@ See \url{https://radiant-rstats.github.io/docs/model/logistic.html} for an examp
 }
 \examples{
 logistic(titanic, "survived", c("pclass", "sex"), lev = "Yes") \%>\% summary()
+logistic(
+  titanic, "survived", c("pclass", "sex", "age"),
+  lev = "Yes", check = "standardize-1sd"
+) \%>\% summary()
 logistic(titanic, "survived", c("pclass", "sex")) \%>\% str()
 }
 \seealso{
