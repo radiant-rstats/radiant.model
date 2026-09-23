@@ -151,8 +151,19 @@ test_that("Neural Network - predict with date", {
   expect_equal(res1, res2)
 })
 
-# context("Gradient Boosted Trees (gbt)")
-#
+context("Gradient Boosted Trees (gbt)")
+
+test_that("gbt stops early with an evaluation set", {
+  result <- gbt(
+    titanic, "survived", c("pclass", "sex"),
+    nrounds = 20, learning_rate = 0, early_stopping_rounds = 2, eval_set = 0.2, nthread = 1
+  )
+
+  # Evaluate the initial round, then stop after two rounds without improvement.
+  expect_equal(nrow(attr(result$model, "evaluation_log")), 3L)
+  expect_lt(xgboost::xgb.get.num.boosted.rounds(result$model), 20L)
+})
+
 # test_that("Gradient Boosting - NoLD test", {
 #   result <- gbt(titanic, "survived", c("pclass", "sex"), lev = "Yes", early_stopping_rounds = 0)
 #   res1 <- round(result$model$importance$Gain, 3)

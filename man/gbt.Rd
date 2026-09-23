@@ -16,7 +16,7 @@ gbt(
   min_child_weight = 1,
   subsample = 1,
   nrounds = 100,
-  early_stopping_rounds = 10,
+  early_stopping_rounds = NULL,
   nthread = 12,
   wts = "None",
   seed = NA,
@@ -50,7 +50,7 @@ gbt(
 
 \item{nrounds}{Number of trees to create}
 
-\item{early_stopping_rounds}{Early stopping rule}
+\item{early_stopping_rounds}{Early stopping rule. A positive value requires \code{eval_set}}
 
 \item{nthread}{Number of parallel threads to use. Defaults to 12 if available}
 

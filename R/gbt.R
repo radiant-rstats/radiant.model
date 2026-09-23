@@ -13,7 +13,7 @@
 #' @param nrounds Number of trees to create
 #' @param min_child_weight Minimum number of instances allowed in each node
 #' @param subsample Subsample ratio of the training instances (0-1)
-#' @param early_stopping_rounds Early stopping rule
+#' @param early_stopping_rounds Early stopping rule. A positive value requires \code{eval_set}
 #' @param nthread Number of parallel threads to use. Defaults to 12 if available
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
@@ -57,7 +57,7 @@
 gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
                 max_depth = 6, learning_rate = 0.3, min_split_loss = 0,
                 min_child_weight = 1, subsample = 1,
-                nrounds = 100, early_stopping_rounds = 10,
+                nrounds = 100, early_stopping_rounds = NULL,
                 nthread = 12, wts = "None", seed = NA,
                 data_filter = "", arr = "", rows = NULL,
                 envir = parent.frame(), ...) {
@@ -121,6 +121,11 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
   ## in case : is used
   if (length(vars) < (ncol(dataset) - 1)) {
     vars <- evar <- colnames(dataset)[-1]
+  }
+
+  ## 0 is invalid for XGBoost.
+  if (isTRUE(early_stopping_rounds == 0)) {
+    early_stopping_rounds <- NULL
   }
 
   gbt_input <- list(
@@ -242,7 +247,8 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   cat("Min child weight     :", object$min_child_weight, "\n")
   cat("Sub-sample           :", object$subsample, "\n")
   cat("Nr of rounds (trees) :", object$nrounds, "\n")
-  cat("Early stopping rounds:", object$early_stopping_rounds, "\n")
+  early_stopping_rounds <- if (is.null(object$early_stopping_rounds)) "None" else object$early_stopping_rounds
+  cat("Early stopping rounds:", early_stopping_rounds, "\n")
   if (length(object$extra_args)) {
     extra_args <- deparse(object$extra_args) %>%
       sub("list\\(", "", .) %>%
@@ -482,7 +488,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
 #' @examples
 #' result <- gbt(
 #'   titanic, "survived", c("pclass", "sex"),
-#'   early_stopping_rounds = 2, nthread = 1
+#'   early_stopping_rounds = 2, eval_set = 0.2, seed = 1234, nthread = 1
 #' )
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' result <- gbt(diamonds, "price", "carat:color", type = "regression", nthread = 1)
