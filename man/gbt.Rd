@@ -16,7 +16,7 @@ gbt(
   min_child_weight = 1,
   subsample = 1,
   nrounds = 100,
-  early_stopping_rounds = 10,
+  early_stopping_rounds = NULL,
   nthread = 12,
   wts = "None",
   seed = NA,
@@ -24,6 +24,7 @@ gbt(
   arr = "",
   rows = NULL,
   envir = parent.frame(),
+  eval_set = NULL,
   ...
 )
 }
@@ -50,7 +51,7 @@ gbt(
 
 \item{nrounds}{Number of trees to create}
 
-\item{early_stopping_rounds}{Early stopping rule}
+\item{early_stopping_rounds}{Early stopping rule. A positive value requires \code{eval_set}}
 
 \item{nthread}{Number of parallel threads to use. Defaults to 12 if available}
 
@@ -65,6 +66,8 @@ gbt(
 \item{rows}{Rows to select from the specified dataset}
 
 \item{envir}{Environment to extract data from}
+
+\item{eval_set}{Fraction or row indices to hold out for evaluation. Use \code{NULL} for no holdout.}
 
 \item{...}{Further arguments to pass to xgboost}
 }

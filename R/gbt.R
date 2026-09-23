@@ -13,7 +13,7 @@
 #' @param nrounds Number of trees to create
 #' @param min_child_weight Minimum number of instances allowed in each node
 #' @param subsample Subsample ratio of the training instances (0-1)
-#' @param early_stopping_rounds Early stopping rule
+#' @param early_stopping_rounds Early stopping rule. A positive value requires \code{eval_set}
 #' @param nthread Number of parallel threads to use. Defaults to 12 if available
 #' @param wts Weights to use in estimation
 #' @param seed Random seed to use as the starting point
@@ -21,6 +21,7 @@
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
+#' @param eval_set Fraction or row indices to hold out for evaluation. Use \code{NULL} for no holdout.
 #' @param ... Further arguments to pass to xgboost
 #'
 #' @return A list with all variables defined in gbt as an object of class gbt
@@ -60,7 +61,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
                 nrounds = 100, early_stopping_rounds = 10,
                 nthread = 12, wts = "None", seed = NA,
                 data_filter = "", arr = "", rows = NULL,
-                envir = parent.frame(), ...) {
+                envir = parent.frame(), eval_set = 0.2, ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("gbt"))
@@ -123,6 +124,11 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
     vars <- evar <- colnames(dataset)[-1]
   }
 
+  ## 0 is invalid for XGBoost.
+  if (isTRUE(early_stopping_rounds == 0)) {
+    early_stopping_rounds <- NULL
+  }
+
   gbt_input <- list(
     max_depth = max_depth,
     learning_rate = learning_rate,
@@ -131,7 +137,8 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
     min_child_weight = min_child_weight,
     subsample = subsample,
     early_stopping_rounds = early_stopping_rounds,
-    nthread = nthread
+    nthread = nthread,
+    eval_set = eval_set
   )
 
   ## checking for extra args
@@ -242,7 +249,8 @@ summary.gbt <- function(object, prn = TRUE, ...) {
   cat("Min child weight     :", object$min_child_weight, "\n")
   cat("Sub-sample           :", object$subsample, "\n")
   cat("Nr of rounds (trees) :", object$nrounds, "\n")
-  cat("Early stopping rounds:", object$early_stopping_rounds, "\n")
+  early_stopping_rounds <- if (is.null(object$early_stopping_rounds)) "None" else object$early_stopping_rounds
+  cat("Early stopping rounds:", early_stopping_rounds, "\n")
   if (length(object$extra_args)) {
     extra_args <- deparse(object$extra_args) %>%
       sub("list\\(", "", .) %>%
@@ -482,7 +490,7 @@ plot.gbt <- function(x, plots = "", nrobs = Inf,
 #' @examples
 #' result <- gbt(
 #'   titanic, "survived", c("pclass", "sex"),
-#'   early_stopping_rounds = 2, nthread = 1
+#'   early_stopping_rounds = 2, eval_set = 0.2, seed = 1234, nthread = 1
 #' )
 #' predict(result, pred_cmd = "pclass = levels(pclass)")
 #' result <- gbt(diamonds, "price", "carat:color", type = "regression", nthread = 1)
