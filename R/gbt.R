@@ -21,6 +21,7 @@
 #' @param arr Expression to arrange (sort) the data on (e.g., "color, desc(price)")
 #' @param rows Rows to select from the specified dataset
 #' @param envir Environment to extract data from
+#' @param eval_set Fraction or row indices to hold out for evaluation. Use \code{NULL} for no holdout.
 #' @param ... Further arguments to pass to xgboost
 #'
 #' @return A list with all variables defined in gbt as an object of class gbt
@@ -60,7 +61,7 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
                 nrounds = 100, early_stopping_rounds = NULL,
                 nthread = 12, wts = "None", seed = NA,
                 data_filter = "", arr = "", rows = NULL,
-                envir = parent.frame(), ...) {
+                envir = parent.frame(), eval_set = NULL, ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("gbt"))
@@ -136,7 +137,8 @@ gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
     min_child_weight = min_child_weight,
     subsample = subsample,
     early_stopping_rounds = early_stopping_rounds,
-    nthread = nthread
+    nthread = nthread,
+    eval_set = eval_set
   )
 
   ## checking for extra args

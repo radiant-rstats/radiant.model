@@ -24,6 +24,7 @@ gbt(
   arr = "",
   rows = NULL,
   envir = parent.frame(),
+  eval_set = NULL,
   ...
 )
 }
@@ -65,6 +66,8 @@ gbt(
 \item{rows}{Rows to select from the specified dataset}
 
 \item{envir}{Environment to extract data from}
+
+\item{eval_set}{Fraction or row indices to hold out for evaluation. Use \code{NULL} for no holdout.}
 
 \item{...}{Further arguments to pass to xgboost}
 }
