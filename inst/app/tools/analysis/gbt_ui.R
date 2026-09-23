@@ -301,7 +301,7 @@ output$ui_gbt <- renderUI({
             td(numericInput(
               "gbt_early_stopping_rounds",
               label = "Early stopping:", min = 1, max = 10,
-              step = 1, value = state_init("gbt_early_stopping_rounds", 3)
+              step = 1, value = state_init("gbt_early_stopping_rounds", 0)
             ), width = "50%"),
             td(numericInput(
               "gbt_seed",
