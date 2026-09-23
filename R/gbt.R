@@ -58,10 +58,10 @@
 gbt <- function(dataset, rvar, evar, type = "classification", lev = "",
                 max_depth = 6, learning_rate = 0.3, min_split_loss = 0,
                 min_child_weight = 1, subsample = 1,
-                nrounds = 100, early_stopping_rounds = NULL,
+                nrounds = 100, early_stopping_rounds = 10,
                 nthread = 12, wts = "None", seed = NA,
                 data_filter = "", arr = "", rows = NULL,
-                envir = parent.frame(), eval_set = NULL, ...) {
+                envir = parent.frame(), eval_set = 0.2, ...) {
   if (rvar %in% evar) {
     return("Response variable contained in the set of explanatory variables.\nPlease update model specification." %>%
       add_class("gbt"))
