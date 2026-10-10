@@ -1068,7 +1068,7 @@ plot.regress <- function(x, plots = "", lines = "",
 #' @param pred_cmd Command used to generate data for prediction
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
-#' @param interval Type of interval calculation ("confidence" or "prediction"). Set to "none" if se is FALSE
+#' @param interval Type of interval calculation. Use "confidence" for an interval around the mean of y given x (the default) or "prediction" for an interval around a single new value of y. Set to "none" if se is FALSE. Intervals are not available if the coefficients were standardized or centered
 #' @param dec Number of decimals to show
 #' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
@@ -1091,11 +1091,13 @@ predict.regress <- function(object, pred_data = NULL, pred_cmd = "", conf_lev = 
   if (is.character(object)) {
     return(object)
   }
+  interval_note <- ""
   if (isTRUE(se)) {
     if (isTRUE(interval == "none")) {
       se <- FALSE
     } else if ("center" %in% object$check || "standardize" %in% object$check) {
       message("Standard error calculations not supported when coefficients are centered or standardized")
+      interval_note <- "none (not available when coefficients are standardized or centered)"
       se <- FALSE
       interval <- "none"
     }
@@ -1138,6 +1140,7 @@ predict.regress <- function(object, pred_data = NULL, pred_cmd = "", conf_lev = 
 
   predict_model(object, pfun, "regress.predict", pred_data, pred_cmd, conf_lev, se, dec, envir = envir) %>%
     set_attr("radiant_interval", interval) %>%
+    set_attr("radiant_interval_note", interval_note) %>%
     set_attr("radiant_pred_data", df_name)
 }
 
@@ -1429,6 +1432,8 @@ print_predict_model <- function(x, ..., n = 10, header = "") {
 
   if (!is.empty(attr(x, "radiant_interval"), "none")) {
     cat("Interval             :", attr(x, "radiant_interval"), "\n")
+  } else if (!is.empty(attr(x, "radiant_interval_note"))) {
+    cat("Interval             :", attr(x, "radiant_interval_note"), "\n")
   }
 
   if (pred_type == "cmd") {

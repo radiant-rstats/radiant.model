@@ -1,5 +1,22 @@
 ## Resubmission
 
+This is a resubmission. In this version I added an option in the user
+interface for linear and logistic regression to select the type of interval
+to report for predictions. See NEWS.md for details
+
+## Test environments
+
+* macOS (ARM) and R 4.6.1
+* win-builder (devel)
+
+## R CMD check results
+
+There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for all radiant packages
+
+# Previous cran-comments
+
+## Resubmission
+
 This is a resubmission. Made the "pdp" package optional to avoid future issues 
 
 ## Test environments
@@ -10,8 +27,6 @@ This is a resubmission. Made the "pdp" package optional to avoid future issues
 ## R CMD check results
 
 There were no ERRORs or WARNINGs. There was one NOTE related to the number of non-standard dependencies. However, this note is not easily addressed without substantially inconveniencing users that rely on the web (shiny) interface available for all radiant packages
-
-# Previous cran-comments
 
 ## Resubmission
 

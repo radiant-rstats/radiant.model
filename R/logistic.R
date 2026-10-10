@@ -807,7 +807,7 @@ plot.logistic <- function(x, plots = "coef", conf_lev = .95,
 #' @param pred_cmd Generate predictions using a command. For example, `pclass = levels(pclass)` would produce predictions for the different levels of factor `pclass`. To add another variable, create a vector of prediction strings, (e.g., c('pclass = levels(pclass)', 'age = seq(0,100,20)')
 #' @param conf_lev Confidence level used to estimate confidence intervals (.95 is the default)
 #' @param se Logical that indicates if prediction standard errors should be calculated (default = FALSE)
-#' @param interval Type of interval calculation ("confidence" or "none"). Set to "none" if se is FALSE
+#' @param interval Type of interval calculation ("confidence" or "none"). Set to "none" if se is FALSE. Note that "prediction" is not available for logistic regression: a binary response has no residual variance of its own, so an interval for a single new value of y would be the entire 0-1 range unless the predicted probability is very close to 0 or 1. The interval shown is a confidence interval for the predicted probability
 #' @param dec Number of decimals to show
 #' @param envir Environment to extract data from
 #' @param ... further arguments passed to or from other methods
@@ -831,11 +831,24 @@ predict.logistic <- function(object, pred_data = NULL, pred_cmd = "",
   if (is.character(object)) {
     return(object)
   }
+  ## a prediction interval for a single new value of y is not meaningful for a
+  ## binary response. Unlike a linear model there is no separate residual
+  ## variance to add: the variance of y is p * (1 - p), which is already
+  ## determined by the predicted probability. A 95% interval for a single 0/1
+  ## draw is the entire 0-1 range unless p is very close to 0 or 1, which is
+  ## why predict.glm has no "prediction" option either
+  if (isTRUE(interval == "prediction")) {
+    message("Prediction intervals are not available for logistic regression. Showing a confidence interval for the predicted probability instead")
+    interval <- "confidence"
+  }
+
+  interval_note <- ""
   if (isTRUE(se)) {
     if (isTRUE(interval == "none")) {
       se <- FALSE
     } else if ("center" %in% object$check || "standardize" %in% object$check) {
       message("Standard error calculations not supported when coefficients are centered or standardized")
+      interval_note <- "none (not available when coefficients are standardized or centered)"
       se <- FALSE
       interval <- "none"
     }
@@ -886,6 +899,7 @@ predict.logistic <- function(object, pred_data = NULL, pred_cmd = "",
 
   predict_model(object, pfun, "logistic.predict", pred_data, pred_cmd, conf_lev, se, dec, envir = envir) %>%
     set_attr("radiant_interval", interval) %>%
+    set_attr("radiant_interval_note", interval_note) %>%
     set_attr("radiant_pred_data", df_name)
 }
 

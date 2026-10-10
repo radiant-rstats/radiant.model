@@ -27,7 +27,7 @@
 
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 
-\item{interval}{Type of interval calculation ("confidence" or "none"). Set to "none" if se is FALSE}
+\item{interval}{Type of interval calculation ("confidence" or "none"). Set to "none" if se is FALSE. Note that "prediction" is not available for logistic regression: a binary response has no residual variance of its own, so an interval for a single new value of y would be the entire 0-1 range unless the predicted probability is very close to 0 or 1. The interval shown is a confidence interval for the predicted probability}
 
 \item{dec}{Number of decimals to show}
 

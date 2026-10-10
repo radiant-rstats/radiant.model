@@ -8,6 +8,11 @@ reg_predict <- c(
   "Command" = "cmd",
   "Data & Command" = "datacmd"
 )
+reg_interval <- c(
+  "Confidence interval" = "confidence",
+  "Prediction interval" = "prediction",
+  "None" = "none"
+)
 reg_check <- c(
   "Standardize (1 SD)" = "standardize-1sd", "Standardize (2 SD)" = "standardize-2sd",
   "Center" = "center", "Stepwise" = "stepwise-backward", "Robust" = "robust"
@@ -102,8 +107,10 @@ reg_pred_inputs <- reactive({
     reg_pred_args$pred_data <- input$reg_pred_data
   }
 
-  ## setting value for prediction interval type
-  reg_pred_args$interval <- "confidence"
+  ## interval type is set in the UI, fall back on the default if not available
+  if (is.empty(reg_pred_args$interval)) {
+    reg_pred_args$interval <- "confidence"
+  }
 
   reg_pred_args
 })
@@ -363,6 +370,11 @@ output$ui_regress <- renderUI({
         ),
         conditionalPanel(
           condition = "input.reg_predict != 'none'",
+          selectInput(
+            "reg_interval",
+            label = "Interval:", reg_interval,
+            selected = state_single("reg_interval", reg_interval, "confidence")
+          ),
           checkboxInput("reg_pred_plot", "Plot predictions", state_init("reg_pred_plot", FALSE)),
           conditionalPanel(
             "input.reg_pred_plot == true",

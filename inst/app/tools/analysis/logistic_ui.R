@@ -5,6 +5,12 @@ logit_predict <- c(
   "Command" = "cmd",
   "Data & Command" = "datacmd"
 )
+## no prediction interval: a binary response has no residual variance of its
+## own, so an interval for a single new value of y is uninformative
+logit_interval <- c(
+  "Confidence interval" = "confidence",
+  "None" = "none"
+)
 logit_check <- c(
   "Standardize (1 SD)" = "standardize-1sd", "Standardize (2 SD)" = "standardize-2sd",
   "Center" = "center", "Stepwise" = "stepwise-backward", "Robust" = "robust"
@@ -99,8 +105,10 @@ logit_pred_inputs <- reactive({
     logit_pred_args$pred_data <- input$logit_pred_data
   }
 
-  ## setting value for prediction interval type
-  logit_pred_args$interval <- "confidence"
+  ## interval type is set in the UI, fall back on the default if not available
+  if (is.empty(logit_pred_args$interval)) {
+    logit_pred_args$interval <- "confidence"
+  }
 
   logit_pred_args
 })
@@ -408,6 +416,11 @@ output$ui_logistic <- renderUI({
         ),
         conditionalPanel(
           condition = "input.logit_predict != 'none'",
+          selectInput(
+            "logit_interval",
+            label = "Interval:", logit_interval,
+            selected = state_single("logit_interval", logit_interval, "confidence")
+          ),
           checkboxInput("logit_pred_plot", "Plot predictions", state_init("logit_pred_plot", FALSE)),
           conditionalPanel(
             "input.logit_pred_plot == true",

@@ -27,7 +27,7 @@
 
 \item{se}{Logical that indicates if prediction standard errors should be calculated (default = FALSE)}
 
-\item{interval}{Type of interval calculation ("confidence" or "prediction"). Set to "none" if se is FALSE}
+\item{interval}{Type of interval calculation. Use "confidence" for an interval around the mean of y given x (the default) or "prediction" for an interval around a single new value of y. Set to "none" if se is FALSE. Intervals are not available if the coefficients were standardized or centered}
 
 \item{dec}{Number of decimals to show}
 

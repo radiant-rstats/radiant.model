@@ -1,3 +1,9 @@
+# radiant.model 1.6.13
+
+- Added an `Interval` dropdown in the _Predict_ tab for Model > Estimate > Linear regression (OLS) to choose between a confidence interval for the mean of y (the default) and a prediction interval for a single value of y. `predict.regress` already accepted `interval = "prediction"`, but the UI always requested `"confidence"`
+- Added an `Interval` dropdown in the _Predict_ tab for Model > Estimate > Logistic regression (GLM) to choose between a confidence interval for the predicted probability (the default) and no interval. A prediction interval for a single new value of the response is not available for a binary response, and `predict.logistic` now says so and reports a confidence interval instead of labeling the output as a prediction interval
+- The _Predict_ tab now reports why no interval is shown when a model was estimated with standardized or centered coefficients
+
 # radiant.model 1.6.12
 
 - Added `Standardize (1 SD)` and `Standardize (2 SD)` options in Model > Estimate > Linear regression (OLS) and Model > Estimate > Logistic regression (GLM). In `regress` and `logistic` these correspond to `check = "standardize-1sd"` and `check = "standardize-2sd"`. `check = "standardize"` still standardizes by 2 X SD
