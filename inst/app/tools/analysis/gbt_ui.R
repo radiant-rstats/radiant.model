@@ -19,6 +19,8 @@ gbt_inputs <- reactive({
   for (i in r_drop(names(gbt_args))) {
     gbt_args[[i]] <- input[[paste0("gbt_", i)]]
   }
+  if (is.empty(gbt_args$early_stopping_rounds)) gbt_args$early_stopping_rounds <- 0
+  if (is.empty(gbt_args$eval_set)) gbt_args$eval_set <- 0
   gbt_args
 })
 
@@ -296,11 +298,16 @@ output$ui_gbt <- renderUI({
           ),
           width = "100%"
         )),
+        numericInput(
+          "gbt_eval_set",
+          label = "Evaluation fraction:", min = 0, max = 0.99, step = 0.05,
+          value = state_init("gbt_eval_set", 0.2)
+        ),
         with(tags, table(
           tr(
             td(numericInput(
               "gbt_early_stopping_rounds",
-              label = "Early stopping:", min = 1, max = 10,
+              label = "Early stopping:", min = 0, max = 10,
               step = 1, value = state_init("gbt_early_stopping_rounds", 3)
             ), width = "50%"),
             td(numericInput(
@@ -510,7 +517,6 @@ gbt_available <- reactive({
   if (is.empty(gbti$min_child_weight)) gbti$min_child_weight <- 1
   if (is.empty(gbti$subsample)) gbti$subsample <- 1
   if (is.empty(gbti$nrounds)) gbti$nrounds <- 100
-  if (is.empty(gbti$early_stopping_rounds)) gbti["early_stopping_rounds"] <- list(NULL)
 
   withProgress(
     message = "Estimating model", value = 1,
